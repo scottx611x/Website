@@ -1,0 +1,271 @@
+
+<!-- saved from url=(0017)http://webserver/ -->
+<html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><link rel="stylesheet" href="http://code.jquery.com/ui/1.11.2/themes/smoothness/jquery-ui.css">
+<script src="./PHP_Site_files/jquery-1.11.2.min.js"></script>
+<script src="./PHP_Site_files/jquery.min.js"></script>
+<script src="./PHP_Site_files/jquery.validate.js"></script>
+
+
+<script src="./PHP_Site_files/jquery-1.9.0.min.js"></script>
+<script>var $jq1 = jQuery.noConflict();</script>
+<script src="./PHP_Site_files/jquery.tablesorter.min.js"></script>
+<script>
+$jq1(document).ready(function(){
+$jq1(".tablesorter").tablesorter();
+});
+</script>
+<link rel="stylesheet" href="./PHP_Site_files/dropit.css" type="text/css">
+<script src="./PHP_Site_files/jquery-1.8.0.min.js"></script>
+<script>var $jq2 = jQuery.noConflict();</script>
+<script src="./PHP_Site_files/dropit.js"></script>
+<script>
+$jq2(document).ready(function() {
+    $jq2('.menu').dropit();
+});
+</script>
+
+
+<!--####################################################################################################################################################################################-->
+
+
+
+
+
+<meta http-equiv="Content-Type" content="text/html" charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!--   -->
+<title>Clariion WebServer @ 10.12.62.99</title>
+<link rel="stylesheet" type="text/css" href="./PHP_Site_files/styles.css">
+
+<script language="javascript" type="text/javascript">
+<!--
+function o(n, i) {
+	document.images['thumb'+n].src = 'dlf/i.php?f='+i;
+}
+function f(n) {
+	document.images['thumb'+n].src = 'dlf/trans.gif';
+}
+//-->
+</script>
+
+
+<!--<script src="snowstorm.js"></script>-->
+</head>
+<body style="zoom: 1;">
+
+<div class="wrapper">
+<div id="container">
+<div align="center" id="EMCpng"> <img class="EMCimg" src="./PHP_Site_files/EMC.png" height="200" width="200"><h1 class="wbsrvr" align="center">WebServer @ 10.12.62.99</h1></div>
+
+
+<script>
+	$( "#EMCpng" ).click(function() {
+    setTimeout(function(){window.location.href='index.php'},10);
+})
+    </script>
+<br>
+
+<div style="text-align:center;">
+<table align="center">
+<tbody><tr>
+<td>
+<div style="display:inline;"><a id="LEGENDS_OF_THE_HIDDEN_TEMPLE1" href="http://webserver/#" title="Refreshes SQL Queries from DriveLogDB.">Refresh SQL</a></div>
+</td>
+<td>
+<div style="display:inline;"><a id="LEGENDS_OF_THE_HIDDEN_TEMPLE2" href="http://webserver/#" title="Parses the html from our wiki pages for relevant data.">Scrape Wiki</a></div>
+</td>
+<td>
+<div style="display:inline;">
+<ul class="menu dropit">
+<li class="dropit-trigger">
+<a id="LEGENDS_OF_THE_HIDDEN_TEMPLE3" href="http://webserver/#" title="Dropdown Menu with list of scripts capable of being run from the Webserver">Run Scripts</a>
+<div align="center">
+<ul id="dropdown" class="dropit-submenu" style="display: none;">
+<br>
+<li><a id="L1" href="http://webserver/#" title="Script that pings all possible combinations of IPs on the 10.12.3.1 and 10.12.62.1 subnets and returns IPs that are currently in use.">Get_Hosts.py</a></li>
+<br>
+<li><a id="L2" href="http://webserver/#" title="Script that invokes the collection of SP logs and then retieves them locally.">SP_Data_Collect.py</a></li>
+<br>
+<li><a id="L3" href="http://webserver/#">--------</a></li>
+<br>
+<li><a id="L4" href="http://webserver/#">--------</a></li>
+<br>
+</ul>
+</div></li>
+</ul>
+</div>
+</td>
+</tr>
+</tbody></table>
+</div>
+<div id="IP_Form" class="hide_this" align="center" style="text-align:center;">
+
+<br>
+SP DATA COLLECT SCRIPT
+<br>
+<form id="IP_Form1" method="post" action="http://webserver/index.php?L2=true">
+<p>IP of SPA:</p><input type="text" name="IPA">
+<p>IP of SPB:</p><input type="text" name="IPB">
+<br>
+<br>
+<input id="L2_submit" type="submit">
+</form>
+
+</div>
+<br>
+<div align="center" class="Loader hide_this"><img src="./PHP_Site_files/Loader.gif"></div>
+<script>
+	$('#LEGENDS_OF_THE_HIDDEN_TEMPLE1').click(function(){
+	$('.Loader').fadeIn('slow').delay(3000);
+	$('.Loader').promise().done(function(){
+		$('.Loader').fadeOut('slow');
+});
+	setTimeout(function(){window.location.href='index.php?reload=true'},3000);
+})
+</script>
+<script>
+	$('#LEGENDS_OF_THE_HIDDEN_TEMPLE2').click(function(){
+	$('.Loader').toggleClass('hide_this');
+	$('.Loader').fadeIn('slow').delay(3000);
+	$('.Loader').promise().done(function(){
+		$('.Loader').fadeOut('slow');
+});
+	setTimeout(function(){window.location.href='index.php?update=true'},3000);
+})
+</script>
+<script>
+	$('#L1').click(function(){
+	$('.Loader').toggleClass('hide_this');
+	$('.Loader').fadeIn('slow').delay(3000);
+	$('.Loader').promise().done(function(){
+		$('.Loader').fadeOut('slow');
+});
+	setTimeout(function(){window.location.href='index.php?L1=true'},3000);
+})
+</script>
+<script>
+	$('#L2').click(function(){
+	$('#IP_Form').toggleClass('hide_this');
+	$('#IP_Form').fadeIn('slow');
+});
+</script>
+
+<div id="SQL_Wrapper">
+<div id="db" class="db"><div style="text-align:center;"><table align="center" class="tablesorter"><tbody><tr><td><div id="top_wrapper"><div id="dbquery"><div id="db_contain_title"><div id="ACTIVE_SYS" title="Displays any tests currently running in Test_Automation.">ACTIVE TESTS</div><input id="clicky1" type="submit" value="Show/Hide" title="Displays any tests currently running in Test_Automation."></div><!-- Scripts to hide dbquery on button click-->
+<script>
+$( "#clicky1" ).click(function() {
+  $( ".dbtext" ).toggleClass( "hide_this" );
+});
+</script>
+<br><div class="dbtext hide_this"><div align="center" class="dbtext hide_this">0 Tests running using Test Automation.</div><table align="center" id="dbtable" class="tablesorter" style="text-align:center; background-color:#DBE6FE;">
+</table><br></div></div></div></td><td><div id="top_wrapper1"><div id="dbquery"><div id="db_contain_title"><div id="ACTIVE_SYS" title="Displays Systems that are currently in use.">ACTIVE SYSTEMS</div><input id="clicky2" type="submit" value="Show/Hide" title="Displays Systems that are currently in use."></div><script>
+$( "#clicky2" ).click(function() {
+  $( ".dbtext2" ).toggleClass( "hide_this" );
+});
+</script>
+<br><div class="dbtext2 hide_this"><table align="center" id="dbtable" class="tablesorter" style="text-align:center; background-color:#DBE6FE;"><thead><tr class="diff"><th class="header"><br><h3>Sys Name<img src="./PHP_Site_files/arrows.png" height="10" width="10" title="Sort Column"></h3><br></th><th class="header"><br><h3>Sys Type<img src="./PHP_Site_files/arrows.png" height="10" width="10" title="Sort Column"></h3><br></th></tr></thead><tbody><tr style="background-color:#31B404"><td>86-87</td><td>CX</td></tr><tr style="background-color:#31B404"><td>KH12-01</td><td>KH</td></tr><tr style="background-color:#31B404"><td>KH12-02</td><td>KH</td></tr><tr style="background-color:#31B404"><td>KH12-03</td><td>KH</td></tr><tr style="background-color:#31B404"><td>KH12-04</td><td>KH</td></tr><tr style="background-color:#31B404"><td>KH12-05</td><td>KH</td></tr><tr style="background-color:#31B404"><td>KH12-06</td><td>KH</td></tr><tr style="background-color:#31B404"><td>KH25-01</td><td>KH</td></tr><tr style="background-color:#31B404"><td>KH25-02</td><td>KH</td></tr><tr style="background-color:#31B404"><td>KH25-04</td><td>KH</td></tr><tr style="background-color:#31B404"><td>KH25-05</td><td>KH</td></tr><tr style="background-color:#31B404"><td>KH25-06</td><td>KH</td></tr><tr style="background-color:#31B404"><td>KH12-01-HSI</td><td>KH+</td></tr><tr style="background-color:#31B404"><td>72-73</td><td>VNX</td></tr><tr style="background-color:#31B404"><td>12-13</td><td>VNX2</td></tr><tr style="background-color:#31B404"><td>54-55</td><td>VNX2</td></tr><tr style="background-color:#31B404"><td>64-65</td><td>VNX2</td></tr><tr style="background-color:#31B404"><td>84-85</td><td>VNX2</td></tr><tr style="background-color:#31B404"><td>90-91</td><td>VNX2</td></tr><tr style="background-color:#31B404"><td>92-93</td><td>VNX2</td></tr><tr style="background-color:#31B404"><td>94-95</td><td>VNX2</td></tr><tr style="background-color:#31B404"><td>Sentry-8</td><td>VNXe</td></tr><tr style="background-color:#31B404"><td>Sentry-9</td><td>VNXe</td></tr><tr style="background-color:#31B404"><td>Evergreen-6</td><td>VNXe</td></tr><tr style="background-color:#31B404"><td>Evergreen-7</td><td>VNXe</td></tr><tr style="background-color:#31B404"><td>NovalisE-3</td><td>VNXe</td></tr></tbody></table><br><br></div></div></div></td></tr></tbody></table></div></div></div><br>
+<div id="containerDB" align="center">
+  <div id="headerDB">
+  <div align="center"><h1 title="Displays info from all of our systems.">System Info:</h1><input align="center" id="clicky3" type="submit" value="Show/Hide" title="Displays info from all of our systems."></div></div>
+	<br><div class="dbtext3 hide_this"><table id="dbtable1" class="tablesorter" style="text-align:center; background-color:#DBE6FE">
+	<script>
+	$( "#clicky3" ).click(function() {
+    $( ".dbtext3" ).toggleClass( "hide_this" );
+    });
+	</script>
+	
+<thead><tr class="diff"><th class="header"><br><h3>Sys Name<img src="./PHP_Site_files/arrows.png" height="10" width="10" title="Sort Column"></h3><br></th><th class="header"><br><h3>Drive Type <img src="./PHP_Site_files/arrows.png" height="10" width="10" title="Sort Column"></h3><br></th><th class="header"><br><h3>Firmware<img src="./PHP_Site_files/arrows.png" height="10" width="10" title="Sort Column"></h3><br></th><th class="header"><br><h3>Service IPs<img src="./PHP_Site_files/arrows.png" height="10" width="10" title="Sort Column"></h3><br></th><th class="header"><br><h3>Build Ver.<img src="./PHP_Site_files/arrows.png" height="10" width="10" title="Sort Column"></h3><br></th><th class="header"><br><h3>Tester<img src="./PHP_Site_files/arrows.png" height="10" width="10" title="Sort Column"></h3><br></th><th class="header"><br><h3>Date Updated<img src="./PHP_Site_files/arrows.png" height="10" width="10" title="Sort Column"></h3><br></th><th class="header"><br><h3>System State<img src="./PHP_Site_files/arrows.png" height="10" width="10" title="Sort Column"></h3><br></th></tr></thead><tbody><tr style="background-color:#F7FE2E"><td>Sentry-1</td><td>Airwalker</td><td>AS0C</td><td>10.12.3.57/58</td><td>2.4.3.21980(D)</td><td>-----</td><td>9/16/2014</td><td>INACTIVE</td></tr><tr style="background-color:#F7FE2E"><td>Sentry-2</td><td>Megalodon</td><td>GS18</td><td>10.12.3.60/61</td><td>2.4.3.21980(D)</td><td>-----</td><td>9/16/2014</td><td>INACTIVE</td></tr><tr style="background-color:#F7FE2E"><td>Sentry-3</td><td>YellowJacket</td><td>JS09</td><td>10.12.3.63/64</td><td>2.4.3.21980(D)</td><td>-----</td><td>9/16/2014</td><td>INACTIVE</td></tr><tr style="background-color:#F7FE2E"><td>Sentry-5</td><td>Lightning SED</td><td>LE09</td><td>10.12.3.69/70</td><td>2.4.3.21980(D)</td><td>-----</td><td>9/16/2014</td><td>INACTIVE</td></tr><tr style="background-color:#F7FE2E"><td>Sentry-7</td><td>Compass SED</td><td>CE09</td><td>10.12.3.75/76</td><td>2.4.3.21980(D)</td><td>-----</td><td>9/16/2014</td><td>INACTIVE</td></tr><tr style="background-color:#31B404"><td>Sentry-8</td><td>Mantaray/Muskie+</td><td>BS11 &amp; YS1A</td><td>10.12.3.78/79</td><td>2.4.3.21980(D)</td><td>Scott O</td><td>9/17/2014</td><td>ACTIVE</td></tr><tr style="background-color:#31B404"><td>Sentry-9</td><td>Megalodon SED</td><td>GE09</td><td>10.12.3.81/82</td><td>MR4:21171</td><td>Matt B.</td><td>9/16/2014</td><td>ACTIVE</td></tr><tr style="background-color:#F7FE2E"><td>Sentry-10</td><td>-----</td><td>-----</td><td>10.12.3.84/85</td><td>2.4.3.21980(D)</td><td>-----</td><td>9/16/2014</td><td>INACTIVE</td></tr><tr style="background-color:#848482"><td>Evergreen-3</td><td>N/A</td><td>N/A</td><td>10.12.3.21/22</td><td>MR4:21171</td><td>-----</td><td>-----</td><td>DORMANT</td></tr><tr style="background-color:#848482"><td>Evergreen-4</td><td>Megalodon</td><td>GS16</td><td>10.12.3.24/25</td><td>MR4:21171</td><td>-----</td><td>9/16/2014</td><td>DORMANT</td></tr><tr style="background-color:#848482"><td>Evergreen-5</td><td>-----</td><td>-----</td><td>10.12.3.27/28</td><td>MR4:21171</td><td>-----</td><td>-----</td><td>DORMANT</td></tr><tr style="background-color:#31B404"><td>Evergreen-6</td><td>Viper-C</td><td>C7A0</td><td>10.12.3.30/31</td><td>MR4:21980(D)</td><td>Scott O.</td><td>10/20/2014</td><td>ACTIVE</td></tr><tr style="background-color:#31B404"><td>Evergreen-7</td><td>Mantaray/Muskie+</td><td>YS1A/PS11</td><td>10.12.3.33/34</td><td>MR4:21980(D)</td><td>Matt B.</td><td>12/03/2014</td><td>ACTIVE</td></tr><tr style="background-color:#F7FE2E"><td>Evergreen-8</td><td>Empty</td><td>-----</td><td>10.12.3.36/37</td><td>MR4:21171</td><td>Matt B.</td><td>9/16/2014</td><td>INACTIVE</td></tr><tr style="background-color:#848482"><td>NovalisE-1</td><td>RDX SLC</td><td>DC0D</td><td>10.12.3.141/142</td><td>MR4:20932</td><td>-----</td><td>9/16/2014</td><td>DORMANT</td></tr><tr style="background-color:#848482"><td>NovalisE-2</td><td>P410</td><td>B328/2521</td><td>10.12.3.144/145</td><td>MR4:20932</td><td>-----</td><td>-----</td><td>DORMANT</td></tr><tr style="background-color:#31B404"><td>NovalisE-3</td><td>King Cobra-F</td><td>C3E0</td><td>10.12.3.147/148</td><td>2.4.3.21980(D)</td><td>Matt B.</td><td>9/27/2014</td><td>ACTIVE</td></tr><tr style="background-color:#848482"><td>NovalisE-4</td><td>Lightning SED</td><td>LE09</td><td>10.12.3.150/151</td><td>MR4:21171</td><td>-----</td><td>9/16/2014</td><td>DORMANT</td></tr><tr style="background-color:#F7FE2E"><td>NovalisE-5</td><td>King Cobra-F</td><td>C3E0</td><td>10.12.3.165/166</td><td>MR4:21171</td><td>Matt B.</td><td>9/16/2014</td><td>INACTIVE</td></tr><tr style="background-color:#F7FE2E"><td>NovalisE-6</td><td>-----</td><td>-----</td><td>10.12.3.156/157</td><td>MR4:21171</td><td>-----</td><td>9/16/2014</td><td>INACTIVE</td></tr><tr style="background-color:#F7FE2E"><td>NovalisE-7</td><td>King Cobra-F</td><td>C3E0</td><td>10.12.3.159/160</td><td>2.4.3.21980(D)</td><td>Matt B.</td><td>9/27/2014</td><td>INACTIVE</td></tr><tr style="background-color:#848482"><td>NovalisE-8</td><td>-----</td><td>-----</td><td>10.12.3.162/163</td><td>MR4:20932</td><td>-----</td><td>9/16/2014</td><td>DORMANT</td></tr><tr style="background-color:#31B404"><td>KH12-01</td><td>RDX SLC 100GB</td><td>DC0H</td><td>10.12.3.209/210</td><td>3.0.1.3513260(D)</td><td>Scott O.</td><td>9/16/2014</td><td>ACTIVE</td></tr><tr style="background-color:#31B404"><td>KH12-02</td><td>RDX SLC 200GB</td><td>DC0H</td><td>10.12.3.212/213</td><td>3.0.1.3513260(D)</td><td>Scott O.</td><td>9/16/2014</td><td>ACTIVE</td></tr><tr style="background-color:#31B404"><td>KH12-03</td><td>Megalodon</td><td>GS18</td><td>10.12.3.253/254</td><td>3.0.1.3513260(D)</td><td>Scott O.</td><td>12/15/2014</td><td>ACTIVE</td></tr><tr style="background-color:#31B404"><td>KH12-04</td><td>Megalodon</td><td>GS18</td><td>10.12.3.21/22</td><td>3.0.1.3513260(D)</td><td>Scott O.</td><td>12/15/2014</td><td>ACTIVE</td></tr><tr style="background-color:#31B404"><td>KH12-05</td><td>RDX MLC</td><td>DM0N</td><td>10.12.3.162/163</td><td>3.0.1.3513260(D)</td><td>Scott O.</td><td>10/2/2014</td><td>ACTIVE</td></tr><tr style="background-color:#31B404"><td>KH12-06</td><td>King Cobra-F</td><td>C3E0</td><td>10.12.3.27/28</td><td>3.0.1.3513260(D)</td><td>Matt B</td><td>9/16/2014</td><td>ACTIVE</td></tr><tr style="background-color:#F7FE2E"><td>KH12-07</td><td>King Cobra-F</td><td>C3E0</td><td>10.12.3.215/216</td><td>3.0.1.3513260(D)</td><td>Matt B</td><td>9/16/2014</td><td>INACTIVE</td></tr><tr style="background-color:#31B404"><td>KH25-01</td><td>RDX SLC</td><td>DC0H</td><td>10.12.3.66/67</td><td>3.0.1.3513260(D)</td><td>Matt B</td><td>12/4/2014</td><td>ACTIVE</td></tr><tr style="background-color:#31B404"><td>KH25-02</td><td>RDX SLC</td><td>DC0H</td><td>10.12.3.156/157</td><td>3.0.1.3513260(D)</td><td>Matt B</td><td>12/4/2014</td><td>ACTIVE</td></tr><tr style="background-color:#F7FE2E"><td>KH25-03</td><td>Micron P410</td><td>0327/2514</td><td>10.12.3.153/154</td><td>3.0.1.3513260(D)</td><td>Matt B</td><td>9/16/2014</td><td>INACTIVE</td></tr><tr style="background-color:#31B404"><td>KH25-04</td><td>YellowJacket</td><td>JS0A</td><td>10.12.3.144/145</td><td>3.0.1.3513260(D)</td><td>Matt B</td><td>9/16/2014</td><td>ACTIVE</td></tr><tr style="background-color:#31B404"><td>KH25-05</td><td>900GB Lightning</td><td>LS1C</td><td>10.12.3.141/142</td><td>3.0.1.3513260(D)</td><td>Matt B.</td><td>10/2/2014</td><td>ACTIVE</td></tr><tr style="background-color:#31B404"><td>KH25-06</td><td>King Cobra-F</td><td>C3E0</td><td>10.12.3.235/236</td><td>3.0.1.3513260(D)</td><td>Matt B</td><td>9/16/2014</td><td>ACTIVE</td></tr><tr style="background-color:#F7FE2E"><td>KH25-07</td><td>King Cobra-F</td><td>C3E4</td><td>10.12.3.24/25</td><td>3.0.1.3513260(D)</td><td>-----</td><td>9/16/2014</td><td>INACTIVE</td></tr><tr style="background-color:#31B404"><td>KH12-01-HSI</td><td>YellowJacket</td><td>JS0A</td><td>10.12.3.117/118</td><td>3.1.1.4425757(D)</td><td>-----</td><td>9/16/2014</td><td>ACTIVE</td></tr><tr style="background-color:#F7FE2E"><td>KH25-01-HSI</td><td>-----</td><td>-----</td><td>10.12.3.124/125</td><td>3.1.1.4425757(D)</td><td>-----</td><td>9/16/2014</td><td>INACTIVE</td></tr><tr style="background-color:#31B404"><td>12-13</td><td>Makara</td><td>MN0D</td><td>10.12.62.12/13</td><td>05.330.007.1.022</td><td>Matt B.</td><td>12/02/2014</td><td>ACTIVE</td></tr><tr style="background-color:#31B404"><td>54-55</td><td>RDX SLC</td><td>DC0H</td><td>10.12.62.54/55</td><td>05.33.000.5.051</td><td>Scott O.</td><td>9/16/2014</td><td>ACTIVE</td></tr><tr style="background-color:#F7FE2E"><td>58-59</td><td>Optimus/Megalodon</td><td>EP0V/GS18</td><td>10.12.62.58/59</td><td>-----</td><td>Scott O.</td><td>10/21/2014</td><td>INACTIVE</td></tr><tr style="background-color:#31B404"><td>64-65</td><td>Makara</td><td>MN0D</td><td>10.12.62.64/65</td><td>05.330.007.1.022</td><td>Matt B.</td><td>12/03/2014</td><td>ACTIVE</td></tr><tr style="background-color:#31B404"><td>84-85</td><td>P410M</td><td>0327-2514</td><td>10.12.62.84/85</td><td>05.330.007.3.014</td><td>Scott O.</td><td>12/02/2014</td><td>ACTIVE</td></tr><tr style="background-color:#31B404"><td>90-91</td><td>YellowJacket(2.5")</td><td>JS0A</td><td>10.12.62.90/91</td><td>-----</td><td>Rafael P.</td><td>9/16/2014</td><td>ACTIVE</td></tr><tr style="background-color:#31B404"><td>92-93</td><td>RDX SLC(2.5")</td><td>DC0H</td><td>10.12.62.92/93</td><td>05.330.007.3.016</td><td>Matt B.</td><td>9/16/2014</td><td>ACTIVE</td></tr><tr style="background-color:#31B404"><td>94-95</td><td>RDX MLC(2.5")</td><td>DM0N</td><td>10.12.62.94/95</td><td>05.33.000.5.051</td><td>Matt B.</td><td>12/5/2014</td><td>ACTIVE</td></tr><tr style="background-color:#F7FE2E"><td>44-45</td><td>Megalodon</td><td>GS18</td><td>10.12.62.44/45</td><td>05.32.000.3.795</td><td>Matt B.</td><td>10/17/2014</td><td>INACTIVE</td></tr><tr style="background-color:#31B404"><td>72-73</td><td>RDX SLC</td><td>DC0H</td><td>10.12.62.52/53</td><td>-----</td><td>Scott O.</td><td>9/16/2014</td><td>ACTIVE</td></tr><tr style="background-color:#31B404"><td>86-87</td><td>Megalodon</td><td>GS18</td><td>10.12.62.86/87</td><td>04.30.000.5.526</td><td>Scott O.</td><td>9/16/2014</td><td>ACTIVE</td></tr></tbody></table>
+
+	  <br></div></div><br>
+
+  <div id="listingcontainer">
+    <div id="listingheader"> 
+    <!--FILE EXPLORER-->
+    <div align="center"><h1 title="Browse the Webserver&#39;s File Structure">File Explorer:</h1><img src="./PHP_Site_files/harddrive.png" height="50" width="50"><h2>315.56 GB Free of 349.9 GB</h2><br></div><a href="http://webserver/index.php"><img class="Homeimg" src="./PHP_Site_files/HOME.png" height="20" width="20" title="Return to Root Directory"></a> <div id="breadcrumbs"> 
+   </div>
+  <br>
+  <br>
+	<div id="headerfile"><a href="http://webserver/index.php?dir=&sort=name&order=desc">File</a></div>
+	<div id="headersize"><a href="http://webserver/index.php?dir=&sort=size&order=asc">Size</a></div>
+	<div id="headermodified"><a href="http://webserver/index.php?dir=&sort=date&order=asc">Last Modified</a></div>
+	</div>
+    <div id="listing" align="c">
+		<div><a href="http://webserver/index.php?dir=Clariion_Firmware%2F" class="b"><img src="./PHP_Site_files/folder.png" alt="Clariion_Firmware/"><strong>Clariion_Firmware/</strong> <em>-</em> Dec 15 2014 08:51:59 PM</a></div>
+		<div><a href="http://webserver/index.php?dir=Scripts%2F" class="w"><img src="./PHP_Site_files/folder.png" alt="Scripts/"><strong>Scripts/</strong> <em>-</em> Oct 13 2014 02:36:04 PM</a></div>
+		<div><a href="http://webserver/index.php?dir=Test_Automation%2F" class="b"><img src="./PHP_Site_files/folder.png" alt="Test_Automation/"><strong>Test_Automation/</strong> <em>-</em> Oct 13 2014 02:57:50 PM</a></div>
+		<div><a href="http://webserver/index.php?dir=Useful_Files%2F" class="w"><img src="./PHP_Site_files/folder.png" alt="Useful_Files/"><strong>Useful_Files/</strong> <em>-</em> Jan 05 2015 07:59:47 PM</a></div>
+	</div>
+			</div>
+	<br>
+	<div align="center" id="File_Ops_container"><div align="center"><h1 title="CREATE/DELETE/UPLOAD">File Operations:</h1></div><strong id="CurDir">Current Directory is: /</strong>
+	<div align="center">
+	<table cellpadding"10"="" cellspacing="10" ;="">
+	<tbody><tr>
+	<td>
+	<div id="upload" align="center">
+		<div id="uploadtitle" align="center">
+		<br>
+			<strong>File Upload</strong>
+				
+		
+					</div>
+		<div id="uploadcontent" align="center">
+		<br>
+						
+			<form method="post" action="http://webserver/index.php?dir=" enctype="multipart/form-data">
+			<input id="Fileinput" type="file" name="file"> <br><br><input type="submit" value="Upload File" title="Upload a file to the current directory">
+			</form>
+					</div>
+	</div>
+	</td>
+	<td>
+	<div id="mkdir" align="center">
+	<div id="mkdirtitle" align="center">
+	<br>
+		<strong>Create Directory</strong>
+			
+		<br>
+				</div>
+		<div id="mkdircontent" align="center">
+		<br>	
+		
+		<form method="post" action="">
+		
+		<input type="text" name="file_name" placeholder="Enter New Directory Name:"><br><br> <input type="submit" value="Make Directory!" title="Create a new directory">
+		</form>
+		</div>
+		</div>
+		</td>
+		<td>
+		<div id="rmdir" align="center">
+		<div id="rmdirtitle" align="center">
+		<br>
+		<strong>Remove Directory</strong>
+			
+		<br>
+		
+		<strong style="color:red; font-size:10px;">CANT DELETE MAIN DIRECTORIES!!!</strong>		</div>
+		<div id="rmdircontent" align="center">
+		<br>	
+		
+		<form method="post" action="">
+		
+		<input type="text" name="rm_name" placeholder="Enter Directory to delete:"><br><br> <input type="submit" value="Remove Directory!" title="Delete a directory (as long as it&#39;s permissions allow)">
+		</form>
+		</div>
+		</div>
+		
+		</td>
+		</tr>
+		</tbody></table>
+		</div>
+		</div>
+	<footer id="copy" style="padding-top:10px"><a href="http://www.scott-ouellette.com/">Scott Ouellette ©2015</a></footer>
+	<footer id="copy" style="padding-top:5px"><p><a href="mailto:Scott.Ouellette@emc.com">Email: Scott.Ouellette@emc.com</a> </p></footer>
+  </div>
+</div>
+
+<br>
+
+
+</body></html>
