@@ -34,8 +34,8 @@ html{
 #MoiChild
 {
     position: relative;
-    top: 50%;
-    transform:translateY(50%);
+    top: 30%;
+    transform:translateY(30%);
 }
 .tilt:hover {
     -webkit-filter: none;
