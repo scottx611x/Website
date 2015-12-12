@@ -1,3 +1,3 @@
-##All Code for my personal site:##
+##My Personal Website##
 
-www.scott-ouellette.com
+#www.scott-ouellette.com#
