@@ -2,81 +2,82 @@
     <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
     <meta name="viewport" content="width=device-width" />
     <link href='http://fonts.googleapis.com/css?family=Raleway:300' rel='stylesheet' type='text/css'>
-    <link rel="stylesheet" type="text/css" media="all" href="Animations.css" />
-    <link rel="stylesheet" type="text/css" media="all" href="Styles.css" />
-    <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.2/themes/smoothness/jquery-ui.css" />
-    <link rel="stylesheet" type="text/css" media="all" href="transitions.css" />
+    <link rel="stylesheet" type="text/css" href="Styles.css" />
     <link rel="stylesheet" type="text/css" href="ihover.min.css">
-    <link rel="stylesheet" href="idd-zoom.css">
-
-    <script type="text/javascript">
-            ! function(d, s, id) {
-                var js, fjs = d.getElementsByTagName(s)[0],
-                    p = /^http:/.test(d.location) ? 'http' : 'https';
-                if (!d.getElementById(id)) {
-                    js = d.createElement(s);
-                    js.id = id;
-                    js.src = p + '://platform.twitter.com/widgets.js';
-                    fjs.parentNode.insertBefore(js, fjs);
-                }
-            }(document, 'script', 'twitter-wjs');
-            </script>
+    <link rel="stylesheet" type="text/css" href="pace.css" />
+    <script type="text/javascript" src="pace.min.js"></script>
+    <style type="text/css">
+    <!--
+        body { 
+         margin: 0px;
+         }
+    -->
+    </style>
 </head>
 
 <html>
 <title>Scott's Webpage</title>
-
 <body>
-   
-    <div style="text-align:center;">
-        <div id="MoiContainer">
-            <br>
-            <br>
-            <div class="ih-item circle colored effect19">
+    <img class="test tilt-effect" data-tilt-options='{ "opacity" : 0.6, "extraImgs" : 4, "movement": { "perspective" : 1000, "translateX" : 15, "translateY" : 0, "translateZ" : 10, "rotateX" : 3, "rotateY" : 4, "rotateZ" : 1 } }' src="bg3.png" height="100%" width="100%">
+
+    <div id="MoiContainer" class = "cool" style="text-align:center;">
+        <div id="MoiChild">
+            <div id="One" class="ih-item circle colored effect19" >
                 <a href="#">
-                    <div class="img"><img src="new.png" alt="img"></div>
+                    <div class="img pool">
+                        <img src="new.png" alt="img">
+                    </div>
                     <div class="info">
                         <h3>Scott <br> Ouellette</h3>
                         <p>Computer Scientist and Web Developer</p>
                     </div>
                 </a>
-
             </div>
-            <br><br>
-            <div id="Moi2">
+            <br>
+            <div id="Moi2" >
                 <a href="https://github.com/scottx611x">
-                    <img id="GITHUB" src="Images/Github.png" />
+                    <img class="pool" id="GITHUB" src="Images/Github.png"/>
                 </a>
                 <a href="http://www.linkedin.com/pub/scott-ouellette/69/2b/209/">
-                    <img id="LINKEDIN" src="Images/Linkedin.png" />
+                    <img class="pool" id="LINKEDIN" src="Images/Linkedin.png"/>
                 </a>
                 <a href="https://twitter.com/Scott_Ouellette">
-                    <img id="TWITTER" src="Images/Twitter.png" />
+                    <img class="pool" id="TWITTER" src="Images/Twitter.png"/>
                 </a>
                 <a href="https://www.facebook.com/scott.ouellette1">
-                    <img id="FACEBOOK" src="Images/fb.png" />
+                    <img class="pool" id="FACEBOOK" src="Images/fb.png"/>
                 </a>
-                <a href="http://instagram.com/scottylago11">
-                    <img id="INSTAGRAM" src="Images/Instagram.png" />
+                <a href="http://instagram.com/scottyouellette11">
+                    <img class="pool" id="INSTAGRAM" src="Images/Instagram.png"/>
                 </a>
             </div>
             <br>
-            
-            <div id="Moi3">
-                <a id="Twitter" href="https://twitter.com/Scott_Ouellette" class="twitter-follow-button" data-show-count="false">Follow @Scott_Ouellette</a>
+            <br>
+            <div id="copy" class="text-muted" >
+                &copy; 2014
+                <script>
+                    new Date().getFullYear() > 2014 && document.write("-"+new Date().getFullYear());
+                </script>, Scott Ouellette
+                <br><br>
+                Hosted on a 
+                <br>
+                <a href="https://www.raspberrypi.org">
+                    <br>
+                    <img class="pool" id="RPI" src="/assets/img/rpi.png" height="3%" />
+                </a>
             </div>
-            <br>
-            <br>
         </div>
+    </div>
+<script type="text/javascript" src="jquery-1.11.3.min.js"></script>
+<script type="text/javascript" src="jquery-ui.min.js"></script>
+<script type="text/javascript" src="tiltfx.js"></script>
 
-        <footer id = "footer" class="text-muted">&copy; 2014<script>new Date().getFullYear()>2014&&document.write("-"+new Date().getFullYear());</script>, Scott Ouellette - Hosted on a <a href="https://www.raspberrypi.org"> <img id="RPI" src="/assets/img/rpi.png" height="25px"/></a>
-        </footer>
-        
-    <script type="text/javascript" src="jquery-1.11.3.min.js"></script>
-<script type="text/javascript" async src="idd-zoom.js"></script>
-<script type="text/javascript" async src="jquery-ui.min.js"></script>
-<script type="text/javascript" async src="jquery.easings.min.js"></script>
-<script type="text/javascript" async src="pace.min.js"></script>
+<script type="text/javascript">
+window.onload = function(){
+  // When the page has loaded
+  $("body").fadeIn(2000);
+};
+</script>
 </body>
 
 </html>
