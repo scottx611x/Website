@@ -32,7 +32,7 @@ for index, line in enumerate(data):
 # SMTP SETUP
 SERVER = "smtp.gmail.com"
 FROM = "scottx611x@gmail.com"
-TO = ["Scott_Ouellette@hms.harvard.edu"]
+TO = ["Scott_Ouellette@hms.harvard.edu", "Youngsook_Jung@hms.harvard.edu"]
 
 SUBJECT = "ORCHESTRA DATA USAGE FOR PARK LAB: %s" % time.strftime("%m/%d/%Y")
 
