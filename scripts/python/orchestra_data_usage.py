@@ -22,14 +22,13 @@ try:
 
 except Exception as e:
     print "Something went wrong", e
-print "Ssh connected!"
+
 for index, line in enumerate(data):
     if "/n/data1/hms/dbmi/park [g]" in line:
         things = re.findall(r'[/].+[/]{0,}\s', line)
         if things:
             park_lab[things[0].split("]")[0] + "]"] = {'usage':re.split('\s+',data[index + 3])[2], 'warning':re.split('\s+',data[index + 3])[3], 'limit':re.split('\s+',data[index + 3])[4]}
-print "Data Crunched!"
-print park_lab
+
 # SMTP SETUP
 SERVER = "smtp.gmail.com"
 FROM = "scottx611x@gmail.com"
@@ -50,7 +49,6 @@ Subject: %s
 
 %s
 """ % (FROM, ", ".join(TO), SUBJECT, TEXT)
-print "Mail Prepared!"
 
 # Send the mail
 s = smtplib.SMTP(SERVER, 587)
