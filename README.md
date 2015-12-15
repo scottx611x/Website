@@ -2,4 +2,4 @@
 
 #www.scott-ouellette.com#
 
-https://giant.gfycat.com/LimpingBarrenHochstettersfrog.gif
+![alt tag](https://giant.gfycat.com/LimpingBarrenHochstettersfrog.gif)
