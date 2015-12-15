@@ -2,12 +2,26 @@ import re
 import time
 import smtplib
 import paramiko
+from slacker import Slacker
+import plotly.plotly as py
+import plotly.graph_objs as go
+from plotly.graph_objs import Figure
+import humanfriendly
 
-ssh = paramiko.SSHClient()
-ssh.load_system_host_keys()
+# Return file size in human readable format
+def sizeof_fmt(num, suffix=''):
+    for unit in ['','K','M','G','T','P','E','Z']:
+        if abs(num) < 1024.0:
+            return "%3.1f%s%s" % (num, unit, suffix)
+        num /= 1024.0
+    return "%.1f%s%s" % (num, 'Y', suffix)
 
 with open('config') as f:
   credentials = [x.strip() for x in f.readlines()]
+
+slack = Slacker(credentials[1])
+ssh = paramiko.SSHClient()
+ssh.load_system_host_keys()
 
 data = []
 park_lab = {}
@@ -29,31 +43,22 @@ for index, line in enumerate(data):
         if things:
             park_lab[things[0].split("]")[0] + "]"] = {'usage':re.split('\s+',data[index + 3])[2], 'warning':re.split('\s+',data[index + 3])[3], 'limit':re.split('\s+',data[index + 3])[4]}
 
-# SMTP SETUP
-SERVER = "smtp.gmail.com"
-FROM = "scottx611x@gmail.com"
-TO = ["Scott_Ouellette@hms.harvard.edu", "Youngsook_Jung@hms.harvard.edu"]
+# Populate and create plotly graph
+figure = {
+    'data': [{'labels': [
+                    'Used Space: ' + park_lab['/n/data1/hms/dbmi/park [g]']['usage'],
+                    'Free Space: ' + sizeof_fmt(humanfriendly.parse_size(park_lab['/n/data1/hms/dbmi/park [g]']['limit']) - humanfriendly.parse_size(park_lab['/n/data1/hms/dbmi/park [g]']['usage']))
+                ],
+              'values': [
+                    humanfriendly.parse_size(park_lab['/n/data1/hms/dbmi/park [g]']['usage']),  
+                    humanfriendly.parse_size(park_lab['/n/data1/hms/dbmi/park [g]']['limit']) - humanfriendly.parse_size(park_lab['/n/data1/hms/dbmi/park [g]']['usage'])
+                ],
+              'type': 'pie'}],
+    'layout': {'title': 'ORCHESTRA DATA USAGE FOR PARK LAB: ' + time.strftime("%m/%d/%Y")}
+}
 
-SUBJECT = "ORCHESTRA DATA USAGE FOR PARK LAB: %s" % time.strftime("%m/%d/%Y")
+# Plot graph
+url = py.plot(figure, filename='DataUsage' + time.strftime("%m/%d/%Y"))
 
-TEXT = ""
-TEXT += '\n/n/data1/hms/dbmi/park [g]   USAGE: ' + park_lab['/n/data1/hms/dbmi/park [g]']['usage']
-TEXT += '\n/n/data1/hms/dbmi/park [g] WARNING: ' + park_lab['/n/data1/hms/dbmi/park [g]']['warning']
-TEXT += '\n/n/data1/hms/dbmi/park [g]   LIMIT: ' + park_lab['/n/data1/hms/dbmi/park [g]']['limit']
-
-# Prepare actual message
-message = """\
-From: %s
-To: %s
-Subject: %s
-
-%s
-""" % (FROM, ", ".join(TO), SUBJECT, TEXT)
-
-# Send the mail
-s = smtplib.SMTP(SERVER, 587)
-s.starttls()
-s.ehlo() 
-s.login('scottx611x@gmail.com', credentials[0]) 
-s.sendmail(FROM, TO, message)
-s.quit()
+# Post Message to slack channel
+slack.chat.post_message('#orchestra_data_usage', url, as_user=True)
