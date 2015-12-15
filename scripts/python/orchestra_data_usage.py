@@ -16,7 +16,7 @@ def sizeof_fmt(num, suffix=''):
         num /= 1024.0
     return "%.1f%s%s" % (num, 'Y', suffix)
 
-with open('config') as f:
+with open('/var/www/Website/scripts/python/config') as f:
   credentials = [x.strip() for x in f.readlines()]
 
 slack = Slacker(credentials[1])
