@@ -1,5 +1,5 @@
-##My Personal Website##
+![alt tag](https://raw.githubusercontent.com/scottx611x/Website/master/scripts/python/Site.gif)
 
-#www.scott-ouellette.com#
+#__www.scott-ouellette.com__#
 
-![alt tag](https://giant.gfycat.com/LimpingBarrenHochstettersfrog.gif)
+
