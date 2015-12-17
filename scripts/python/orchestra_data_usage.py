@@ -20,6 +20,8 @@ with open('/var/www/Website/scripts/python/config') as f:
   credentials = [x.strip() for x in f.readlines()]
 
 slack = Slacker(credentials[1])
+# slack_parlab = Slacker(credentials[2])
+
 ssh = paramiko.SSHClient()
 ssh.load_system_host_keys()
 
