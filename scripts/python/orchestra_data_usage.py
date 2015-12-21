@@ -63,10 +63,16 @@ with open("test.txt", "r") as t:
         park_lab_home[x[2]] =  x[1]
 
 # --- Populate and create plotly graph --- 
+labels = ["%s:%s" % (item, park_lab_home[item]) for item in park_lab_home]
+labels.append('Free Space:' + sizeof_fmt(humanfriendly.parse_size(park_lab['/n/data1/hms/dbmi/park [g]']['limit']) - humanfriendly.parse_size(park_lab['/n/data1/hms/dbmi/park [g]']['usage'])))
+
+values = [humanfriendly.parse_size(park_lab_home[item]) for item in park_lab_home]
+values.append(humanfriendly.parse_size(park_lab['/n/data1/hms/dbmi/park [g]']['limit']) - humanfriendly.parse_size(park_lab['/n/data1/hms/dbmi/park [g]']['usage']))
+
 figure = {
     'data': [{
-                'labels': ["%s:%s" % (item, park_lab_home[item]) for item in park_lab_home],
-                'values': [humanfriendly.parse_size(park_lab_home[item]) for item in park_lab_home],
+                'labels': labels,
+                'values': values, 
                 "hoverinfo":"label+percent",
                 'textinfo':'label+percent',
                 'textposition':"inside",
@@ -80,7 +86,7 @@ figure = {
                 'type': 'pie'
             }],
     'layout': {
-        'title': 'ORCHESTRA DATA USAGE FOR PARKLAB WEEK OF: ' + time.strftime("%m/%d/%Y"),
+        'title': 'ORCHESTRA DATA USAGE FOR PARKLAB (Limit:%s) %s' % (sizeof_fmt(humanfriendly.parse_size(park_lab['/n/data1/hms/dbmi/park [g]']['limit'])), time.strftime("%m/%d/%Y"))
     }
 }
 # --- Plot graph --- 
@@ -89,7 +95,7 @@ url = py.plot(figure, filename='DataUsage' + time.strftime("%m/%d/%Y"))
 # --- Post Message to slack channel ---
 
 # --- ParkLab Slack --- 
-slack.chat.post_message('#orchestra_data_usage', url, as_user=True)
+slack.chat.post_message('#orchestra_data_usage', "Interactive Graph -> "+url+".embed", as_user=True)
 
 # --- Your Slack --- 
-# slack.chat.post_message('#general', url, as_user=True)
+# slack.chat.post_message('#general', "Interactive Graph -> "+url+".embed", as_user=True)
