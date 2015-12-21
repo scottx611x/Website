@@ -92,8 +92,10 @@ figure = {
 # --- Plot graph --- 
 url = py.plot(figure, filename='DataUsage' + time.strftime("%m/%d/%Y"))
 
-# --- Post Message to slack channel ---
+# --- Save Static Image ---
+py.image.save_as(figure, 'DataUsageParkLab.png')
 
+# --- Post Message to slack channel ---
 # --- ParkLab Slack --- 
 slack.chat.post_message('#orchestra_data_usage', "Interactive Graph -> "+url+".embed", as_user=True)
 
