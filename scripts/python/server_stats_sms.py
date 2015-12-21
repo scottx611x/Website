@@ -3,8 +3,11 @@ import urllib2
 import os, re
 from twilio.rest import TwilioRestClient
 
-account = "ACf32cd2d770cbd8cd06d5afbe15f6e8ff"
-token = "5a6ae3725b71657b0cdffd28cf9f50fd"
+with open('/var/www/Website/scripts/python/config') as f:
+  credentials = [x.strip() for x in f.readlines()]
+
+account = credentials[3]
+token = credentials[4]
 client = TwilioRestClient(account, token)
 
 msg = "www.scott-ouellette.com " + u'\U0001F4BB'
