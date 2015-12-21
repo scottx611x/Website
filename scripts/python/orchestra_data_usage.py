@@ -34,7 +34,7 @@ with open('/var/www/Website/scripts/python/config') as f:
 # slack = Slacker(credentials[1])
 
 # --- ParkLab Slack creds --- 
-slack_park_lab = Slacker(credentials[2])
+slack = Slacker(credentials[2])
 
 ssh = paramiko.SSHClient()
 ssh.load_system_host_keys()
