@@ -40,6 +40,7 @@ ssh = paramiko.SSHClient()
 ssh.load_system_host_keys()
 
 data = []
+data2 = []
 park_lab = {}
 park_lab_home = {}
 
@@ -49,6 +50,13 @@ stdin, stdout, stderr = ssh.exec_command("quota /n/data1/hms/dbmi/park")
 stdin.close()
 for line in stdout.read().splitlines():
     data.append(line)
+
+'''
+stdin, stdout, stderr = ssh.exec_command("less /groups/shared_databases/rcbio/report/report_for_so108.txt")
+stdin.close()
+for line in stdout.read().splitlines():
+    data2.append(line)
+'''
 
 for index, line in enumerate(data):
     if "/n/data1/hms/dbmi/park [g]" in line:
