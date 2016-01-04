@@ -30,11 +30,11 @@ def sizeof_fmt(num, suffix=''):
 with open('/var/www/Website/scripts/python/config') as f:
   credentials = [x.strip() for x in f.readlines()]
 
-# --- Your Slack creds --- 
-# slack = Slacker(credentials[1])
-
 # --- ParkLab Slack creds --- 
-slack = Slacker(credentials[2])
+# slack = Slacker(credentials[2])
+
+# --- Your Slack creds --- 
+slack = Slacker(credentials[1])
 
 ssh = paramiko.SSHClient()
 ssh.load_system_host_keys()
@@ -51,12 +51,11 @@ stdin.close()
 for line in stdout.read().splitlines():
     data.append(line)
 
-'''
+# --- Execute command to find individual users data usage ---
 stdin, stdout, stderr = ssh.exec_command("less /groups/shared_databases/rcbio/report/report_for_so108.txt")
 stdin.close()
 for line in stdout.read().splitlines():
     data2.append(line)
-'''
 
 for index, line in enumerate(data):
     if "/n/data1/hms/dbmi/park [g]" in line:
@@ -64,11 +63,21 @@ for index, line in enumerate(data):
         if things:
             park_lab[things[0].split("]")[0] + "]"] = {'usage':re.split('\s+',data[index + 3])[2], 'warning':re.split('\s+',data[index + 3])[3], 'limit':re.split('\s+',data[index + 3])[4]}
 
-# --- Fetch the sample data given from HMS-RC --- 
-with open("test.txt", "r") as t:
-    for line in t:
-        x = re.split('\s+', line) 
-        park_lab_home[x[2]] =  x[1]
+# --- Create file with user data ---
+with open("/var/www/Website/scripts/python/user_data.txt", "w+") as f:
+    for index, line in enumerate(data2):
+        if "user" in line:
+            try:
+                x = re.split('\s+', line) 
+                f.write("{1}    {0}{2}".format(x[2],line.split(")")[1].strip(), "\n"))
+            except IndexError:
+                pass
+                
+# --- Use the created data --- 
+with open("/var/www/Website/scripts/python/user_data.txt", "r") as f:
+    for line in f:
+        x = re.split('\s+', line)
+        park_lab_home[x[1]] =  x[0]
 
 # --- Populate and create plotly graph --- 
 labels = ["%s:%s" % (item, park_lab_home[item]) for item in park_lab_home]
@@ -105,7 +114,7 @@ py.image.save_as(figure, 'DataUsageParkLab.png')
 
 # --- Post Message to slack channel ---
 # --- ParkLab Slack --- 
-slack.chat.post_message('#orchestra_data_usage', "Interactive Graph -> "+url+".embed", as_user=True)
+# slack.chat.post_message('#orchestra_data_usage', "Interactive Graph -> "+url+".embed", as_user=True)
 
 # --- Your Slack --- 
-# slack.chat.post_message('#general', "Interactive Graph -> "+url+".embed", as_user=True)
+slack.chat.post_message('#general', "Interactive Graph -> "+url+".embed", as_user=True)
