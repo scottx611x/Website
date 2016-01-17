@@ -1,85 +1,121 @@
+<!DOCTYPE html>
+
 <head>
     <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
-    <meta name="viewport" content="width=device-width" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
     <link href='http://fonts.googleapis.com/css?family=Raleway:300' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="assets/css/bootstrap.min.css" />
     <link rel="stylesheet" type="text/css" href="assets/css/Styles.css" />
     <link rel="stylesheet" type="text/css" href="assets/css/ihover.min.css">
     <link rel="stylesheet" type="text/css" href="assets/css/pace.css" />
+    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" />
     <script type="text/javascript" src="assets/js/pace.min.js"></script>
     <style type="text/css">
-    <!--
-        body { 
-         margin: 0px;
-         }
+    <!-- body {
+        margin: 0px;
+    }
     -->
     </style>
 </head>
 
-<html>
+<html lang="en">
 <title>Scott's Webpage</title>
-<body>
-    <img class="test tilt-effect" data-tilt-options='{ "opacity" : 0.6, "extraImgs" : 4, "movement": { "perspective" : 1000, "translateX" : 15, "translateY" : 0, "translateZ" : 10, "rotateX" : 3, "rotateY" : 4, "rotateZ" : 1 } }' src="assets/img/bg3.png" height="100%" width="100%">
+<div class="page-wrap">
+        <body>
+            <img class="test tilt-effect" data-tilt-options='{ "opacity" : 0.6, "extraImgs" : 4, "movement": { "perspective" : 1000, "translateX" : 15, "translateY" : 0, "translateZ" : 10, "rotateX" : 3, "rotateY" : 4, "rotateZ" : 1 } }' src="assets/img/bg3.png" height="100%" width="100%">
 
-    <div id="MoiContainer" class = "cool" style="text-align:center;">
-        <div id="MoiChild">
-        <div class="pool" style="display: inline-block;">
-            <div id="One" class="ih-item circle colored effect19" >
-                <a href="#">
-                    <div class="img pool">
-                        <img src="assets/img/new.png" alt="img">
+            <div class="container-fluid">
+                <nav class="menu">
+                    <input type="checkbox" href="#" class="menu-open" name="menu-open" id="menu-open" />
+                    <label class="menu-open-button" for="menu-open">
+                        <span class="hamburger hamburger-1"></span>
+                        <span class="hamburger hamburger-2"></span>
+                        <span class="hamburger hamburger-3"></span>
+                    </label>
+
+                    <a class="menu-item" href="https://github.com/scottx611x">
+                        <img id="GITHUB" src="assets/img/Github.png" />
+                    </a>
+                    <a class="menu-item" href="http://www.linkedin.com/pub/scott-ouellette/69/2b/209/">
+                        <img id="LINKEDIN" src="assets/img/Linkedin.png" />
+                    </a>
+                    <a class="menu-item" href="https://twitter.com/Scott_Ouellette">
+                        <img id="TWITTER" src="assets/img/Twitter.png" />
+                    </a>
+                    <a class="menu-item" href="https://www.facebook.com/scott.ouellette1">
+                        <img id="FACEBOOK" src="assets/img/fb.png" />
+                    </a>
+                    <a class="menu-item" href="http://instagram.com/scottyouellette11">
+                        <img id="INSTAGRAM" src="assets/img/Instagram.png" />
+                    </a>
+                </nav>
+
+                <!-- filters -->
+                <svg xmlns="http://www.w3.org/2000/svg" version="1.1">
+                    <defs>
+                        <filter id="shadowed-goo">
+
+                            <feGaussianBlur in="SourceGraphic" result="blur" stdDeviation="10" />
+                            <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 18 -7" result="goo" />
+                            <feGaussianBlur in="goo" stdDeviation="3" result="shadow" />
+                            <feColorMatrix in="shadow" mode="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 1 -0.2" result="shadow" />
+                            <feOffset in="shadow" dx="1" dy="1" result="shadow" />
+                            <feComposite in2="shadow" in="goo" result="goo" />
+                            <feComposite in2="goo" in="SourceGraphic" result="mix" />
+                        </filter>
+                        <filter id="goo">
+                            <feGaussianBlur in="SourceGraphic" result="blur" stdDeviation="10" />
+                            <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 18 -7" result="goo" />
+                            <feComposite in2="goo" in="SourceGraphic" result="mix" />
+                        </filter>
+                    </defs>
+                </svg>
+
+                <div id="MoiContainer" class="cool center-block" style="text-align:center;">
+                    <div id="MoiChild" class="center-block">
+                        <div class="pool" style="display: inline-block;">
+                            <div id="One" class="ih-item circle colored effect19">
+                                <a href="#">
+                                    <div class="img pool">
+                                        <img id="Moi" src="assets/img/new.png" alt="img">
+                                    </div>
+                                    <div class="info">
+                                        <h3>Scott <br> Ouellette</h3>
+                                        <p>Computer Scientist & Web Developer</p>
+                                    </div>
+                                </a>
+                            </div>
+                        </div>
                     </div>
-                    <div class="info">
-                        <h3>Scott <br> Ouellette</h3>
-                        <p>Computer Scientist and Web Developer</p>
-                    </div>
-                </a>
+                </div>
             </div>
-            <br>
-            <div id="Moi2">
-                <a href="https://github.com/scottx611x">
-                    <img id="GITHUB" src="assets/img/Github.png"/>
-                </a>
-                <a href="http://www.linkedin.com/pub/scott-ouellette/69/2b/209/">
-                    <img id="LINKEDIN" src="assets/img/Linkedin.png"/>
-                </a>
-                <a href="https://twitter.com/Scott_Ouellette">
-                    <img id="TWITTER" src="assets/img/Twitter.png"/>
-                </a>
-                <a href="https://www.facebook.com/scott.ouellette1">
-                    <img id="FACEBOOK" src="assets/img/fb.png"/>
-                </a>
-                <a href="http://instagram.com/scottyouellette11">
-                    <img id="INSTAGRAM" src="assets/img/Instagram.png"/>
-                </a>
-            </div>
-        </div>
-            <br>
-            <br>
-            <div id="copy" class="text-muted" >
-                &copy; 2014
-                <script>
-                    new Date().getFullYear() > 2014 && document.write("-"+new Date().getFullYear());
-                </script>, Scott Ouellette
-                <br><br>
-                Hosted on a 
-                <br>
-                <a href="https://www.raspberrypi.org">
-                    <br>
-                    <img class="pool" id="RPI" src="/assets/img/rpi.png" height="3%" />
-                </a>
-            </div>
-        </div>
     </div>
+</div>
+
+</body>
+<div id="footer">
+    <br>
+    <div id="copy" class="text-muted">
+        &copy; 2014
+        <script>
+        new Date().getFullYear() > 2014 && document.write("-" + new Date().getFullYear());
+        </script>, Scott Ouellette
+        <p>Hosted on a
+            <a href="https://www.raspberrypi.org">
+                <img class="pool" id="RPI" src="/assets/img/rpi.png" height="30px" />
+            </a>
+        </p>
+
+    </div>
+</div>
 <script type="text/javascript" src="assets/js/jquery-1.11.3.min.js"></script>
 <script type="text/javascript" src="assets/js/jquery-ui.min.js"></script>
+<script type="text/javascript" src="assets/js/bootstrap.min.js"></script>
 <script type="text/javascript" src="assets/js/tiltfx.js"></script>
 
 <script type="text/javascript">
-window.onload = function(){
-  // When the page has loaded
-  $("body").fadeIn(2000);
-};
+    $(document).ready(function(){
+    $('.page-wrap').fadeIn();
+});
 </script>
-</body>
-
 </html>
