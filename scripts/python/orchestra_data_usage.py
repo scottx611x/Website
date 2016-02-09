@@ -11,6 +11,7 @@ __email__ = "Scott_Ouellette@hms.harvard.edu"
 
 import re
 import time
+from datetime import date, timedelta
 import smtplib
 import paramiko
 from slacker import Slacker
@@ -18,6 +19,8 @@ import plotly.plotly as py
 import plotly.graph_objs as go
 from plotly.graph_objs import Figure
 import humanfriendly
+from datadiff import diff
+
 
 # --- Return file size in human readable format --- 
 def sizeof_fmt(num, suffix=''):
@@ -27,14 +30,14 @@ def sizeof_fmt(num, suffix=''):
         num /= 1024.0
     return "%.1f%s%s" % (num, 'Y', suffix)
 
-with open('/var/www/Website/scripts/python/config') as f:
+with open('/var/www/html/Website/scripts/python/config') as f:
   credentials = [x.strip() for x in f.readlines()]
 
 # --- ParkLab Slack creds --- 
-# slack = Slacker(credentials[2])
+slack = Slacker(credentials[2])
 
 # --- Your Slack creds --- 
-slack = Slacker(credentials[1])
+# slack = Slacker(credentials[1])
 
 ssh = paramiko.SSHClient()
 ssh.load_system_host_keys()
@@ -43,6 +46,9 @@ data = []
 data2 = []
 park_lab = {}
 park_lab_home = {}
+
+# Add ssh host if missing
+ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
 # --- SSH into Orchestra and run quota command --- 
 ssh.connect("orchestra.med.harvard.edu", username="so108", password=credentials[0])
@@ -64,7 +70,7 @@ for index, line in enumerate(data):
             park_lab[things[0].split("]")[0] + "]"] = {'usage':re.split('\s+',data[index + 3])[2], 'warning':re.split('\s+',data[index + 3])[3], 'limit':re.split('\s+',data[index + 3])[4]}
 
 # --- Create file with user data ---
-with open("/var/www/Website/scripts/python/user_data.txt", "w+") as f:
+with open("/var/www/html/Website/scripts/python/%s_user_data.txt" % date.today(), "w+") as f:
     for index, line in enumerate(data2):
         if "user" in line:
             try:
@@ -74,10 +80,33 @@ with open("/var/www/Website/scripts/python/user_data.txt", "w+") as f:
                 pass
                 
 # --- Use the created data --- 
-with open("/var/www/Website/scripts/python/user_data.txt", "r") as f:
+with open("/var/www/html/Website/scripts/python/%s_user_data.txt" % date.today(), "r") as f:
     for line in f:
         x = re.split('\s+', line)
         park_lab_home[x[1]] =  x[0]
+
+this_week = {}
+last_week = {}
+with open("/var/www/html/Website/scripts/python/%s_user_data.txt" % date.today()) as f:
+    for line in f:
+       (key, val) = line.split()
+       this_week[key] = val
+
+seven_days_ago = date.today() - timedelta(days=7)
+
+# Try opening last weeks file
+try:
+    with open("/var/www/html/Website/scripts/python/%s_user_data.txt" % seven_days_ago, "r") as f:
+        for line in f:
+           (key, val) = line.split()
+           last_week[key] = val
+except Exception as e:
+    print "Could not open last week's data. It may not exist!"
+
+
+# Log differences in directories week to week 
+with open("/var/www/html/Website/scripts/python/%s_data_diff.txt" % date.today(), "w+") as f:
+    f.write(diff(this_week,last_week).stringify())
 
 # --- Populate and create plotly graph --- 
 labels = ["%s:%s" % (item, park_lab_home[item]) for item in park_lab_home]
@@ -106,15 +135,19 @@ figure = {
         'title': 'ORCHESTRA DATA USAGE FOR PARKLAB (Limit:%s) %s' % (sizeof_fmt(humanfriendly.parse_size(park_lab['/n/data1/hms/dbmi/park [g]']['limit'])), time.strftime("%m/%d/%Y"))
     }
 }
-# --- Plot graph --- 
-url = py.plot(figure, filename='DataUsage' + time.strftime("%m/%d/%Y"))
 
+# --- Plot graph --- 
+try:
+    url = py.plot(figure, filename='DataUsage' + str(date.today()))
+except Exception as e:
+    print e
 # --- Save Static Image ---
 py.image.save_as(figure, 'DataUsageParkLab.png')
 
 # --- Post Message to slack channel ---
 # --- ParkLab Slack --- 
-# slack.chat.post_message('#orchestra_data_usage', "Interactive Graph -> "+url+".embed", as_user=True)
+slack.chat.post_message('#orchestra_data_usage', "Interactive Graph -> "+url+".embed", as_user=True)
 
 # --- Your Slack --- 
-slack.chat.post_message('#general', "Interactive Graph -> "+url+".embed", as_user=True)
+# slack.chat.post_message('#general', "Interactive Graph -> "+url+".embed", as_user=True)
+
