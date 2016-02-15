@@ -47,7 +47,7 @@ def handle_request():
                 toaddrs  = 'scottx611x@gmail.com'
                 cc = ['Scott_Ouellette@hms.harvard.edu']
 		
-		msg = "Subject: Pizza Order" 
+		msg = "Subject: Pizza Order\r\n" 
                 msg +=  "CC: %s\r\n" % ",".join(cc)
                 msg += '''
 Hello,
