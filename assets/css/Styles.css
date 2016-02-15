@@ -1,6 +1,14 @@
 a {
     text-decoration: none;
 }
+html { 
+  overflow-y:hidden;
+  visibility:hidden; 
+}
+.load_text{
+  font-family: "Raleway";
+  color: #fff;
+}
 html,
 body {
   height: 100%;
@@ -363,12 +371,38 @@ and (max-width : 384px) {
     #MoiContainer{
         margin-top:-4px;
     }
+    .ih-item.circle{
+        position:relative;
+        width:250px;
+        height:250px;
+        border-radius:50%;
+    }
+
+    .ih-item.circle .img{
+        position:relative;
+        width:250px;
+        height:250px;
+        border-radius:50%;
+    }
 }
 /* Nexus 6 (portrait) ----------- */
 @media only screen 
 and (max-width : 412px) {
     #MoiContainer{
         margin-top:-110px;
+    }
+    .ih-item.circle{
+        position:relative;
+        width:250px;
+        height:250px;
+        border-radius:50%;
+    }
+
+    .ih-item.circle .img{
+        position:relative;
+        width:250px;
+        height:250px;
+        border-radius:50%;
     }
 }
 
@@ -378,6 +412,19 @@ and (max-width : 375px) {
     #MoiContainer{
         margin-top:-90px;
     }
+    .ih-item.circle{
+        position:relative;
+        width:250px;
+        height:250px;
+        border-radius:50%;
+    }
+
+    .ih-item.circle .img{
+        position:relative;
+        width:250px;
+        height:250px;
+        border-radius:50%;
+    }
 }
 /* Nexus 5 (portrait) ----------- */
 @media only screen 
@@ -385,11 +432,37 @@ and (max-width : 360px) {
     #MoiContainer{
         margin-top:-100px;
     }
+    .ih-item.circle{
+        position:relative;
+        width:250px;
+        height:250px;
+        border-radius:50%;
+    }
+
+    .ih-item.circle .img{
+        position:relative;
+        width:250px;
+        height:250px;
+        border-radius:50%;
+    }
 }
 /* Iphone 4/5 (portrait) ----------- */
 @media only screen 
 and (max-width : 320px) {
     #MoiContainer{
-        margin-top:-130px;
+        margin-top:-100px;
+    }
+    .ih-item.circle{
+        position:relative;
+        width:225px;
+        height:225px;
+        border-radius:50%;
+    }
+
+    .ih-item.circle .img{
+        position:relative;
+        width:225px;
+        height:225px;
+        border-radius:50%;
     }
 }

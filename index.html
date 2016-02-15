@@ -3,26 +3,66 @@
 <head>
     <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-    <link href='http://fonts.googleapis.com/css?family=Raleway:300' rel='stylesheet' type='text/css'>
-    <link rel="stylesheet" type="text/css" href="assets/css/bootstrap.min.css" />
     <link rel="stylesheet" type="text/css" href="assets/css/Styles.css" />
+    <link href='http://fonts.googleapis.com/css?family=Raleway:300' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="node_modules/please-wait/build/please-wait.css" />
+    <link rel="stylesheet" type="text/css" href="assets/css/bootstrap.min.css" />
     <link rel="stylesheet" type="text/css" href="assets/css/ihover.min.css">
-    <link rel="stylesheet" type="text/css" href="assets/css/pace.css" />
     <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" />
-    <script type="text/javascript" src="assets/js/pace.min.js"></script>
     <style type="text/css">
     <!-- body {
         margin: 0px;
     }
     -->
+    .spinner {
+      width: 40px;
+      height: 40px;
+
+      position: relative;
+      margin: 100px auto;
+    }
+
+    .double-bounce1, .double-bounce2 {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      background-color: #333;
+      opacity: 0.6;
+      position: absolute;
+      top: 0;
+      left: 0;
+      
+      -webkit-animation: sk-bounce 2.0s infinite ease-in-out;
+      animation: sk-bounce 2.0s infinite ease-in-out;
+    }
+
+    .double-bounce2 {
+      -webkit-animation-delay: -1.0s;
+      animation-delay: -1.0s;
+    }
+
+    @-webkit-keyframes sk-bounce {
+      0%, 100% { -webkit-transform: scale(0.0) }
+      50% { -webkit-transform: scale(1.0) }
+    }
+
+    @keyframes sk-bounce {
+      0%, 100% { 
+        transform: scale(0.0);
+        -webkit-transform: scale(0.0);
+      } 50% { 
+        transform: scale(1.0);
+        -webkit-transform: scale(1.0);
+      }
+    }
     </style>
 </head>
 
-<html lang="en">
+<html lang="en" class = "inner">
 <title>Scott's Webpage</title>
 <div class="page-wrap">
         <body>
-            <img class="test tilt-effect" data-tilt-options='{ "opacity" : 0.6, "extraImgs" : 4, "movement": { "perspective" : 1000, "translateX" : 15, "translateY" : 0, "translateZ" : 10, "rotateX" : 3, "rotateY" : 4, "rotateZ" : 1 } }' src="assets/img/bg3.png" height="100%" width="100%">
+            <img class="test tilt-effect" data-tilt-options='{ "opacity" : 0.6, "movement": { "perspective" : 1500, "translateX" : 10, "translateY" : 10, "translateZ" : 2, "rotateX" : 3, "rotateY" : 3 } }' src="assets/img/bg3.png" height="100%" width="100%">
 
             <div class="container-fluid">
                 <nav class="menu">
@@ -89,9 +129,8 @@
                     </div>
                 </div>
             </div>
-    </div>
+        </div>
 </div>
-
 </body>
 <div id="footer">
     <br>
@@ -105,17 +144,30 @@
                 <img class="pool" id="RPI" src="/assets/img/rpi.png" height="30px" />
             </a>
         </p>
-
     </div>
 </div>
+
+
+<script type="text/javascript" src="node_modules/please-wait/build/please-wait.min.js"></script>
+
+<script type="text/javascript">
+      window.loading_screen = window.pleaseWait({
+        logo: "/assets/img/new_bw.png",
+        backgroundColor: '#000',
+        loadingHtml: "<h2 class='load_text'>Welcome to <br> scott-ouellette.com</h2><div class='spinner'><div class='double-bounce1'></div><div class='double-bounce2'></div></div>"
+      });
+       
+    </script>
 <script type="text/javascript" src="assets/js/jquery-1.11.3.min.js"></script>
 <script type="text/javascript" src="assets/js/jquery-ui.min.js"></script>
 <script type="text/javascript" src="assets/js/bootstrap.min.js"></script>
 <script type="text/javascript" src="assets/js/tiltfx.js"></script>
 
 <script type="text/javascript">
-    $(document).ready(function(){
-    $('.page-wrap').fadeIn();
-});
+    window.onload = function() {
+        window.loading_screen;
+        document.getElementsByTagName("html")[0].style.visibility = "visible";
+        setTimeout(function(){ window.loading_screen.finish(); }, 2000);
+    };
 </script>
 </html>
