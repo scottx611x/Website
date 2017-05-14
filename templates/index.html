@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/Styles.css') }}"/>
+    <link href='http://fonts.googleapis.com/css?family=Raleway:300' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/bootstrap.min.css') }}" />
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/ihover.min.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/font-awesome.min.css') }}" />
+</head>
+
+<html lang="en" class = "inner">
+<title>Scott's Webpage</title>
+<div class="page-wrap">
+        <body>
+            <img class="test tilt-effect" data-tilt-options='{ "opacity" : 0.6, "movement": { "perspective" : 1500, "translateX" : 10, "translateY" : 10, "translateZ" : 2, "rotateX" : 3, "rotateY" : 3 } }' src="{{ url_for('static', filename='img/bg3.png') }}" height="100%" width="100%">
+
+            <div class="container-fluid">
+                <nav class="menu">
+                    <input type="checkbox" href="#" class="menu-open" name="menu-open" id="menu-open" />
+                    <label class="menu-open-button" for="menu-open">
+                        <span class="hamburger hamburger-1"></span>
+                        <span class="hamburger hamburger-2"></span>
+                        <span class="hamburger hamburger-3"></span>
+                    </label>
+
+                    <a class="menu-item" href="https://github.com/scottx611x">
+                        <img id="GITHUB" src="{{ url_for('static', filename='img/Github.png') }}" />
+                    </a>
+                    <a class="menu-item" href="http://www.linkedin.com/pub/scott-ouellette/69/2b/209/">
+                        <img id="LINKEDIN" src="{{ url_for('static', filename='img/Linkedin.png') }}" />
+                    </a>
+                    <a class="menu-item" href="https://twitter.com/Scott_Ouellette">
+                        <img id="TWITTER" src="{{ url_for('static', filename='img/Twitter.png') }}" />
+                    </a>
+                    <a class="menu-item" href="https://www.facebook.com/scott.ouellette1">
+                        <img id="FACEBOOK" src="{{ url_for('static', filename='img/fb.png') }}"/>
+                    </a>
+                    <a class="menu-item" href="http://instagram.com/scottyouellette11">
+                        <img id="INSTAGRAM" src="{{ url_for('static', filename='img/Instagram.png') }}"/>
+                    </a>
+                </nav>
+
+                <!-- filters -->
+                <svg xmlns="http://www.w3.org/2000/svg" version="1.1">
+                    <defs>
+                        <filter id="shadowed-goo">
+
+                            <feGaussianBlur in="SourceGraphic" result="blur" stdDeviation="10" />
+                            <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 18 -7" result="goo" />
+                            <feGaussianBlur in="goo" stdDeviation="3" result="shadow" />
+                            <feColorMatrix in="shadow" mode="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 1 -0.2" result="shadow" />
+                            <feOffset in="shadow" dx="1" dy="1" result="shadow" />
+                            <feComposite in2="shadow" in="goo" result="goo" />
+                            <feComposite in2="goo" in="SourceGraphic" result="mix" />
+                        </filter>
+                        <filter id="goo">
+                            <feGaussianBlur in="SourceGraphic" result="blur" stdDeviation="10" />
+                            <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 18 -7" result="goo" />
+                            <feComposite in2="goo" in="SourceGraphic" result="mix" />
+                        </filter>
+                    </defs>
+                </svg>
+
+                <div id="MoiContainer" class="cool center-block" style="text-align:center;">
+                    <div id="MoiChild" class="center-block">
+                        <div class="pool" style="display: inline-block;">
+                            <div id="One" class="ih-item circle colored effect19">
+                                <a href="#">
+                                    <div class="img pool">
+                                        <img id="Moi" src="{{ url_for('static', filename='img/new.png') }}" alt="img">
+                                    </div>
+                                    <div class="info">
+                                        <h3>Scott <br> Ouellette</h3>
+                                        <p>Computer Scientist & Web Developer</p>
+                                    </div>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+</div>
+</body>
+<div id="footer" class="cool">
+    <br>
+    <div id="copy" class="text-muted">
+        &copy; 2014
+        <script>
+        new Date().getFullYear() > 2014 && document.write("-" + new Date().getFullYear());
+        </script>, Scott Ouellette
+        <p>Hosted on a serverless infrastructure using
+            <a class="pool" href="https://github.com/Miserlou/Zappa">Zappa</a>
+        </p>
+    </div>
+</div>
+
+<script type="text/javascript" src="{{ url_for('static', filename='js/jquery-1.11.3.min.js') }}"></script>
+<script type="text/javascript" src="{{ url_for('static', filename='js/jquery-ui.min.js') }}"></script>
+<script type="text/javascript" src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script>
+<script type="text/javascript" src="{{ url_for('static', filename='js/tiltfx.js') }}"></script>
+
+</html>
