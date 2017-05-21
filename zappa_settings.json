@@ -2,7 +2,6 @@
     "production": {
         "app_function": "index.app",
 	    "aws_region": "us-east-1",	
-        "profile_name": "scottx611x@gmail.com", 
         "s3_bucket": "zappa-07o9oo7ix",
 		"lets_encrypt_key": "s3://zappa-certify-creds/account.key",
 		"domain": "www.scott-ouellette.com",
