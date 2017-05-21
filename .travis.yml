@@ -1,0 +1,8 @@
+language: python 
+python: '2.7'  
+after_success: 
+  - pip install -r requirements.txt 
+  - zappa update
+notifications:
+  email:
+    on_success: never
