@@ -17,6 +17,15 @@
 <title>Scott's Webpage</title>
 <div class="page-wrap">
     <body>
+        <div id="nav" class="dropdown">
+          <button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown">Pick a background effect
+          <span class="caret"></span></button>
+          <ul class="dropdown-menu">
+            <li><a href="/collision">Collision Detection</a></li>
+            <li><a href="/tilt-shift">Tilt Shift</a></li>
+            <li><a href="/voronoi">Voronoi Diagram</a></li>
+          </ul>
+        </div>
         {% block background %}
         {% endblock %}
         <div class="container-fluid">
