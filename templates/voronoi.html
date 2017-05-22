@@ -1,0 +1,16 @@
+{% extends 'index.html' %}
+
+{% block css %}
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/voronoi.css') }}"/>
+{% endblock %}
+{% block background %}
+    <div id="voronoi">
+      <img class="back" src="{{ url_for('static', filename='img/bg3.png') }}" height="100%" width="100%">
+      <svg class="svg" height="100%" width="100%"></svg>
+    </div>
+{% endblock %}
+
+{% block js %}
+<script src="https://d3js.org/d3.v4.min.js"></script>
+<script type="text/javascript" src="{{ url_for('static', filename='js/voronoi.js') }}"></script>
+{% endblock %}

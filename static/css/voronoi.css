@@ -1,0 +1,34 @@
+#voronoi {
+  height: 100%;
+  width: 100%;
+  z-index: -1;
+  position: absolute;
+  pointer-events:all;
+}
+.links {
+      stroke: #fff;
+      stroke-opacity: 0.2;
+    }
+.polygons {
+  fill: grey;
+  opacity: .5;
+  stroke: #fff;
+}
+
+.polygons :first-child  {
+    fill: none;
+    opacity: 0;
+}
+
+.sites {
+  fill: #fff;
+  stroke: #fff;
+}
+
+.sites :first-child {
+  fill: #fff;
+}
+.back{
+    z-index: -1;
+    position: absolute;
+}
