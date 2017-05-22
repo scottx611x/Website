@@ -1,0 +1,22 @@
+{% extends 'index.html' %}
+
+{% block background %}
+    <img 
+        class="test tilt-effect" 
+        data-tilt-options='{ 
+        "opacity" : 0.6, 
+        "movement": { 
+            "perspective" : 1500, 
+            "translateX" : 10, 
+            "translateY" : 10, 
+            "translateZ" : 2, 
+            "rotateX" : 3, 
+            "rotateY" : 3 
+          } 
+        }' 
+        src="{{ url_for('static', filename='img/bg3.png') }}" height="100%" width="100%">
+{% endblock %}
+
+{% block js %}
+<script type="text/javascript" src="{{ url_for('static', filename='js/tiltfx.js') }}"></script>
+{% endblock %}
