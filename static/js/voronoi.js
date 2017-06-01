@@ -4,7 +4,7 @@ $( document ).ready(function() {
     height = window.innerHeight;
     width = window.innerWidth;
 
-    var sites = d3.range(100)
+    var sites = d3.range(50)
         .map(function(d) { return [Math.random() * width, Math.random() * height]; });
 
     var voronoi = d3.voronoi()
