@@ -1,0 +1,23 @@
+#poisson-disc {
+  height: 100%;
+  width: 100%;
+  z-index: -1;
+  position: absolute;
+  pointer-events:all;
+}
+
+#poisson-background {
+    height: 100%;
+    width: 100%;
+    visibility: hidden;
+    position: absolute;
+}
+
+canvas {
+    height: 145%;
+    width: 145%;
+}
+
+html {
+    overflow-x: hidden;
+}

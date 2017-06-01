@@ -6,7 +6,7 @@ from flask import render_template
 app = Flask(__name__)
 app.debug = True
 
-templates = ["collision", "tilt-shift", "voronoi"]
+templates = ["collision", "poisson-disc", "tilt-shift", "voronoi"]
 
 
 # Route to choose a random template on a site visit
@@ -27,6 +27,11 @@ def collision():
 @app.route('/tilt-shift', methods=['GET'])
 def tiltshift():
     return render_template("tilt-shift.html")
+
+
+@app.route('/poisson-disc', methods=['GET'])
+def poisson_disc():
+    return render_template("poisson-disc.html")
 
 
 @app.route('/voronoi', methods=['GET'])
