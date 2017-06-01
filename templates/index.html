@@ -5,10 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 	<link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico')}}">
     <link href='https://fonts.googleapis.com/css?family=Raleway:300' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/font-awesome.min.css') }}" />
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/Styles.css') }}"/>
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/bootstrap.min.css') }}" />
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/ihover.min.css') }}">
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/font-awesome.min.css') }}" />
     {% block css %}
     {% endblock %}
 </head>
@@ -18,12 +18,39 @@
 <div class="page-wrap">
     <body>
         <div id="nav" class="dropdown">
-          <button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown">Pick a background effect
-          <span class="caret"></span></button>
+          <button class="btn btn-success dropdown-toggle" type="button" data-toggle="dropdown">
+            Choose a
+            <br>background effect
+            <span class="caret"></span>
+          </button>
           <ul class="dropdown-menu">
-            <li><a href="/collision">Collision Detection</a></li>
-            <li><a href="/tilt-shift">Tilt Shift</a></li>
-            <li><a href="/voronoi">Voronoi Diagram</a></li>
+            <li>
+                <a class="main-link" href="/collision"> 
+                    <span>
+                        <i id='collision-source' class="fa fa-link source-link" data-toggle="tooltip" data-placement="right" title="Open effect's source">
+                        </i>
+                    </span>
+                    Collision Detection
+                </a>
+            </li>
+            <li>
+                <a class="main-link" href="/poisson-disc">
+                    <span><i id='poisson-disc-source' class="fa fa-link source-link" data-toggle="tooltip" data-placement="right" title="Open effect's source"></i></span>
+                    Poisson Disc
+                </a>
+            </li>
+            <li>
+                <a class="main-link" href="/tilt-shift">
+                    <span><i id='tilt-shift-source' class="fa fa-link source-link" data-toggle="tooltip" data-placement="right" title="Open effect's source"></i></span>
+                    Tilt Shift
+                </a>
+            </li>
+            <li>
+                <a class="main-link" href="/voronoi">
+                    <span><i id='voronoi-source' class="fa fa-link source-link" data-toggle="tooltip" data-placement="right" title="Open effect's source"></i></span>
+                    Voronoi Diagram
+                </a>
+            </li>
           </ul>
         </div>
         {% block background %}
@@ -110,8 +137,15 @@
 
 <script type="text/javascript" src="{{ url_for('static', filename='js/jquery-1.11.3.min.js') }}"></script>
 <script type="text/javascript" src="{{ url_for('static', filename='js/jquery-ui.min.js') }}"></script>
+<script type="text/javascript" src="{{ url_for('static', filename='js/tether.min.js') }}"></script>
 <script type="text/javascript" src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script>
 {% block js %}
 {% endblock %}
+{% include 'source-handlers.html' %}
 {% include 'ga.html' %}
+<script type="text/javascript">
+    $(function () {
+      $('[data-toggle="tooltip"]').tooltip()
+    })
+</script>
 </html>

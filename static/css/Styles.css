@@ -2,16 +2,22 @@ a {
     text-decoration: none;
 }
 #nav {
+  padding: 5px;
   position: absolute;
   pointer-events:all;
-
+}
+.source-link {
+  padding-right: 5px;
+  z-index: 9999;
+}
+.main-link:focus, .main-link:hover {
+  text-decoration: underline !important;
+}
+.source-link:focus, .source-link:hover {
+  text-decoration: underline;
 }
 html { 
   overflow-y:hidden;
-}
-.load_text{
-  font-family: "Raleway";
-  color: #fff;
 }
 html,
 body {
