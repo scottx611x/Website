@@ -1,6 +1,6 @@
 language: python 
 python: '2.7'  
-script: echo "What tests? 🐶"
+script: python tests.py
 after_success: 
   - pip install -r requirements.txt 
   - zappa update
