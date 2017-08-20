@@ -3,7 +3,7 @@ python: '2.7'
 script: echo "What tests? 🐶"
 after_success: 
   - pip install -r requirements.txt 
-  - zappa update -s zappa_settings_travis.json
+  - zappa -s zappa_settings_travis.json update 
 notifications:
   email:
     on_success: never
