@@ -1,6 +1,7 @@
 {
     "production": {
-        "app_function": "index.app", 
+        "app_function": "index.app",
+	"timeout_seconds": 300,
         "profile_name": "scottx611x@gmail.com", 
         "s3_bucket": "zappa-0206au0bc",
 		"lets_encrypt_key": "s3://zappa-certify-creds/account.key",
