@@ -5,5 +5,5 @@ after_success:
   - pip install -r requirements.txt 
   - zappa update
 notifications:
-  email:
-    on_success: never
+  email: scottx611x@gmail.com
+  on_success: never
