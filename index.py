@@ -37,3 +37,6 @@ def poisson_disc():
 @app.route('/voronoi', methods=['GET'])
 def voronoi():
     return render_template("voronoi.html")
+
+if __name__ == "__main__":
+    app.run()
