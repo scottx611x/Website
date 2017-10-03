@@ -5,6 +5,7 @@ script:
   - coverage run tests.py
 after_success: 
   - if [ "$TRAVIS_BRANCH" = "master" -a "$TRAVIS_PULL_REQUEST" = "false" ]; then zappa update; fi
+  - codecov
 notifications:
   email: scottx611x@gmail.com
   on_success: never
