@@ -17,7 +17,7 @@ def index():
         '{}.html'.format(
             random.choice(templates)
         ),
-        background_image="bg3.png"
+        background_image=BACKGROUND_IMAGE
     )
 
 
