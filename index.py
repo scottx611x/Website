@@ -34,6 +34,3 @@ def tiltshift():
 @app.route('/voronoi', methods=['GET'])
 def voronoi():
     return render_template("voronoi.html", background_image=BACKGROUND_IMAGE)
-
-if __name__ == "__main__":
-    app.run()
