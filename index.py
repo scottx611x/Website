@@ -7,7 +7,7 @@ app = Flask(__name__)
 app.debug = True
 
 BACKGROUND_IMAGE = "fall.jpg"
-templates = ["collision", "poisson-disc", "tilt-shift", "voronoi"]
+templates = ["collision", "tilt-shift", "voronoi"]
 
 
 # Route to choose a random template on a site visit
