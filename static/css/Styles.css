@@ -153,16 +153,6 @@ body{
     opacity: 0.95;
     
 }
-#FACEBOOK:hover {
-    background: white;
-    opacity: 1;
-    
-}
-#FACEBOOK:hover:after {
-    background: white;
-    opacity: 0.95;
-    
-}
 #INSTAGRAM:hover {
     background: white;
     opacity: 1;
@@ -275,16 +265,16 @@ border-radius:50%}
 }
 
 .menu-open:checked + .menu-open-button .hamburger-1 {
-  -webkit-transform: translate3d(0, 0, 0) rotate(45deg);
-          transform: translate3d(0, 0, 0) rotate(45deg);
+  -webkit-transform: translate3d(0, 0, 0) rotate(60deg);
+          transform: translate3d(0, 0, 0) rotate(60deg);
 }
 .menu-open:checked + .menu-open-button .hamburger-2 {
   -webkit-transform: translate3d(0, 0, 0) scale(0.1, 1);
           transform: translate3d(0, 0, 0) scale(0.1, 1);
 }
 .menu-open:checked + .menu-open-button .hamburger-3 {
-  -webkit-transform: translate3d(0, 0, 0) rotate(-45deg);
-          transform: translate3d(0, 0, 0) rotate(-45deg);
+  -webkit-transform: translate3d(0, 0, 0) rotate(-60deg);
+          transform: translate3d(0, 0, 0) rotate(-60deg);
 }
 .col-center{
   margin:0 auto;
