@@ -7,12 +7,12 @@
 }
 .links {
       stroke: #fff;
-      stroke-opacity: 0.2;
+      stroke-opacity: 0.9;
     }
 .polygons {
-  fill: grey;
-  opacity: .75;
-  stroke: #fff;
+  fill: lightgrey;
+  opacity: .6;
+  stroke: white;
 }
 
 .polygons :first-child  {
