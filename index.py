@@ -4,33 +4,39 @@ from flask import Flask
 from flask import render_template
 
 app = Flask(__name__)
-app.debug = True
+app.debug = False
 
+TITLE = "Scott's Webpage"
 BACKGROUND_IMAGE = "fall.jpg"
-templates = ["collision", "tilt-shift", "voronoi"]
+template_names = ["collision", "tilt-shift", "voronoi"]
+
+template_context = {
+    "background_image": BACKGROUND_IMAGE,
+    "title": TITLE
+}
 
 
-# Route to choose a random template on a site visit
 @app.route('/', methods=['GET'])
 def index():
-    return render_template(
-        '{}.html'.format(
-            random.choice(templates)
-        ),
-        background_image=BACKGROUND_IMAGE
+    return render_helper(
+        '{}.html'.format(random.choice(template_names))
     )
 
 
 @app.route('/collision', methods=['GET'])
 def collision():
-    return render_template("collision.html", background_image=BACKGROUND_IMAGE)
+    return render_helper("collision.html")
 
 
 @app.route('/tilt-shift', methods=['GET'])
 def tiltshift():
-    return render_template("tilt-shift.html", background_image=BACKGROUND_IMAGE)
+    return render_helper("tilt-shift.html")
 
 
 @app.route('/voronoi', methods=['GET'])
 def voronoi():
-    return render_template("voronoi.html", background_image=BACKGROUND_IMAGE)
+    return render_helper("voronoi.html")
+
+
+def render_helper(template_name):
+    return render_template(template_name, **template_context)
