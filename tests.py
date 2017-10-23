@@ -41,11 +41,11 @@ class RoutesTestCase(GenericTestBase):
 class UtilsTestCase(GenericTestBase):
 
     def test_that_index_template_is_different_for_every_get(self):
-        self.prior_data = None
+        prior_data = None
         for i in xrange(10):
             response = self.test_client.get('/')
-            self.assertNotEqual(self.prior_data, response.data)
-            self.prior_data = response.data
+            self.assertNotEqual(prior_data, response.data)
+            prior_data = response.data
 
 
 if __name__ == '__main__':
