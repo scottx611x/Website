@@ -7,7 +7,7 @@ app = Flask(__name__)
 app.debug = False
 app.prior_template = None
 
-TITLE = "Scott's Webpage"
+TITLE = "Scott's Website"
 BACKGROUND_IMAGE = "fall.jpg"
 
 template_context = {
