@@ -4,6 +4,6 @@
         "timeout_seconds": 300,
         "aws_region": "us-east-1",
         "s3_bucket": "zappa-0206au0bc",
-		"domain": "www.scott-ouellette.com",
+	"domain": "www.scott-ouellette.com",
     }
 }
