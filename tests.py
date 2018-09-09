@@ -10,14 +10,6 @@ class GenericTestBase(unittest.TestCase):
         self.app = index.app
         self.test_client = self.app.test_client()
 
-
-class SanityTestCase(unittest.TestCase):
-
-    def test_site_is_not_down(self):
-        response = requests.get("https://www.scott-ouellette.com")
-        self.assertEqual(response.status_code, 200)
-
-
 class RoutesTestCase(GenericTestBase):
 
     def test_index_route(self):
