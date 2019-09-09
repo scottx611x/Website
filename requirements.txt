@@ -1,4 +1,4 @@
 codecov==2.0.9
-Flask==0.12.1
+Flask==1.0
 requests==2.20.0
 zappa==0.46.1
