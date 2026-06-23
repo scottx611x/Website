@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<article class="page post">
+    <a class="back-link" href="/blog">&larr; all notes</a>
+    <h1 style="margin-top:1rem;">{{ post.title }}</h1>
+    {% if post.date.year > 1 %}<time class="post-date">{{ post.date.strftime('%Y.%m.%d') }}</time>{% endif %}
+    {% if post.cover %}
+    <img class="post-cover" src="{{ url_for('static', filename='img/' + post.cover) }}" alt="">
+    {% endif %}
+    <div class="prose">
+        {{ post.html|safe }}
+    </div>
+</article>
+{% endblock %}

@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ title }}{% if title != "Scott Ouellette" %} &middot; Scott Ouellette{% endif %}</title>
+    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,500;9..144,600;9..144,900&family=Space+Grotesk:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/site.css') }}">
+    {% block head %}{% endblock %}
+</head>
+<body class="{% block body_class %}{% endblock %}">
+    <header class="site-nav" id="nav">
+        <a class="brand" href="/"><span class="brand-dot"></span>scott&nbsp;ouellette</a>
+        <nav>
+            <a href="/birds">Birds</a>
+            <a href="/photography">Photography</a>
+            <a href="/projects">Projects</a>
+            <a href="/blog">Writing</a>
+            <a class="nav-archive" href="/archive">Archive</a>
+        </nav>
+    </header>
+
+    <main class="content">
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="site-footer">
+        <div class="footer-inner">
+            <div class="footer-brand">
+                <span class="mono">scott-ouellette.com</span>
+                <p>Engineer &amp; bird photographer in North Andover, MA.</p>
+            </div>
+            <div class="social">
+                <a href="https://www.instagram.com/birdsofnorthandover/" rel="me">Instagram</a>
+                <a href="https://github.com/scottx611x">GitHub</a>
+                <a href="https://www.linkedin.com/pub/scott-ouellette/69/2b/209/">LinkedIn</a>
+            </div>
+        </div>
+        <small class="mono">&copy; <span id="year">2026</span> &middot; built with flask, deployed with zappa</small>
+    </footer>
+
+    <div id="lightbox" class="lightbox" hidden>
+        <button class="lightbox-close" aria-label="Close">&times;</button>
+        <button class="lightbox-nav lightbox-prev" aria-label="Previous">&#8249;</button>
+        <button class="lightbox-nav lightbox-next" aria-label="Next">&#8250;</button>
+        <figure class="lightbox-figure">
+            <img id="lightbox-img" src="" alt="">
+            <figcaption id="lightbox-cap"></figcaption>
+        </figure>
+    </div>
+
+    <script>
+        document.getElementById("year").textContent = new Date().getFullYear();
+        // Shrink nav on scroll
+        var nav = document.getElementById("nav");
+        addEventListener("scroll", function () {
+            nav.classList.toggle("scrolled", scrollY > 24);
+        }, { passive: true });
+        // Reveal-on-scroll
+        var io = new IntersectionObserver(function (entries) {
+            entries.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); } });
+        }, { threshold: 0.12 });
+        document.querySelectorAll(".reveal").forEach(function (el) { io.observe(el); });
+
+        // Lightbox: cards carry [data-images] (JSON list). We flatten every image
+        // across all cards into one sequence so prev/next pages through whole
+        // carousels and on into the next post.
+        (function () {
+            var box = document.getElementById("lightbox"),
+                img = document.getElementById("lightbox-img"),
+                cap = document.getElementById("lightbox-cap"),
+                frames = [], idx = -1;
+            function build() {
+                frames = [];
+                var cards = Array.prototype.slice.call(document.querySelectorAll("[data-images]"));
+                // Follow reading order, not DOM column order, for prev/next.
+                cards.sort(function (a, b) {
+                    return (+a.getAttribute("data-index") || 0) - (+b.getAttribute("data-index") || 0);
+                });
+                cards.forEach(function (el) {
+                    var urls, caps;
+                    try { urls = JSON.parse(el.getAttribute("data-images")); } catch (_) { urls = []; }
+                    try { caps = JSON.parse(el.getAttribute("data-captions")); } catch (_) { caps = []; }
+                    el._frameStart = frames.length;
+                    urls.forEach(function (u, i) {
+                        frames.push({ url: u, caption: caps[i] || caps[0] || "", n: i + 1, of: urls.length });
+                    });
+                });
+            }
+            function show(i) {
+                if (!frames.length) return;
+                idx = (i + frames.length) % frames.length;
+                var f = frames[idx];
+                img.src = f.url;
+                var label = f.caption + (f.of > 1 ? "  (" + f.n + "/" + f.of + ")" : "");
+                cap.textContent = label.trim();
+                cap.hidden = !label.trim();
+                box.hidden = false;
+                document.body.style.overflow = "hidden";
+            }
+            function close() {
+                box.hidden = true; img.src = ""; document.body.style.overflow = "";
+            }
+            document.addEventListener("click", function (e) {
+                // Curate X: hide a post (handled separately) — don't open lightbox.
+                if (e.target.closest(".curate-x")) return;
+                var card = e.target.closest("[data-images]");
+                if (card) { e.preventDefault(); build(); show(card._frameStart || 0); return; }
+                if (e.target.closest(".lightbox-next")) { e.stopPropagation(); show(idx + 1); return; }
+                if (e.target.closest(".lightbox-prev")) { e.stopPropagation(); show(idx - 1); return; }
+                if (e.target.closest(".lightbox-close") || e.target === box) { close(); }
+            });
+            addEventListener("keydown", function (e) {
+                if (box.hidden) return;
+                if (e.key === "Escape") close();
+                else if (e.key === "ArrowRight") show(idx + 1);
+                else if (e.key === "ArrowLeft") show(idx - 1);
+            });
+        })();
+
+        // Masonry: deal cards across columns in reading order (row-major), so the
+        // first row reads left→right while cards keep their natural heights.
+        (function () {
+            function columnsFor(w) { return w <= 520 ? 1 : (w <= 820 ? 2 : 3); }
+            function layout(grid) {
+                if (!grid._cards) {
+                    grid._cards = Array.prototype.slice.call(grid.querySelectorAll(".shot"));
+                }
+                var n = columnsFor(window.innerWidth);
+                if (grid._cols === n) return;
+                grid._cols = n;
+                grid.innerHTML = "";
+                var cols = [];
+                for (var i = 0; i < n; i++) {
+                    var c = document.createElement("div");
+                    c.className = "masonry-col";
+                    grid.appendChild(c);
+                    cols.push(c);
+                }
+                grid._cards.forEach(function (card, i) { cols[i % n].appendChild(card); });
+            }
+            function layoutAll() { document.querySelectorAll(".masonry").forEach(layout); }
+            layoutAll();
+            var t;
+            addEventListener("resize", function () { clearTimeout(t); t = setTimeout(layoutAll, 150); });
+        })();
+
+        // Curate mode: clicking an X hides that post via the local endpoint.
+        document.addEventListener("click", function (e) {
+            var x = e.target.closest(".curate-x");
+            if (!x) return;
+            e.preventDefault(); e.stopPropagation();
+            var card = x.closest("[data-images]"), id = x.getAttribute("data-exclude-id");
+            x.disabled = true;
+            fetch("/curate/exclude", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ id: id })
+            }).then(function (r) {
+                if (r.ok && card) {
+                    var grid = card.closest(".masonry");
+                    if (grid && grid._cards) grid._cards = grid._cards.filter(function (c) { return c !== card; });
+                    card.style.transition = "opacity .2s"; card.style.opacity = "0";
+                    setTimeout(function () { card.remove(); }, 200);
+                } else { x.disabled = false; }
+            }).catch(function () { x.disabled = false; });
+        });
+    </script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

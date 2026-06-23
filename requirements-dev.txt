@@ -1,0 +1,4 @@
+# Tooling for tests + deploy (not bundled into the Lambda runtime).
+-r requirements.txt
+pytest>=8.0
+zappa>=0.59
