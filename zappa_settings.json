@@ -6,13 +6,14 @@
         "s3_bucket": "zappa-0206au0bc",
         "domain": "www.scott-ouellette.com",
         "environment_variables": {
-            "BIRDS_USE_S3": "1"
+            "BIRDS_USE_S3": "1",
+            "BIRDS_S3_BUCKET": "birds-scott-ouellette"
         },
         "extra_permissions": [
             {
                 "Effect": "Allow",
                 "Action": ["s3:PutObject", "s3:GetObject"],
-                "Resource": "arn:aws:s3:::zappa-0206au0bc/birds/*"
+                "Resource": "arn:aws:s3:::birds-scott-ouellette/birds/*"
             },
             {
                 "Effect": "Allow",
