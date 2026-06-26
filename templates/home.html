@@ -92,7 +92,10 @@
         {% if projects %}
         <ul class="proj-list">
             {% for p in projects[:5] %}
-            <li><a href="{{ p.url }}"><span class="proj-name">{{ p.name }}</span>{% if p.tech %}<span class="proj-tech">{{ p.tech }}</span>{% endif %}{% if p.description %}<span class="proj-desc">{{ p.description }}</span>{% endif %}</a></li>
+            <li>
+                {% set inner %}<span class="proj-name">{{ p.name }}</span>{% if p.tech %}<span class="proj-tech">{{ p.tech }}</span>{% endif %}{% if not p.url %}<span class="soon">soon</span>{% endif %}{% if p.description %}<span class="proj-desc">{{ p.description }}</span>{% endif %}{% endset %}
+                {% if p.url %}<a href="{{ p.url }}">{{ inner }}</a>{% else %}<div class="no-link">{{ inner }}</div>{% endif %}
+            </li>
             {% endfor %}
         </ul>
         {% endif %}

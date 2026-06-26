@@ -14,10 +14,17 @@
     <ul class="post-list">
         {% for project in projects %}
         <li>
+            {% if project.url %}
             <a href="{{ project.url }}">
                 <span class="post-title">{{ project.name }}{% if project.tech %}<span class="tech">{{ project.tech }}</span>{% endif %}</span>
                 {% if project.description %}<p>{{ project.description }}</p>{% endif %}
             </a>
+            {% else %}
+            <div class="no-link">
+                <span class="post-title">{{ project.name }}{% if project.tech %}<span class="tech">{{ project.tech }}</span>{% endif %}<span class="soon">soon</span></span>
+                {% if project.description %}<p>{{ project.description }}</p>{% endif %}
+            </div>
+            {% endif %}
         </li>
         {% endfor %}
     </ul>

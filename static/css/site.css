@@ -229,6 +229,15 @@ body.has-effect .site-footer { position: relative; z-index: 1; }
 .proj-name { font-family: var(--display); font-size: 1.4rem; font-weight: 500; }
 .proj-tech { font-family: var(--mono); font-size: 0.8rem; color: var(--neon); align-self: center; }
 .proj-desc { grid-column: 1 / -1; color: rgba(244,241,233,0.7); }
+.proj-list .no-link { display: grid; grid-template-columns: 1fr auto; gap: 0.2rem 1rem; padding: 1.4rem 0; }
+
+/* "soon" badge for not-yet-public projects */
+.soon {
+    font-family: var(--mono); font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.08em;
+    color: var(--amber); border: 1px solid currentColor; border-radius: 3px;
+    padding: 0.05rem 0.4rem; margin-left: 0.55rem; vertical-align: middle; white-space: nowrap;
+}
+.post-list li .no-link { display: block; padding: 1.6rem 0; }
 
 /* writing (light) */
 .writing { background: var(--paper); }

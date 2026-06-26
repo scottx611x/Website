@@ -1,1 +1,37 @@
-[]
+[
+  {
+    "name": "DUCKODUCKO 🦆",
+    "url": "https://scottx611x.github.io/duckoducko-web/",
+    "tech": "Godot · Web",
+    "description": "A whimsical top-down, tap-to-hop duck roguelike — playable right in the browser."
+  },
+  {
+    "name": "Birb Workflow",
+    "tech": "Python",
+    "description": "A one-screen pipeline for my bird photography: Lightroom → Buffer → Instagram — import, auto-tone, denoise, pick, export, then caption, resize, and schedule the keepers. (It's what feeds this gallery.)"
+  },
+  {
+    "name": "grip-tracker",
+    "url": "https://github.com/scottx611x/grip-tracker",
+    "tech": "Python",
+    "description": "Logs and charts grip strength over time."
+  },
+  {
+    "name": "hcl-playground",
+    "url": "https://development.hcl-playground.com/",
+    "tech": "HCL · Web",
+    "description": "Evaluate HashiCorp HCL directly from the browser."
+  },
+  {
+    "name": "picInsight",
+    "url": "https://github.com/scottx611x/picInsight-app",
+    "tech": "React Native · AWS",
+    "description": "Mobile app that classifies images via the AWS Rekognition API."
+  },
+  {
+    "name": "google-photos-archiver",
+    "url": "https://github.com/scottx611x/google-photos-archiver",
+    "tech": "Python",
+    "description": "A simple, fast, extensible tool to back up Google Photos to a destination of your choosing."
+  }
+]
