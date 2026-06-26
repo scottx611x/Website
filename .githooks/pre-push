@@ -1,0 +1,9 @@
+#!/bin/sh
+# Local CI gate: run the containerized test suite (Earthly) before a push.
+# Install with `make hooks` (sets core.hooksPath to .githooks).
+echo "→ Running 'earthly +test' before push..."
+if ! earthly +test; then
+    echo "✗ Tests failed — push aborted. Fix them, or use 'git push --no-verify' to override."
+    exit 1
+fi
+echo "✓ Tests passed."

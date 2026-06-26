@@ -1,7 +1,5 @@
 # scott-ouellette.com
 
-[![CI](https://github.com/scottx611x/Website/actions/workflows/ci.yml/badge.svg)](https://github.com/scottx611x/Website/actions/workflows/ci.yml)
-
 Personal site: a blog, photography, an auto-updating bird gallery, and the
 original animated-background site preserved in an archive. Flask, deployed to AWS
 Lambda with [Zappa](https://github.com/zappa/Zappa).
@@ -35,6 +33,20 @@ pip install -r requirements-dev.txt
 python -m pytest tests.py          # tests
 python -m flask --app index run    # http://127.0.0.1:5000
 ```
+
+## CI (local, containerized via Earthly)
+
+No cloud CI — tests run in a container on your machine with [Earthly](https://earthly.dev)
+(`Earthfile`):
+
+```bash
+earthly +test   # run the suite in a clean container
+make ci         # same thing, via the Makefile wrapper
+make hooks      # install the git pre-push hook (gates every push on `earthly +test`)
+```
+
+The pre-push hook (`.githooks/pre-push`) blocks a push if tests fail; override a
+one-off with `git push --no-verify`. Requires Docker running.
 
 The bird gallery reads the committed `birds/manifest.json` fallback locally, so no
 Instagram credentials are needed to run.
