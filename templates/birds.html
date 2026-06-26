@@ -6,7 +6,7 @@
         <p class="kicker">North Andover, MA</p>
         <h1>Birds of North Andover</h1>
         <p class="empty" style="color:var(--ink);max-width:38rem;margin:0 auto;">
-            A running collection of my favorite birds from around North Andover.
+            A running collection of my favorite birds from around my home town.
         </p>
         {% if curate %}
         <p class="curate-note mono">Curate mode — click the &times; on any photo to hide it. {{ shots|length }} shown.</p>
@@ -26,7 +26,7 @@
             {% if curate %}<button class="curate-x" data-exclude-id="{{ shot.id }}" aria-label="Hide this photo">&times;</button>{% endif %}
             {% if shot.species or shot.date %}
             <figcaption>
-                <span class="species">{{ shot.species or '' }}</span>
+                <span class="species">{{ shot.species or '' }}{% if shot.location %} &middot; {{ shot.location }}{% endif %}</span>
                 {% if shot.date %}<span class="shot-date">{{ shot.date }}</span>{% endif %}
             </figcaption>
             {% endif %}

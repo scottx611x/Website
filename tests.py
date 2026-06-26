@@ -1,3 +1,4 @@
+import random
 import unittest
 from unittest import mock
 
@@ -118,24 +119,77 @@ class BirdsTestCase(unittest.TestCase):
         self.assertGreater(shots[2]["weight"], shots[1]["weight"])
         self.assertNotIn("_like", shots[0])
 
-    def test_order_gallery_declumps_species(self):
-        shots = [{"species": s, "weight": 0.5} for s in ["A", "A", "B", "B", "C"]]
+    def test_order_gallery_returns_permutation_and_spreads(self):
+        species = ["A"] * 5 + ["B"] * 5 + ["C"] * 3
+        shots = [{"species": s, "weight": 0.5} for s in species]
+        random.seed(0)
         out = birds.order_gallery(shots)
-        self.assertEqual(len(out), 5)
-        adjacent_dupes = any(
-            out[i]["species"] == out[i + 1]["species"] for i in range(len(out) - 1)
-        )
-        self.assertFalse(adjacent_dupes)
+        # Same multiset back (nothing dropped or duplicated).
+        self.assertCountEqual([s["species"] for s in out], species)
+        # De-clumping keeps adjacent same-species rare (best-effort, not zero).
+        dupes = sum(out[i]["species"] == out[i + 1]["species"] for i in range(len(out) - 1))
+        self.assertLessEqual(dupes, 1)
 
     def test_frame_captions_map_each_carousel_image(self):
         caption = "Barred Owl - Rea St.\nNorthern Flicker - Weir Hill\n\n3-15-26"
         caps = birds._frame_captions(caption, 2, "Mar 15, 2026")
-        self.assertEqual(caps, ["Barred Owl · Mar 15, 2026", "Northern Flicker · Mar 15, 2026"])
+        self.assertEqual(caps, [
+            "Barred Owl · Rea St. · Mar 15, 2026",
+            "Northern Flicker · Weir Hill · Mar 15, 2026",
+        ])
 
     def test_frame_captions_fallback_when_counts_differ(self):
         caption = "Barred Owl\n\nRea St.\n\n4-2-26"
         caps = birds._frame_captions(caption, 3, "Apr 2, 2026")
-        self.assertEqual(caps, ["Barred Owl · Apr 2, 2026"] * 3)
+        self.assertEqual(caps, ["Barred Owl · Rea St. · Apr 2, 2026"] * 3)
+
+    def test_frame_captions_multi_species_more_images(self):
+        # 2 species same place, 4 images: can't pin each, show the full list.
+        caption = "Barred Owl - Rea St.\nGray Catbird - Rea St.\n\n5-31-26"
+        caps = birds._frame_captions(caption, 4, "May 31, 2026")
+        self.assertEqual(caps, ["Barred Owl, Gray Catbird · Rea St. · May 31, 2026"] * 4)
+
+    def test_frame_captions_per_line_dates(self):
+        # Old format: embedded per-line date; each frame keeps its own date.
+        caption = "Hooded Merganser - Lake Cochichewick 11-13-25\nAmerican Robin - Rea Street 11-12-25"
+        caps = birds._frame_captions(caption, 2, "Nov 13, 2025")
+        self.assertEqual(caps, [
+            "Hooded Merganser · Lake Cochichewick · Nov 13, 2025",
+            "American Robin · Rea Street · Nov 12, 2025",
+        ])
+
+
+class RealCaptionFormatTestCase(unittest.TestCase):
+    """Parsing checks drawn from Scott's actual @birdsofnorthandover formats."""
+
+    CASES = [
+        # caption, expected species, expected locations
+        ("Red-tailed Hawk\n\nChestnut St.\n\n5-17-26",
+         ["Red-tailed Hawk"], ["Chestnut St."]),
+        ("⚠️ Great Egret\n\nSummer St. Bridge, Boston\n\n5-28-26",
+         ["Great Egret"], ["Summer St. Bridge, Boston"]),
+        ("Barred Owls (Baby \"Mojo\" and Parent)\n\nRea St.\n\n5-25-26",
+         ["Barred Owls"], ["Rea St."]),
+        ("American Herring Gull - Annie L. Sargent School\nEastern Bluebird - Abbott St.\n\n5-25-26",
+         ["American Herring Gull", "Eastern Bluebird"],
+         ["Annie L. Sargent School", "Abbott St."]),
+        ("Hooded Merganser - Lake Cochichewick 11-13-25\nAmerican Robin - Rea Street 11-12-25",
+         ["Hooded Merganser", "American Robin"], ["Lake Cochichewick", "Rea Street"]),
+        ("Northern Cardinal - 1-23-26\nWhite-breasted Nuthatch - 1-27-26",
+         ["Northern Cardinal", "White-breasted Nuthatch"], [None, None]),
+        ("Barred Owl\n\nRea St.\n\nMarch-April 2026",
+         ["Barred Owl"], ["Rea St."]),
+    ]
+
+    def test_species_and_locations(self):
+        for caption, species, locations in self.CASES:
+            pairs = birds._species_pairs(caption)
+            self.assertEqual([sp for sp, _, _ in pairs], species, msg=caption)
+            self.assertEqual([loc for _, loc, _ in pairs], locations, msg=caption)
+
+    def test_ticker_uses_full_species_list(self):
+        shots = [{"species": "Barred Owl", "species_list": ["Barred Owl", "Gray Catbird", "Osprey"]}]
+        self.assertEqual(birds.ticker_species(shots), ["Barred Owl", "Gray Catbird", "Osprey"])
 
     def test_post_images_uses_video_thumbnail(self):
         video = {"media_type": "VIDEO", "media_url": "v.mp4", "thumbnail_url": "thumb.jpg"}

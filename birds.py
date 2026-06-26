@@ -272,16 +272,21 @@ def instagram_sync(token=None):
             continue
         caption = (item.get("caption") or "").strip()
         captured = _capture_date_obj(caption, item.get("timestamp"))
+        date = captured.strftime("%b %-d, %Y") if captured else None
+        pairs = _species_pairs(caption)
+        species_list = [sp for sp, _, _ in pairs]
+        locations = [loc for _, loc, _ in pairs]
         shots.append(
             {
                 "id": item["id"],
                 "images": images,
-                "captions": _frame_captions(
-                    caption, len(images), captured.strftime("%b %-d, %Y") if captured else None
-                ),
+                "captions": _frame_captions(caption, len(images), date),
                 "caption": caption,
-                "species": _guess_species(caption),
-                "date": captured.strftime("%b %-d, %Y") if captured else None,
+                "species": species_list[0] if species_list else None,
+                "species_list": species_list,
+                "location": next((loc for loc in locations if loc), None),
+                "locations": locations,
+                "date": date,
                 "permalink": item.get("permalink"),
                 "timestamp": item.get("timestamp"),
                 "_like": item.get("like_count") or 0,  # → popularity weight, then dropped
@@ -413,44 +418,123 @@ def _clean_species(line):
     return line[:60] or None
 
 
-def _species_lines(caption):
-    """Species labels from the caption's first block of lines.
+def _clean_location(text):
+    """Tidy a location string (keep commas/periods, drop emoji)."""
+    text = re.sub(r"[^A-Za-z0-9\s,.'/\-]", "", text or "").strip(" ,-")
+    return text[:80] or None
 
-    Scott's multi-bird carousels list one species per line at the top, before a
-    blank line (e.g. "Barred Owl - Rea St.\\nNorthern Flicker - Weir Hill"), one
-    per carousel image. We take that leading block so each image can be labeled.
-    """
-    block = []
+
+def _blocks(caption):
+    """Caption split into blocks of consecutive non-empty, non-hashtag lines."""
+    blocks, current = [], []
     for line in (caption or "").splitlines():
         stripped = line.strip()
-        if not stripped:
-            if block:
-                break  # end of the leading block
-            continue  # skip leading blank lines
-        if stripped.startswith("#"):
-            break
-        block.append(stripped)
-    return [s for s in (_clean_species(line) for line in block) if s]
+        if not stripped or stripped.startswith("#"):
+            if current:
+                blocks.append(current)
+                current = []
+            if stripped.startswith("#"):
+                break
+            continue
+        current.append(stripped)
+    if current:
+        blocks.append(current)
+    return blocks
+
+
+def _split_loc_date(text):
+    """Pull a trailing/embedded date out of an inline location string.
+
+    Handles "Lake Cochichewick 11-13-25" -> ("Lake Cochichewick", date) and a
+    bare "1-23-26" -> (None, date).
+    """
+    date = None
+    match = _DATE_RE.search(text or "")
+    if match:
+        month, day, year = (int(p) for p in match.groups())
+        if year < 100:
+            year += 2000
+        try:
+            date = datetime.date(year, month, day)
+        except ValueError:
+            date = None
+        text = (text[: match.start()] + " " + text[match.end():]).strip()
+    return _clean_location(text), date
+
+
+def _species_pairs(caption):
+    """List of (species, location, date) for a post, across caption formats.
+
+    - Inline:  "Species - Location" (location may embed a date, may differ per
+      species, and old posts may have a per-line date).
+    - Block:   "Species" / blank / "Location" / blank / "Date" — the location is
+      the block after the species block.
+    """
+    blocks = _blocks(caption)
+    if not blocks:
+        return []
+
+    triples, inline = [], False
+    for line in blocks[0]:
+        if " - " in line:
+            name, rest = line.split(" - ", 1)
+            location, date = _split_loc_date(rest)
+            triples.append((_clean_species(name), location, date))
+            inline = True
+        else:
+            triples.append((_clean_species(line), None, None))
+    triples = [(sp, loc, dt) for sp, loc, dt in triples if sp]
+
+    # No inline locations: a following block (that isn't the date) is the location.
+    if not inline and triples and len(blocks) > 1:
+        candidate = ", ".join(blocks[1])
+        if not _DATE_RE.search(candidate):
+            location = _clean_location(candidate)
+            if location:
+                triples = [(sp, location, dt) for sp, _, dt in triples]
+    return triples
+
+
+def _species_lines(caption):
+    """Just the species names for a post (used by the ticker)."""
+    return [sp for sp, _, _ in _species_pairs(caption)]
 
 
 def _guess_species(caption):
-    """The single best species label for a post (its first species line)."""
-    lines = _species_lines(caption)
-    return lines[0] if lines else None
+    """The single best species label for a post (its first species)."""
+    pairs = _species_pairs(caption)
+    return pairs[0][0] if pairs else None
+
+
+def _joined_label(pairs):
+    """One label for a post we can't map per-image (more photos than species)."""
+    locations = {loc for _, loc, _ in pairs}
+    if len(locations) == 1 and None not in locations:
+        return ", ".join(sp for sp, _, _ in pairs) + " · " + pairs[0][1]
+    return ", ".join(
+        sp + (" ({})".format(loc) if loc else "") for sp, loc, _ in pairs
+    )
 
 
 def _frame_captions(caption, n_images, date):
-    """A display caption per carousel image.
+    """A display caption (species · location · date) per carousel image.
 
-    If the number of species lines matches the number of images, pair them up so
-    each frame shows its own bird; otherwise use the post's species for all.
+    Posts list one "Species - Location" per line. When that count matches the
+    image count we pair them up so each frame shows its own bird + place (and its
+    own date, for old per-line-dated posts). Otherwise (more photos than species)
+    we can't pin each image, so we show the post's full species list.
     """
-    lines = _species_lines(caption)
-    if len(lines) == n_images:
-        per_image = lines
-    else:
-        per_image = [lines[0] if lines else None] * n_images
-    return [" · ".join(p for p in (species, date) if p) for species in per_image]
+    pairs = _species_pairs(caption)
+    if not pairs:
+        return [date or "" for _ in range(n_images)]
+    if len(pairs) == n_images:
+        labels = []
+        for species, location, line_date in pairs:
+            when = line_date.strftime("%b %-d, %Y") if line_date else date
+            labels.append(" · ".join(p for p in (species, location, when) if p))
+        return labels
+    label = _joined_label(pairs)
+    return [" · ".join(p for p in (label, date) if p)] * n_images
 
 
 # Words that describe an individual, not the species — dropped when normalizing.
@@ -513,13 +597,19 @@ def _capture_date(caption, timestamp):
 
 
 def ticker_species(shots):
-    """De-duplicated, normalized species names, in first-seen order."""
+    """De-duplicated, normalized species names across all posts, first-seen order.
+
+    Uses each post's full species list (not just the first) so every bird shows
+    up in the ticker, including ones only featured alongside others.
+    """
     seen, out = set(), []
     for shot in shots:
-        name = normalize_species(shot.get("species"))
-        if name and name.lower() not in seen:
-            seen.add(name.lower())
-            out.append(name)
+        names = shot.get("species_list") or ([shot["species"]] if shot.get("species") else [])
+        for raw in names:
+            name = normalize_species(raw)
+            if name and name.lower() not in seen:
+                seen.add(name.lower())
+                out.append(name)
     return out
 
 
