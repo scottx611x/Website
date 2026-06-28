@@ -147,6 +147,20 @@
       "6": "Gray Catbird"
     }
   },
+  "17915419443231727": {
+    "image_locations": {
+      "0": "Johnson St",
+      "1": "Johnson St",
+      "2": "Annie L Sargent School",
+      "3": "Annie L Sargent School"
+    },
+    "images": {
+      "0": "Evening Grosbeak",
+      "1": "Northern Flicker",
+      "2": "European Starling",
+      "3": "House Sparrow"
+    }
+  },
   "17915933556276583": {
     "image_locations": {
       "0": "Rea St.",
@@ -427,6 +441,30 @@
       "3": "Common Loon",
       "4": "Common Loon",
       "5": "Common Loon"
+    }
+  },
+  "17988454790972249": {
+    "image_locations": {
+      "0": "Rea St.",
+      "1": "Rea St.",
+      "2": "Rea St.",
+      "3": "Rea St.",
+      "4": "Rea St.",
+      "5": "Rea St.",
+      "6": "Rea St.",
+      "7": "Rea St.",
+      "8": "Rea St."
+    },
+    "images": {
+      "0": "Gray Catbird",
+      "1": "Gray Catbird",
+      "2": "Gray Catbird",
+      "3": "Gray Catbird",
+      "4": "White-throated Sparrow",
+      "5": "White-throated Sparrow",
+      "6": "Red-winged Blackbird",
+      "7": "Eastern Bluebird",
+      "8": "Northern Cardinal"
     }
   },
   "17991325196797062": {
@@ -982,6 +1020,46 @@
       "7": "Little Blue Heron",
       "8": "Turkey Vulture",
       "9": "Red-bellied Woodpecker"
+    }
+  },
+  "18089770675996327": {
+    "image_locations": {
+      "0": "Rea St.",
+      "1": "Rea St. Extension",
+      "2": "Abbott St.",
+      "3": "Annie L. Sargent School Access Rd.",
+      "4": "Rea St.",
+      "5": "Rea St. Extension",
+      "6": "Annie L. Sargent School Access Rd."
+    },
+    "images": {
+      "0": "Carolina Wren",
+      "1": "Northern Cardinal",
+      "2": "White-breasted Nuthatch",
+      "3": "Black-capped Chickadee",
+      "4": "Cooper's Hawk",
+      "5": "Blue Jay",
+      "6": "Downy Woodpecker"
+    }
+  },
+  "18089933347947663": {
+    "image_locations": {
+      "0": "Rea Street",
+      "1": "Rea Street",
+      "2": "Rea Street",
+      "3": "Rea Street",
+      "4": "Rea Street",
+      "5": "Lake Cochichewick",
+      "6": "Rea Street"
+    },
+    "images": {
+      "0": "Carolina Wren",
+      "1": "House Finch",
+      "2": "Chipping Sparrow",
+      "3": "Black-capped Chickadee",
+      "4": "White-breasted Nuthatch",
+      "5": "Ring-necked Duck",
+      "6": "Cooper's Hawk"
     }
   },
   "18093393794012685": {
@@ -1736,6 +1814,20 @@
       "6": "Mourning Dove",
       "7": "Downy Woodpecker",
       "8": "American Robin"
+    }
+  },
+  "18476592562097066": {
+    "image_locations": {
+      "0": "Rea St.",
+      "1": "Rea St.",
+      "2": "Railroad St. Andover MA",
+      "3": "Railroad St. Andover MA"
+    },
+    "images": {
+      "0": "Barred Owl",
+      "1": "Barred Owl",
+      "2": "European Starling",
+      "3": "European Starling"
     }
   },
   "18548429008010202": {
