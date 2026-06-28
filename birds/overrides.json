@@ -525,6 +525,32 @@
       "7": "American Crow"
     }
   },
+  "18002274308894650": {
+    "image_locations": {
+      "0": "Congress St. Bridge, Boston",
+      "1": "Congress St. Bridge, Boston",
+      "2": "Congress St. Bridge, Boston",
+      "3": "Congress St. Bridge, Boston",
+      "4": "Congress St. Bridge, Boston",
+      "5": "Congress St. Bridge, Boston",
+      "6": "Rea St.",
+      "7": "Rea St.",
+      "8": "Congress St. Bridge, Boston",
+      "9": "Congress St. Bridge, Boston"
+    },
+    "images": {
+      "0": "Surf Scoter",
+      "1": "Surf Scoter",
+      "2": "Surf Scoter",
+      "3": "Surf Scoter",
+      "4": "Surf Scoter",
+      "5": "Surf Scoter",
+      "6": "White-throated Sparrow",
+      "7": "White-throated Sparrow",
+      "8": "Common Loon",
+      "9": "Common Loon"
+    }
+  },
   "18002756723869233": {
     "image_locations": {
       "0": "Rea St.",
@@ -929,6 +955,24 @@
       "7": "Yellow-rumped Warbler",
       "8": "Barred Owl",
       "9": "White-throated Sparrow"
+    }
+  },
+  "18080239400419484": {
+    "image_locations": {
+      "0": "Rea St.",
+      "1": "Rea St.",
+      "2": "Rea St.",
+      "3": "Rea St.",
+      "4": "Rea St.",
+      "5": "Rea St."
+    },
+    "images": {
+      "0": "Yellow-bellied Sapsucker",
+      "1": "Eastern Phoebe",
+      "2": "Red-bellied Woodpecker",
+      "3": "White-breasted Nuthatch",
+      "4": "Chipping Sparrow",
+      "5": "Red-bellied Woodpecker"
     }
   },
   "18081991499224261": {
@@ -1450,6 +1494,26 @@
       "3": "Northern Mockingbird"
     }
   },
+  "18134058364476332": {
+    "image_locations": {
+      "0": "Annie L. Sargent School",
+      "1": "Johnson St.",
+      "2": "Rea St.",
+      "3": "Rea St.",
+      "4": "Johnson St.",
+      "5": "Annie L. Sargent School Access Rd.",
+      "6": "Rea St."
+    },
+    "images": {
+      "0": "Black-capped Chickadee",
+      "1": "Northern Mockingbird",
+      "2": "Northern Cardinal",
+      "3": "Northern Cardinal",
+      "4": "Red-bellied Woodpecker",
+      "5": "Downy Woodpecker",
+      "6": "American Crow"
+    }
+  },
   "18147159676447040": {
     "image_locations": {
       "0": "Ipswich River Wildlife Sanctuary",
@@ -1792,6 +1856,32 @@
       "4": "Eastern Bluebird"
     }
   },
+  "18420525070190131": {
+    "image_locations": {
+      "0": "Rea St.",
+      "1": "Rea St.",
+      "2": "Rea St.",
+      "3": "Rea St.",
+      "4": "Rea St.",
+      "5": "Rea St.",
+      "6": "Rea St.",
+      "7": "Rea St.",
+      "8": "Rea St.",
+      "9": "Rea St."
+    },
+    "images": {
+      "0": "Tufted Titmouse",
+      "1": "Tufted Titmouse",
+      "2": "Tufted Titmouse",
+      "3": "Tufted Titmouse",
+      "4": "American Tree Sparrow",
+      "5": "Downy Woodpecker",
+      "6": "White-breasted Nuthatch",
+      "7": "Mourning Dove",
+      "8": "American Robin",
+      "9": "American Robin"
+    }
+  },
   "18446713774106955": {
     "image_locations": {
       "0": "Rea St.",
@@ -1900,6 +1990,26 @@
       "7": "Carolina Wren",
       "8": "Common Eider",
       "9": "Common Loon"
+    }
+  },
+  "18578132899008050": {
+    "image_locations": {
+      "0": "Rea St.",
+      "1": "Rea St.",
+      "2": "Rea St.",
+      "3": "Rea St.",
+      "4": "Rea St.",
+      "5": "Rea St.",
+      "6": "Rea St."
+    },
+    "images": {
+      "0": "Northern Flicker",
+      "1": "Northern Flicker",
+      "2": "Northern Flicker",
+      "3": "Northern Flicker",
+      "4": "Northern Flicker",
+      "5": "Mourning Dove",
+      "6": "Mourning Dove"
     }
   },
   "18596231053029856": {
