@@ -15,6 +15,24 @@
       "4": "Turkey Vulture"
     }
   },
+  "17887585473438876": {
+    "image_locations": {
+      "0": "Rea St.",
+      "1": "Rea St.",
+      "2": "Rea St.",
+      "3": "Rea St.",
+      "4": "Rea St.",
+      "5": "Rea St."
+    },
+    "images": {
+      "0": "Tufted Titmouse",
+      "1": "Tufted Titmouse",
+      "2": "Northern Cardinal",
+      "3": "Northern Cardinal",
+      "4": "Cedar Waxwing",
+      "5": "Black-capped Chickadee"
+    }
+  },
   "17900222916286005": {
     "image_locations": {
       "0": "Rea St.",
@@ -101,6 +119,20 @@
       "3": "Ovenbird"
     }
   },
+  "17942089829983197": {
+    "image_locations": {
+      "0": "Dorchester Ave.",
+      "1": "Harborwalk/Congress St. Bridge",
+      "2": "Harborwalk/Congress St. Bridge",
+      "3": "Dorchester Ave."
+    },
+    "images": {
+      "0": "Rock Pigeon",
+      "1": "Red-breasted Merganser",
+      "2": "Red-breasted Merganser",
+      "3": "House Sparrow"
+    }
+  },
   "17960879040092068": {
     "image_locations": {
       "0": "Johnson St.",
@@ -139,6 +171,24 @@
       "1": "Rock Pigeon",
       "2": "Rock Pigeon",
       "3": "Cooper's Hawk"
+    }
+  },
+  "17983830203791682": {
+    "image_locations": {
+      "0": "Congress St. Bridge, Boston",
+      "1": "Rea St.",
+      "2": "Rea St.",
+      "3": "Congress St. Bridge, Boston",
+      "4": "Congress St. Bridge, Boston",
+      "5": "Congress St. Bridge, Boston"
+    },
+    "images": {
+      "0": "American Herring Gull",
+      "1": "Northern Cardinal",
+      "2": "Mourning Dove",
+      "3": "Common Loon",
+      "4": "Common Loon",
+      "5": "Common Loon"
     }
   },
   "18002248943911802": {
@@ -414,6 +464,30 @@
       "4": "Red-bellied Woodpecker"
     }
   },
+  "18108326692692540": {
+    "image_locations": {
+      "0": "Shawsheen River  United States Post Office Andover, MA",
+      "1": "Shawsheen River  United States Post Office Andover, MA",
+      "2": "Shawsheen River  United States Post Office Andover, MA",
+      "3": "Shawsheen River  United States Post Office Andover, MA",
+      "4": "Shawsheen River  United States Post Office Andover, MA",
+      "5": "Shawsheen River  United States Post Office Andover, MA",
+      "6": "Shawsheen River  United States Post Office Andover, MA",
+      "7": "Rea St.",
+      "8": "Rea St."
+    },
+    "images": {
+      "0": "Red-tailed Hawk",
+      "1": "Red-tailed Hawk",
+      "2": "Red-tailed Hawk",
+      "3": "Red-tailed Hawk",
+      "4": "Red-tailed Hawk",
+      "5": "Hooded Merganser",
+      "6": "Hooded Merganser",
+      "7": "American Robin",
+      "8": "American Robin"
+    }
+  },
   "18110006128754375": {
     "image_locations": {
       "0": "Harborwalk, Boston",
@@ -554,6 +628,26 @@
       "4": "Common Loon",
       "5": "Common Loon",
       "6": "Common Loon"
+    }
+  },
+  "18216427975313805": {
+    "image_locations": {
+      "0": "Rea St.",
+      "1": "Rea St.",
+      "2": "Rea St.",
+      "3": "Rea St.",
+      "4": "Rea St.",
+      "5": "Rea St.",
+      "6": "Rea St."
+    },
+    "images": {
+      "0": "American Tree Sparrow",
+      "1": "American Tree Sparrow",
+      "2": "House Finch",
+      "3": "American Robin",
+      "4": "Northern Cardinal",
+      "5": "Northern Cardinal",
+      "6": "Carolina Wren"
     }
   },
   "18219193519320949": {
