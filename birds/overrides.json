@@ -366,6 +366,20 @@
       "9": "Mourning Dove"
     }
   },
+  "18008153330816676": {
+    "image_locations": {
+      "0": "Rea Street",
+      "1": "Rea Street",
+      "2": "Rea Street",
+      "3": "Rea Street"
+    },
+    "images": {
+      "0": "Cooper's Hawk",
+      "1": "Cooper's Hawk",
+      "2": "Cooper's Hawk",
+      "3": "Black-capped Chickadee"
+    }
+  },
   "18011838731836967": {
     "image_locations": {
       "0": "Rea St.",
@@ -386,6 +400,22 @@
       "5": "Black-capped Chickadee",
       "6": "Tufted Titmouse",
       "7": "American Robin"
+    }
+  },
+  "18047792111444620": {
+    "image_locations": {
+      "0": "Rea Street",
+      "1": "Rea Street",
+      "2": "Rea Street",
+      "3": "Rea Street",
+      "4": "Rea Street"
+    },
+    "images": {
+      "0": "Northern Cardinal",
+      "1": "Northern Cardinal",
+      "2": "Northern Cardinal",
+      "3": "Northern Cardinal",
+      "4": "Northern Cardinal"
     }
   },
   "18056908169383034": {
@@ -436,6 +466,22 @@
     "images": {
       "0": "House Finch",
       "1": "American Crow"
+    }
+  },
+  "18064053179388379": {
+    "image_locations": {
+      "0": "Rea Street",
+      "1": "Weir Hill",
+      "2": "Rea Street",
+      "3": "Rea Street",
+      "4": "Rea Street"
+    },
+    "images": {
+      "0": "Eastern Bluebird",
+      "1": "Northern Flicker",
+      "2": "Tufted Titmouse",
+      "3": "Northern Cardinal",
+      "4": "American Goldfinch"
     }
   },
   "18064779275625532": {
@@ -556,6 +602,14 @@
       "4": "Song Sparrow",
       "5": "Northern Harrier",
       "6": "Northern Harrier"
+    }
+  },
+  "18087468302292472": {
+    "image_locations": {},
+    "images": {
+      "0": "Blue Jay",
+      "1": "Dark-eyed Junco",
+      "2": "Bald Eagle"
     }
   },
   "18088267214054969": {
@@ -981,6 +1035,14 @@
       "2": "Carolina Wren",
       "3": "Mallard",
       "4": "Mallard"
+    }
+  },
+  "18348907453226855": {
+    "image_locations": {},
+    "images": {
+      "0": "Sanderling",
+      "1": "Sanderling",
+      "2": "Ring-billed Gull"
     }
   },
   "18371940658164515": {
