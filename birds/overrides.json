@@ -61,6 +61,32 @@
       "9": "Mourning Dove"
     }
   },
+  "17920375854319161": {
+    "image_locations": {
+      "0": "Abbott St.",
+      "1": "Abbott St.",
+      "2": "Abbott St.",
+      "3": "Rea St.",
+      "4": "Rea St.",
+      "5": "Rea St.",
+      "6": "Annie L. Sargent School",
+      "7": "Annie L. Sargent School",
+      "8": "Rea St.",
+      "9": "Abbott St."
+    },
+    "images": {
+      "0": "Pileated Woodpecker",
+      "1": "Pileated Woodpecker",
+      "2": "Pileated Woodpecker",
+      "3": "Northern Flicker",
+      "4": "Brown-headed Cowbird",
+      "5": "Brown-headed Cowbird",
+      "6": "Chipping Sparrow",
+      "7": "Black-capped Chickadee",
+      "8": "American Robin",
+      "9": "Mallard"
+    }
+  },
   "17926946091347519": {
     "image_locations": {
       "0": "Rea St.",
@@ -99,6 +125,20 @@
       "7": "American Herring Gull",
       "8": "Canada Goose",
       "9": "Great Blue Heron"
+    }
+  },
+  "17981556602975762": {
+    "image_locations": {
+      "0": "Harborwalk, Boston",
+      "1": "Harborwalk, Boston",
+      "2": "Harborwalk, Boston",
+      "3": "Rea St. Captured by sara.e.ouellette"
+    },
+    "images": {
+      "0": "Rock Pigeon",
+      "1": "Rock Pigeon",
+      "2": "Rock Pigeon",
+      "3": "Cooper's Hawk"
     }
   },
   "18002248943911802": {
@@ -163,6 +203,32 @@
       "5": "Black-capped Chickadee",
       "6": "Tufted Titmouse",
       "7": "American Robin"
+    }
+  },
+  "18058549532697845": {
+    "image_locations": {
+      "0": "Harborwalk, Boston MA",
+      "1": "Harborwalk, Boston MA",
+      "2": "Harborwalk, Boston MA",
+      "3": "Harborwalk, Boston MA",
+      "4": "Harborwalk, Boston MA",
+      "5": "Harborwalk, Boston MA",
+      "6": "Harborwalk, Boston MA",
+      "7": "Harborwalk, Boston MA",
+      "8": "Harborwalk, Boston MA",
+      "9": "Harborwalk, Boston MA"
+    },
+    "images": {
+      "0": "Red-breasted Merganser",
+      "1": "Red-breasted Merganser",
+      "2": "Common Grackle",
+      "3": "Mallard",
+      "4": "Mallard",
+      "5": "Rock Pigeon",
+      "6": "Rock Pigeon",
+      "7": "Rock Pigeon",
+      "8": "Common Loon",
+      "9": "Common Loon"
     }
   },
   "18064779275625532": {
@@ -304,6 +370,48 @@
       "3": "Tree Swallow",
       "4": "Mallard",
       "5": "Red-bellied Woodpecker"
+    }
+  },
+  "18097368877823488": {
+    "image_locations": {
+      "0": "Lake Cochichewick",
+      "1": "Lake Cochichewick",
+      "2": "Lake Cochichewick",
+      "3": "Lake Cochichewick",
+      "4": "Lake Cochichewick",
+      "5": "Lake Cochichewick",
+      "6": "Lake Cochichewick",
+      "7": "Lake Cochichewick",
+      "8": "Lake Cochichewick",
+      "9": "Lake Cochichewick"
+    },
+    "images": {
+      "0": "Mute Swan",
+      "1": "Mute Swan",
+      "2": "Mute Swan",
+      "3": "Bufflehead",
+      "4": "Cooper's Hawk",
+      "5": "Cooper's Hawk",
+      "6": "Hooded Merganser",
+      "7": "Hooded Merganser",
+      "8": "Hooded Merganser",
+      "9": "Mallard"
+    }
+  },
+  "18103240733493072": {
+    "image_locations": {
+      "0": "Rea St.",
+      "1": "Rea St.",
+      "2": "Rea St.",
+      "3": "Rea St.",
+      "4": "Rea St."
+    },
+    "images": {
+      "0": "Northern Cardinal",
+      "1": "Northern Cardinal",
+      "2": "Northern Cardinal",
+      "3": "Northern Cardinal",
+      "4": "Red-bellied Woodpecker"
     }
   },
   "18110006128754375": {
