@@ -210,6 +210,30 @@
       "5": "Mallard"
     }
   },
+  "17934049812169322": {
+    "image_locations": {
+      "0": "Rea St.",
+      "1": "Rea St.",
+      "2": "Rea St.",
+      "3": "Rea St.",
+      "4": "Rea St.",
+      "5": "Rea St.",
+      "6": "Rea St.",
+      "7": "Rea St.",
+      "8": "Rea St."
+    },
+    "images": {
+      "0": "Carolina Wren",
+      "1": "Sharp-shinned Hawk",
+      "2": "Red-bellied Woodpecker",
+      "3": "Red-bellied Woodpecker",
+      "4": "Red-bellied Woodpecker",
+      "5": "Red-bellied Woodpecker",
+      "6": "Red-bellied Woodpecker",
+      "7": "Red-bellied Woodpecker",
+      "8": "Eastern Bluebird"
+    }
+  },
   "17938542243120850": {
     "image_locations": {
       "0": "Rea St.",
@@ -696,6 +720,24 @@
       "9": "Eastern Bluebird"
     }
   },
+  "18068893877543258": {
+    "image_locations": {
+      "0": "Rea St.",
+      "1": "Rea St.",
+      "2": "Rea St.",
+      "3": "Rea St.",
+      "4": "Rea St.",
+      "5": "Rea St."
+    },
+    "images": {
+      "0": "American Tree Sparrow",
+      "1": "American Tree Sparrow",
+      "2": "Mourning Dove",
+      "3": "Mourning Dove",
+      "4": "Mourning Dove",
+      "5": "Black-capped Chickadee"
+    }
+  },
   "18070143716432380": {
     "image_locations": {
       "0": "Summer St. Bridge, Boston",
@@ -746,6 +788,26 @@
       "7": "Dark-eyed Junco",
       "8": "Song Sparrow",
       "9": "Northern Cardinal"
+    }
+  },
+  "18072052007412128": {
+    "image_locations": {
+      "0": "Rea St.",
+      "1": "Rea St.",
+      "2": "Rea St.",
+      "3": "Rea St.",
+      "4": "Rea St.",
+      "5": "Rea St.",
+      "6": "Rea St."
+    },
+    "images": {
+      "0": "Northern Flicker",
+      "1": "Northern Flicker",
+      "2": "Northern Flicker",
+      "3": "Northern Flicker",
+      "4": "Northern Flicker",
+      "5": "Northern Cardinal",
+      "6": "White-breasted Nuthatch"
     }
   },
   "18078611876597830": {
@@ -1063,6 +1125,20 @@
       "2": "Northern Cardinal",
       "3": "Northern Cardinal",
       "4": "Red-bellied Woodpecker"
+    }
+  },
+  "18103428736873119": {
+    "image_locations": {
+      "0": "Weir Hill",
+      "1": "Weir Hill",
+      "2": "Weir Hill",
+      "3": "Weir Hill"
+    },
+    "images": {
+      "0": "Red-tailed Hawk",
+      "1": "Red-tailed Hawk",
+      "2": "Red-tailed Hawk",
+      "3": "Baltimore Oriole Nest"
     }
   },
   "18104333038766011": {
@@ -1635,6 +1711,32 @@
       "4": "Common Loon",
       "5": "American Tree Sparrow",
       "6": "White-throated Sparrow"
+    }
+  },
+  "18572825836049750": {
+    "image_locations": {
+      "0": "Annie L. Sargent School",
+      "1": "Annie L. Sargent School",
+      "2": "Annie L. Sargent School Access Road",
+      "3": "Annie L. Sargent School Access Road",
+      "4": "Annie L. Sargent School Access Road",
+      "5": "Rea St.",
+      "6": "Rea St.",
+      "7": "Rea St.",
+      "8": "Annie L. Sargent School",
+      "9": "Annie L. Sargent School"
+    },
+    "images": {
+      "0": "Blue Jay",
+      "1": "House Finch",
+      "2": "Northern Flicker",
+      "3": "Red-bellied Woodpecker",
+      "4": "Downy Woodpecker",
+      "5": "Eastern Bluebird",
+      "6": "Mourning Dove",
+      "7": "Carolina Wren",
+      "8": "Common Eider",
+      "9": "Common Loon"
     }
   },
   "18596231053029856": {
