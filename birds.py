@@ -76,6 +76,32 @@ def load_gallery(shuffle=True):
     )
 
 
+# Caption notes that aren't actually species (so they don't pad the life list).
+_NON_SPECIES_WORDS = ("nest", "rookery", "goldfish")
+
+
+def species_tally(shots):
+    """The gallery's life list: distinct species as ``(name, post_count)``, most
+    photographed first. Counts a species once per post (not per frame), using the
+    canonical ``normalize_species`` name and skipping non-species caption notes.
+    """
+    counts = {}
+    for shot in shots:
+        names = (
+            shot.get("image_species")
+            or shot.get("species_list")
+            or ([shot["species"]] if shot.get("species") else [])
+        )
+        seen = set()
+        for name in names:
+            canon = normalize_species(name)
+            if canon and not any(w in canon.lower() for w in _NON_SPECIES_WORDS):
+                seen.add(canon)
+        for canon in seen:
+            counts[canon] = counts.get(canon, 0) + 1
+    return sorted(counts.items(), key=lambda kv: (-kv[1], kv[0].lower()))
+
+
 def _shuffle_images_weighted(shot):
     """Reorder a post's frames with a weighted shuffle that favors the earlier
     images. Scott puts his favorites first, so the cover + carousel vary per load

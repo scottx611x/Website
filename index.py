@@ -100,10 +100,12 @@ CURATE = os.environ.get("BIRDS_CURATE") == "1"
 
 @app.route("/birds", methods=["GET"])
 def birds_gallery():
+    shots = birds.load_gallery(shuffle=not CURATE)
     return render_template(
         "birds.html",
         title="Birds of North Andover",
-        shots=birds.load_gallery(shuffle=not CURATE),
+        shots=shots,
+        species=birds.species_tally(shots),
         curate=CURATE,
     )
 

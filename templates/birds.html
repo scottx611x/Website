@@ -8,6 +8,16 @@
         <p class="empty" style="color:var(--ink);max-width:38rem;margin:0 auto;">
             A running collection of my favorite birds from around my home town.
         </p>
+        {% if species %}
+        <details class="species-list">
+            <summary><strong>{{ species|length }}</strong> species &amp; counting</summary>
+            <ul>
+                {% for name, count in species %}
+                <li><span class="sp-name">{{ name }}</span><span class="sp-count">{{ count }}</span></li>
+                {% endfor %}
+            </ul>
+        </details>
+        {% endif %}
         {% if curate %}
         {% set flagged = shots|selectattr('ambiguous')|list|length %}
         <p class="curate-note mono">Curate mode — click &times; to hide, or edit the species text to fix it. {{ shots|length }} shown · <strong>{{ flagged }}</strong> flagged for review.</p>
@@ -24,6 +34,7 @@
                 data-captions='{{ shot.captions|tojson }}'
                 data-image-species='{{ (shot.image_species or [])|tojson }}'
                 data-image-locations='{{ (shot.image_locations or [])|tojson }}'
+                data-date='{{ shot.date or "" }}'
                 tabindex="0" role="button" aria-label="View {{ shot.species or 'photo' }} larger">
             <img loading="lazy" src="{{ shot.images[0] }}" alt="{{ shot.species or shot.caption[:80] }}">
             {% if shot.images|length > 1 %}<span class="multi-badge">⧉ {{ shot.images|length }}</span>{% endif %}

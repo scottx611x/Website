@@ -86,12 +86,13 @@
                     try { caps = JSON.parse(el.getAttribute("data-captions")); } catch (_) { caps = []; }
                     try { sp = JSON.parse(el.getAttribute("data-image-species")); } catch (_) { sp = []; }
                     try { loc = JSON.parse(el.getAttribute("data-image-locations")); } catch (_) { loc = []; }
+                    var date = el.getAttribute("data-date") || "";
                     el._frameStart = frames.length;
                     urls.forEach(function (u, i) {
                         frames.push({
                             url: u, caption: caps[i] || caps[0] || "",
                             species: (sp && sp[i]) || "", location: (loc && loc[i]) || "",
-                            n: i + 1, of: urls.length
+                            date: date, n: i + 1, of: urls.length
                         });
                     });
                 });
@@ -101,8 +102,9 @@
                 idx = (i + frames.length) % frames.length;
                 var f = frames[idx];
                 img.src = f.url;
-                // Prefer the per-image species · location label; fall back to the caption.
+                // Prefer the per-image species · location · date label; fall back to caption.
                 var base = f.species ? (f.species + (f.location ? "  ·  " + f.location : "")) : f.caption;
+                if (f.date) base += "  ·  " + f.date;
                 var label = base + (f.of > 1 ? "  (" + f.n + "/" + f.of + ")" : "");
                 cap.textContent = label.trim();
                 cap.hidden = !label.trim();
