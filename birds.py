@@ -265,53 +265,83 @@ def species_count(shots):
     return sum(len(sp) for _, sp in species_groups(shots))
 
 
-def images_for_species(shots, bird):
-    """Single-image pseudo-shots for every frame of ``bird`` (its display name),
-    so the gallery can render a filtered grid of just that species' photos. Photos
-    are round-robin interleaved across posts (rather than clumped by post) so a
-    single shoot doesn't dominate a run of the grid.
-    """
-    target = (bird or "").strip().lower()
-    buckets = []
-    for shot in shots:
-        images = shot.get("images") or []
-        isp = shot.get("image_species") or []
-        iloc = shot.get("image_locations") or []
-        caps = shot.get("captions") or []
-        rts = shot.get("image_ratings") or []
-        bucket = []
-        for i, url in enumerate(images):
-            raw = isp[i] if i < len(isp) and isp[i] else shot.get("species")
-            canons = _canon_species_list(raw)
-            if not any(c[0].lower() == target for c in canons):
-                continue
-            display = " & ".join(c[0] for c in canons)  # show co-occurring species
-            loc = iloc[i] if i < len(iloc) and iloc[i] else shot.get("location")
-            bucket.append({
-                "id": "%s-%d" % (shot.get("id"), i),
-                "images": [url],
-                "captions": [caps[i] if i < len(caps) else ""],
-                "image_species": [display],
-                "image_locations": [loc],
-                "species": display,
-                "location": loc,
-                "date": shot.get("date"),
-                "caption": shot.get("caption") or "",
-                "rating": rts[i] if i < len(rts) else 0,
-            })
-        if bucket:
-            bucket.sort(key=lambda f: f["rating"], reverse=True)  # best of each post first
-            buckets.append(bucket)
-    # Highest-rated posts lead; then deal one photo per post per round so the same
-    # shoot is spread out (interleaved) rather than clumped.
+def _pseudo_frame(shot, i):
+    """A single-image 'pseudo-shot' for frame ``i`` of ``shot`` (used by filtered
+    grids). Returns (frame_dict, canon_species_list)."""
+    images = shot.get("images") or []
+    isp = shot.get("image_species") or []
+    iloc = shot.get("image_locations") or []
+    caps = shot.get("captions") or []
+    rts = shot.get("image_ratings") or []
+    areas = shot.get("image_areas") or []
+    raw = isp[i] if i < len(isp) and isp[i] else shot.get("species")
+    canons = _canon_species_list(raw)
+    display = " & ".join(c[0] for c in canons) or (shot.get("species") or "")
+    loc = iloc[i] if i < len(iloc) and iloc[i] else shot.get("location")
+    return {
+        "id": "%s-%d" % (shot.get("id"), i),
+        "images": [images[i]],
+        "captions": [caps[i] if i < len(caps) else ""],
+        "image_species": [display],
+        "image_locations": [loc],
+        "image_areas": [areas[i] if i < len(areas) else "local"],
+        "species": display,
+        "location": loc,
+        "date": shot.get("date"),
+        "caption": shot.get("caption") or "",
+        "rating": rts[i] if i < len(rts) else 0,
+    }, canons
+
+
+def _interleave_buckets(buckets):
+    """Highest-rated posts lead; deal one frame per post per round (interleaved so a
+    single shoot doesn't clump)."""
+    for bucket in buckets:
+        bucket.sort(key=lambda f: f["rating"], reverse=True)  # best of each post first
+    buckets = [b for b in buckets if b]
     buckets.sort(key=lambda b: b[0]["rating"], reverse=True)
     out = []
-    buckets = [b for b in buckets if b]
     while buckets:
         for bucket in buckets:
             out.append(bucket.pop(0))
         buckets = [b for b in buckets if b]
     return out
+
+
+def images_for_species(shots, bird):
+    """Single-image pseudo-shots for every frame of ``bird`` (its display name), so
+    the gallery can render an interleaved grid of just that species' photos."""
+    target = (bird or "").strip().lower()
+    buckets = []
+    for shot in shots:
+        bucket = []
+        for i in range(len(shot.get("images") or [])):
+            frame, canons = _pseudo_frame(shot, i)
+            if any(c[0].lower() == target for c in canons):
+                bucket.append(frame)
+        if bucket:
+            buckets.append(bucket)
+    return _interleave_buckets(buckets)
+
+
+def images_for_area(shots, area, ooa_only):
+    """Frames of the species in one area bucket, matching the header counts:
+    ``area='elsewhere'`` -> the species only ever seen out-of-area (``ooa_only``);
+    ``'local'`` -> the North Andover species (everything else)."""
+    want_elsewhere = area in ("elsewhere", "away")
+    ooa_lower = {n.lower() for n in ooa_only}
+    buckets = []
+    for shot in shots:
+        bucket = []
+        for i in range(len(shot.get("images") or [])):
+            frame, canons = _pseudo_frame(shot, i)
+            names = [c[0].lower() for c in canons]
+            is_elsewhere = bool(names) and all(nm in ooa_lower for nm in names)
+            if is_elsewhere == want_elsewhere:
+                bucket.append(frame)
+        if bucket:
+            buckets.append(bucket)
+    return _interleave_buckets(buckets)
 
 
 def _shuffle_images_weighted(shot):
@@ -330,7 +360,7 @@ def _shuffle_images_weighted(shot):
         rating = ratings[i] if i < len(ratings) else 0
         return (n - i) + 4.0 * rating
     order = sorted(range(n), key=lambda i: random.random() ** (1.0 / weight(i)), reverse=True)
-    for key in ("images", "captions", "image_species", "image_locations", "image_ratings"):
+    for key in ("images", "captions", "image_species", "image_locations", "image_ratings", "image_areas"):
         seq = shot.get(key)
         if isinstance(seq, list) and len(seq) == n:
             shot[key] = [seq[i] for i in order]
@@ -512,7 +542,23 @@ def apply_overrides(shots, overrides=None):
                 rt = override["ratings"]
                 shot["image_ratings"] = [int(rt.get(str(i)) or 0) for i in range(n)]
         shot["ambiguous"] = (not override) and _is_ambiguous(shot)
+        shot["image_areas"] = _image_areas(shot)
     return shots
+
+
+def _image_areas(shot):
+    """Per-frame 'local' / 'away' tag from the ⚠️ caption marker — a frame is 'away'
+    when every species in it is out-of-area for that post."""
+    clean, ooa = _caption_area_species(shot.get("caption") or "")
+    isp = shot.get("image_species") or []
+    n = len(shot.get("images") or [])
+    areas = []
+    for i in range(n):
+        raw = isp[i] if i < len(isp) and isp[i] else shot.get("species")
+        names = [c[0] for c in _canon_species_list(raw)]
+        away = bool(names) and all(nm in ooa and nm not in clean for nm in names)
+        areas.append("away" if away else "local")
+    return areas
 
 
 def set_override(post_id, fields):

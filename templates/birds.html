@@ -11,7 +11,7 @@
         {% if not curate and species_groups %}
         <div class="bird-filter">
             <p class="bird-stat">
-                <strong>{{ local_count }}</strong> species in North&nbsp;Andover{% if away_count %}<span class="bird-stat-away"> &middot; {{ away_count }} spotted elsewhere</span>{% endif %}
+                <a href="/birds?area=local" class="bird-stat-link{% if active_area == 'local' %} is-active{% endif %}"><strong>{{ local_count }}</strong> species in North&nbsp;Andover</a>{% if away_count %} &middot; <a href="/birds?area=elsewhere" class="bird-stat-link bird-stat-away{% if active_area == 'elsewhere' %} is-active{% endif %}">{{ away_count }} spotted elsewhere&nbsp;&#9992;</a>{% endif %}
             </p>
             <div class="bird-select">
                 <select id="birdFilter" aria-label="Filter by species"
@@ -32,6 +32,12 @@
             <p class="bird-active-kicker">{{ active_family }}{% if active_bird in out_of_area %} &middot; spotted outside North Andover &#9992;{% endif %}</p>
             <h2 class="bird-active-name">{{ active_bird }}</h2>
             <p class="bird-active-meta">{{ shots|length }} photo{{ 's' if shots|length != 1 }} <a href="/birds">&larr; all species</a></p>
+        </div>
+        {% elif active_area %}
+        <div class="bird-active">
+            <p class="bird-active-kicker">{% if active_area == 'elsewhere' %}Spotted outside North Andover &#9992;{% else %}In North Andover{% endif %}</p>
+            <h2 class="bird-active-name">{{ shots|length }} photo{{ 's' if shots|length != 1 }}</h2>
+            <p class="bird-active-meta"><a href="/birds">&larr; all species</a></p>
         </div>
         {% endif %}
         {% endif %}
@@ -56,6 +62,7 @@
                 tabindex="0" role="button" aria-label="View {{ shot.species or 'photo' }} larger">
             <img loading="lazy" src="{{ shot.images[0] }}" alt="{{ shot.species or shot.caption[:80] }}">
             {% if shot.images|length > 1 %}<span class="multi-badge">⧉ {{ shot.images|length }}</span>{% endif %}
+            {% if shot.image_areas and shot.image_areas[0] == 'away' %}<span class="away-badge" title="Spotted outside North Andover{% set acover = (shot.image_locations[0] if shot.image_locations else None) or shot.location %}{% if acover %} — {{ acover }}{% endif %}">⚠️</span>{% endif %}
             {% if curate and shot.ambiguous %}<span class="flag-badge" title="{{ shot.species_list|join(', ') }} — set the primary species">⚠ {{ shot.species_list|length }}</span>{% endif %}
             {% if curate %}<button class="curate-x" data-exclude-id="{{ shot.id }}" aria-label="Hide this photo">&times;</button>{% endif %}
             {% if curate %}

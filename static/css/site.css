@@ -298,7 +298,13 @@ body.has-effect .site-footer { position: relative; z-index: 1; }
 .bird-filter { margin: 1.6rem auto 0; }
 .bird-stat { font-family: var(--mono); font-size: 0.9rem; color: var(--ink); margin: 0 0 1rem; }
 .bird-stat strong { color: var(--green); font-size: 1.05em; }
-.bird-stat-away { color: var(--muted); }
+.bird-stat-link {
+    color: var(--ink); text-decoration: none;
+    border-bottom: 1px solid transparent; transition: border-color 0.15s ease, color 0.15s ease;
+}
+.bird-stat-link:hover { border-bottom-color: currentColor; }
+.bird-stat-link.bird-stat-away { color: var(--muted); }
+.bird-stat-link.is-active { color: var(--green); border-bottom-color: var(--green); }
 
 .bird-select { position: relative; display: inline-block; }
 .bird-select::after {
@@ -353,6 +359,11 @@ body.has-effect .site-footer { position: relative; z-index: 1; }
     position: absolute; top: 0.5rem; left: 0.5rem;
     font-family: var(--mono); font-size: 0.7rem; color: #fff;
     background: rgba(0,0,0,0.55); padding: 0.15rem 0.45rem; border-radius: 3px;
+}
+.away-badge {
+    position: absolute; top: 0.4rem; right: 0.5rem; z-index: 2;
+    font-size: 1rem; line-height: 1; cursor: help;
+    filter: drop-shadow(0 1px 2px rgba(0,0,0,0.55));
 }
 .curate-note { color: var(--green); margin-top: 1rem; }
 .curate-x {

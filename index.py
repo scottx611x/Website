@@ -102,9 +102,15 @@ CURATE = os.environ.get("BIRDS_CURATE") == "1"
 def birds_gallery():
     all_shots = birds.load_gallery(shuffle=not CURATE)
     bird = (request.args.get("bird") or "").strip()
-    shots = birds.images_for_species(all_shots, bird) if bird else all_shots
-    groups = birds.species_groups(all_shots)
+    area = (request.args.get("area") or "").strip()
     out_of_area = birds.out_of_area_species(all_shots)
+    if bird:
+        shots = birds.images_for_species(all_shots, bird)
+    elif area in ("local", "elsewhere"):
+        shots = birds.images_for_area(all_shots, area, out_of_area)
+    else:
+        shots = all_shots
+    groups = birds.species_groups(all_shots)
     total = sum(len(sp) for _, sp in groups)
     away = sum(1 for _, sp in groups for name, _ in sp if name in out_of_area)
     active_family = ""
@@ -124,6 +130,7 @@ def birds_gallery():
         out_of_area=out_of_area,
         active_bird=bird,
         active_family=active_family,
+        active_area=area if area in ("local", "elsewhere") else "",
         curate=CURATE,
         reid_queued=sorted(birds.reid_keys()) if CURATE else [],
     )
