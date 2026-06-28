@@ -748,6 +748,28 @@
       "9": "Northern Cardinal"
     }
   },
+  "18078611876597830": {
+    "image_locations": {
+      "0": "Rea St.",
+      "1": "Rea St.",
+      "2": "Rea St.",
+      "3": "Rea St.",
+      "4": "Rea St.",
+      "5": "Rea St.",
+      "6": "High St. Captured by sara.e.ouellette",
+      "7": "Rea St."
+    },
+    "images": {
+      "0": "Pileated Woodpecker",
+      "1": "Pileated Woodpecker",
+      "2": "Black-capped Chickadee",
+      "3": "White-throated Sparrow",
+      "4": "White-throated Sparrow",
+      "5": "Pileated Woodpecker",
+      "6": "Cooper's Hawk",
+      "7": "Blue Jay"
+    }
+  },
   "18078963029168026": {
     "image_locations": {
       "0": "Rea St.",
@@ -955,6 +977,26 @@
       "6": "Red-breasted Merganser"
     }
   },
+  "18096065399058447": {
+    "image_locations": {
+      "0": "Rea St.",
+      "1": "Rea St.",
+      "2": "Rea St.",
+      "3": "Rea St.",
+      "4": "Rea St.",
+      "5": "Rea St.",
+      "6": "Rea St."
+    },
+    "images": {
+      "0": "House Sparrow",
+      "1": "House Sparrow",
+      "2": "White-breasted Nuthatch",
+      "3": "White-breasted Nuthatch",
+      "4": "Mourning Dove",
+      "5": "Mourning Dove",
+      "6": "Northern Cardinal"
+    }
+  },
   "18097368877823488": {
     "image_locations": {
       "0": "Lake Cochichewick",
@@ -979,6 +1021,32 @@
       "7": "Hooded Merganser",
       "8": "Hooded Merganser",
       "9": "Mallard"
+    }
+  },
+  "18101882164922759": {
+    "image_locations": {
+      "0": "Rea St./Johnson St.",
+      "1": "Rea St./Johnson St.",
+      "2": "Rea St./Johnson St.",
+      "3": "Rea St./Johnson St.",
+      "4": "Rea St./Johnson St.",
+      "5": "Annie L. Sargent School",
+      "6": "Johnson St.",
+      "7": "Annie L. Sargent School",
+      "8": "Johnson St.",
+      "9": "Johnson St."
+    },
+    "images": {
+      "0": "Red-tailed Hawk",
+      "1": "Red-tailed Hawk",
+      "2": "Red-tailed Hawk",
+      "3": "Red-tailed Hawk",
+      "4": "Red-tailed Hawk",
+      "5": "Northern Flicker",
+      "6": "Mourning Dove",
+      "7": "Northern Flicker",
+      "8": "Mourning Dove",
+      "9": "American Crow"
     }
   },
   "18103240733493072": {
@@ -1317,6 +1385,26 @@
       "9": "Downy Woodpecker"
     }
   },
+  "18189187927317112": {
+    "image_locations": {
+      "0": "Rea St.",
+      "1": "Rea St.",
+      "2": "Rea St.",
+      "3": "Rea St.",
+      "4": "Rea St.",
+      "5": "Rea St.",
+      "6": "Rea St."
+    },
+    "images": {
+      "0": "Tufted Titmouse",
+      "1": "Tufted Titmouse",
+      "2": "Tufted Titmouse",
+      "3": "Tufted Titmouse",
+      "4": "Tufted Titmouse",
+      "5": "Tufted Titmouse",
+      "6": "Downy Woodpecker"
+    }
+  },
   "18216427975313805": {
     "image_locations": {
       "0": "Rea St.",
@@ -1445,6 +1533,22 @@
       "3": "Downy Woodpecker",
       "4": "Downy Woodpecker",
       "5": "Northern Flicker"
+    }
+  },
+  "18404583661157562": {
+    "image_locations": {
+      "0": "Rea St.",
+      "1": "Rea St.",
+      "2": "Rea St.",
+      "3": "Rea St.",
+      "4": "Rea St."
+    },
+    "images": {
+      "0": "Black-and-white Warbler",
+      "1": "Black-and-white Warbler",
+      "2": "Black-and-white Warbler",
+      "3": "Gray Catbird",
+      "4": "American Goldfinch"
     }
   },
   "18416658070123663": {
