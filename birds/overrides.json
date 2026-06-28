@@ -33,6 +33,17 @@
       "5": "Black-capped Chickadee"
     }
   },
+  "17893702770263381": {
+    "image_locations": {},
+    "images": {
+      "0": "Osprey",
+      "1": "Boat-tailed Grackle",
+      "2": "Red-bellied Woodpecker",
+      "3": "Tricolored Heron",
+      "4": "Sanderling",
+      "5": "Cooper's Hawk"
+    }
+  },
   "17900222916286005": {
     "image_locations": {
       "0": "Rea St.",
@@ -329,6 +340,32 @@
       "6": "Barred Owl"
     }
   },
+  "18006289808839661": {
+    "image_locations": {
+      "0": "Rea St.",
+      "1": "Rea St.",
+      "2": "Rea St.",
+      "3": "Rea St.",
+      "4": "Rea St.",
+      "5": "Rea St.",
+      "6": "Rea St.",
+      "7": "Rea St.",
+      "8": "Rea St.",
+      "9": "Rea St."
+    },
+    "images": {
+      "0": "White-breasted Nuthatch",
+      "1": "White-breasted Nuthatch",
+      "2": "Cooper's Hawk",
+      "3": "Cooper's Hawk",
+      "4": "Cooper's Hawk",
+      "5": "White-throated Sparrow",
+      "6": "White-throated Sparrow",
+      "7": "Carolina Wren",
+      "8": "American Robin",
+      "9": "Mourning Dove"
+    }
+  },
   "18011838731836967": {
     "image_locations": {
       "0": "Rea St.",
@@ -349,6 +386,20 @@
       "5": "Black-capped Chickadee",
       "6": "Tufted Titmouse",
       "7": "American Robin"
+    }
+  },
+  "18056908169383034": {
+    "image_locations": {
+      "0": "Rea St.",
+      "1": "Rea St.",
+      "2": "Rea St.",
+      "3": "Rea St."
+    },
+    "images": {
+      "0": "Red-bellied Woodpecker",
+      "1": "Northern Cardinal",
+      "2": "Northern Cardinal",
+      "3": "Mourning Dove"
     }
   },
   "18058549532697845": {
@@ -433,6 +484,32 @@
       "7": "Common Loon",
       "8": "American Black Duck",
       "9": "American Herring Gull"
+    }
+  },
+  "18071805020405390": {
+    "image_locations": {
+      "0": "Rea St.",
+      "1": "Rea St.",
+      "2": "Rea St.",
+      "3": "Rea St.",
+      "4": "Rea St.",
+      "5": "Rea St.",
+      "6": "Rea St.",
+      "7": "Rea St.",
+      "8": "Rea St.",
+      "9": "Rea St."
+    },
+    "images": {
+      "0": "Carolina Wren",
+      "1": "Downy Woodpecker",
+      "2": "Black-capped Chickadee",
+      "3": "Black-capped Chickadee",
+      "4": "House Sparrow",
+      "5": "White-breasted Nuthatch",
+      "6": "White-breasted Nuthatch",
+      "7": "Dark-eyed Junco",
+      "8": "Song Sparrow",
+      "9": "Northern Cardinal"
     }
   },
   "18078963029168026": {
@@ -828,6 +905,26 @@
       "4": "Common Loon",
       "5": "Common Loon",
       "6": "Common Loon"
+    }
+  },
+  "18174564514383378": {
+    "image_locations": {
+      "0": "Rea St",
+      "1": "Atlantic Wharf Docks, Boston",
+      "2": "Atlantic Wharf Docks, Boston",
+      "3": "Congress St. Bridge, Boston",
+      "4": "Congress St. Bridge, Boston",
+      "5": "Congress St. Bridge, Boston",
+      "6": "Congress St. Bridge, Boston"
+    },
+    "images": {
+      "0": "House Sparrow",
+      "1": "American Black Duck",
+      "2": "American Black Duck",
+      "3": "Red-breasted Merganser",
+      "4": "Red-breasted Merganser",
+      "5": "Red-breasted Merganser",
+      "6": "Red-breasted Merganser"
     }
   },
   "18216427975313805": {
