@@ -160,7 +160,14 @@
     }
   },
   "17893702770263381": {
-    "image_locations": {},
+    "image_locations": {
+      "0": "Estero, Florida",
+      "1": "Estero, Florida",
+      "2": "Estero, Florida",
+      "3": "Estero, Florida",
+      "4": "Estero, Florida",
+      "5": "Estero, Florida"
+    },
     "images": {
       "0": "Osprey",
       "1": "Boat-tailed Grackle",
@@ -2362,8 +2369,8 @@
       "5": "Rea St.",
       "6": "Rea St.",
       "7": "Rea St.",
-      "8": "Annie L. Sargent School",
-      "9": "Annie L. Sargent School"
+      "8": "Crane Beach Ipswich, MA",
+      "9": "Crane Beach Ipswich, MA"
     },
     "images": {
       "0": "Blue Jay",
