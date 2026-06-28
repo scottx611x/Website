@@ -61,6 +61,20 @@
       "9": "Mourning Dove"
     }
   },
+  "17926946091347519": {
+    "image_locations": {
+      "0": "Rea St.",
+      "1": "Rea St.",
+      "2": "Elm St.",
+      "3": "Postoffice Square, Boston"
+    },
+    "images": {
+      "0": "Barred Owl",
+      "1": "Barred Owl",
+      "2": "Mourning Dove",
+      "3": "Ovenbird"
+    }
+  },
   "17960879040092068": {
     "image_locations": {
       "0": "Johnson St.",
@@ -394,6 +408,26 @@
       "9": "Pileated Woodpecker"
     }
   },
+  "18151780150485922": {
+    "image_locations": {
+      "0": "Rea St.",
+      "1": "Rea St.",
+      "2": "Rea St.",
+      "3": "Rea St.",
+      "4": "Rea St.",
+      "5": "Rea St.",
+      "6": "Rea St."
+    },
+    "images": {
+      "0": "Wood Duck",
+      "1": "Wood Duck",
+      "2": "Wood Duck",
+      "3": "Wood Duck",
+      "4": "Wood Duck",
+      "5": "Wood Duck",
+      "6": "Eastern Phoebe"
+    }
+  },
   "18154635835449638": {
     "image_locations": {
       "0": "Rea St.",
@@ -412,6 +446,42 @@
       "4": "Common Loon",
       "5": "Common Loon",
       "6": "Common Loon"
+    }
+  },
+  "18219193519320949": {
+    "image_locations": {
+      "0": "Rea St.",
+      "1": "Rea St.",
+      "2": "Rea St.",
+      "3": "Rea St.",
+      "4": "Rea St.",
+      "5": "Rea St.",
+      "6": "Rea St."
+    },
+    "images": {
+      "0": "Chipping Sparrow",
+      "1": "Chipping Sparrow",
+      "2": "Chipping Sparrow",
+      "3": "Red-tailed Hawk",
+      "4": "Red-tailed Hawk",
+      "5": "Red-tailed Hawk",
+      "6": "Canada Goose"
+    }
+  },
+  "18335794243219513": {
+    "image_locations": {
+      "0": "Rea St.",
+      "1": "Rea St.",
+      "2": "Rea St.",
+      "3": "Rea St.",
+      "4": "Rea St."
+    },
+    "images": {
+      "0": "Carolina Wren",
+      "1": "Carolina Wren",
+      "2": "Carolina Wren",
+      "3": "Mallard",
+      "4": "Mallard"
     }
   },
   "18371940658164515": {
@@ -496,6 +566,32 @@
       "6": "Mourning Dove",
       "7": "Downy Woodpecker",
       "8": "American Robin"
+    }
+  },
+  "18548429008010202": {
+    "image_locations": {
+      "0": "Annie L. Sargent School Access Road",
+      "1": "Annie L. Sargent School Access Road",
+      "2": "Rea Street",
+      "3": "Annie L. Sargent School Access Road",
+      "4": "Annie L. Sargent School Access Road",
+      "5": "Annie L. Sargent School Access Road",
+      "6": "Rea Street",
+      "7": "Rea Street",
+      "8": "Rea Street",
+      "9": "Annie L. Sargent School Access Road"
+    },
+    "images": {
+      "0": "Northern Mockingbird",
+      "1": "Northern Mockingbird",
+      "2": "Black-capped Chickadee",
+      "3": "Blue Jay",
+      "4": "Blue Jay",
+      "5": "Northern Flicker",
+      "6": "Eastern Bluebird",
+      "7": "Carolina Wren",
+      "8": "House Finch",
+      "9": "Red-bellied Woodpecker"
     }
   },
   "18563549941033601": {
