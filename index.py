@@ -198,7 +198,8 @@ def curate_override():
     post_id = (data.get("id") or "").strip()
     if not post_id:
         abort(400)
-    fields = {k: data[k] for k in ("species", "location", "date") if k in data}
+    keys = ("species", "location", "date", "images", "image_locations")
+    fields = {k: data[k] for k in keys if k in data}
     shot = birds.set_override(post_id, fields)
     return {"ok": True, "ambiguous": bool(shot and shot.get("ambiguous"))}
 

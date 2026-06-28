@@ -56,8 +56,10 @@
             <figcaption id="lightbox-cap"></figcaption>
             {% if curate %}
             <div class="lightbox-curate">
+                <input type="text" id="lightbox-species" class="lightbox-species" placeholder="species" aria-label="Rename this bird">
                 <div id="lightbox-stars" class="lightbox-stars" role="radiogroup" aria-label="Rate this photo"></div>
                 <button type="button" id="lightbox-reid" class="lightbox-reid" hidden></button>
+                <button type="button" id="lightbox-remove" class="lightbox-remove" title="Hide this whole post">&times; remove</button>
             </div>
             {% endif %}
         </figure>
@@ -86,7 +88,18 @@
                 cap = document.getElementById("lightbox-cap"),
                 reid = document.getElementById("lightbox-reid"),
                 stars = document.getElementById("lightbox-stars"),
+                speciesInput = document.getElementById("lightbox-species"),
+                removeBtn = document.getElementById("lightbox-remove"),
                 frames = [], idx = -1;
+            function renderLabel(f) {
+                var loc = f.location ? ((f.away ? "⚠️ " : "") + f.location) : "";
+                var base = f.species ? (f.species + (loc ? "  ·  " + loc : "")) : f.caption;
+                if (f.date) base += "  ·  " + f.date;
+                if (f.away && !f.species) base = "⚠️ " + base;
+                var label = base + (f.of > 1 ? "  (" + f.n + "/" + f.of + ")" : "");
+                cap.textContent = label.trim();
+                cap.hidden = !label.trim();
+            }
             function reidKey(f) { return f.postId + "-" + f.index; }
             function renderReid(f) {
                 if (!reid) return;
@@ -142,16 +155,10 @@
                 idx = (i + frames.length) % frames.length;
                 var f = frames[idx];
                 img.src = f.url;
-                // Prefer the per-image species · location · date label; fall back to caption.
-                var loc = f.location ? ((f.away ? "⚠️ " : "") + f.location) : "";
-                var base = f.species ? (f.species + (loc ? "  ·  " + loc : "")) : f.caption;
-                if (f.date) base += "  ·  " + f.date;
-                if (f.away && !f.species) base = "⚠️ " + base;  // out-of-area, caption fallback
-                var label = base + (f.of > 1 ? "  (" + f.n + "/" + f.of + ")" : "");
-                cap.textContent = label.trim();
-                cap.hidden = !label.trim();
+                renderLabel(f);
                 renderReid(f);
                 renderStars(f);
+                if (speciesInput) { speciesInput.value = f.species || ""; speciesInput.classList.remove("saved", "save-failed"); }
                 box.hidden = false;
                 document.body.style.overflow = "hidden";
             }
@@ -170,9 +177,56 @@
             });
             addEventListener("keydown", function (e) {
                 if (box.hidden) return;
+                if (e.target === speciesInput) {  // typing a rename — don't navigate
+                    if (e.key === "Enter") { e.preventDefault(); saveLightboxSpecies(); speciesInput.blur(); }
+                    return;
+                }
                 if (e.key === "Escape") close();
                 else if (e.key === "ArrowRight") show(idx + 1);
                 else if (e.key === "ArrowLeft") show(idx - 1);
+            });
+            function saveLightboxSpecies() {
+                var f = frames[idx]; if (!f || !speciesInput) return;
+                var name = speciesInput.value.trim();
+                speciesInput.classList.remove("saved", "save-failed");
+                var imgs = {}; imgs[f.index] = name;
+                fetch("/curate/override", {
+                    method: "POST", headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ id: f.postId, images: imgs })
+                }).then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+                  .then(function () {
+                    f.species = name;
+                    speciesInput.classList.add("saved");
+                    setTimeout(function () { speciesInput.classList.remove("saved"); }, 1500);
+                    renderLabel(f);
+                    // keep the underlying card's lightbox data in sync
+                    var card = document.querySelector('[data-id="' + f.postId + '"]');
+                    if (card) { try {
+                        var arr = JSON.parse(card.getAttribute("data-image-species") || "[]");
+                        while (arr.length <= f.index) arr.push("");
+                        arr[f.index] = name;
+                        card.setAttribute("data-image-species", JSON.stringify(arr));
+                    } catch (_) {} }
+                  }).catch(function () { speciesInput.classList.add("save-failed"); });
+            }
+            if (speciesInput) {
+                speciesInput.addEventListener("click", function (e) { e.stopPropagation(); });
+                speciesInput.addEventListener("change", saveLightboxSpecies);
+            }
+            if (removeBtn) removeBtn.addEventListener("click", function (e) {
+                e.stopPropagation();
+                var f = frames[idx]; if (!f) return;
+                if (!confirm("Hide this entire post from the gallery?")) return;
+                removeBtn.disabled = true;
+                fetch("/curate/exclude", {
+                    method: "POST", headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ id: f.postId })
+                }).then(function (r) { return r.json(); }).then(function () {
+                    var card = document.querySelector('[data-id="' + f.postId + '"]');
+                    if (card) card.remove();
+                    close();
+                    build();  // rebuild the frame sequence without the removed post
+                }).finally(function () { removeBtn.disabled = false; });
             });
             if (reid) reid.addEventListener("click", function (e) {
                 e.stopPropagation();
