@@ -931,37 +931,87 @@ def _split_loc_date(text):
     return _clean_location(text), date
 
 
+# Tokens that mark a line as a location rather than a species (street/place types
+# and the places Scott shoots). Used to classify ambiguous bare lines.
+_LOC_HINT = re.compile(
+    r"\b(st|ave|rd|road|street|blvd|dr|drive|ln|lane|ct|way|bridge|beach|park|"
+    r"square|wharf|harborwalk|harbor|dock|docks|refuge|sanctuary|wildlife|"
+    r"memorial|school|sargent|cochichewick|shawsheen|ma|me|nh|fl|maine|florida|"
+    r"boston|andover|ipswich|concord|lincoln|westborough|lewiston|litchfield|"
+    r"york|cambridge|gloucester|dorchester|seaport|congress)\b\.?",
+    re.I,
+)
+
+
+def _is_location_line(text):
+    text = text or ""
+    return bool(_DATE_RE.search(text) or "," in text or _LOC_HINT.search(text))
+
+
+def _is_species_line(text):
+    """A line names a bird if it's a known species, or simply doesn't look like a
+    location/date (so unmapped birds still parse)."""
+    return _canon_species(_clean_species(text)) is not None or not _is_location_line(text)
+
+
+def _split_known(text):
+    """If ``text`` is one or more known birds (possibly "A & B"), the cleaned
+    species strings; else None. Parentheticals/notes are trimmed before the lookup
+    so 'Juvenile Barred Owl ("Mojo")' still resolves."""
+    cleaned = [_clean_species(p) for p in _SPECIES_SPLIT_RE.split(text or "")]
+    cleaned = [c for c in cleaned if c]
+    if cleaned and all(_canon_species(c) for c in cleaned):
+        return cleaned
+    return None
+
+
 def _species_pairs(caption):
-    """List of (species, location, date) for a post, across caption formats.
+    """List of (species, location, date) for a post, robust across formats:
 
-    - Inline:  "Species - Location" (location may embed a date, may differ per
-      species, and old posts may have a per-line date).
-    - Block:   "Species" / blank / "Location" / blank / "Date" — the location is
-      the block after the species block.
+    - Inline:  "Species - Location" (optionally ⚠️-prefixed, location may embed a
+      per-line date, and may differ per species).
+    - Block:   bare "Species" lines that share a trailing "Location" line — even
+      across a "---" separator, and even when the location carries the ⚠️ marker.
+
+    Bare lines are classified species vs. location/date via the bird taxonomy and
+    location hints, so trailing out-of-area blocks no longer drop their location.
     """
-    blocks = _blocks(caption)
-    if not blocks:
-        return []
+    triples = []
+    pending = []  # species still awaiting a shared location line
 
-    triples, inline = [], False
-    for line in blocks[0]:
-        if " - " in line:
-            name, rest = line.split(" - ", 1)
-            location, date = _split_loc_date(rest)
-            triples.append((_clean_species(name), location, date))
-            inline = True
+    def flush(location, date):
+        for sp in pending:
+            triples.append((sp, location, date))
+        del pending[:]
+
+    for raw in (caption or "").splitlines():
+        s = raw.strip()
+        if s.startswith("#"):
+            break
+        s = s.replace("️", "").replace("⚠", "").strip()
+        if not s:
+            continue
+        if set(s) <= set("-–—"):  # a "---" style separator ends the current block
+            flush(None, None)
+            continue
+        parts = re.split(r"\s+[-–]\s+", s, 1)
+        if len(parts) > 1 and _is_species_line(parts[0]):
+            location, date = _split_loc_date(parts[1])
+            for nm in _split_known(parts[0]) or [_clean_species(parts[0])]:
+                if location or date:
+                    triples.append((nm, location, date))
+                else:
+                    pending.append(nm)
         else:
-            triples.append((_clean_species(line), None, None))
-    triples = [(sp, loc, dt) for sp, loc, dt in triples if sp]
-
-    # No inline locations: a following block (that isn't the date) is the location.
-    if not inline and triples and len(blocks) > 1:
-        candidate = ", ".join(blocks[1])
-        if not _DATE_RE.search(candidate):
-            location = _clean_location(candidate)
-            if location:
-                triples = [(sp, location, dt) for sp, _, dt in triples]
-    return triples
+            names = _split_known(s)
+            if names:
+                pending.extend(names)               # bare species (maybe "A & B")
+            elif _is_location_line(s):
+                location, date = _split_loc_date(s)  # shared location / bare date
+                flush(location, date)
+            # else: a note line -> ignore
+    flush(None, None)
+    return [(sp, loc, dt) for sp, loc, dt in triples if sp]
 
 
 def _species_lines(caption):
