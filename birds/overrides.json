@@ -246,6 +246,20 @@
       "9": "Mourning Dove"
     }
   },
+  "17916525198208404": {
+    "image_locations": {
+      "0": "Glennie Woodlot",
+      "1": "Glennie Woodlot",
+      "2": "Rea Street",
+      "3": "Rea Street"
+    },
+    "images": {
+      "0": "Canada Goose",
+      "1": "Heron Rookery",
+      "2": "Downy Woodpecker",
+      "3": "Northern Cardinal"
+    }
+  },
   "17920375854319161": {
     "image_locations": {
       "0": "Abbott St.",
@@ -598,6 +612,24 @@
     "images": {
       "0": "American Herring Gull",
       "1": "Eastern Bluebird"
+    }
+  },
+  "17995984631893900": {
+    "image_locations": {
+      "0": "Stevens Pond",
+      "1": "Weir Hill",
+      "2": "Rea Street",
+      "3": "Rea Street",
+      "4": "Rea Street",
+      "5": "Rea Street"
+    },
+    "images": {
+      "0": "Osprey",
+      "1": "Red-tailed Hawk",
+      "2": "Eastern Bluebird",
+      "3": "American Goldfinch",
+      "4": "White-throated Sparrow",
+      "5": "American Goldfinch"
     }
   },
   "18000376070889564": {
@@ -1005,6 +1037,18 @@
       "7": "Northern Cardinal"
     }
   },
+  "18068433281626419": {
+    "image_locations": {
+      "0": "Annie L. Sargent School",
+      "1": "Annie L. Sargent School",
+      "2": "Annie L. Sargent School"
+    },
+    "images": {
+      "0": "Dark-eyed Junco",
+      "1": "Carolina Wren",
+      "2": "American Robin"
+    }
+  },
   "18068893877543258": {
     "image_locations": {
       "0": "Rea St.",
@@ -1021,6 +1065,18 @@
       "3": "Mourning Dove",
       "4": "Mourning Dove",
       "5": "Black-capped Chickadee"
+    }
+  },
+  "18069256187340916": {
+    "image_locations": {
+      "0": "Johnson St",
+      "1": "Abbott St",
+      "2": "Abbott St"
+    },
+    "images": {
+      "0": "Northern Mockingbird",
+      "1": "American Robin",
+      "2": "Red-bellied Woodpecker"
     }
   },
   "18070143716432380": {
@@ -1490,6 +1546,16 @@
       "7": "Hooded Merganser",
       "8": "Hooded Merganser",
       "9": "Mallard"
+    }
+  },
+  "18098282425882266": {
+    "image_locations": {
+      "0": "Congress St., Boston",
+      "1": "Harborwalk, Boston"
+    },
+    "images": {
+      "0": "White-throated Sparrow",
+      "1": "Mallard"
     }
   },
   "18101882164922759": {
@@ -2254,6 +2320,16 @@
       "7": "Carolina Wren",
       "8": "House Finch",
       "9": "Red-bellied Woodpecker"
+    }
+  },
+  "18553661926056631": {
+    "image_locations": {
+      "0": "Rea St.",
+      "1": "Rea St."
+    },
+    "images": {
+      "0": "White-breasted Nuthatch",
+      "1": "Tufted Titmouse"
     }
   },
   "18563549941033601": {
