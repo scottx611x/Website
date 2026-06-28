@@ -230,6 +230,18 @@ def curate_rate():
     return {"ok": True, "rating": rating}
 
 
+@app.route("/curate/exclude-image", methods=["POST"])
+def curate_exclude_image():
+    if not _curate_on():
+        abort(404)
+    data = request.get_json(silent=True) or {}
+    post_id = (data.get("id") or "").strip()
+    if not post_id or data.get("index") is None:
+        abort(400)
+    excluded = birds.toggle_image_exclusion(post_id, data["index"])
+    return {"ok": True, "excluded": excluded}
+
+
 GITHUB_USER = "scottx611x"
 
 

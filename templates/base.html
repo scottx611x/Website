@@ -59,7 +59,7 @@
                 <input type="text" id="lightbox-species" class="lightbox-species" placeholder="species" aria-label="Rename this bird">
                 <div id="lightbox-stars" class="lightbox-stars" role="radiogroup" aria-label="Rate this photo"></div>
                 <button type="button" id="lightbox-reid" class="lightbox-reid" hidden></button>
-                <button type="button" id="lightbox-remove" class="lightbox-remove" title="Hide this whole post">&times; remove</button>
+                <button type="button" id="lightbox-remove" class="lightbox-remove" title="Hide just this photo from the gallery">&times; hide photo</button>
             </div>
             {% endif %}
         </figure>
@@ -100,7 +100,7 @@
                 cap.textContent = label.trim();
                 cap.hidden = !label.trim();
             }
-            function reidKey(f) { return f.postId + "-" + f.index; }
+            function reidKey(f) { return f.postId + "-" + f.origIndex; }
             function renderReid(f) {
                 if (!reid) return;
                 reid.hidden = false;
@@ -139,12 +139,14 @@
                     var pid = el.getAttribute("data-id") || "";
                     var rts; try { rts = JSON.parse(el.getAttribute("data-image-ratings")); } catch (_) { rts = []; }
                     var ars; try { ars = JSON.parse(el.getAttribute("data-image-areas")); } catch (_) { ars = []; }
+                    var ixs; try { ixs = JSON.parse(el.getAttribute("data-image-indices")); } catch (_) { ixs = []; }
                     el._frameStart = frames.length;
                     urls.forEach(function (u, i) {
                         frames.push({
                             url: u, caption: caps[i] || caps[0] || "",
                             species: (sp && sp[i]) || "", location: (loc && loc[i]) || "",
                             date: date, n: i + 1, of: urls.length, postId: pid, index: i,
+                            origIndex: (ixs && ixs[i] != null) ? ixs[i] : i,
                             rating: (rts && rts[i]) || 0, away: (ars && ars[i]) === "away"
                         });
                     });
@@ -189,7 +191,7 @@
                 var f = frames[idx]; if (!f || !speciesInput) return;
                 var name = speciesInput.value.trim();
                 speciesInput.classList.remove("saved", "save-failed");
-                var imgs = {}; imgs[f.index] = name;
+                var imgs = {}; imgs[f.origIndex] = name;
                 fetch("/curate/override", {
                     method: "POST", headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ id: f.postId, images: imgs })
@@ -216,16 +218,32 @@
             if (removeBtn) removeBtn.addEventListener("click", function (e) {
                 e.stopPropagation();
                 var f = frames[idx]; if (!f) return;
-                if (!confirm("Hide this entire post from the gallery?")) return;
                 removeBtn.disabled = true;
-                fetch("/curate/exclude", {
+                fetch("/curate/exclude-image", {
                     method: "POST", headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ id: f.postId })
+                    body: JSON.stringify({ id: f.postId, index: f.origIndex })
                 }).then(function (r) { return r.json(); }).then(function () {
+                    // Drop this frame from its card's data (positional index f.index).
                     var card = document.querySelector('[data-id="' + f.postId + '"]');
-                    if (card) card.remove();
-                    close();
-                    build();  // rebuild the frame sequence without the removed post
+                    if (card) {
+                        ["data-images", "data-captions", "data-image-species",
+                         "data-image-locations", "data-image-ratings", "data-image-areas",
+                         "data-image-indices"].forEach(function (attr) {
+                            var arr; try { arr = JSON.parse(card.getAttribute(attr) || "[]"); } catch (_) { arr = []; }
+                            if (f.index < arr.length) { arr.splice(f.index, 1); card.setAttribute(attr, JSON.stringify(arr)); }
+                        });
+                        var left = [];
+                        try { left = JSON.parse(card.getAttribute("data-images") || "[]"); } catch (_) {}
+                        if (!left.length) { card.remove(); }
+                        else {
+                            var ci = card.querySelector("img"); if (ci) ci.src = left[0];
+                            var mb = card.querySelector(".multi-badge");
+                            if (mb) { if (left.length > 1) mb.textContent = "⧉ " + left.length; else mb.remove(); }
+                        }
+                    }
+                    build();  // rebuild the flat frame sequence without that frame
+                    if (!frames.length) close();
+                    else show(Math.min(idx, frames.length - 1));
                 }).finally(function () { removeBtn.disabled = false; });
             });
             if (reid) reid.addEventListener("click", function (e) {
@@ -235,7 +253,7 @@
                 reid.disabled = true;
                 fetch("/curate/reid", {
                     method: "POST", headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ id: f.postId, index: f.index, current: f.species })
+                    body: JSON.stringify({ id: f.postId, index: f.origIndex, current: f.species })
                 }).then(function (r) { return r.json(); }).then(function (d) {
                     if (!window.REID_QUEUED) window.REID_QUEUED = new Set();
                     if (d.queued) window.REID_QUEUED.add(reidKey(f));
@@ -251,7 +269,7 @@
                 var next = (f.rating === v) ? 0 : v;  // click current rating to clear
                 fetch("/curate/rate", {
                     method: "POST", headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ id: f.postId, index: f.index, rating: next })
+                    body: JSON.stringify({ id: f.postId, index: f.origIndex, rating: next })
                 }).then(function (r) { return r.json(); }).then(function (d) {
                     f.rating = d.rating;
                     renderStars(f);

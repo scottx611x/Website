@@ -66,6 +66,7 @@ def load_gallery(shuffle=True):
         shots = _load_local_manifest()
     shots = list(shots or [])
     apply_overrides(shots)
+    shots = [s for s in shots if s.get("images")]  # drop fully image-excluded posts
     if shuffle:
         return order_gallery(shots)
     # Stable view (curation): strict highest-likes-first (weight ~ like percentile),
@@ -374,7 +375,7 @@ def _shuffle_images_weighted(shot):
         rating = ratings[i] if i < len(ratings) else 0
         return (n - i) + 4.0 * rating
     order = sorted(range(n), key=lambda i: random.random() ** (1.0 / weight(i)), reverse=True)
-    for key in ("images", "captions", "image_species", "image_locations", "image_ratings", "image_areas"):
+    for key in ("images", "captions", "image_species", "image_locations", "image_ratings", "image_areas", "image_indices"):
         seq = shot.get(key)
         if isinstance(seq, list) and len(seq) == n:
             shot[key] = [seq[i] for i in order]
@@ -523,8 +524,13 @@ def _is_ambiguous(shot):
     return len(names) != 1
 
 
-def apply_overrides(shots, overrides=None):
-    """Apply hand-typed corrections and (re)compute the review flag in place."""
+def apply_overrides(shots, overrides=None, apply_exclusions=True):
+    """Apply hand-typed corrections and (re)compute the review flag in place.
+
+    ``apply_exclusions`` drops per-image-excluded frames (display path). It's left
+    off when re-baking the saved manifest so the stored arrays stay full-length and
+    re-application keeps the original-index keys aligned.
+    """
     if overrides is None:
         overrides = load_overrides()
     for shot in shots:
@@ -557,7 +563,36 @@ def apply_overrides(shots, overrides=None):
                 shot["image_ratings"] = [int(rt.get(str(i)) or 0) for i in range(n)]
         shot["ambiguous"] = (not override) and _is_ambiguous(shot)
         shot["image_areas"] = _image_areas(shot)
+        if apply_exclusions:
+            _apply_image_exclusions(shot, set((override or {}).get("exclude_images") or []))
+        else:
+            shot["image_indices"] = list(range(len(shot.get("images") or [])))
     return shots
+
+
+def _apply_image_exclusions(shot, excluded):
+    """Drop individual excluded frames from a post. Records each surviving frame's
+    original index in ``image_indices`` so per-image edits still target the right
+    frame after the array is re-indexed."""
+    n = len(shot.get("images") or [])
+    keep = [i for i in range(n) if i not in excluded]
+    shot["image_indices"] = keep
+    if len(keep) == n:
+        return
+    for key in ("images", "captions", "image_species", "image_locations",
+                "image_ratings", "image_areas"):
+        seq = shot.get(key)
+        if isinstance(seq, list) and len(seq) == n:
+            shot[key] = [seq[i] for i in keep]
+    # cover species/location follow the surviving frames
+    assigned = [s for s in (shot.get("image_species") or []) if s]
+    if assigned:
+        if shot.get("species") not in assigned:
+            shot["species"] = assigned[0]
+        shot["species_list"] = list(dict.fromkeys(assigned))
+    locs = [l for l in (shot.get("image_locations") or []) if l]
+    if locs and shot.get("location") not in locs:
+        shot["location"] = locs[0]
 
 
 def _image_areas(shot):
@@ -596,7 +631,7 @@ def set_override(post_id, fields):
     with open(OVERRIDES_FILE, "w") as fh:
         json.dump(overrides, fh, indent=2, sort_keys=True)
     shots = _load_local_manifest() or []
-    apply_overrides(shots, overrides)
+    apply_overrides(shots, overrides, apply_exclusions=False)
     with open(LOCAL_MANIFEST, "w") as fh:
         json.dump(shots, fh, indent=2)
     return next((s for s in shots if s.get("id") == post_id), None)
@@ -621,10 +656,33 @@ def set_rating(post_id, index, rating):
     with open(OVERRIDES_FILE, "w") as fh:
         json.dump(overrides, fh, indent=2, sort_keys=True)
     shots = _load_local_manifest() or []
-    apply_overrides(shots, overrides)
+    apply_overrides(shots, overrides, apply_exclusions=False)
     with open(LOCAL_MANIFEST, "w") as fh:
         json.dump(shots, fh, indent=2)
     return rating
+
+
+def toggle_image_exclusion(post_id, index):
+    """Hide (or un-hide) a single frame of a post by its ORIGINAL image index.
+    Returns the new excluded state. The frame is dropped at display time, so the
+    rest of the carousel and the original-index overrides stay intact."""
+    index = int(index)
+    overrides = load_overrides()
+    entry = overrides.get(post_id, {})
+    excl = set(entry.get("exclude_images") or [])
+    excluded = index not in excl
+    if excluded:
+        excl.add(index)
+    else:
+        excl.discard(index)
+    if excl:
+        entry["exclude_images"] = sorted(excl)
+    else:
+        entry.pop("exclude_images", None)
+    overrides[post_id] = entry
+    with open(OVERRIDES_FILE, "w") as fh:
+        json.dump(overrides, fh, indent=2, sort_keys=True)
+    return excluded
 
 
 def _load_local_manifest():
