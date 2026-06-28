@@ -119,6 +119,50 @@
       "3": "Ovenbird"
     }
   },
+  "17938542243120850": {
+    "image_locations": {
+      "0": "Rea St.",
+      "1": "Rea St.",
+      "2": "Rea St.",
+      "3": "Rea St.",
+      "4": "Rea St.",
+      "5": "Rea St.",
+      "6": "Rea St.",
+      "7": "Rea St.",
+      "8": "Rea St."
+    },
+    "images": {
+      "0": "Mourning Dove",
+      "1": "Mourning Dove",
+      "2": "Red-tailed Hawk",
+      "3": "Red-tailed Hawk",
+      "4": "Turkey Vulture",
+      "5": "Eastern Bluebird",
+      "6": "Northern Cardinal",
+      "7": "American Tree Sparrow",
+      "8": "Dark-eyed Junco"
+    }
+  },
+  "17940690909176649": {
+    "image_locations": {
+      "0": "Rea St.",
+      "1": "Rea St.",
+      "2": "Rea St.",
+      "3": "Rea St.",
+      "4": "Rea St.",
+      "5": "Abbott St.",
+      "6": "Annie L. Sargent School Access Rd."
+    },
+    "images": {
+      "0": "Song Sparrow",
+      "1": "Song Sparrow",
+      "2": "Red-winged Blackbird",
+      "3": "Red-winged Blackbird",
+      "4": "Red-winged Blackbird",
+      "5": "American Goldfinch",
+      "6": "Pileated Woodpecker"
+    }
+  },
   "17942089829983197": {
     "image_locations": {
       "0": "Dorchester Ave.",
@@ -131,6 +175,32 @@
       "1": "Red-breasted Merganser",
       "2": "Red-breasted Merganser",
       "3": "House Sparrow"
+    }
+  },
+  "17955604464060247": {
+    "image_locations": {
+      "0": "Abbott St.",
+      "1": "Rea St.",
+      "2": "Rea St.",
+      "3": "Abbott St.",
+      "4": "Rea St.",
+      "5": "Nutmeg Ln.",
+      "6": "Nutmeg Ln.",
+      "7": "Annie L. Sargent School",
+      "8": "Rea St.",
+      "9": "Abbott St."
+    },
+    "images": {
+      "0": "American Robin",
+      "1": "House Finch",
+      "2": "House Finch",
+      "3": "Black-capped Chickadee",
+      "4": "Downy Woodpecker",
+      "5": "American Crow",
+      "6": "American Crow",
+      "7": "Song Sparrow",
+      "8": "Dark-eyed Junco",
+      "9": "Northern Flicker"
     }
   },
   "17960879040092068": {
@@ -329,6 +399,32 @@
       "9": "American Herring Gull"
     }
   },
+  "18078963029168026": {
+    "image_locations": {
+      "0": "Rea St.",
+      "1": "Rea St.",
+      "2": "Rea St.",
+      "3": "Rea St.",
+      "4": "Rea St.",
+      "5": "Rea St.",
+      "6": "Annie L. Sargent School",
+      "7": "Rea St.",
+      "8": "Rea St.",
+      "9": "Rea St."
+    },
+    "images": {
+      "0": "Eastern Phoebe",
+      "1": "Eastern Phoebe",
+      "2": "Blue Jay",
+      "3": "Blue Jay",
+      "4": "Blue Jay",
+      "5": "Gray Catbird",
+      "6": "Eastern Bluebird",
+      "7": "Yellow-rumped Warbler",
+      "8": "Barred Owl",
+      "9": "White-throated Sparrow"
+    }
+  },
   "18083909105464068": {
     "image_locations": {
       "0": "Great Meadows National Wildlife Refuge - Concord Unit, Concord, MA",
@@ -462,6 +558,18 @@
       "2": "Northern Cardinal",
       "3": "Northern Cardinal",
       "4": "Red-bellied Woodpecker"
+    }
+  },
+  "18104333038766011": {
+    "image_locations": {
+      "0": "Garlic Breath Pizza",
+      "1": "Garlic Breath Pizza",
+      "2": "Railroad St. Andover"
+    },
+    "images": {
+      "0": "Red-winged Blackbird",
+      "1": "Common Grackle",
+      "2": "Red-tailed Hawk"
     }
   },
   "18108326692692540": {
