@@ -1,4 +1,20 @@
 {
+  "17886317103393874": {
+    "image_locations": {
+      "0": "Lewiston, Maine",
+      "1": "Lewiston, Maine",
+      "2": "Lewiston, Maine",
+      "3": "Lewiston, Maine",
+      "4": "Lewiston, Maine"
+    },
+    "images": {
+      "0": "Eastern Phoebe",
+      "1": "Eastern Phoebe",
+      "2": "Eastern Phoebe",
+      "3": "Turkey Vulture",
+      "4": "Turkey Vulture"
+    }
+  },
   "17900222916286005": {
     "image_locations": {
       "0": "Rea St.",
@@ -43,6 +59,32 @@
       "7": "Pileated Woodpecker",
       "8": "Pileated Woodpecker",
       "9": "Mourning Dove"
+    }
+  },
+  "17960879040092068": {
+    "image_locations": {
+      "0": "Johnson St.",
+      "1": "Johnson St.",
+      "2": "Johnson St.",
+      "3": "Johnson St.",
+      "4": "Rea St.",
+      "5": "Rea St.",
+      "6": "Rea St.",
+      "7": "Harborwalk, Boston",
+      "8": "Annie L. Sargent School Access Rd.",
+      "9": "Rea St."
+    },
+    "images": {
+      "0": "Savannah Sparrow",
+      "1": "Savannah Sparrow",
+      "2": "Savannah Sparrow",
+      "3": "Savannah Sparrow",
+      "4": "House Sparrow",
+      "5": "House Sparrow",
+      "6": "House Sparrow",
+      "7": "American Herring Gull",
+      "8": "Canada Goose",
+      "9": "Great Blue Heron"
     }
   },
   "18002248943911802": {
@@ -107,6 +149,38 @@
       "5": "Hooded Merganser",
       "6": "Eastern Bluebird",
       "7": "American Goldfinch"
+    }
+  },
+  "18083909105464068": {
+    "image_locations": {
+      "0": "Great Meadows National Wildlife Refuge - Concord Unit, Concord, MA",
+      "1": "Great Meadows National Wildlife Refuge - Concord Unit, Concord, MA",
+      "2": "Great Meadows National Wildlife Refuge - Concord Unit, Concord, MA",
+      "3": "Great Meadows National Wildlife Refuge - Concord Unit, Concord, MA",
+      "4": "Great Meadows National Wildlife Refuge - Concord Unit, Concord, MA",
+      "5": "Great Meadows National Wildlife Refuge - Concord Unit, Concord, MA",
+      "6": "Great Meadows National Wildlife Refuge - Concord Unit, Concord, MA"
+    },
+    "images": {
+      "0": "Mallard",
+      "1": "Mallard",
+      "2": "American Crow",
+      "3": "Song Sparrow",
+      "4": "Song Sparrow",
+      "5": "Northern Harrier",
+      "6": "Northern Harrier"
+    }
+  },
+  "18088267214054969": {
+    "image_locations": {
+      "0": "Rea St.",
+      "1": "Rea St.",
+      "2": "Rea St."
+    },
+    "images": {
+      "0": "Gray Catbird",
+      "1": "Brown-headed Cowbird",
+      "2": "Downy Woodpecker"
     }
   },
   "18089359418079845": {
@@ -264,6 +338,24 @@
       "4": "Common Loon",
       "5": "Common Loon",
       "6": "Common Loon"
+    }
+  },
+  "18399609694122245": {
+    "image_locations": {
+      "0": "Rea Street",
+      "1": "Annie L. Sargent School Access Road",
+      "2": "Rea Street Ext.",
+      "3": "Annie L. Sargent School Access Road/Rea Street Ext.",
+      "4": "Annie L. Sargent School Access Road/Rea Street Ext.",
+      "5": "Annie L. Sargent School Access Road"
+    },
+    "images": {
+      "0": "Red-bellied Woodpecker",
+      "1": "Northern Flicker",
+      "2": "Northern Cardinal",
+      "3": "Downy Woodpecker",
+      "4": "Downy Woodpecker",
+      "5": "Northern Flicker"
     }
   },
   "18416658070123663": {
