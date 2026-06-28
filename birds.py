@@ -172,9 +172,23 @@ def apply_overrides(shots, overrides=None):
     for shot in shots:
         override = overrides.get(shot.get("id"))
         if override:
+            if override.get("images"):
+                per_image = override["images"]
+                per_loc = override.get("image_locations") or {}
+                n = len(shot.get("images") or [])
+                shot["image_species"] = [(per_image.get(str(i)) or None) for i in range(n)]
+                shot["image_locations"] = [(per_loc.get(str(i)) or None) for i in range(n)]
+                assigned = [s for s in shot["image_species"] if s]
+                if assigned:
+                    shot["species"] = override.get("species") or assigned[0]
+                    shot["species_list"] = list(dict.fromkeys(assigned))
+                    locs = [l for l in shot["image_locations"] if l]
+                    if locs:
+                        shot["location"] = locs[0]
             if override.get("species"):
                 shot["species"] = override["species"]
-                shot["species_list"] = [override["species"]]
+                if not override.get("images"):
+                    shot["species_list"] = [override["species"]]
             if "location" in override:
                 shot["location"] = override["location"] or None
             if override.get("date"):
@@ -190,6 +204,16 @@ def set_override(post_id, fields):
     for key in ("species", "location", "date"):
         if key in fields:
             entry[key] = (fields.get(key) or "").strip()
+    if isinstance(fields.get("images"), dict):
+        images = entry.get("images", {})
+        for idx, name in fields["images"].items():
+            images[str(idx)] = (name or "").strip()
+        entry["images"] = {k: v for k, v in images.items() if v}
+    if isinstance(fields.get("image_locations"), dict):
+        locs = entry.get("image_locations", {})
+        for idx, name in fields["image_locations"].items():
+            locs[str(idx)] = (name or "").strip()
+        entry["image_locations"] = {k: v for k, v in locs.items() if v}
     overrides[post_id] = entry
     with open(OVERRIDES_FILE, "w") as fh:
         json.dump(overrides, fh, indent=2, sort_keys=True)
