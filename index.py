@@ -93,14 +93,38 @@ def photography():
     )
 
 
-# Curation mode (click-to-hide X buttons) is enabled locally with BIRDS_CURATE=1.
-# It's off in production so the public gallery has no edit controls.
-CURATE = os.environ.get("BIRDS_CURATE") == "1"
+# Curation mode (click-to-hide X buttons, editable species, ratings, re-ID flags)
+# is only ever available when serving locally, so production never exposes edit
+# controls. Locally it's a runtime toggle (cookie), defaulting to BIRDS_CURATE.
+def _is_local():
+    if os.environ.get("BIRDS_LOCAL") == "1":
+        return True
+    host = (request.host or "").rsplit(":", 1)[0]
+    return host in ("127.0.0.1", "localhost", "0.0.0.0") or host.endswith(".local")
+
+
+def _curate_on():
+    if not _is_local():
+        return False
+    cookie = request.cookies.get("curate")
+    if cookie is not None:
+        return cookie == "1"
+    return os.environ.get("BIRDS_CURATE") == "1"
+
+
+@app.route("/curate/toggle")
+def curate_toggle():
+    if not _is_local():
+        abort(404)
+    resp = redirect(request.referrer or "/birds")
+    resp.set_cookie("curate", "0" if _curate_on() else "1", max_age=31536000, samesite="Lax")
+    return resp
 
 
 @app.route("/birds", methods=["GET"])
 def birds_gallery():
-    all_shots = birds.load_gallery(shuffle=not CURATE)
+    curate = _curate_on()
+    all_shots = birds.load_gallery(shuffle=not curate)
     groups = birds.species_groups(all_shots)
     out_of_area = birds.out_of_area_species(all_shots)
     bird = birds.resolve_species(request.args.get("bird") or "", groups)
@@ -137,14 +161,15 @@ def birds_gallery():
         active_family=family,
         active_area=area,
         bird_family=bird_family,
-        curate=CURATE,
-        reid_queued=sorted(birds.reid_keys()) if CURATE else [],
+        curate=curate,
+        local=_is_local(),
+        reid_queued=sorted(birds.reid_keys()) if curate else [],
     )
 
 
 @app.route("/curate/exclude", methods=["POST"])
 def curate_exclude():
-    if not CURATE:
+    if not _curate_on():
         abort(404)
     post_id = (request.get_json(silent=True) or {}).get("id")
     if not post_id:
@@ -155,7 +180,7 @@ def curate_exclude():
 
 @app.route("/curate/override", methods=["POST"])
 def curate_override():
-    if not CURATE:
+    if not _curate_on():
         abort(404)
     data = request.get_json(silent=True) or {}
     post_id = (data.get("id") or "").strip()
@@ -168,7 +193,7 @@ def curate_override():
 
 @app.route("/curate/reid", methods=["POST"])
 def curate_reid():
-    if not CURATE:
+    if not _curate_on():
         abort(404)
     data = request.get_json(silent=True) or {}
     post_id = (data.get("id") or "").strip()
@@ -182,7 +207,7 @@ def curate_reid():
 
 @app.route("/curate/rate", methods=["POST"])
 def curate_rate():
-    if not CURATE:
+    if not _curate_on():
         abort(404)
     data = request.get_json(silent=True) or {}
     post_id = (data.get("id") or "").strip()

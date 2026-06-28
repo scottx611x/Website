@@ -42,6 +42,11 @@
         <small class="mono">&copy; <span id="year">2026</span> &middot; built with flask, deployed with zappa</small>
     </footer>
 
+    {% if local %}
+    <a class="curate-toggle{% if curate %} on{% endif %}" href="/curate/toggle"
+       title="Local only — toggle curate mode">{% if curate %}&#10003; Curating &middot; exit{% else %}&#9998; Curate{% endif %}</a>
+    {% endif %}
+
     <div id="lightbox" class="lightbox" hidden>
         <button class="lightbox-close" aria-label="Close">&times;</button>
         <button class="lightbox-nav lightbox-prev" aria-label="Previous">&#8249;</button>
