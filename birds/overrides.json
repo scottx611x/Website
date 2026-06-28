@@ -1,4 +1,18 @@
 {
+  "17870810409672157": {
+    "image_locations": {
+      "0": "Pearl St. Boston",
+      "1": "Rea St",
+      "2": "Rea St",
+      "3": "Rea St"
+    },
+    "images": {
+      "0": "Peregrine Falcon",
+      "1": "Barred Owl",
+      "2": "Barred Owl",
+      "3": "Barred Owl"
+    }
+  },
   "17886317103393874": {
     "image_locations": {
       "0": "Lewiston, Maine",
@@ -272,6 +286,16 @@
       "5": "Common Loon"
     }
   },
+  "17991325196797062": {
+    "image_locations": {
+      "0": "Annie L. Sargent School",
+      "1": "Abbott St."
+    },
+    "images": {
+      "0": "American Herring Gull",
+      "1": "Eastern Bluebird"
+    }
+  },
   "18000376070889564": {
     "image_locations": {
       "0": "Rea St.",
@@ -318,6 +342,30 @@
       "5": "Northern Cardinal",
       "6": "American Robin",
       "7": "American Crow"
+    }
+  },
+  "18002756723869233": {
+    "image_locations": {
+      "0": "Rea St.",
+      "1": "Rea St.",
+      "2": "Rea St.",
+      "3": "Rea St.",
+      "4": "Rea St.",
+      "5": "Rea St.",
+      "6": "Rea St.",
+      "7": "Rea St.",
+      "8": "Rea St."
+    },
+    "images": {
+      "0": "Barred Owl",
+      "1": "Barred Owl",
+      "2": "Barred Owl",
+      "3": "Barred Owl",
+      "4": "Barred Owl",
+      "5": "American Goldfinch",
+      "6": "Gray Catbird",
+      "7": "Gray Catbird",
+      "8": "Mourning Dove"
     }
   },
   "18005279543907673": {
@@ -863,6 +911,16 @@
       "4": "House Sparrow"
     }
   },
+  "18112617607894088": {
+    "image_locations": {
+      "0": "Lewiston, Maine",
+      "1": "Lewiston, Maine"
+    },
+    "images": {
+      "0": "Pine Warbler",
+      "1": "Great Blue Heron"
+    }
+  },
   "18129018211595432": {
     "image_locations": {
       "0": "Rea St.",
@@ -1173,6 +1231,16 @@
       "4": "Common Loon",
       "5": "American Tree Sparrow",
       "6": "White-throated Sparrow"
+    }
+  },
+  "18596231053029856": {
+    "image_locations": {
+      "0": "Rea St.",
+      "1": "North Cross Road"
+    },
+    "images": {
+      "0": "Eastern Kingbird",
+      "1": "Red-tailed Hawk"
     }
   }
 }
