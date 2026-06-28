@@ -201,22 +201,25 @@ def species_count(shots):
 
 def images_for_species(shots, bird):
     """Single-image pseudo-shots for every frame of ``bird`` (its display name),
-    so the gallery can render a filtered grid of just that species' photos.
+    so the gallery can render a filtered grid of just that species' photos. Photos
+    are round-robin interleaved across posts (rather than clumped by post) so a
+    single shoot doesn't dominate a run of the grid.
     """
     target = (bird or "").strip().lower()
-    out = []
+    buckets = []
     for shot in shots:
         images = shot.get("images") or []
         isp = shot.get("image_species") or []
         iloc = shot.get("image_locations") or []
         caps = shot.get("captions") or []
+        bucket = []
         for i, url in enumerate(images):
             raw = isp[i] if i < len(isp) and isp[i] else shot.get("species")
             canon = _canon_species(raw)
             if not canon or canon[0].lower() != target:
                 continue
             loc = iloc[i] if i < len(iloc) and iloc[i] else shot.get("location")
-            out.append({
+            bucket.append({
                 "id": "%s-%d" % (shot.get("id"), i),
                 "images": [url],
                 "captions": [caps[i] if i < len(caps) else ""],
@@ -227,6 +230,15 @@ def images_for_species(shots, bird):
                 "date": shot.get("date"),
                 "caption": shot.get("caption") or "",
             })
+        if bucket:
+            buckets.append(bucket)
+    # Deal one photo from each post per round so the same shoot is spread out.
+    out = []
+    buckets = [b for b in buckets if b]
+    while buckets:
+        for bucket in buckets:
+            out.append(bucket.pop(0))
+        buckets = [b for b in buckets if b]
     return out
 
 
