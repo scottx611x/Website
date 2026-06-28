@@ -111,6 +111,7 @@ def birds_gallery():
         species_count=birds.species_count(all_shots),
         active_bird=bird,
         curate=CURATE,
+        reid_queued=sorted(birds.reid_keys()) if CURATE else [],
     )
 
 
@@ -136,6 +137,20 @@ def curate_override():
     fields = {k: data[k] for k in ("species", "location", "date") if k in data}
     shot = birds.set_override(post_id, fields)
     return {"ok": True, "ambiguous": bool(shot and shot.get("ambiguous"))}
+
+
+@app.route("/curate/reid", methods=["POST"])
+def curate_reid():
+    if not CURATE:
+        abort(404)
+    data = request.get_json(silent=True) or {}
+    post_id = (data.get("id") or "").strip()
+    if not post_id or data.get("index") is None:
+        abort(400)
+    queue, queued = birds.toggle_reid(
+        post_id, data["index"], data.get("current", ""), data.get("note", "")
+    )
+    return {"ok": True, "queued": queued, "count": len(queue)}
 
 
 GITHUB_USER = "scottx611x"

@@ -383,6 +383,16 @@ body.has-effect .site-footer { position: relative; z-index: 1; }
     color: rgba(244,241,233,0.88); text-align: center;
     max-width: 60ch; text-wrap: balance;
 }
+.lightbox-reid {
+    font-family: var(--mono); font-size: 0.75rem; cursor: pointer;
+    padding: 0.35rem 0.8rem; border-radius: 999px; letter-spacing: 0.02em;
+    background: transparent; color: rgba(244,241,233,0.85);
+    border: 1px solid rgba(244,241,233,0.4); transition: all 0.15s ease;
+}
+.lightbox-reid:hover { border-color: rgba(244,241,233,0.9); color: #fff; }
+.lightbox-reid.is-flagged {
+    background: var(--green); border-color: var(--green); color: #fff;
+}
 .lightbox-close {
     position: absolute; top: 1.2rem; right: 1.4rem;
     background: none; border: none; color: #fff; font-size: 2.4rem; line-height: 1;

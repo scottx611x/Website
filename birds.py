@@ -347,6 +347,50 @@ def add_exclusion(post_id):
     return excluded
 
 
+# Re-ID queue: specific frames (post id + image index) Scott has flagged in curate
+# mode for Claude to re-identify. Lives in birds/reid_queue.json.
+REID_QUEUE_FILE = os.path.join(HERE, "birds", "reid_queue.json")
+
+
+def load_reid_queue():
+    try:
+        with open(REID_QUEUE_FILE) as fh:
+            return json.load(fh)
+    except (OSError, ValueError):
+        return []
+
+
+def _save_reid_queue(queue):
+    with open(REID_QUEUE_FILE, "w") as fh:
+        json.dump(queue, fh, indent=2)
+
+
+def toggle_reid(post_id, index, current="", note=""):
+    """Flag (or un-flag, if already present) one frame for re-identification.
+    Returns ``(queue, is_queued)``.
+    """
+    index = int(index)
+    queue = load_reid_queue()
+    kept = [e for e in queue if not (e.get("id") == post_id and int(e.get("index", -1)) == index)]
+    if len(kept) != len(queue):  # was present -> toggle off
+        _save_reid_queue(kept)
+        return kept, False
+    kept.append({
+        "id": post_id,
+        "index": index,
+        "current": current,
+        "note": note,
+        "flagged_at": datetime.datetime.utcnow().isoformat(timespec="seconds") + "Z",
+    })
+    _save_reid_queue(kept)
+    return kept, True
+
+
+def reid_keys():
+    """Set of ``"<post id>-<index>"`` strings for frames awaiting re-ID."""
+    return {"%s-%s" % (e.get("id"), e.get("index")) for e in load_reid_queue()}
+
+
 def remove_exclusion(post_id):
     excluded = load_excluded()
     excluded.discard(post_id)
