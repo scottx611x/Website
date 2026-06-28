@@ -10,21 +10,29 @@
         </p>
         {% if not curate and species_groups %}
         <div class="bird-filter">
-            <label for="birdFilter"><strong>{{ species_count }}</strong> species &amp; counting</label>
-            <select id="birdFilter" aria-label="Filter by bird"
-                    onchange="location.href = this.value ? ('/birds?bird=' + encodeURIComponent(this.value)) : '/birds';">
-                <option value="">— filter by bird —</option>
-                {% for family, sp in species_groups %}
-                <optgroup label="{{ family }}">
-                    {% for name, count in sp %}
-                    <option value="{{ name }}"{% if name == active_bird %} selected{% endif %}>{{ name }} ({{ count }})</option>
+            <p class="bird-stat">
+                <strong>{{ local_count }}</strong> species in North&nbsp;Andover{% if away_count %}<span class="bird-stat-away"> &middot; {{ away_count }} spotted elsewhere</span>{% endif %}
+            </p>
+            <div class="bird-select">
+                <select id="birdFilter" aria-label="Filter by species"
+                        onchange="location.href = this.value ? ('/birds?bird=' + encodeURIComponent(this.value)) : '/birds';">
+                    <option value="">Filter by species&hellip;</option>
+                    {% for family, sp in species_groups %}
+                    <optgroup label="{{ family }}">
+                        {% for name, count in sp %}
+                        <option value="{{ name }}"{% if name == active_bird %} selected{% endif %}>{{ name }}{% if name in out_of_area %} &#9992;{% endif %} ({{ count }})</option>
+                        {% endfor %}
+                    </optgroup>
                     {% endfor %}
-                </optgroup>
-                {% endfor %}
-            </select>
+                </select>
+            </div>
         </div>
         {% if active_bird %}
-        <p class="filter-note mono">{{ shots|length }} photo{{ 's' if shots|length != 1 }} of <strong>{{ active_bird }}</strong> &middot; <a href="/birds">&larr; all birds</a></p>
+        <div class="bird-active">
+            <p class="bird-active-kicker">{{ active_family }}{% if active_bird in out_of_area %} &middot; spotted outside North Andover &#9992;{% endif %}</p>
+            <h2 class="bird-active-name">{{ active_bird }}</h2>
+            <p class="bird-active-meta">{{ shots|length }} photo{{ 's' if shots|length != 1 }} <a href="/birds">&larr; all species</a></p>
+        </div>
         {% endif %}
         {% endif %}
         {% if curate %}

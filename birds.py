@@ -185,6 +185,58 @@ def _canon_species_list(raw):
     return out
 
 
+def _caption_area_species(caption):
+    """Split one post's species into (local, out_of_area) display-name sets using
+    Scott's ⚠️ marker. Handles inline "⚠️ Species - Place" and block form where
+    species lines share a trailing "⚠️ Place" line; a leading "⚠️ <note>" tags the
+    block that follows.
+    """
+    clean, ooa = set(), set()
+    block = []            # [(display, warned_inline, has_inline_location)]
+    note_warned = [False]  # a ⚠️ note/header with no species -> tags following block
+
+    def flush(loc_warned):
+        for display, w_inline, has_loc in block:
+            warned = w_inline or note_warned[0] or (loc_warned and not has_loc)
+            (ooa if warned else clean).add(display)
+        block.clear()
+        note_warned[0] = False
+
+    for raw in (caption or "").splitlines():
+        s = raw.strip()
+        if not s:
+            continue
+        if s == "---":
+            flush(False)
+            continue
+        warned = "⚠" in s
+        text = s.replace("️", "").replace("⚠", "").strip()
+        head = re.split(r"\s+[-–]\s+", text, maxsplit=1)
+        canon = _canon_species(head[0])
+        if canon:
+            block.append((canon[0], warned, len(head) > 1))
+        elif _DATE_RE.search(text):
+            flush(False)
+        elif block:
+            flush(warned)         # a shared location line tags the block above it
+        elif warned:
+            note_warned[0] = True  # a ⚠️ header tags the block that follows
+    flush(False)
+    return clean, ooa
+
+
+def out_of_area_species(shots):
+    """Set of display names that only ever appear out-of-area (⚠️) — i.e. NOT
+    North Andover birds. A species seen cleanly even once counts as local.
+    """
+    clean, ooa = set(), set()
+    for shot in shots:
+        c, o = _caption_area_species(shot.get("caption") or "")
+        clean |= c
+        ooa |= o
+    return ooa - clean
+
+
 def species_groups(shots):
     """The life list grouped Merlin-style by family. Returns an ordered list of
     ``(family, [(species, photo_count), ...])``; counts every frame of the species

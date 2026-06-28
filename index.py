@@ -103,13 +103,27 @@ def birds_gallery():
     all_shots = birds.load_gallery(shuffle=not CURATE)
     bird = (request.args.get("bird") or "").strip()
     shots = birds.images_for_species(all_shots, bird) if bird else all_shots
+    groups = birds.species_groups(all_shots)
+    out_of_area = birds.out_of_area_species(all_shots)
+    total = sum(len(sp) for _, sp in groups)
+    away = sum(1 for _, sp in groups for name, _ in sp if name in out_of_area)
+    active_family = ""
+    if bird:
+        for fam, sp in groups:
+            if any(name == bird for name, _ in sp):
+                active_family = fam
+                break
     return render_template(
         "birds.html",
         title="Birds of North Andover",
         shots=shots,
-        species_groups=birds.species_groups(all_shots),
-        species_count=birds.species_count(all_shots),
+        species_groups=groups,
+        species_count=total,
+        local_count=total - away,
+        away_count=away,
+        out_of_area=out_of_area,
         active_bird=bird,
+        active_family=active_family,
         curate=CURATE,
         reid_queued=sorted(birds.reid_keys()) if CURATE else [],
     )

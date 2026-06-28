@@ -295,19 +295,42 @@ body.has-effect .site-footer { position: relative; z-index: 1; }
 .gallery-header { text-align: center; margin-bottom: 3rem; }
 
 /* Species filter: count + family-grouped dropdown (Merlin-style optgroups) */
-.bird-filter {
-    display: inline-flex; align-items: center; gap: 0.7rem; flex-wrap: wrap;
-    justify-content: center; margin: 1.2rem auto 0;
+.bird-filter { margin: 1.6rem auto 0; }
+.bird-stat { font-family: var(--mono); font-size: 0.9rem; color: var(--ink); margin: 0 0 1rem; }
+.bird-stat strong { color: var(--green); font-size: 1.05em; }
+.bird-stat-away { color: var(--muted); }
+
+.bird-select { position: relative; display: inline-block; }
+.bird-select::after {
+    content: ""; position: absolute; right: 1.15rem; top: 50%; pointer-events: none;
+    width: 0.48rem; height: 0.48rem; margin-top: -0.34rem;
+    border-right: 2px solid var(--green); border-bottom: 2px solid var(--green);
+    transform: rotate(45deg);
 }
-.bird-filter label { font-family: var(--mono); font-size: 0.9rem; color: var(--ink); }
-.bird-filter label strong { color: var(--green); }
 #birdFilter {
-    font-family: var(--mono); font-size: 0.85rem; padding: 0.4rem 0.6rem;
-    border: 1px solid var(--green); border-radius: 6px; background: transparent;
-    color: var(--ink); cursor: pointer; max-width: 16rem;
+    appearance: none; -webkit-appearance: none;
+    font-family: var(--mono); font-size: 0.9rem; color: var(--ink); cursor: pointer;
+    min-width: 19rem; padding: 0.7rem 2.8rem 0.7rem 1.2rem;
+    background: var(--paper); border: 1px solid rgba(47, 125, 79, 0.32);
+    border-radius: 999px; box-shadow: 0 1px 2px rgba(13, 18, 14, 0.04);
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
-.filter-note { margin-top: 0.8rem; color: var(--green); }
-.filter-note a { color: var(--green); text-decoration: underline; }
+#birdFilter:hover { border-color: var(--green); }
+#birdFilter:focus { outline: none; border-color: var(--green); box-shadow: 0 0 0 3px rgba(47, 125, 79, 0.16); }
+
+/* Filtered-state header */
+.bird-active { margin: 2.4rem auto 0.5rem; }
+.bird-active-kicker {
+    font-family: var(--mono); font-size: 0.72rem; text-transform: uppercase;
+    letter-spacing: 0.16em; color: var(--green); margin: 0 0 0.45rem;
+}
+.bird-active-name {
+    font-family: var(--display); font-weight: 500; line-height: 1.04;
+    font-size: clamp(1.9rem, 5vw, 2.9rem); margin: 0; letter-spacing: -0.01em;
+}
+.bird-active-meta { font-family: var(--mono); font-size: 0.85rem; color: var(--muted); margin: 0.7rem 0 0; }
+.bird-active-meta a { color: var(--green); text-decoration: none; margin-left: 0.7rem; }
+.bird-active-meta a:hover { text-decoration: underline; }
 .gallery-category { font-family: var(--display); font-weight: 500; margin: 3rem 0 1.2rem; }
 /* Masonry as reading-order columns: JS deals out cards across columns so the
    first row reads left→right (cards keep their natural, uncropped height). */
