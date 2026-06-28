@@ -52,6 +52,29 @@
       "1": "Blue Jay"
     }
   },
+  "17868293955538025": {
+    "image_locations": {
+      "0": "Rea St.",
+      "1": "Rea St.",
+      "2": "Rea St.",
+      "3": "Rea St.",
+      "4": "Hillside Rd."
+    },
+    "images": {
+      "0": "Black-capped Chickadee",
+      "1": "Northern Cardinal",
+      "2": "Downy Woodpecker",
+      "3": "White-breasted Nuthatch",
+      "4": "Wild Turkey"
+    }
+  },
+  "17868637047510056": {
+    "image_locations": {},
+    "images": {
+      "0": "Tufted Titmouse",
+      "1": "Downy Woodpecker"
+    }
+  },
   "17869333806502169": {
     "image_locations": {
       "0": "Johnson St.",
@@ -145,6 +168,22 @@
       "3": "Tricolored Heron",
       "4": "Sanderling",
       "5": "Cooper's Hawk"
+    }
+  },
+  "17896807359201680": {
+    "image_locations": {
+      "0": "Rea Street",
+      "1": "Johnson Street",
+      "2": "Rea Street",
+      "3": "Rea Street",
+      "4": "Annie L Sargent School Access Road"
+    },
+    "images": {
+      "0": "Cooper's Hawk",
+      "1": "House Sparrow",
+      "2": "American Goldfinch",
+      "3": "Tufted Titmouse",
+      "4": "Black-capped Chickadee"
     }
   },
   "17900222916286005": {
@@ -709,6 +748,16 @@
       "7": "American Robin"
     }
   },
+  "18035778122538850": {
+    "image_locations": {},
+    "images": {
+      "0": "Mourning Dove",
+      "1": "Carolina Wren",
+      "2": "House Finch",
+      "3": "Downy Woodpecker",
+      "4": "Downy Woodpecker"
+    }
+  },
   "18044656358751390": {
     "image_locations": {
       "0": "Weir Hill",
@@ -745,6 +794,19 @@
       "2": "Northern Cardinal",
       "3": "Northern Cardinal",
       "4": "Northern Cardinal"
+    }
+  },
+  "18050948300385431": {
+    "image_locations": {},
+    "images": {
+      "0": "Tufted Titmouse",
+      "1": "Downy Woodpecker",
+      "2": "House Finch",
+      "3": "Black-capped Chickadee",
+      "4": "American Robin",
+      "5": "Black-capped Chickadee",
+      "6": "Tufted Titmouse",
+      "7": "Northern Cardinal"
     }
   },
   "18056908169383034": {
