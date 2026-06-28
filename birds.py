@@ -170,6 +170,21 @@ def _canon_species(name):
     return _BIRDS.get(key)
 
 
+# A single frame can hold more than one species (e.g. a Cooper's Hawk mobbing a
+# roosting Barred Owl); per-image labels join them with " & ".
+_SPECIES_SPLIT_RE = re.compile(r"\s*[&+/]\s*")
+
+
+def _canon_species_list(raw):
+    """All distinct (display, family) species named in one per-image label."""
+    out = []
+    for part in _SPECIES_SPLIT_RE.split(raw or ""):
+        canon = _canon_species(part)
+        if canon and canon not in out:
+            out.append(canon)
+    return out
+
+
 def species_groups(shots):
     """The life list grouped Merlin-style by family. Returns an ordered list of
     ``(family, [(species, photo_count), ...])``; counts every frame of the species
@@ -181,8 +196,7 @@ def species_groups(shots):
         isp = shot.get("image_species") or []
         for i in range(len(images)):
             raw = isp[i] if i < len(isp) and isp[i] else shot.get("species")
-            canon = _canon_species(raw)
-            if canon:
+            for canon in _canon_species_list(raw):
                 counts[canon] = counts.get(canon, 0) + 1
     by_family = {}
     for (display, family), count in counts.items():
@@ -215,17 +229,18 @@ def images_for_species(shots, bird):
         bucket = []
         for i, url in enumerate(images):
             raw = isp[i] if i < len(isp) and isp[i] else shot.get("species")
-            canon = _canon_species(raw)
-            if not canon or canon[0].lower() != target:
+            canons = _canon_species_list(raw)
+            if not any(c[0].lower() == target for c in canons):
                 continue
+            display = " & ".join(c[0] for c in canons)  # show co-occurring species
             loc = iloc[i] if i < len(iloc) and iloc[i] else shot.get("location")
             bucket.append({
                 "id": "%s-%d" % (shot.get("id"), i),
                 "images": [url],
                 "captions": [caps[i] if i < len(caps) else ""],
-                "image_species": [canon[0]],
+                "image_species": [display],
                 "image_locations": [loc],
-                "species": canon[0],
+                "species": display,
                 "location": loc,
                 "date": shot.get("date"),
                 "caption": shot.get("caption") or "",
