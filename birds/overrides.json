@@ -129,6 +129,28 @@
       "6": "Barred Owl"
     }
   },
+  "18011838731836967": {
+    "image_locations": {
+      "0": "Rea St.",
+      "1": "Rea St.",
+      "2": "Rea St.",
+      "3": "Rea St.",
+      "4": "Rea St.",
+      "5": "Rea St.",
+      "6": "Rea St.",
+      "7": "Rea St."
+    },
+    "images": {
+      "0": "Northern Cardinal",
+      "1": "Northern Cardinal",
+      "2": "Northern Cardinal",
+      "3": "Northern Cardinal",
+      "4": "House Finch",
+      "5": "Black-capped Chickadee",
+      "6": "Tufted Titmouse",
+      "7": "American Robin"
+    }
+  },
   "18064779275625532": {
     "image_locations": {
       "0": "Stevens Pond",
@@ -149,6 +171,32 @@
       "5": "Hooded Merganser",
       "6": "Eastern Bluebird",
       "7": "American Goldfinch"
+    }
+  },
+  "18070143716432380": {
+    "image_locations": {
+      "0": "Summer St. Bridge, Boston",
+      "1": "Summer St. Bridge, Boston",
+      "2": "Summer St. Bridge, Boston",
+      "3": "Summer St. Bridge, Boston",
+      "4": "Summer St. Bridge, Boston",
+      "5": "Summer St. Bridge, Boston",
+      "6": "Summer St. Bridge, Boston",
+      "7": "Summer St. Bridge, Boston",
+      "8": "Summer St. Bridge, Boston",
+      "9": "Summer St. Bridge, Boston"
+    },
+    "images": {
+      "0": "Common Loon",
+      "1": "Common Loon",
+      "2": "Common Loon",
+      "3": "Common Loon",
+      "4": "Common Loon",
+      "5": "Common Loon",
+      "6": "Common Loon",
+      "7": "Common Loon",
+      "8": "American Black Duck",
+      "9": "American Herring Gull"
     }
   },
   "18083909105464068": {
@@ -320,6 +368,32 @@
       "6": "Barred Owl"
     }
   },
+  "18147159676447040": {
+    "image_locations": {
+      "0": "Ipswich River Wildlife Sanctuary",
+      "1": "Ipswich River Wildlife Sanctuary",
+      "2": "Ipswich River Wildlife Sanctuary",
+      "3": "Ipswich River Wildlife Sanctuary",
+      "4": "Ipswich River Wildlife Sanctuary",
+      "5": "Ipswich River Wildlife Sanctuary",
+      "6": "Ipswich River Wildlife Sanctuary",
+      "7": "Ipswich River Wildlife Sanctuary",
+      "8": "Ipswich River Wildlife Sanctuary",
+      "9": "Ipswich River Wildlife Sanctuary"
+    },
+    "images": {
+      "0": "Red-tailed Hawk",
+      "1": "Red-tailed Hawk",
+      "2": "Red-tailed Hawk",
+      "3": "Red-tailed Hawk",
+      "4": "Red-bellied Woodpecker",
+      "5": "Black-capped Chickadee",
+      "6": "White-throated Sparrow",
+      "7": "Northern Cardinal",
+      "8": "Brown Creeper",
+      "9": "Pileated Woodpecker"
+    }
+  },
   "18154635835449638": {
     "image_locations": {
       "0": "Rea St.",
@@ -338,6 +412,32 @@
       "4": "Common Loon",
       "5": "Common Loon",
       "6": "Common Loon"
+    }
+  },
+  "18371940658164515": {
+    "image_locations": {
+      "0": "Abbott St.",
+      "1": "Abbott St.",
+      "2": "Abbott St.",
+      "3": "Abbott St.",
+      "4": "Rea St.",
+      "5": "Rea St.",
+      "6": "Rea St.",
+      "7": "Rea St.",
+      "8": "Rea St.",
+      "9": "Rea St."
+    },
+    "images": {
+      "0": "Eastern Bluebird",
+      "1": "Eastern Bluebird",
+      "2": "Eastern Bluebird",
+      "3": "Eastern Bluebird",
+      "4": "Barred Owl",
+      "5": "Barred Owl",
+      "6": "Barred Owl",
+      "7": "Barred Owl",
+      "8": "Northern Flicker",
+      "9": "White-throated Sparrow"
     }
   },
   "18399609694122245": {
@@ -396,6 +496,26 @@
       "6": "Mourning Dove",
       "7": "Downy Woodpecker",
       "8": "American Robin"
+    }
+  },
+  "18563549941033601": {
+    "image_locations": {
+      "0": "Post Office Square, Boston",
+      "1": "Post Office Square, Boston",
+      "2": "Congress St Bridge, Boston",
+      "3": "Congress St Bridge, Boston",
+      "4": "Congress St Bridge, Boston",
+      "5": "Rea St.",
+      "6": "Rea St."
+    },
+    "images": {
+      "0": "Rock Pigeon",
+      "1": "House Sparrow",
+      "2": "Red-breasted Merganser",
+      "3": "American Black Duck",
+      "4": "Common Loon",
+      "5": "American Tree Sparrow",
+      "6": "White-throated Sparrow"
     }
   }
 }
