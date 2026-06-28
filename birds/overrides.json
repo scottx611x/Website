@@ -286,6 +286,18 @@
       "3": "Carolina Wren"
     }
   },
+  "17926704696153747": {
+    "image_locations": {
+      "0": "Annie L. Sargent School access road",
+      "1": "Rea Street",
+      "2": "Rea Street"
+    },
+    "images": {
+      "0": "Black-capped Chickadee",
+      "1": "Dark-eyed Junco",
+      "2": "American Crow"
+    }
+  },
   "17926946091347519": {
     "image_locations": {
       "0": "Rea St.",
@@ -500,6 +512,26 @@
       "7": "American Herring Gull",
       "8": "Canada Goose",
       "9": "Great Blue Heron"
+    }
+  },
+  "17962425693067540": {
+    "image_locations": {
+      "0": "Rea St.",
+      "1": "Rea St.",
+      "2": "Rea St.",
+      "3": "Johnson St.",
+      "4": "Johnson St.",
+      "5": "Abbott St.",
+      "6": "Johnson St."
+    },
+    "images": {
+      "0": "Red-tailed Hawk",
+      "1": "Red-tailed Hawk",
+      "2": "Red-tailed Hawk",
+      "3": "Brown-headed Cowbird",
+      "4": "Brown-headed Cowbird",
+      "5": "Ruby-crowned Kinglet",
+      "6": "House Sparrow"
     }
   },
   "17981556602975762": {
@@ -951,6 +983,28 @@
       "9": "Eastern Bluebird"
     }
   },
+  "18067483154609279": {
+    "image_locations": {
+      "0": "Lake Cochichewick",
+      "1": "Lake Cochichewick",
+      "2": "Lake Cochichewick",
+      "3": "Lake Cochichewick",
+      "4": "Lake Cochichewick",
+      "5": "Lake Cochichewick",
+      "6": "Lake Cochichewick",
+      "7": "Rea Street"
+    },
+    "images": {
+      "0": "Hooded Merganser",
+      "1": "Hooded Merganser",
+      "2": "Hooded Merganser",
+      "3": "Hooded Merganser",
+      "4": "Hooded Merganser",
+      "5": "Hooded Merganser",
+      "6": "Ring-billed Gull",
+      "7": "Northern Cardinal"
+    }
+  },
   "18068893877543258": {
     "image_locations": {
       "0": "Rea St.",
@@ -1119,6 +1173,30 @@
       "3": "White-breasted Nuthatch",
       "4": "Chipping Sparrow",
       "5": "Red-bellied Woodpecker"
+    }
+  },
+  "18080455232240808": {
+    "image_locations": {
+      "0": "Rea St.",
+      "1": "Rea St.",
+      "2": "Rea St.",
+      "3": "Annie L. Sargent School",
+      "4": "Annie L. Sargent School Access Rd",
+      "5": "Annie L. Sargent School Access Rd",
+      "6": "Annie L. Sargent School Access Rd",
+      "7": "Rea St.",
+      "8": "Rea St."
+    },
+    "images": {
+      "0": "Barred Owl",
+      "1": "Gray Catbird",
+      "2": "Osprey",
+      "3": "European Starling Juveniles",
+      "4": "Canada Goose",
+      "5": "Red-winged Blackbird",
+      "6": "Carolina Wren",
+      "7": "Red-tailed Hawk",
+      "8": "Red-tailed Hawk"
     }
   },
   "18081901466163984": {
@@ -2134,6 +2212,22 @@
       "1": "Barred Owl",
       "2": "European Starling",
       "3": "European Starling"
+    }
+  },
+  "18543836857050047": {
+    "image_locations": {
+      "0": "Rea St",
+      "1": "Johnson St",
+      "2": "Abbot St",
+      "3": "Rea St",
+      "4": "Abbot St"
+    },
+    "images": {
+      "0": "Sharp-shinned Hawk",
+      "1": "House Sparrow",
+      "2": "Cooper's Hawk",
+      "3": "Dark-eyed Junco",
+      "4": "Canada Goose"
     }
   },
   "18548429008010202": {
