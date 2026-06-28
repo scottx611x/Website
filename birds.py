@@ -76,6 +76,27 @@ def load_gallery(shuffle=True):
     )
 
 
+def _shuffle_images_weighted(shot):
+    """Reorder a post's frames with a weighted shuffle that favors the earlier
+    images. Scott puts his favorites first, so the cover + carousel vary per load
+    but lean toward those favorites. Keeps the parallel per-image arrays in sync,
+    and the card's species/location follow the new cover image.
+    """
+    n = len(shot.get("images") or [])
+    if n < 2:
+        return
+    # Efraimidis-Spirakis with weight decaying by original position (favorites first).
+    order = sorted(range(n), key=lambda i: random.random() ** (1.0 / (n - i)), reverse=True)
+    for key in ("images", "captions", "image_species", "image_locations"):
+        seq = shot.get(key)
+        if isinstance(seq, list) and len(seq) == n:
+            shot[key] = [seq[i] for i in order]
+    if shot.get("image_species"):
+        shot["species"] = shot["image_species"][0] or shot.get("species")
+    if shot.get("image_locations"):
+        shot["location"] = shot["image_locations"][0] or shot.get("location")
+
+
 def order_gallery(shots):
     """Order for display: liked posts trend toward the top, species de-clumped.
 
@@ -83,7 +104,13 @@ def order_gallery(shots):
        favors well-liked posts without being a strict descending leaderboard.
     2. Greedy pass that avoids placing the same species back-to-back, walking the
        weighted order from the front so the popularity bias is preserved.
+
+    Each post's frames are also weight-shuffled (favorites-first) so the cover and
+    carousel order feel fresh on every visit.
     """
+    for shot in shots:
+        _shuffle_images_weighted(shot)
+
     def weighted_key(shot):
         weight = (shot.get("weight") or 0) + 0.05  # keep zero-weight posts in play
         return random.random() ** (1.0 / weight)
