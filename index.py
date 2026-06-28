@@ -140,7 +140,7 @@ def birds_gallery():
         shots = all_shots
     total = sum(len(sp) for _, sp in groups)
     away = sum(1 for _, sp in groups for name, _ in sp if name in out_of_area)
-    families = [(fam, sum(c for _, c in sp)) for fam, sp in groups]
+    family_counts = {fam: sum(c for _, c in sp) for fam, sp in groups}
     bird_family = ""
     if bird:
         for fam, sp in groups:
@@ -152,7 +152,7 @@ def birds_gallery():
         title="Birds of North Andover",
         shots=shots,
         species_groups=groups,
-        families=families,
+        family_counts=family_counts,
         species_count=total,
         local_count=total - away,
         away_count=away,

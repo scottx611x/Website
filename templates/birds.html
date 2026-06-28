@@ -25,11 +25,16 @@
                     </datalist>
                 </div>
                 <div class="bird-select">
-                    <select id="familyFilter" aria-label="Filter by family"
-                            onchange="birdsGo(null,{family:this.value})">
-                        <option value="">All families</option>
-                        {% for family, fcount in families %}
-                        <option value="{{ family }}"{% if family == active_family %} selected{% endif %}>{{ family }} ({{ fcount }})</option>
+                    <select id="familyFilter" aria-label="Browse by family or species"
+                            onchange="var v=this.value; if(v.indexOf('fam:')===0){birdsGo(null,{family:v.slice(4),bird:''})}else{birdsGo(null,{bird:v,family:''})}">
+                        <option value="">Browse by family&hellip;</option>
+                        {% for family, sp in species_groups %}
+                        <optgroup label="{{ family }}">
+                            <option value="fam:{{ family }}"{% if family == active_family and not active_bird %} selected{% endif %}>&#9656; All {{ family }} ({{ family_counts[family] }})</option>
+                            {% for name, count in sp %}
+                            <option value="{{ name }}"{% if name == active_bird %} selected{% endif %}>{{ name }}{% if name in out_of_area %} &#9888;&#65039;{% endif %} ({{ count }})</option>
+                            {% endfor %}
+                        </optgroup>
                         {% endfor %}
                     </select>
                 </div>
@@ -64,7 +69,12 @@
         {% endif %}
         {% if curate %}
         {% set flagged = shots|selectattr('ambiguous')|list|length %}
-        <p class="curate-note mono">Curate mode — click &times; to hide, or edit the species text to fix it. {{ shots|length }} shown · <strong>{{ flagged }}</strong> flagged for review.</p>
+        <p class="curate-note mono"><strong>Curate mode.</strong> {{ shots|length }} shown · <strong>{{ flagged }}</strong> flagged.</p>
+        <ul class="curate-help mono">
+            <li><b>Rename:</b> type in a card's species box and press <kbd>Enter</kbd> to save.</li>
+            <li><b>Hide:</b> click the red <b>&times;</b> (top-right of a card).</li>
+            <li><b>Per-image:</b> click a photo to open it, then <b>★ rate</b> it or <b>&#8635; flag for re-ID</b>.</li>
+        </ul>
         {% endif %}
     </header>
 

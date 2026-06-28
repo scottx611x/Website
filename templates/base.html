@@ -254,24 +254,33 @@
         });
 
         // Curate mode: edit a post's species text -> persist it (clears the flag).
-        document.addEventListener("change", function (e) {
-            var input = e.target.closest(".species-edit");
-            if (!input) return;
+        function saveSpecies(input) {
             var fig = input.closest(".shot");
+            input.classList.add("saving"); input.classList.remove("saved");
             fetch("/curate/override", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ id: input.getAttribute("data-id"), species: input.value })
             }).then(function (r) { return r.json(); }).then(function (d) {
+                input.classList.remove("saving");
                 if (!d.ok) return;
                 input.classList.add("saved");
-                setTimeout(function () { input.classList.remove("saved"); }, 900);
+                setTimeout(function () { input.classList.remove("saved"); }, 1600);
                 if (fig) {
                     fig.classList.toggle("flagged", !!d.ambiguous);
                     var badge = fig.querySelector(".flag-badge");
                     if (badge && !d.ambiguous) badge.remove();
                 }
-            });
+            }).catch(function () { input.classList.remove("saving"); });
+        }
+        document.addEventListener("change", function (e) {
+            var input = e.target.closest(".species-edit");
+            if (input) saveSpecies(input);
+        });
+        document.addEventListener("keydown", function (e) {
+            if (e.key !== "Enter") return;
+            var input = e.target.closest(".species-edit");
+            if (input) { e.preventDefault(); saveSpecies(input); input.blur(); }
         });
     </script>
     {% block scripts %}{% endblock %}
