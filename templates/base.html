@@ -50,7 +50,10 @@
             <img id="lightbox-img" src="" alt="">
             <figcaption id="lightbox-cap"></figcaption>
             {% if curate %}
-            <button type="button" id="lightbox-reid" class="lightbox-reid" hidden></button>
+            <div class="lightbox-curate">
+                <div id="lightbox-stars" class="lightbox-stars" role="radiogroup" aria-label="Rate this photo"></div>
+                <button type="button" id="lightbox-reid" class="lightbox-reid" hidden></button>
+            </div>
             {% endif %}
         </figure>
     </div>
@@ -77,6 +80,7 @@
                 img = document.getElementById("lightbox-img"),
                 cap = document.getElementById("lightbox-cap"),
                 reid = document.getElementById("lightbox-reid"),
+                stars = document.getElementById("lightbox-stars"),
                 frames = [], idx = -1;
             function reidKey(f) { return f.postId + "-" + f.index; }
             function renderReid(f) {
@@ -85,6 +89,20 @@
                 var q = window.REID_QUEUED && window.REID_QUEUED.has(reidKey(f));
                 reid.textContent = q ? "✓ flagged for re-ID" : "↻ flag for re-ID";
                 reid.classList.toggle("is-flagged", !!q);
+            }
+            if (stars) {
+                for (var sv = 1; sv <= 5; sv++) {
+                    var st = document.createElement("button");
+                    st.type = "button"; st.className = "star"; st.dataset.v = sv;
+                    st.textContent = "★"; st.setAttribute("aria-label", sv + " star");
+                    stars.appendChild(st);
+                }
+            }
+            function renderStars(f) {
+                if (!stars) return;
+                Array.prototype.forEach.call(stars.children, function (st) {
+                    st.classList.toggle("on", (+st.dataset.v) <= (f.rating || 0));
+                });
             }
             function build() {
                 frames = [];
@@ -101,12 +119,14 @@
                     try { loc = JSON.parse(el.getAttribute("data-image-locations")); } catch (_) { loc = []; }
                     var date = el.getAttribute("data-date") || "";
                     var pid = el.getAttribute("data-id") || "";
+                    var rts; try { rts = JSON.parse(el.getAttribute("data-image-ratings")); } catch (_) { rts = []; }
                     el._frameStart = frames.length;
                     urls.forEach(function (u, i) {
                         frames.push({
                             url: u, caption: caps[i] || caps[0] || "",
                             species: (sp && sp[i]) || "", location: (loc && loc[i]) || "",
-                            date: date, n: i + 1, of: urls.length, postId: pid, index: i
+                            date: date, n: i + 1, of: urls.length, postId: pid, index: i,
+                            rating: (rts && rts[i]) || 0
                         });
                     });
                 });
@@ -123,6 +143,7 @@
                 cap.textContent = label.trim();
                 cap.hidden = !label.trim();
                 renderReid(f);
+                renderStars(f);
                 box.hidden = false;
                 document.body.style.overflow = "hidden";
             }
@@ -159,6 +180,20 @@
                     else window.REID_QUEUED.delete(reidKey(f));
                     renderReid(f);
                 }).finally(function () { reid.disabled = false; });
+            });
+            if (stars) stars.addEventListener("click", function (e) {
+                e.stopPropagation();
+                var st = e.target.closest(".star"); if (!st) return;
+                var f = frames[idx]; if (!f) return;
+                var v = +st.dataset.v;
+                var next = (f.rating === v) ? 0 : v;  // click current rating to clear
+                fetch("/curate/rate", {
+                    method: "POST", headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ id: f.postId, index: f.index, rating: next })
+                }).then(function (r) { return r.json(); }).then(function (d) {
+                    f.rating = d.rating;
+                    renderStars(f);
+                });
             });
         })();
 

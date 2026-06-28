@@ -43,6 +43,7 @@
                 data-captions='{{ shot.captions|tojson }}'
                 data-image-species='{{ (shot.image_species or [])|tojson }}'
                 data-image-locations='{{ (shot.image_locations or [])|tojson }}'
+                data-image-ratings='{{ (shot.image_ratings or [])|tojson }}'
                 data-date='{{ shot.date or "" }}'
                 tabindex="0" role="button" aria-label="View {{ shot.species or 'photo' }} larger">
             <img loading="lazy" src="{{ shot.images[0] }}" alt="{{ shot.species or shot.caption[:80] }}">

@@ -153,6 +153,18 @@ def curate_reid():
     return {"ok": True, "queued": queued, "count": len(queue)}
 
 
+@app.route("/curate/rate", methods=["POST"])
+def curate_rate():
+    if not CURATE:
+        abort(404)
+    data = request.get_json(silent=True) or {}
+    post_id = (data.get("id") or "").strip()
+    if not post_id or data.get("index") is None:
+        abort(400)
+    rating = birds.set_rating(post_id, data["index"], data.get("rating", 0))
+    return {"ok": True, "rating": rating}
+
+
 GITHUB_USER = "scottx611x"
 
 

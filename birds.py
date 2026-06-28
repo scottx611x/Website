@@ -226,6 +226,7 @@ def images_for_species(shots, bird):
         isp = shot.get("image_species") or []
         iloc = shot.get("image_locations") or []
         caps = shot.get("captions") or []
+        rts = shot.get("image_ratings") or []
         bucket = []
         for i, url in enumerate(images):
             raw = isp[i] if i < len(isp) and isp[i] else shot.get("species")
@@ -244,10 +245,14 @@ def images_for_species(shots, bird):
                 "location": loc,
                 "date": shot.get("date"),
                 "caption": shot.get("caption") or "",
+                "rating": rts[i] if i < len(rts) else 0,
             })
         if bucket:
+            bucket.sort(key=lambda f: f["rating"], reverse=True)  # best of each post first
             buckets.append(bucket)
-    # Deal one photo from each post per round so the same shoot is spread out.
+    # Highest-rated posts lead; then deal one photo per post per round so the same
+    # shoot is spread out (interleaved) rather than clumped.
+    buckets.sort(key=lambda b: b[0]["rating"], reverse=True)
     out = []
     buckets = [b for b in buckets if b]
     while buckets:
@@ -266,9 +271,14 @@ def _shuffle_images_weighted(shot):
     n = len(shot.get("images") or [])
     if n < 2:
         return
-    # Efraimidis-Spirakis with weight decaying by original position (favorites first).
-    order = sorted(range(n), key=lambda i: random.random() ** (1.0 / (n - i)), reverse=True)
-    for key in ("images", "captions", "image_species", "image_locations"):
+    ratings = shot.get("image_ratings") or []
+    # Efraimidis-Spirakis: weight decays by original position (favorites first), and
+    # a curate-mode star rating boosts a frame so the best shots surface as the cover.
+    def weight(i):
+        rating = ratings[i] if i < len(ratings) else 0
+        return (n - i) + 4.0 * rating
+    order = sorted(range(n), key=lambda i: random.random() ** (1.0 / weight(i)), reverse=True)
+    for key in ("images", "captions", "image_species", "image_locations", "image_ratings"):
         seq = shot.get(key)
         if isinstance(seq, list) and len(seq) == n:
             shot[key] = [seq[i] for i in order]
@@ -445,6 +455,10 @@ def apply_overrides(shots, overrides=None):
                 shot["location"] = override["location"] or None
             if override.get("date"):
                 shot["date"] = override["date"]
+            if override.get("ratings"):
+                n = len(shot.get("images") or [])
+                rt = override["ratings"]
+                shot["image_ratings"] = [int(rt.get(str(i)) or 0) for i in range(n)]
         shot["ambiguous"] = (not override) and _is_ambiguous(shot)
     return shots
 
@@ -474,6 +488,31 @@ def set_override(post_id, fields):
     with open(LOCAL_MANIFEST, "w") as fh:
         json.dump(shots, fh, indent=2)
     return next((s for s in shots if s.get("id") == post_id), None)
+
+
+def set_rating(post_id, index, rating):
+    """Persist a 0-5 star rating for one frame (0 clears it) and reflect it in the
+    local manifest now. Ratings boost a frame's prominence in the gallery."""
+    rating = max(0, min(5, int(rating or 0)))
+    overrides = load_overrides()
+    entry = overrides.get(post_id, {})
+    ratings = entry.get("ratings", {})
+    if rating:
+        ratings[str(index)] = rating
+    else:
+        ratings.pop(str(index), None)
+    if ratings:
+        entry["ratings"] = ratings
+    else:
+        entry.pop("ratings", None)
+    overrides[post_id] = entry
+    with open(OVERRIDES_FILE, "w") as fh:
+        json.dump(overrides, fh, indent=2, sort_keys=True)
+    shots = _load_local_manifest() or []
+    apply_overrides(shots, overrides)
+    with open(LOCAL_MANIFEST, "w") as fh:
+        json.dump(shots, fh, indent=2)
+    return rating
 
 
 def _load_local_manifest():
