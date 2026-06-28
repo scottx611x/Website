@@ -19,6 +19,32 @@
       "6": "Gray Catbird"
     }
   },
+  "17915933556276583": {
+    "image_locations": {
+      "0": "Rea St.",
+      "1": "Rea St.",
+      "2": "Rea St.",
+      "3": "Rea St.",
+      "4": "Rea St.",
+      "5": "Rea St.",
+      "6": "Rea St.",
+      "7": "Rea St.",
+      "8": "Rea St.",
+      "9": "Rea St."
+    },
+    "images": {
+      "0": "Red-tailed Hawk",
+      "1": "Red-tailed Hawk",
+      "2": "Red-tailed Hawk",
+      "3": "Red-tailed Hawk",
+      "4": "Red-tailed Hawk",
+      "5": "Red-tailed Hawk",
+      "6": "Red-tailed Hawk",
+      "7": "Pileated Woodpecker",
+      "8": "Pileated Woodpecker",
+      "9": "Mourning Dove"
+    }
+  },
   "18002248943911802": {
     "image_locations": {
       "0": "Rea St.",
@@ -59,6 +85,28 @@
       "4": "Brown-headed Cowbird",
       "5": "House Finch",
       "6": "Barred Owl"
+    }
+  },
+  "18064779275625532": {
+    "image_locations": {
+      "0": "Stevens Pond",
+      "1": "Stevens Pond",
+      "2": "Stevens Pond",
+      "3": "Stevens Pond",
+      "4": "Rea Street",
+      "5": "Lake Cochichewick",
+      "6": "Rea Street",
+      "7": "Rea Street"
+    },
+    "images": {
+      "0": "Mallard",
+      "1": "Mallard",
+      "2": "Mallard",
+      "3": "Mallard",
+      "4": "House Sparrow",
+      "5": "Hooded Merganser",
+      "6": "Eastern Bluebird",
+      "7": "American Goldfinch"
     }
   },
   "18089359418079845": {
@@ -122,6 +170,32 @@
       "5": "Red-bellied Woodpecker"
     }
   },
+  "18110006128754375": {
+    "image_locations": {
+      "0": "Harborwalk, Boston",
+      "1": "Harborwalk, Boston",
+      "2": "Harborwalk, Boston",
+      "3": "Harborwalk, Boston",
+      "4": "Harborwalk, Boston",
+      "5": "Harborwalk, Boston",
+      "6": "Harborwalk, Boston",
+      "7": "Harborwalk, Boston",
+      "8": "Harborwalk, Boston",
+      "9": "Harborwalk, Boston"
+    },
+    "images": {
+      "0": "Common Grackle",
+      "1": "Common Grackle",
+      "2": "Common Grackle",
+      "3": "Common Grackle",
+      "4": "Canada Goose",
+      "5": "Canada Goose",
+      "6": "Canada Goose",
+      "7": "Canada Goose",
+      "8": "American Black Duck",
+      "9": "American Herring Gull"
+    }
+  },
   "18110283049907782": {
     "image_locations": {
       "0": "Rea St.",
@@ -134,6 +208,22 @@
       "1": "Barred Owl Baby",
       "2": "Barred Owl Baby",
       "3": "Carolina Wren fledglings"
+    }
+  },
+  "18111673921762613": {
+    "image_locations": {
+      "0": "Canal St., Boston",
+      "1": "Canal St., Boston",
+      "2": "Rea St.",
+      "3": "Harborwalk, Boston",
+      "4": "Canal St., Boston"
+    },
+    "images": {
+      "0": "American Herring Gull",
+      "1": "American Herring Gull",
+      "2": "White-throated Sparrow",
+      "3": "Rock Pigeon",
+      "4": "House Sparrow"
     }
   },
   "18129018211595432": {
@@ -190,6 +280,30 @@
       "2": "Northern Flicker",
       "3": "Mourning Dove",
       "4": "Eastern Bluebird"
+    }
+  },
+  "18446713774106955": {
+    "image_locations": {
+      "0": "Rea St.",
+      "1": "Rea St.",
+      "2": "Rea St.",
+      "3": "Rea St.",
+      "4": "Rea St.",
+      "5": "Rea St.",
+      "6": "Rea St.",
+      "7": "Rea St.",
+      "8": "Rea St."
+    },
+    "images": {
+      "0": "Mourning Dove",
+      "1": "Mourning Dove",
+      "2": "Mourning Dove",
+      "3": "Mourning Dove",
+      "4": "Mourning Dove",
+      "5": "Mourning Dove",
+      "6": "Mourning Dove",
+      "7": "Downy Woodpecker",
+      "8": "American Robin"
     }
   }
 }
