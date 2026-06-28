@@ -250,6 +250,24 @@
       "3": "House Sparrow"
     }
   },
+  "17945942501979450": {
+    "image_locations": {
+      "0": "Rea St.",
+      "1": "Rea St.",
+      "2": "Rea St.",
+      "3": "Rea St.",
+      "4": "Rea St.",
+      "5": "Rea St."
+    },
+    "images": {
+      "0": "Turkey Vulture",
+      "1": "Turkey Vulture",
+      "2": "Turkey Vulture",
+      "3": "Turkey Vulture",
+      "4": "Northern Cardinal",
+      "5": "Black-capped Chickadee"
+    }
+  },
   "17955604464060247": {
     "image_locations": {
       "0": "Abbott St.",
@@ -730,6 +748,13 @@
       "2": "Bald Eagle"
     }
   },
+  "18087798241927498": {
+    "image_locations": {},
+    "images": {
+      "0": "Black-capped Chickadee",
+      "1": "Mourning Dove"
+    }
+  },
   "18088267214054969": {
     "image_locations": {
       "0": "Rea St.",
@@ -919,6 +944,30 @@
       "0": "Red-winged Blackbird",
       "1": "Common Grackle",
       "2": "Red-tailed Hawk"
+    }
+  },
+  "18105194191765474": {
+    "image_locations": {
+      "0": "Rea St.",
+      "1": "Rea St.",
+      "2": "Rea St.",
+      "3": "Rea St.",
+      "4": "Rea St.",
+      "5": "Rea St.",
+      "6": "Rea St.",
+      "7": "Rea St.",
+      "8": "Rea St."
+    },
+    "images": {
+      "0": "Yellow-bellied Sapsucker",
+      "1": "Yellow-bellied Sapsucker",
+      "2": "Yellow-bellied Sapsucker",
+      "3": "Yellow-bellied Sapsucker",
+      "4": "Yellow-bellied Sapsucker",
+      "5": "Yellow-bellied Sapsucker",
+      "6": "House Finch",
+      "7": "American Robin",
+      "8": "Mourning Dove"
     }
   },
   "18108326692692540": {
@@ -1147,6 +1196,32 @@
       "6": "Red-breasted Merganser"
     }
   },
+  "18187512241317442": {
+    "image_locations": {
+      "0": "Rea St.",
+      "1": "Rea St.",
+      "2": "Rea St.",
+      "3": "Rea St.",
+      "4": "Rea St.",
+      "5": "Rea St.",
+      "6": "Rea St.",
+      "7": "Rea St.",
+      "8": "Rea St.",
+      "9": "Rea St."
+    },
+    "images": {
+      "0": "Carolina Wren",
+      "1": "White-breasted Nuthatch",
+      "2": "White-breasted Nuthatch",
+      "3": "White-breasted Nuthatch",
+      "4": "White-breasted Nuthatch",
+      "5": "Northern Cardinal",
+      "6": "Northern Cardinal",
+      "7": "Northern Cardinal",
+      "8": "House Finch",
+      "9": "Downy Woodpecker"
+    }
+  },
   "18216427975313805": {
     "image_locations": {
       "0": "Rea St.",
@@ -1209,6 +1284,28 @@
       "0": "Sanderling",
       "1": "Sanderling",
       "2": "Ring-billed Gull"
+    }
+  },
+  "18361078339166391": {
+    "image_locations": {
+      "0": "Rea St.",
+      "1": "Rea St.",
+      "2": "Rea St.",
+      "3": "Rea St.",
+      "4": "Rea St.",
+      "5": "Rea St.",
+      "6": "Rea St.",
+      "7": "Rea St."
+    },
+    "images": {
+      "0": "American Tree Sparrow",
+      "1": "White-throated Sparrow",
+      "2": "Red-bellied Woodpecker",
+      "3": "Mourning Dove",
+      "4": "Tufted Titmouse",
+      "5": "American Robin",
+      "6": "Northern Flicker",
+      "7": "Mourning Dove"
     }
   },
   "18371940658164515": {
