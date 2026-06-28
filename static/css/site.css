@@ -294,25 +294,20 @@ body.has-effect .site-footer { position: relative; z-index: 1; }
 /* galleries */
 .gallery-header { text-align: center; margin-bottom: 3rem; }
 
-/* Life list: distinct-species count + collapsible breakdown */
-.species-list { max-width: 40rem; margin: 1.2rem auto 0; }
-.species-list summary {
-    cursor: pointer; color: var(--green); font-family: var(--mono); font-size: 0.95rem;
-    list-style: none; display: inline-block;
+/* Species filter: count + family-grouped dropdown (Merlin-style optgroups) */
+.bird-filter {
+    display: inline-flex; align-items: center; gap: 0.7rem; flex-wrap: wrap;
+    justify-content: center; margin: 1.2rem auto 0;
 }
-.species-list summary::-webkit-details-marker { display: none; }
-.species-list summary::after { content: " \25be"; opacity: 0.6; }
-.species-list[open] summary::after { content: " \25b4"; }
-.species-list ul {
-    columns: 2; column-gap: 2.2rem; margin: 1.1rem 0 0; padding: 0; list-style: none;
-    text-align: left; font-size: 0.85rem;
+.bird-filter label { font-family: var(--mono); font-size: 0.9rem; color: var(--ink); }
+.bird-filter label strong { color: var(--green); }
+#birdFilter {
+    font-family: var(--mono); font-size: 0.85rem; padding: 0.4rem 0.6rem;
+    border: 1px solid var(--green); border-radius: 6px; background: transparent;
+    color: var(--ink); cursor: pointer; max-width: 16rem;
 }
-.species-list li {
-    display: flex; justify-content: space-between; gap: 0.6rem; break-inside: avoid;
-    padding: 0.2rem 0; border-bottom: 1px dotted rgba(127, 127, 127, 0.25);
-}
-.species-list .sp-count { color: var(--green); font-family: var(--mono); }
-@media (max-width: 560px) { .species-list ul { columns: 1; } }
+.filter-note { margin-top: 0.8rem; color: var(--green); }
+.filter-note a { color: var(--green); text-decoration: underline; }
 .gallery-category { font-family: var(--display); font-weight: 500; margin: 3rem 0 1.2rem; }
 /* Masonry as reading-order columns: JS deals out cards across columns so the
    first row reads left→right (cards keep their natural, uncropped height). */

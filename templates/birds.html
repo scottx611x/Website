@@ -8,15 +8,24 @@
         <p class="empty" style="color:var(--ink);max-width:38rem;margin:0 auto;">
             A running collection of my favorite birds from around my home town.
         </p>
-        {% if species %}
-        <details class="species-list">
-            <summary><strong>{{ species|length }}</strong> species &amp; counting</summary>
-            <ul>
-                {% for name, count in species %}
-                <li><span class="sp-name">{{ name }}</span><span class="sp-count">{{ count }}</span></li>
+        {% if not curate and species_groups %}
+        <div class="bird-filter">
+            <label for="birdFilter"><strong>{{ species_count }}</strong> species &amp; counting</label>
+            <select id="birdFilter" aria-label="Filter by bird"
+                    onchange="location.href = this.value ? ('/birds?bird=' + encodeURIComponent(this.value)) : '/birds';">
+                <option value="">— filter by bird —</option>
+                {% for family, sp in species_groups %}
+                <optgroup label="{{ family }}">
+                    {% for name, count in sp %}
+                    <option value="{{ name }}"{% if name == active_bird %} selected{% endif %}>{{ name }} ({{ count }})</option>
+                    {% endfor %}
+                </optgroup>
                 {% endfor %}
-            </ul>
-        </details>
+            </select>
+        </div>
+        {% if active_bird %}
+        <p class="filter-note mono">{{ shots|length }} photo{{ 's' if shots|length != 1 }} of <strong>{{ active_bird }}</strong> &middot; <a href="/birds">&larr; all birds</a></p>
+        {% endif %}
         {% endif %}
         {% if curate %}
         {% set flagged = shots|selectattr('ambiguous')|list|length %}

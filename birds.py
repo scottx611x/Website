@@ -76,30 +76,158 @@ def load_gallery(shuffle=True):
     )
 
 
-# Caption notes that aren't actually species (so they don't pad the life list).
-_NON_SPECIES_WORDS = ("nest", "rookery", "goldfish")
+# Bird taxonomy for Merlin-style family grouping. Keyed by the lower-cased
+# normalize_species() name -> (display name, family group). Family order below
+# roughly follows eBird taxonomy.
+_FAMILY_ORDER = [
+    "Ducks, Geese & Swans", "Turkeys & Grouse", "Pigeons & Doves", "Hummingbirds",
+    "Plovers", "Sandpipers", "Gulls & Terns", "Loons", "Cormorants", "Pelicans",
+    "Herons & Egrets", "New World Vultures", "Ospreys", "Hawks & Eagles", "Owls",
+    "Woodpeckers", "Falcons", "Shrikes", "Tyrant Flycatchers", "Crows & Jays",
+    "Chickadees & Titmice", "Swallows", "Kinglets", "Nuthatches", "Creepers",
+    "Wrens", "Starlings", "Mockingbirds & Thrashers", "Thrushes", "Waxwings",
+    "Old World Sparrows", "Finches", "New World Sparrows", "Blackbirds & Orioles",
+    "Wood-Warblers", "Cardinals & Allies",
+]
 
 
-def species_tally(shots):
-    """The gallery's life list: distinct species as ``(name, post_count)``, most
-    photographed first. Counts a species once per post (not per frame), using the
-    canonical ``normalize_species`` name and skipping non-species caption notes.
+def _fam(names, family):
+    return {n: (n.title() if n.islower() else n, family) for n in names}
+
+
+_BIRDS = {}
+for _names, _family in [
+    (["Mallard", "American Black Duck", "Wood Duck", "Ring-necked Duck", "Bufflehead",
+      "Hooded Merganser", "Red-breasted Merganser", "Common Eider", "Surf Scoter",
+      "Canada Goose", "Mute Swan"], "Ducks, Geese & Swans"),
+    (["Wild Turkey"], "Turkeys & Grouse"),
+    (["Mourning Dove", "Rock Pigeon"], "Pigeons & Doves"),
+    (["Ruby-throated Hummingbird"], "Hummingbirds"),
+    (["Killdeer"], "Plovers"),
+    (["Sanderling"], "Sandpipers"),
+    (["American Herring Gull", "Ring-billed Gull"], "Gulls & Terns"),
+    (["Common Loon"], "Loons"),
+    (["Double-crested Cormorant"], "Cormorants"),
+    (["Brown Pelican"], "Pelicans"),
+    (["Great Blue Heron", "Great Egret", "Little Blue Heron", "Tricolored Heron"], "Herons & Egrets"),
+    (["Turkey Vulture"], "New World Vultures"),
+    (["Osprey"], "Ospreys"),
+    (["Red-tailed Hawk", "Cooper's Hawk", "Sharp-shinned Hawk", "Red-shouldered Hawk",
+      "Broad-winged Hawk", "Northern Harrier", "Bald Eagle"], "Hawks & Eagles"),
+    (["Barred Owl"], "Owls"),
+    (["Downy Woodpecker", "Hairy Woodpecker", "Red-bellied Woodpecker",
+      "Pileated Woodpecker", "Northern Flicker", "Yellow-bellied Sapsucker"], "Woodpeckers"),
+    (["Peregrine Falcon"], "Falcons"),
+    (["Loggerhead Shrike"], "Shrikes"),
+    (["Eastern Phoebe", "Eastern Kingbird"], "Tyrant Flycatchers"),
+    (["Blue Jay", "American Crow"], "Crows & Jays"),
+    (["Black-capped Chickadee", "Tufted Titmouse"], "Chickadees & Titmice"),
+    (["Tree Swallow"], "Swallows"),
+    (["Ruby-crowned Kinglet", "Golden-crowned Kinglet"], "Kinglets"),
+    (["White-breasted Nuthatch"], "Nuthatches"),
+    (["Brown Creeper"], "Creepers"),
+    (["Carolina Wren", "House Wren"], "Wrens"),
+    (["European Starling"], "Starlings"),
+    (["Northern Mockingbird", "Gray Catbird"], "Mockingbirds & Thrashers"),
+    (["American Robin", "Eastern Bluebird"], "Thrushes"),
+    (["Cedar Waxwing"], "Waxwings"),
+    (["House Sparrow"], "Old World Sparrows"),
+    (["House Finch", "American Goldfinch", "Evening Grosbeak"], "Finches"),
+    (["White-throated Sparrow", "Song Sparrow", "Chipping Sparrow", "American Tree Sparrow",
+      "Fox Sparrow", "Savannah Sparrow", "Dark-eyed Junco"], "New World Sparrows"),
+    (["Red-winged Blackbird", "Common Grackle", "Boat-tailed Grackle",
+      "Brown-headed Cowbird"], "Blackbirds & Orioles"),
+    (["Black-and-white Warbler", "Yellow-rumped Warbler", "Pine Warbler", "Ovenbird",
+      "American Redstart", "Common Yellowthroat"], "Wood-Warblers"),
+    (["Northern Cardinal"], "Cardinals & Allies"),
+]:
+    for _n in _names:
+        _BIRDS[_n.lower()] = (_n, _family)
+
+# Caption junk / merged-line / casing quirks -> canonical key in _BIRDS (or None to drop).
+_SPECIES_ALIAS = {
+    "a very wet barred owl": "barred owl",
+    "a very wet red-tailed hawk": "red-tailed hawk",
+    "northern house wren": "house wren",
+    "european starling juvenile": "european starling",
+    "cooper's hawk barred owl": "barred owl",
+    "red-tailed hawk blue jay": "red-tailed hawk",
+    "not a north andover bird": None,
+}
+
+
+def _canon_species(name):
+    """(display name, family) for a raw species label, or None if not a real bird."""
+    base = normalize_species(name)
+    if not base:
+        return None
+    key = base.lower()
+    if key in _SPECIES_ALIAS:
+        alias = _SPECIES_ALIAS[key]
+        if alias is None:
+            return None
+        key = alias
+    return _BIRDS.get(key)
+
+
+def species_groups(shots):
+    """The life list grouped Merlin-style by family. Returns an ordered list of
+    ``(family, [(species, photo_count), ...])``; counts every frame of the species
+    (matching the filtered view).
     """
     counts = {}
     for shot in shots:
-        names = (
-            shot.get("image_species")
-            or shot.get("species_list")
-            or ([shot["species"]] if shot.get("species") else [])
-        )
-        seen = set()
-        for name in names:
-            canon = normalize_species(name)
-            if canon and not any(w in canon.lower() for w in _NON_SPECIES_WORDS):
-                seen.add(canon)
-        for canon in seen:
-            counts[canon] = counts.get(canon, 0) + 1
-    return sorted(counts.items(), key=lambda kv: (-kv[1], kv[0].lower()))
+        images = shot.get("images") or []
+        isp = shot.get("image_species") or []
+        for i in range(len(images)):
+            raw = isp[i] if i < len(isp) and isp[i] else shot.get("species")
+            canon = _canon_species(raw)
+            if canon:
+                counts[canon] = counts.get(canon, 0) + 1
+    by_family = {}
+    for (display, family), count in counts.items():
+        by_family.setdefault(family, []).append((display, count))
+    order = {f: i for i, f in enumerate(_FAMILY_ORDER)}
+    out = []
+    for family in sorted(by_family, key=lambda f: order.get(f, 999)):
+        species = sorted(by_family[family], key=lambda kv: (-kv[1], kv[0]))
+        out.append((family, species))
+    return out
+
+
+def species_count(shots):
+    return sum(len(sp) for _, sp in species_groups(shots))
+
+
+def images_for_species(shots, bird):
+    """Single-image pseudo-shots for every frame of ``bird`` (its display name),
+    so the gallery can render a filtered grid of just that species' photos.
+    """
+    target = (bird or "").strip().lower()
+    out = []
+    for shot in shots:
+        images = shot.get("images") or []
+        isp = shot.get("image_species") or []
+        iloc = shot.get("image_locations") or []
+        caps = shot.get("captions") or []
+        for i, url in enumerate(images):
+            raw = isp[i] if i < len(isp) and isp[i] else shot.get("species")
+            canon = _canon_species(raw)
+            if not canon or canon[0].lower() != target:
+                continue
+            loc = iloc[i] if i < len(iloc) and iloc[i] else shot.get("location")
+            out.append({
+                "id": "%s-%d" % (shot.get("id"), i),
+                "images": [url],
+                "captions": [caps[i] if i < len(caps) else ""],
+                "image_species": [canon[0]],
+                "image_locations": [loc],
+                "species": canon[0],
+                "location": loc,
+                "date": shot.get("date"),
+                "caption": shot.get("caption") or "",
+            })
+    return out
 
 
 def _shuffle_images_weighted(shot):
