@@ -192,6 +192,24 @@
       "3": "Ovenbird"
     }
   },
+  "17929377198140897": {
+    "image_locations": {
+      "0": "Rea Street",
+      "1": "Rea Street",
+      "2": "Harold Parker State Forest",
+      "3": "Harold Parker State Forest",
+      "4": "Harold Parker State Forest",
+      "5": "Harold Parker State Forest"
+    },
+    "images": {
+      "0": "Northern Cardinal",
+      "1": "Blue Jay",
+      "2": "Mallard",
+      "3": "Mallard",
+      "4": "Mallard",
+      "5": "Mallard"
+    }
+  },
   "17938542243120850": {
     "image_locations": {
       "0": "Rea St.",
@@ -720,6 +738,15 @@
       "9": "White-throated Sparrow"
     }
   },
+  "18081991499224261": {
+    "image_locations": {},
+    "images": {
+      "0": "Northern Cardinal",
+      "1": "Northern Cardinal",
+      "2": "White-breasted Nuthatch",
+      "3": "White-breasted Nuthatch"
+    }
+  },
   "18083909105464068": {
     "image_locations": {
       "0": "Great Meadows National Wildlife Refuge - Concord Unit, Concord, MA",
@@ -1078,6 +1105,24 @@
       "1": "Great Blue Heron"
     }
   },
+  "18124810975535450": {
+    "image_locations": {
+      "0": "Summer St. Bridge, Boston",
+      "1": "Rea St.",
+      "2": "Rea St.",
+      "3": "Rea St.",
+      "4": "Rea St.",
+      "5": "Summer St. Bridge, Boston"
+    },
+    "images": {
+      "0": "American Herring Gull",
+      "1": "Downy Woodpecker",
+      "2": "Black-capped Chickadee",
+      "3": "Black-capped Chickadee",
+      "4": "American Goldfinch",
+      "5": "Red-breasted Merganser"
+    }
+  },
   "18129018211595432": {
     "image_locations": {
       "0": "Rea St.",
@@ -1096,6 +1141,20 @@
       "4": "American Goldfinch",
       "5": "Eastern Phoebe",
       "6": "Barred Owl"
+    }
+  },
+  "18129834919609071": {
+    "image_locations": {
+      "0": "Rea St.",
+      "1": "Rea St.",
+      "2": "Rea St.",
+      "3": "Elm St."
+    },
+    "images": {
+      "0": "Northern House Wren",
+      "1": "Northern House Wren",
+      "2": "Northern House Wren",
+      "3": "Northern Mockingbird"
     }
   },
   "18147159676447040": {
