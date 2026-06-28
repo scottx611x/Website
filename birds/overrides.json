@@ -261,6 +261,32 @@
       "5": "Common Loon"
     }
   },
+  "18000376070889564": {
+    "image_locations": {
+      "0": "Rea St.",
+      "1": "Harborwalk, Boston",
+      "2": "Congress St. Bridge, Boston",
+      "3": "Congress St. Bridge, Boston",
+      "4": "Congress St. Bridge, Boston",
+      "5": "Congress St. Bridge, Boston",
+      "6": "Congress St. Bridge, Boston",
+      "7": "Congress St. Bridge, Boston",
+      "8": "Congress St. Bridge, Boston",
+      "9": "Congress St. Bridge, Boston"
+    },
+    "images": {
+      "0": "Canada Goose",
+      "1": "American Herring Gull",
+      "2": "Red-breasted Merganser",
+      "3": "Common Loon",
+      "4": "Common Loon",
+      "5": "Common Loon",
+      "6": "Common Loon",
+      "7": "Common Loon",
+      "8": "Common Loon",
+      "9": "Common Loon"
+    }
+  },
   "18002248943911802": {
     "image_locations": {
       "0": "Rea St.",
@@ -349,6 +375,16 @@
       "7": "Rock Pigeon",
       "8": "Common Loon",
       "9": "Common Loon"
+    }
+  },
+  "18063077171354383": {
+    "image_locations": {
+      "0": "Rea St.",
+      "1": "Abbott St."
+    },
+    "images": {
+      "0": "House Finch",
+      "1": "American Crow"
     }
   },
   "18064779275625532": {
@@ -457,6 +493,24 @@
       "2": "Downy Woodpecker"
     }
   },
+  "18089218715467785": {
+    "image_locations": {
+      "0": "Rea St.",
+      "1": "Rea St.",
+      "2": "Rea St.",
+      "3": "Rea St.",
+      "4": "Rea St.",
+      "5": "Rea St."
+    },
+    "images": {
+      "0": "White-throated Sparrow",
+      "1": "White-throated Sparrow",
+      "2": "White-throated Sparrow",
+      "3": "White-throated Sparrow",
+      "4": "Black-capped Chickadee",
+      "5": "Ring-billed Gull"
+    }
+  },
   "18089359418079845": {
     "image_locations": {},
     "images": {
@@ -516,6 +570,32 @@
       "3": "Tree Swallow",
       "4": "Mallard",
       "5": "Red-bellied Woodpecker"
+    }
+  },
+  "18094518802856508": {
+    "image_locations": {
+      "0": "Rea St.",
+      "1": "Rea St.",
+      "2": "Rea St.",
+      "3": "Rea St.",
+      "4": "Rea St.",
+      "5": "Rea St.",
+      "6": "Rea St.",
+      "7": "Rea St.",
+      "8": "Rea St.",
+      "9": "Rea St."
+    },
+    "images": {
+      "0": "Red-tailed Hawk",
+      "1": "Red-tailed Hawk",
+      "2": "Red-tailed Hawk",
+      "3": "Red-tailed Hawk",
+      "4": "Red-winged Blackbird",
+      "5": "Red-winged Blackbird",
+      "6": "Northern Cardinal",
+      "7": "Cooper's Hawk",
+      "8": "House Finch",
+      "9": "White-breasted Nuthatch"
     }
   },
   "18097368877823488": {
@@ -716,6 +796,18 @@
       "4": "Wood Duck",
       "5": "Wood Duck",
       "6": "Eastern Phoebe"
+    }
+  },
+  "18152415769392766": {
+    "image_locations": {
+      "0": "Congress St. Bridge, Boston",
+      "1": "Congress St. Bridge, Boston",
+      "2": "Rea St."
+    },
+    "images": {
+      "0": "Mallard",
+      "1": "Canada Goose",
+      "2": "Carolina Wren"
     }
   },
   "18154635835449638": {
