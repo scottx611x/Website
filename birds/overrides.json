@@ -1,4 +1,26 @@
 {
+  "17854658247640467": {
+    "image_locations": {
+      "0": "Rea St.",
+      "1": "Rea St.",
+      "2": "Rea St.",
+      "3": "Rea St.",
+      "4": "Rea St.",
+      "5": "Rea St.",
+      "6": "Rea St.",
+      "7": "Rea St."
+    },
+    "images": {
+      "0": "Brown-headed Cowbird",
+      "1": "Northern Flicker",
+      "2": "American Robin",
+      "3": "Carolina Wren",
+      "4": "Carolina Wren",
+      "5": "Common Grackle",
+      "6": "European Starling",
+      "7": "European Starling"
+    }
+  },
   "17870810409672157": {
     "image_locations": {
       "0": "Pearl St. Boston",
@@ -45,6 +67,32 @@
       "3": "Northern Cardinal",
       "4": "Cedar Waxwing",
       "5": "Black-capped Chickadee"
+    }
+  },
+  "17888318436495513": {
+    "image_locations": {
+      "0": "Rea St.",
+      "1": "Rea St.",
+      "2": "Rea St.",
+      "3": "Rea St.",
+      "4": "Rea St.",
+      "5": "Rea St.",
+      "6": "Rea St.",
+      "7": "Rea St.",
+      "8": "Annie L. Sargent School",
+      "9": "Annie L. Sargent School"
+    },
+    "images": {
+      "0": "Red-tailed Hawk",
+      "1": "Red-tailed Hawk",
+      "2": "Red-tailed Hawk",
+      "3": "Red-tailed Hawk",
+      "4": "Red-tailed Hawk",
+      "5": "Red-tailed Hawk",
+      "6": "Red-tailed Hawk",
+      "7": "Red-tailed Hawk",
+      "8": "Cooper's Hawk",
+      "9": "Cooper's Hawk"
     }
   },
   "17893702770263381": {
@@ -450,6 +498,28 @@
       "7": "American Robin"
     }
   },
+  "18044656358751390": {
+    "image_locations": {
+      "0": "Weir Hill",
+      "1": "Weir Hill",
+      "2": "Weir Hill",
+      "3": "Weir Hill",
+      "4": "Weir Hill",
+      "5": "Weir Hill",
+      "6": "Weir Hill",
+      "7": "Weir Hill"
+    },
+    "images": {
+      "0": "Brown Creeper",
+      "1": "Brown Creeper",
+      "2": "Brown Creeper",
+      "3": "Mallard",
+      "4": "Mallard",
+      "5": "Cooper's Hawk",
+      "6": "Cooper's Hawk",
+      "7": "Eastern Bluebird"
+    }
+  },
   "18047792111444620": {
     "image_locations": {
       "0": "Rea Street",
@@ -777,6 +847,26 @@
       "9": "White-breasted Nuthatch"
     }
   },
+  "18095892328850980": {
+    "image_locations": {
+      "0": "Harborwalk, Boston MA",
+      "1": "Harborwalk, Boston MA",
+      "2": "Harborwalk, Boston MA",
+      "3": "Harborwalk, Boston MA",
+      "4": "Harborwalk, Boston MA",
+      "5": "Harborwalk, Boston MA",
+      "6": "Harborwalk, Boston MA"
+    },
+    "images": {
+      "0": "Common Loon",
+      "1": "Common Loon",
+      "2": "Common Loon",
+      "3": "Common Loon",
+      "4": "Red-breasted Merganser",
+      "5": "Red-breasted Merganser",
+      "6": "Red-breasted Merganser"
+    }
+  },
   "18097368877823488": {
     "image_locations": {
       "0": "Lake Cochichewick",
@@ -853,6 +943,24 @@
       "6": "Hooded Merganser",
       "7": "American Robin",
       "8": "American Robin"
+    }
+  },
+  "18109431595658298": {
+    "image_locations": {
+      "0": "Rea St.",
+      "1": "Rea St.",
+      "2": "Rea St.",
+      "3": "Rea St.",
+      "4": "Rea St.",
+      "5": "Rea St."
+    },
+    "images": {
+      "0": "Barred Owl",
+      "1": "Barred Owl",
+      "2": "Barred Owl",
+      "3": "Barred Owl",
+      "4": "House Sparrow",
+      "5": "House Sparrow"
     }
   },
   "18110006128754375": {
