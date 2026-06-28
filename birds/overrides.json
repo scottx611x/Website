@@ -1,4 +1,15 @@
 {
+  "17843272989672425": {
+    "image_locations": {},
+    "images": {
+      "0": "Dark-eyed Junco",
+      "1": "Carolina Wren",
+      "2": "Northern Cardinal",
+      "3": "Black-capped Chickadee",
+      "4": "Tufted Titmouse",
+      "5": "Dark-eyed Junco"
+    }
+  },
   "17854658247640467": {
     "image_locations": {
       "0": "Rea St.",
@@ -19,6 +30,16 @@
       "5": "Common Grackle",
       "6": "European Starling",
       "7": "European Starling"
+    }
+  },
+  "17869333806502169": {
+    "image_locations": {
+      "0": "Johnson St.",
+      "1": "Johnson St."
+    },
+    "images": {
+      "0": "Northern Flicker",
+      "1": "Evening Grosbeak"
     }
   },
   "17870810409672157": {
@@ -176,6 +197,20 @@
       "7": "Black-capped Chickadee",
       "8": "American Robin",
       "9": "Mallard"
+    }
+  },
+  "17926088364050099": {
+    "image_locations": {
+      "0": "Rea St.",
+      "1": "Rea St.",
+      "2": "Rea St.",
+      "3": "Rea St."
+    },
+    "images": {
+      "0": "Cooper's Hawk",
+      "1": "Cooper's Hawk",
+      "2": "Cooper's Hawk",
+      "3": "Carolina Wren"
     }
   },
   "17926946091347519": {
@@ -1481,6 +1516,26 @@
       "6": "Downy Woodpecker"
     }
   },
+  "18192014368356702": {
+    "image_locations": {
+      "0": "Rea St.",
+      "1": "Rea St.",
+      "2": "Rea St.",
+      "3": "Rea St.",
+      "4": "Rea St.",
+      "5": "Rea St.",
+      "6": "Rea St."
+    },
+    "images": {
+      "0": "White-breasted Nuthatch",
+      "1": "White-breasted Nuthatch",
+      "2": "Pileated Woodpecker",
+      "3": "Pileated Woodpecker",
+      "4": "American Crow",
+      "5": "Northern Cardinal",
+      "6": "House Sparrow"
+    }
+  },
   "18216427975313805": {
     "image_locations": {
       "0": "Rea St.",
@@ -1519,6 +1574,22 @@
       "4": "Red-tailed Hawk",
       "5": "Red-tailed Hawk",
       "6": "Canada Goose"
+    }
+  },
+  "18333385855246770": {
+    "image_locations": {
+      "0": "Rea St.",
+      "1": "Rea St.",
+      "2": "Rea St.",
+      "3": "Rea St.",
+      "4": "Rea St."
+    },
+    "images": {
+      "0": "Pileated Woodpecker",
+      "1": "Pileated Woodpecker",
+      "2": "Pileated Woodpecker",
+      "3": "Pileated Woodpecker",
+      "4": "American Robin"
     }
   },
   "18335794243219513": {
