@@ -19,6 +19,28 @@
       "6": "Gray Catbird"
     }
   },
+  "18002248943911802": {
+    "image_locations": {
+      "0": "Rea St.",
+      "1": "Rea St.",
+      "2": "Rea St.",
+      "3": "Rea St.",
+      "4": "Rea St.",
+      "5": "Rea St.",
+      "6": "Rea St.",
+      "7": "Rea St."
+    },
+    "images": {
+      "0": "Fox Sparrow",
+      "1": "Fox Sparrow",
+      "2": "Red-bellied Woodpecker",
+      "3": "White-throated Sparrow",
+      "4": "Black-capped Chickadee",
+      "5": "Northern Cardinal",
+      "6": "American Robin",
+      "7": "American Crow"
+    }
+  },
   "18005279543907673": {
     "image_locations": {
       "0": "Market Basket",
@@ -39,6 +61,67 @@
       "6": "Barred Owl"
     }
   },
+  "18089359418079845": {
+    "image_locations": {},
+    "images": {
+      "0": "Osprey",
+      "1": "Osprey",
+      "10": "Blue Jay",
+      "11": "Loggerhead Shrike",
+      "2": "Osprey",
+      "3": "Red-bellied Woodpecker",
+      "4": "Brown Pelican",
+      "5": "Brown Pelican",
+      "6": "Brown Pelican",
+      "7": "Little Blue Heron",
+      "8": "Turkey Vulture",
+      "9": "Red-bellied Woodpecker"
+    }
+  },
+  "18093393794012685": {
+    "image_locations": {
+      "0": "Rea St.",
+      "1": "Rea St.",
+      "2": "Rea St.",
+      "3": "Rea St.",
+      "4": "Rea St.",
+      "5": "Rea St.",
+      "6": "Rea St.",
+      "7": "Rea St.",
+      "8": "Rea St.",
+      "9": "Rea St."
+    },
+    "images": {
+      "0": "Northern Cardinal",
+      "1": "Northern Cardinal",
+      "2": "Northern Cardinal",
+      "3": "Northern Cardinal",
+      "4": "Northern Cardinal",
+      "5": "Northern Cardinal",
+      "6": "Northern Cardinal",
+      "7": "Northern Cardinal",
+      "8": "Northern Cardinal",
+      "9": "Mourning Dove"
+    }
+  },
+  "18094480046170247": {
+    "image_locations": {
+      "0": "Rea St.",
+      "1": "Rea St.",
+      "2": "Rea St.",
+      "3": "Rea St.",
+      "4": "Rea St.",
+      "5": "Rea St."
+    },
+    "images": {
+      "0": "Barred Owl",
+      "1": "Barred Owl",
+      "2": "Red-tailed Hawk",
+      "3": "Tree Swallow",
+      "4": "Mallard",
+      "5": "Red-bellied Woodpecker"
+    }
+  },
   "18110283049907782": {
     "image_locations": {
       "0": "Rea St.",
@@ -51,6 +134,26 @@
       "1": "Barred Owl Baby",
       "2": "Barred Owl Baby",
       "3": "Carolina Wren fledglings"
+    }
+  },
+  "18129018211595432": {
+    "image_locations": {
+      "0": "Rea St.",
+      "1": "Rea St.",
+      "2": "Rea St.",
+      "3": "Rea St.",
+      "4": "Rea St.",
+      "5": "Rea St.",
+      "6": "Rea St."
+    },
+    "images": {
+      "0": "Red-bellied Woodpecker",
+      "1": "Brown-headed Cowbird",
+      "2": "American Robin",
+      "3": "Black-capped Chickadee",
+      "4": "American Goldfinch",
+      "5": "Eastern Phoebe",
+      "6": "Barred Owl"
     }
   },
   "18154635835449638": {
