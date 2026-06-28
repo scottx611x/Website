@@ -21,7 +21,7 @@
                            onchange="birdsGo(null,{bird:this.value})"
                            onkeydown="if(event.key==='Enter')birdsGo(null,{bird:this.value})">
                     <datalist id="speciesList">
-                        {% for family, sp in species_groups %}{% for name, count in sp %}<option value="{{ name }}">{{ family }}{% if name in out_of_area %} &middot; out-of-area{% endif %} ({{ count }})</option>{% endfor %}{% endfor %}
+                        {% for family, sp in species_groups %}{% for name, count in sp %}<option value="{{ name }}">{{ family }} ({{ count }})</option>{% endfor %}{% endfor %}
                     </datalist>
                 </div>
                 <div class="bird-select">
@@ -32,7 +32,7 @@
                         <optgroup label="{{ family }}">
                             <option value="fam:{{ family }}"{% if family == active_family and not active_bird %} selected{% endif %}>&#9656; All {{ family }} ({{ family_counts[family] }})</option>
                             {% for name, count in sp %}
-                            <option value="{{ name }}"{% if name == active_bird %} selected{% endif %}>{{ name }}{% if name in out_of_area %} &#9888;&#65039;{% endif %} ({{ count }})</option>
+                            <option value="{{ name }}"{% if name == active_bird %} selected{% endif %}>{{ name }} ({{ count }})</option>
                             {% endfor %}
                         </optgroup>
                         {% endfor %}

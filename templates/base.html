@@ -254,16 +254,21 @@
         });
 
         // Curate mode: edit a post's species text -> persist it (clears the flag).
+        // Auto-saves shortly after you stop typing, and on Enter / blur. A failed
+        // save turns the field red so it's never silent.
         function saveSpecies(input) {
             var fig = input.closest(".shot");
-            input.classList.add("saving"); input.classList.remove("saved");
+            input.classList.remove("saved", "save-failed");
+            input.classList.add("saving");
             fetch("/curate/override", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ id: input.getAttribute("data-id"), species: input.value })
-            }).then(function (r) { return r.json(); }).then(function (d) {
+            }).then(function (r) {
+                if (!r.ok) throw new Error(r.status);
+                return r.json();
+            }).then(function (d) {
                 input.classList.remove("saving");
-                if (!d.ok) return;
                 input.classList.add("saved");
                 setTimeout(function () { input.classList.remove("saved"); }, 1600);
                 if (fig) {
@@ -271,16 +276,27 @@
                     var badge = fig.querySelector(".flag-badge");
                     if (badge && !d.ambiguous) badge.remove();
                 }
-            }).catch(function () { input.classList.remove("saving"); });
+            }).catch(function () {
+                input.classList.remove("saving");
+                input.classList.add("save-failed");
+                input.title = "Save failed — is curate mode still on?";
+            });
         }
+        var _saveTimer;
+        document.addEventListener("input", function (e) {
+            var input = e.target.closest(".species-edit");
+            if (!input) return;
+            clearTimeout(_saveTimer);
+            _saveTimer = setTimeout(function () { saveSpecies(input); }, 700);
+        });
         document.addEventListener("change", function (e) {
             var input = e.target.closest(".species-edit");
-            if (input) saveSpecies(input);
+            if (input) { clearTimeout(_saveTimer); saveSpecies(input); }
         });
         document.addEventListener("keydown", function (e) {
             if (e.key !== "Enter") return;
             var input = e.target.closest(".species-edit");
-            if (input) { e.preventDefault(); saveSpecies(input); input.blur(); }
+            if (input) { e.preventDefault(); clearTimeout(_saveTimer); saveSpecies(input); input.blur(); }
         });
     </script>
     {% block scripts %}{% endblock %}

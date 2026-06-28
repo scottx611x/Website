@@ -140,7 +140,19 @@ def birds_gallery():
         shots = all_shots
     total = sum(len(sp) for _, sp in groups)
     away = sum(1 for _, sp in groups for name, _ in sp if name in out_of_area)
-    family_counts = {fam: sum(c for _, c in sp) for fam, sp in groups}
+    # The species/family dropdowns are constrained to the selected area, so picking
+    # "spotted elsewhere" narrows them to just the out-of-area birds.
+    if area == "elsewhere":
+        keep = lambda n: n in out_of_area
+    elif area == "local":
+        keep = lambda n: n not in out_of_area
+    else:
+        keep = lambda n: True
+    display_groups = [
+        (fam, [(n, c) for n, c in sp if keep(n)]) for fam, sp in groups
+    ]
+    display_groups = [(fam, sp) for fam, sp in display_groups if sp]
+    family_counts = {fam: sum(c for _, c in sp) for fam, sp in display_groups}
     bird_family = ""
     if bird:
         for fam, sp in groups:
@@ -151,7 +163,7 @@ def birds_gallery():
         "birds.html",
         title="Birds of North Andover",
         shots=shots,
-        species_groups=groups,
+        species_groups=display_groups,
         family_counts=family_counts,
         species_count=total,
         local_count=total - away,
