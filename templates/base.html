@@ -105,8 +105,9 @@
                 box.hidden = true; img.src = ""; document.body.style.overflow = "";
             }
             document.addEventListener("click", function (e) {
-                // Curate X: hide a post (handled separately) — don't open lightbox.
-                if (e.target.closest(".curate-x")) return;
+                // Curate controls (hide / edit / flag) are handled separately —
+                // a click on any of them must not open the lightbox.
+                if (e.target.closest(".curate-x, .species-edit, .flag-badge")) return;
                 var card = e.target.closest("[data-images]");
                 if (card) { e.preventDefault(); build(); show(card._frameStart || 0); return; }
                 if (e.target.closest(".lightbox-next")) { e.stopPropagation(); show(idx + 1); return; }
@@ -167,6 +168,27 @@
                     setTimeout(function () { card.remove(); }, 200);
                 } else { x.disabled = false; }
             }).catch(function () { x.disabled = false; });
+        });
+
+        // Curate mode: edit a post's species text -> persist it (clears the flag).
+        document.addEventListener("change", function (e) {
+            var input = e.target.closest(".species-edit");
+            if (!input) return;
+            var fig = input.closest(".shot");
+            fetch("/curate/override", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ id: input.getAttribute("data-id"), species: input.value })
+            }).then(function (r) { return r.json(); }).then(function (d) {
+                if (!d.ok) return;
+                input.classList.add("saved");
+                setTimeout(function () { input.classList.remove("saved"); }, 900);
+                if (fig) {
+                    fig.classList.toggle("flagged", !!d.ambiguous);
+                    var badge = fig.querySelector(".flag-badge");
+                    if (badge && !d.ambiguous) badge.remove();
+                }
+            });
         });
     </script>
     {% block scripts %}{% endblock %}

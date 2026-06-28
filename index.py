@@ -119,6 +119,19 @@ def curate_exclude():
     return {"ok": True, "excluded": len(birds.load_excluded())}
 
 
+@app.route("/curate/override", methods=["POST"])
+def curate_override():
+    if not CURATE:
+        abort(404)
+    data = request.get_json(silent=True) or {}
+    post_id = (data.get("id") or "").strip()
+    if not post_id:
+        abort(400)
+    fields = {k: data[k] for k in ("species", "location", "date") if k in data}
+    shot = birds.set_override(post_id, fields)
+    return {"ok": True, "ambiguous": bool(shot and shot.get("ambiguous"))}
+
+
 GITHUB_USER = "scottx611x"
 
 

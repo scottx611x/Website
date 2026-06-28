@@ -64,6 +64,7 @@ def load_gallery(shuffle=True):
     if shots is None:
         shots = _load_local_manifest()
     shots = list(shots or [])
+    apply_overrides(shots)
     if shuffle:
         return order_gallery(shots)
     # Stable view (curation): strict highest-likes-first (weight ~ like percentile),
@@ -146,6 +147,59 @@ def remove_exclusion(post_id):
     return excluded
 
 
+# --- Manual species/caption fixes (curation) -------------------------------
+# Instagram captions are parsed heuristically, so some posts get no species or
+# several. `overrides.json` holds hand-typed corrections, keyed by post id, and
+# is applied on every load + sync so it survives re-syncs (like excluded.json).
+def load_overrides():
+    try:
+        with open(OVERRIDES_FILE) as fh:
+            return json.load(fh)
+    except (OSError, ValueError):
+        return {}
+
+
+def _is_ambiguous(shot):
+    """Needs review when no species was parsed, or several distinct ones were."""
+    names = {normalize_species(s) for s in (shot.get("species_list") or []) if s}
+    return len(names) != 1
+
+
+def apply_overrides(shots, overrides=None):
+    """Apply hand-typed corrections and (re)compute the review flag in place."""
+    if overrides is None:
+        overrides = load_overrides()
+    for shot in shots:
+        override = overrides.get(shot.get("id"))
+        if override:
+            if override.get("species"):
+                shot["species"] = override["species"]
+                shot["species_list"] = [override["species"]]
+            if "location" in override:
+                shot["location"] = override["location"] or None
+            if override.get("date"):
+                shot["date"] = override["date"]
+        shot["ambiguous"] = (not override) and _is_ambiguous(shot)
+    return shots
+
+
+def set_override(post_id, fields):
+    """Persist a correction for one post and reflect it in the local manifest now."""
+    overrides = load_overrides()
+    entry = overrides.get(post_id, {})
+    for key in ("species", "location", "date"):
+        if key in fields:
+            entry[key] = (fields.get(key) or "").strip()
+    overrides[post_id] = entry
+    with open(OVERRIDES_FILE, "w") as fh:
+        json.dump(overrides, fh, indent=2, sort_keys=True)
+    shots = _load_local_manifest() or []
+    apply_overrides(shots, overrides)
+    with open(LOCAL_MANIFEST, "w") as fh:
+        json.dump(shots, fh, indent=2)
+    return next((s for s in shots if s.get("id") == post_id), None)
+
+
 def _load_local_manifest():
     try:
         with open(LOCAL_MANIFEST) as fh:
@@ -173,6 +227,7 @@ def _load_manifest_from_s3():
 # ---------------------------------------------------------------------------
 TOKEN_FILE = os.path.join(HERE, ".ig_token")
 EXCLUDED_FILE = os.path.join(HERE, "birds", "excluded.json")
+OVERRIDES_FILE = os.path.join(HERE, "birds", "overrides.json")
 
 
 def resolve_token():
@@ -303,6 +358,7 @@ def instagram_sync(token=None):
     if not shots:
         return load_gallery()
 
+    apply_overrides(shots)  # bake in hand-typed corrections so prod gets them too
     _write_manifest(shots)
     return shots
 

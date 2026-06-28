@@ -329,6 +329,25 @@ body.has-effect .site-footer { position: relative; z-index: 1; }
 .curate-x:hover { transform: scale(1.12); background: rgb(200, 35, 35); }
 .shot.curating { cursor: default; }
 
+/* Curate: flagged (ambiguous) posts + editable species text */
+.shot.flagged { outline: 2px solid var(--amber, #f0b429); outline-offset: -2px; }
+.flag-badge {
+    position: absolute; top: 0.5rem; left: 0.5rem; z-index: 3;
+    height: 1.6rem; padding: 0 0.5rem; border-radius: 0.8rem;
+    background: rgba(240, 180, 41, 0.95); color: #1a1205; font-weight: 700;
+    display: flex; align-items: center; justify-content: center; gap: 0.15rem;
+    font-size: 0.8rem; line-height: 1; pointer-events: none; white-space: nowrap;
+}
+.shot.curating figcaption { opacity: 1; }   /* always show the editor while curating */
+.species-edit {
+    width: 100%; background: rgba(0, 0, 0, 0.55); color: #fff;
+    border: 1px solid rgba(255, 255, 255, 0.25); border-radius: 3px;
+    padding: 0.2rem 0.4rem; font: inherit; font-size: 0.82rem;
+}
+.species-edit::placeholder { color: var(--amber, #f0b429); opacity: 0.8; }
+.species-edit:focus { outline: none; border-color: var(--neon, #39ff7a); }
+.species-edit.saved { border-color: var(--green, #39ff7a); box-shadow: 0 0 0 2px rgba(57, 255, 122, 0.4); }
+
 /* ====================== LIGHTBOX ====================== */
 .lightbox {
     position: fixed; inset: 0; z-index: 200;
