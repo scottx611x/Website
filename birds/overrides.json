@@ -10,6 +10,16 @@
       "5": "Dark-eyed Junco"
     }
   },
+  "17843793366611919": {
+    "image_locations": {
+      "0": "Rea Street",
+      "1": "Rea Street"
+    },
+    "images": {
+      "0": "Dark-eyed Junco",
+      "1": "Northern Flicker"
+    }
+  },
   "17854658247640467": {
     "image_locations": {
       "0": "Rea St.",
@@ -30,6 +40,16 @@
       "5": "Common Grackle",
       "6": "European Starling",
       "7": "European Starling"
+    }
+  },
+  "17858032818648814": {
+    "image_locations": {
+      "0": "Rea St.",
+      "1": "Rea St."
+    },
+    "images": {
+      "0": "Mourning Dove",
+      "1": "Blue Jay"
     }
   },
   "17869333806502169": {
@@ -375,6 +395,20 @@
       "3": "Turkey Vulture",
       "4": "Northern Cardinal",
       "5": "Black-capped Chickadee"
+    }
+  },
+  "17954083199932652": {
+    "image_locations": {
+      "0": "Rea St.",
+      "1": "Rea St.",
+      "2": "Rea St.",
+      "3": "Rea St."
+    },
+    "images": {
+      "0": "Eastern Bluebird",
+      "1": "American Robin",
+      "2": "American Crow",
+      "3": "Pileated Woodpecker"
     }
   },
   "17955604464060247": {
@@ -801,6 +835,24 @@
       "7": "American Goldfinch"
     }
   },
+  "18065021096616287": {
+    "image_locations": {
+      "0": "Lake Cochichewick",
+      "1": "Lake Cochichewick",
+      "2": "Rea Street",
+      "3": "Rea Street",
+      "4": "Rea Street",
+      "5": "Rea Street"
+    },
+    "images": {
+      "0": "Hooded Merganser",
+      "1": "Hooded Merganser",
+      "2": "American Robin",
+      "3": "White-breasted Nuthatch",
+      "4": "Downy Woodpecker",
+      "5": "Red-bellied Woodpecker"
+    }
+  },
   "18067337609607323": {
     "image_locations": {
       "0": "Rea Street",
@@ -879,6 +931,20 @@
       "7": "Common Loon",
       "8": "American Black Duck",
       "9": "American Herring Gull"
+    }
+  },
+  "18070761071590048": {
+    "image_locations": {
+      "0": "Rea Street",
+      "1": "Rea Street",
+      "2": "Abbot Street",
+      "3": "Molly Towne Road"
+    },
+    "images": {
+      "0": "Northern Cardinal",
+      "1": "American Goldfinch",
+      "2": "Northern Flicker",
+      "3": "Eastern Bluebird"
     }
   },
   "18071805020405390": {
