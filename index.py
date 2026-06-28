@@ -101,36 +101,42 @@ CURATE = os.environ.get("BIRDS_CURATE") == "1"
 @app.route("/birds", methods=["GET"])
 def birds_gallery():
     all_shots = birds.load_gallery(shuffle=not CURATE)
-    bird = (request.args.get("bird") or "").strip()
-    area = (request.args.get("area") or "").strip()
+    groups = birds.species_groups(all_shots)
     out_of_area = birds.out_of_area_species(all_shots)
-    if bird:
-        shots = birds.images_for_species(all_shots, bird)
-    elif area in ("local", "elsewhere"):
-        shots = birds.images_for_area(all_shots, area, out_of_area)
+    bird = birds.resolve_species(request.args.get("bird") or "", groups)
+    family = (request.args.get("family") or "").strip()
+    if family not in birds._FAMILY_ORDER:
+        family = ""
+    area = (request.args.get("area") or "").strip()
+    if area not in ("local", "elsewhere"):
+        area = ""
+    if bird or family or area:
+        shots = birds.images_filtered(all_shots, bird, family, area, out_of_area)
     else:
         shots = all_shots
-    groups = birds.species_groups(all_shots)
     total = sum(len(sp) for _, sp in groups)
     away = sum(1 for _, sp in groups for name, _ in sp if name in out_of_area)
-    active_family = ""
+    families = [(fam, sum(c for _, c in sp)) for fam, sp in groups]
+    bird_family = ""
     if bird:
         for fam, sp in groups:
             if any(name == bird for name, _ in sp):
-                active_family = fam
+                bird_family = fam
                 break
     return render_template(
         "birds.html",
         title="Birds of North Andover",
         shots=shots,
         species_groups=groups,
+        families=families,
         species_count=total,
         local_count=total - away,
         away_count=away,
         out_of_area=out_of_area,
         active_bird=bird,
-        active_family=active_family,
-        active_area=area if area in ("local", "elsewhere") else "",
+        active_family=family,
+        active_area=area,
+        bird_family=bird_family,
         curate=CURATE,
         reid_queued=sorted(birds.reid_keys()) if CURATE else [],
     )

@@ -306,26 +306,43 @@ body.has-effect .site-footer { position: relative; z-index: 1; }
 .bird-stat-link.bird-stat-away { color: var(--muted); }
 .bird-stat-link.is-active { color: var(--green); border-bottom-color: var(--green); }
 
+.filter-controls {
+    display: flex; gap: 0.7rem; justify-content: center; flex-wrap: wrap;
+}
+.filter-search input, .bird-select select {
+    appearance: none; -webkit-appearance: none;
+    font-family: var(--mono); font-size: 0.9rem; color: var(--ink);
+    padding: 0.7rem 1.2rem; background: var(--paper);
+    border: 1px solid rgba(47, 125, 79, 0.32); border-radius: 999px;
+    box-shadow: 0 1px 2px rgba(13, 18, 14, 0.04);
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.filter-search input { min-width: 15rem; }
+.filter-search input::-webkit-search-cancel-button { -webkit-appearance: none; }
 .bird-select { position: relative; display: inline-block; }
+.bird-select select { cursor: pointer; min-width: 13rem; padding-right: 2.6rem; }
 .bird-select::after {
     content: ""; position: absolute; right: 1.15rem; top: 50%; pointer-events: none;
     width: 0.48rem; height: 0.48rem; margin-top: -0.34rem;
     border-right: 2px solid var(--green); border-bottom: 2px solid var(--green);
     transform: rotate(45deg);
 }
-#birdFilter {
-    appearance: none; -webkit-appearance: none;
-    font-family: var(--mono); font-size: 0.9rem; color: var(--ink); cursor: pointer;
-    min-width: 19rem; padding: 0.7rem 2.8rem 0.7rem 1.2rem;
-    background: var(--paper); border: 1px solid rgba(47, 125, 79, 0.32);
-    border-radius: 999px; box-shadow: 0 1px 2px rgba(13, 18, 14, 0.04);
-    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+.filter-search input:hover, .bird-select select:hover { border-color: var(--green); }
+.filter-search input:focus, .bird-select select:focus {
+    outline: none; border-color: var(--green); box-shadow: 0 0 0 3px rgba(47, 125, 79, 0.16);
 }
-#birdFilter:hover { border-color: var(--green); }
-#birdFilter:focus { outline: none; border-color: var(--green); box-shadow: 0 0 0 3px rgba(47, 125, 79, 0.16); }
 
-/* Filtered-state header */
-.bird-active { margin: 2.4rem auto 0.5rem; }
+/* Filtered-state header + chips */
+.bird-active { margin: 2.2rem auto 0.5rem; }
+.filter-chips { display: flex; gap: 0.5rem; justify-content: center; flex-wrap: wrap; }
+.chip {
+    display: inline-flex; align-items: center; gap: 0.45rem; cursor: pointer;
+    font-family: var(--mono); font-size: 0.82rem; color: #fff;
+    background: var(--green); border: none; border-radius: 999px;
+    padding: 0.4rem 0.85rem; transition: opacity 0.15s ease;
+}
+.chip:hover { opacity: 0.85; }
+.chip span { font-size: 1.05em; opacity: 0.85; }
 .bird-active-kicker {
     font-family: var(--mono); font-size: 0.72rem; text-transform: uppercase;
     letter-spacing: 0.16em; color: var(--green); margin: 0 0 0.45rem;
@@ -334,7 +351,7 @@ body.has-effect .site-footer { position: relative; z-index: 1; }
     font-family: var(--display); font-weight: 500; line-height: 1.04;
     font-size: clamp(1.9rem, 5vw, 2.9rem); margin: 0; letter-spacing: -0.01em;
 }
-.bird-active-meta { font-family: var(--mono); font-size: 0.85rem; color: var(--muted); margin: 0.7rem 0 0; }
+.bird-active-meta { font-family: var(--mono); font-size: 0.85rem; color: var(--muted); margin: 0.9rem 0 0; }
 .bird-active-meta a { color: var(--green); text-decoration: none; margin-left: 0.7rem; }
 .bird-active-meta a:hover { text-decoration: underline; }
 .gallery-category { font-family: var(--display); font-weight: 500; margin: 3rem 0 1.2rem; }
@@ -361,10 +378,22 @@ body.has-effect .site-footer { position: relative; z-index: 1; }
     background: rgba(0,0,0,0.55); padding: 0.15rem 0.45rem; border-radius: 3px;
 }
 .away-badge {
-    position: absolute; top: 0.4rem; right: 0.5rem; z-index: 2;
-    font-size: 1rem; line-height: 1; cursor: help;
-    filter: drop-shadow(0 1px 2px rgba(0,0,0,0.55));
+    position: absolute; top: 0.5rem; right: 0.5rem; z-index: 4; cursor: help;
+    width: 1.7rem; height: 1.7rem; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(20, 16, 8, 0.6); backdrop-filter: blur(2px);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.4); outline: none;
 }
+.away-badge-mark { font-size: 0.95rem; line-height: 1; filter: saturate(1.3); }
+.away-badge::after {
+    content: attr(data-note); position: absolute; top: calc(100% + 0.4rem); right: 0;
+    width: max-content; max-width: 15rem; z-index: 5;
+    font-family: var(--mono); font-size: 0.68rem; line-height: 1.35; text-align: left;
+    color: #fff; background: rgba(20, 16, 8, 0.95); padding: 0.4rem 0.6rem; border-radius: 6px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.35);
+    opacity: 0; transform: translateY(-3px); pointer-events: none; transition: opacity 0.15s ease, transform 0.15s ease;
+}
+.away-badge:hover::after, .away-badge:focus::after { opacity: 1; transform: translateY(0); }
 .curate-note { color: var(--green); margin-top: 1rem; }
 .curate-x {
     position: absolute; top: 0.5rem; right: 0.5rem; z-index: 3;

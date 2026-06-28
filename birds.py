@@ -21,6 +21,7 @@ Environment variables (only needed for the sync job, not for serving):
 
 import bisect
 import datetime
+import difflib
 import json
 import os
 import random
@@ -308,27 +309,14 @@ def _interleave_buckets(buckets):
     return out
 
 
-def images_for_species(shots, bird):
-    """Single-image pseudo-shots for every frame of ``bird`` (its display name), so
-    the gallery can render an interleaved grid of just that species' photos."""
-    target = (bird or "").strip().lower()
-    buckets = []
-    for shot in shots:
-        bucket = []
-        for i in range(len(shot.get("images") or [])):
-            frame, canons = _pseudo_frame(shot, i)
-            if any(c[0].lower() == target for c in canons):
-                bucket.append(frame)
-        if bucket:
-            buckets.append(bucket)
-    return _interleave_buckets(buckets)
-
-
-def images_for_area(shots, area, ooa_only):
-    """Frames of the species in one area bucket, matching the header counts:
-    ``area='elsewhere'`` -> the species only ever seen out-of-area (``ooa_only``);
-    ``'local'`` -> the North Andover species (everything else)."""
+def images_filtered(shots, bird=None, family=None, area=None, ooa_only=()):
+    """Interleaved single-image frames matching ALL active filters (composable):
+    ``bird`` (species display name), ``family`` (Merlin group), and ``area``
+    ('local' = North Andover, 'elsewhere' = ⚠️ out-of-area-only species)."""
+    bird_l = (bird or "").strip().lower()
+    fam = (family or "").strip()
     want_elsewhere = area in ("elsewhere", "away")
+    has_area = area in ("local", "elsewhere", "away")
     ooa_lower = {n.lower() for n in ooa_only}
     buckets = []
     for shot in shots:
@@ -336,12 +324,38 @@ def images_for_area(shots, area, ooa_only):
         for i in range(len(shot.get("images") or [])):
             frame, canons = _pseudo_frame(shot, i)
             names = [c[0].lower() for c in canons]
-            is_elsewhere = bool(names) and all(nm in ooa_lower for nm in names)
-            if is_elsewhere == want_elsewhere:
-                bucket.append(frame)
+            if not names:
+                continue
+            if bird_l and bird_l not in names:
+                continue
+            if fam and not any(c[1] == fam for c in canons):
+                continue
+            if has_area:
+                is_elsewhere = all(nm in ooa_lower for nm in names)
+                if is_elsewhere != want_elsewhere:
+                    continue
+            bucket.append(frame)
         if bucket:
             buckets.append(bucket)
     return _interleave_buckets(buckets)
+
+
+def resolve_species(query, groups):
+    """Snap a typed species query to a real species name (exact -> substring ->
+    fuzzy), so the filter box tolerates partial entries and small typos."""
+    query = (query or "").strip()
+    if not query:
+        return ""
+    names = [name for _, sp in groups for name, _ in sp]
+    low = query.lower()
+    for n in names:
+        if n.lower() == low:
+            return n
+    subs = [n for n in names if low in n.lower()]
+    if subs:
+        return min(subs, key=len)
+    match = difflib.get_close_matches(query, names, n=1, cutoff=0.5)
+    return match[0] if match else query
 
 
 def _shuffle_images_weighted(shot):
