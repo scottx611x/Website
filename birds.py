@@ -248,6 +248,23 @@ def out_of_area_species(shots):
     return ooa - clean
 
 
+def _species_in_caption(display, caption_lc):
+    """Whether a canonical species is mentioned in the caption text — as a phrase
+    (hyphen/punctuation-insensitive) or, failing that, with every word fuzzily
+    present (so caption typos like 'Northen Flicker' / 'Wookpecker' don't count as
+    a reclassification). Genuinely different species still don't match."""
+    phrase = re.sub(r"[^a-z]+", " ", display.lower()).strip()
+    if not phrase:
+        return False
+    if phrase in caption_lc:
+        return True
+    cwords = caption_lc.split()
+    words = [w for w in phrase.split() if len(w) > 2]
+    return bool(words) and all(
+        w in cwords or difflib.get_close_matches(w, cwords, 1, 0.82) for w in words
+    )
+
+
 def caption_species(caption):
     """Distinct species ORIGINALLY detected from a post's Instagram caption — the
     baseline to compare manual edits / AI re-classifications against in curate."""
@@ -423,13 +440,13 @@ def images_for_review(shots, review, reid_keys=()):
     reid_keys = set(reid_keys)
     buckets = []
     for shot in shots:
-        cap = {n.lower() for n in (shot.get("caption_species") or [])}
+        caption_lc = re.sub(r"[^a-z]+", " ", (shot.get("caption") or "").lower())
         bucket = []
         for i in range(len(shot.get("images") or [])):
             frame, canons = _pseudo_frame(shot, i)
-            names = [c[0].lower() for c in canons]
             if review == "reclassified":
-                if not (cap and names and any(n not in cap for n in names)):
+                if not (caption_lc.strip() and canons
+                        and any(not _species_in_caption(c[0], caption_lc) for c in canons)):
                     continue
             elif review == "reid":
                 key = "%s-%s" % (frame["post_id"], frame["image_indices"][0])
@@ -707,14 +724,15 @@ def apply_overrides(shots, overrides=None, apply_exclusions=True):
                 shot["image_ratings"] = [int(rt.get(str(i)) or 0) for i in range(n)]
         shot["ambiguous"] = (not override) and _is_ambiguous(shot)
         shot["image_areas"] = _image_areas(shot)
-        cap = caption_species(shot.get("caption") or "")
-        shot["caption_species"] = cap
+        shot["caption_species"] = caption_species(shot.get("caption") or "")
         current = []
         for raw in (shot.get("image_species") or shot.get("species_list") or []):
-            canon = _canon_species(raw)
-            if canon and canon[0] not in current:
-                current.append(canon[0])
-        shot["reclassified"] = bool(cap) and any(s not in cap for s in current)
+            for canon in _canon_species_list(raw):
+                if canon[0] not in current:
+                    current.append(canon[0])
+        caption_lc = re.sub(r"[^a-z]+", " ", (shot.get("caption") or "").lower())
+        shot["reclassified"] = bool(shot.get("caption")) and any(
+            not _species_in_caption(s, caption_lc) for s in current)
         if apply_exclusions:
             _apply_image_exclusions(shot, set((override or {}).get("exclude_images") or []))
         else:
