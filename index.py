@@ -284,17 +284,51 @@ def projects():
         title="Projects",
         github_user=GITHUB_USER,
         projects=load_projects(),
+        curate=_curate_on(),
+        local=_is_local(),
     )
+
+
+PROJECTS_FILE = os.path.join(app.static_folder, "projects.json")
 
 
 def load_projects():
     """Curated things I've built, from a static manifest. (See projects.json.)"""
-    manifest = os.path.join(app.static_folder, "projects.json")
     try:
-        with open(manifest) as fh:
+        with open(PROJECTS_FILE) as fh:
             return json.load(fh)
     except (OSError, ValueError):
         return []
+
+
+@app.route("/curate/projects", methods=["POST"])
+def curate_projects():
+    """Save the reordered/edited project list (local curate only)."""
+    if not _curate_on():
+        abort(404)
+    data = request.get_json(silent=True) or {}
+    incoming = data.get("projects")
+    if not isinstance(incoming, list):
+        abort(400)
+    clean = []
+    for p in incoming:
+        if not isinstance(p, dict):
+            continue
+        name = (p.get("name") or "").strip()
+        if not name:
+            continue
+        entry = {"name": name}
+        for key in ("url", "tech", "description", "status", "year"):
+            val = (p.get(key) or "").strip()
+            if val:
+                entry[key] = val
+        if p.get("featured"):
+            entry["featured"] = True
+        if p.get("hidden"):
+            entry["hidden"] = True
+        clean.append(entry)
+    birds._atomic_write_json(PROJECTS_FILE, clean)
+    return {"ok": True, "count": len(clean)}
 
 
 def load_photography():

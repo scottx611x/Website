@@ -14,6 +14,87 @@
     </p>
     <p><a class="btn btn-inline" style="background:var(--green);color:#fff;border-color:var(--green);" href="https://github.com/{{ github_user }}">View all on GitHub &rarr;</a></p>
 
+    {% if curate %}
+    <p class="curate-note mono"><strong>Curate mode.</strong> Edit any field (auto-saves), reorder with &uarr;&darr;, &#9733; feature, hide, or &times; delete.</p>
+    <div id="project-list" class="project-edit-list">
+        {% for project in projects %}
+        <div class="project-edit{% if project.featured %} is-featured{% endif %}{% if project.hidden %} is-hidden{% endif %}">
+            <div class="pe-fields">
+                <input class="pe-field pe-name" data-k="name" value="{{ project.name }}" placeholder="Name">
+                <input class="pe-field" data-k="tech" value="{{ project.tech or '' }}" placeholder="Tech · stack">
+                <input class="pe-field" data-k="url" value="{{ project.url or '' }}" placeholder="https://…  (blank = ‘soon’)">
+                <textarea class="pe-field pe-desc" data-k="description" placeholder="Description">{{ project.description or '' }}</textarea>
+                <div class="pe-row">
+                    <input class="pe-field pe-small" data-k="status" value="{{ project.status or '' }}" placeholder="Status">
+                    <input class="pe-field pe-small" data-k="year" value="{{ project.year or '' }}" placeholder="Year">
+                </div>
+            </div>
+            <div class="pe-controls">
+                <button type="button" class="pe-btn pe-up" title="Move up">&uarr;</button>
+                <button type="button" class="pe-btn pe-down" title="Move down">&darr;</button>
+                <button type="button" class="pe-btn pe-feature" title="Feature">&#9733;</button>
+                <button type="button" class="pe-btn pe-hide" title="Hide from the public page">{% if project.hidden %}hidden{% else %}hide{% endif %}</button>
+                <button type="button" class="pe-btn pe-del" title="Delete">&times;</button>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    <p class="pe-actions">
+        <button type="button" id="project-add" class="btn btn-inline">+ Add project</button>
+        <span id="project-saved" class="proj-saved mono" hidden>saved &#10003;</span>
+    </p>
+    <script>
+        (function () {
+            var list = document.getElementById("project-list");
+            var saved = document.getElementById("project-saved");
+            function collect() {
+                return Array.prototype.map.call(list.querySelectorAll(".project-edit"), function (card) {
+                    var p = {};
+                    card.querySelectorAll(".pe-field").forEach(function (f) {
+                        var v = f.value.trim(); if (v) p[f.dataset.k] = v;
+                    });
+                    if (card.classList.contains("is-featured")) p.featured = true;
+                    if (card.classList.contains("is-hidden")) p.hidden = true;
+                    return p;
+                }).filter(function (p) { return p.name; });
+            }
+            var t;
+            function save() {
+                clearTimeout(t);
+                t = setTimeout(function () {
+                    fetch("/curate/projects", {
+                        method: "POST", headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ projects: collect() })
+                    }).then(function (r) { return r.json(); }).then(function (d) {
+                        if (d && d.ok) { saved.hidden = false; setTimeout(function () { saved.hidden = true; }, 1300); }
+                    });
+                }, 450);
+            }
+            list.addEventListener("input", function (e) { if (e.target.closest(".pe-field")) save(); });
+            list.addEventListener("click", function (e) {
+                var card = e.target.closest(".project-edit"); if (!card) return;
+                if (e.target.closest(".pe-up")) { var p = card.previousElementSibling; if (p) { list.insertBefore(card, p); save(); } }
+                else if (e.target.closest(".pe-down")) { var n = card.nextElementSibling; if (n) { list.insertBefore(n, card); save(); } }
+                else if (e.target.closest(".pe-feature")) { card.classList.toggle("is-featured"); save(); }
+                else if (e.target.closest(".pe-hide")) {
+                    card.classList.toggle("is-hidden");
+                    e.target.textContent = card.classList.contains("is-hidden") ? "hidden" : "hide";
+                    save();
+                }
+                else if (e.target.closest(".pe-del")) { if (confirm("Delete this project?")) { card.remove(); save(); } }
+            });
+            document.getElementById("project-add").addEventListener("click", function () {
+                var blank = list.querySelector(".project-edit").cloneNode(true);
+                blank.className = "project-edit";
+                blank.querySelectorAll(".pe-field").forEach(function (f) { f.value = ""; });
+                blank.querySelector(".pe-hide").textContent = "hide";
+                list.appendChild(blank);
+                blank.querySelector(".pe-name").focus();
+            });
+        })();
+    </script>
+    {% else %}
+
     {% set visible = projects|rejectattr('hidden')|list %}
     {% set featured = visible|selectattr('featured')|list %}
     {% set rest = visible|rejectattr('featured')|list %}
@@ -56,6 +137,7 @@
     <p class="empty mono">// highlights coming soon — browse the latest at
         <a href="https://github.com/{{ github_user }}" style="color:var(--green);">github.com/{{ github_user }}</a>.
     </p>
+    {% endif %}
     {% endif %}
 </section>
 {% endblock %}
