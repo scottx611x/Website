@@ -239,6 +239,17 @@ def out_of_area_species(shots):
     return ooa - clean
 
 
+def caption_species(caption):
+    """Distinct species ORIGINALLY detected from a post's Instagram caption — the
+    baseline to compare manual edits / AI re-classifications against in curate."""
+    out = []
+    for sp, _, _ in _species_pairs(caption):
+        canon = _canon_species(sp)
+        if canon and canon[0] not in out:
+            out.append(canon[0])
+    return out
+
+
 def species_groups(shots):
     """The life list grouped Merlin-style by family. Returns an ordered list of
     ``(family, [(species, photo_count), ...])``; counts every frame of the species
@@ -339,6 +350,32 @@ def images_filtered(shots, bird=None, family=None, area=None, ooa_only=()):
         if bucket:
             buckets.append(bucket)
     return _interleave_buckets(buckets)
+
+
+def filter_shots(shots, bird=None, family=None, area=None, ooa_only=()):
+    """Whole posts that contain at least one frame matching ALL active filters.
+    Used by curate mode, which edits whole-post cards (not exploded frames)."""
+    bird_l = (bird or "").strip().lower()
+    fam = (family or "").strip()
+    want_elsewhere = area in ("elsewhere", "away")
+    has_area = area in ("local", "elsewhere", "away")
+    ooa_lower = {n.lower() for n in ooa_only}
+    out = []
+    for shot in shots:
+        for i in range(len(shot.get("images") or [])):
+            _, canons = _pseudo_frame(shot, i)
+            names = [c[0].lower() for c in canons]
+            if not names:
+                continue
+            if bird_l and bird_l not in names:
+                continue
+            if fam and not any(c[1] == fam for c in canons):
+                continue
+            if has_area and (all(nm in ooa_lower for nm in names) != want_elsewhere):
+                continue
+            out.append(shot)
+            break
+    return out
 
 
 def resolve_species(query, groups):
@@ -563,6 +600,14 @@ def apply_overrides(shots, overrides=None, apply_exclusions=True):
                 shot["image_ratings"] = [int(rt.get(str(i)) or 0) for i in range(n)]
         shot["ambiguous"] = (not override) and _is_ambiguous(shot)
         shot["image_areas"] = _image_areas(shot)
+        cap = caption_species(shot.get("caption") or "")
+        shot["caption_species"] = cap
+        current = []
+        for raw in (shot.get("image_species") or shot.get("species_list") or []):
+            canon = _canon_species(raw)
+            if canon and canon[0] not in current:
+                current.append(canon[0])
+        shot["reclassified"] = bool(cap) and any(s not in cap for s in current)
         if apply_exclusions:
             _apply_image_exclusions(shot, set((override or {}).get("exclude_images") or []))
         else:

@@ -8,7 +8,7 @@
         <p class="empty" style="color:var(--ink);max-width:38rem;margin:0 auto;">
             A running collection of my favorite birds from around my home town.
         </p>
-        {% if not curate and species_groups %}
+        {% if species_groups %}
         <div class="bird-filter">
             <p class="bird-stat">
                 <a href="/birds?area=local" class="bird-stat-link{% if active_area == 'local' %} is-active{% endif %}" onclick="return birdsGo(event,{area:'local'})"><strong>{{ local_count }}</strong> species in North&nbsp;Andover</a>{% if away_count %} &middot; <a href="/birds?area=elsewhere" class="bird-stat-link bird-stat-away{% if active_area == 'elsewhere' %} is-active{% endif %}" onclick="return birdsGo(event,{area:'elsewhere'})">{{ away_count }} spotted elsewhere&nbsp;&#9888;&#65039;</a>{% endif %}
@@ -91,6 +91,7 @@
                 data-image-ratings='{{ (shot.image_ratings or [])|tojson }}'
                 data-image-areas='{{ (shot.image_areas or [])|tojson }}'
                 data-image-indices='{{ (shot.image_indices or [])|tojson }}'
+                data-caption-species='{{ (shot.caption_species or [])|tojson }}'
                 data-date='{{ shot.date or "" }}'
                 tabindex="0" role="button" aria-label="View {{ shot.species or 'photo' }} larger">
             <img loading="lazy" src="{{ shot.images[0] }}" alt="{{ shot.species or shot.caption[:80] }}">
@@ -101,6 +102,9 @@
             {% if curate %}
             <figcaption>
                 <input class="species-edit" data-id="{{ shot.id }}" value="{{ shot.species or '' }}" placeholder="species?" aria-label="Species for this post">
+                {% if shot.caption_species %}
+                <span class="caption-ref mono{% if shot.reclassified %} diverged{% endif %}" title="Species originally detected from the Instagram caption{% if shot.reclassified %} — current labels add/differ from this{% endif %}">IG: {{ shot.caption_species|join(', ') }}</span>
+                {% endif %}
                 {% if shot.date %}<span class="shot-date">{{ shot.date }}</span>{% endif %}
             </figcaption>
             {% elif shot.species or shot.date %}

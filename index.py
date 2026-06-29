@@ -135,7 +135,10 @@ def birds_gallery():
     if area not in ("local", "elsewhere"):
         area = ""
     if bird or family or area:
-        shots = birds.images_filtered(all_shots, bird, family, area, out_of_area)
+        if curate:
+            shots = birds.filter_shots(all_shots, bird, family, area, out_of_area)
+        else:
+            shots = birds.images_filtered(all_shots, bird, family, area, out_of_area)
     else:
         shots = all_shots
     total = sum(len(sp) for _, sp in groups)
