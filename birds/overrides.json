@@ -52,6 +52,15 @@
       "1": "Blue Jay"
     }
   },
+  "17867088474613287": {
+    "ratings": {
+      "0": 5,
+      "1": 4,
+      "2": 5,
+      "3": 4,
+      "5": 3
+    }
+  },
   "17868293955538025": {
     "image_locations": {
       "0": "Rea St.",
@@ -170,14 +179,22 @@
     },
     "images": {
       "0": "Osprey",
-      "1": "Boat-tailed Grackle",
+      "1": "Osprey",
       "2": "Red-bellied Woodpecker",
       "3": "Tricolored Heron",
       "4": "Sanderling",
       "5": "Cooper's Hawk"
+    },
+    "ratings": {
+      "0": 4
     }
   },
   "17896807359201680": {
+    "exclude_images": [
+      2,
+      3,
+      4
+    ],
     "image_locations": {
       "0": "Rea Street",
       "1": "Johnson Street",
@@ -191,6 +208,9 @@
       "2": "American Goldfinch",
       "3": "Tufted Titmouse",
       "4": "Black-capped Chickadee"
+    },
+    "ratings": {
+      "0": 4
     }
   },
   "17900222916286005": {
@@ -211,6 +231,13 @@
       "4": "Black-and-white Warbler",
       "5": "Red-tailed Hawk",
       "6": "Gray Catbird"
+    },
+    "ratings": {
+      "0": 5,
+      "1": 5,
+      "2": 5,
+      "3": 4,
+      "5": 4
     }
   },
   "17915419443231727": {
@@ -350,6 +377,11 @@
       "4": "Mallard",
       "5": "Mallard"
     }
+  },
+  "17930656437110987": {
+    "exclude_images": [
+      0
+    ]
   },
   "17934049812169322": {
     "image_locations": {
@@ -555,6 +587,13 @@
       "6": "House Sparrow"
     }
   },
+  "17974158843029007": {
+    "ratings": {
+      "0": 5,
+      "1": 5,
+      "3": 4
+    }
+  },
   "17981556602975762": {
     "image_locations": {
       "0": "Harborwalk, Boston",
@@ -622,6 +661,9 @@
     }
   },
   "17995984631893900": {
+    "exclude_images": [
+      5
+    ],
     "image_locations": {
       "0": "Stevens Pond",
       "1": "Weir Hill",
@@ -738,6 +780,9 @@
     }
   },
   "18005279543907673": {
+    "exclude_images": [
+      6
+    ],
     "image_locations": {
       "0": "Market Basket",
       "1": "Market Basket",
@@ -751,13 +796,28 @@
       "0": "Red-tailed Hawk",
       "1": "Red-tailed Hawk",
       "2": "Mourning Dove",
-      "3": "Brown-headed Cowbird",
+      "3": "Mourning Dove",
       "4": "Brown-headed Cowbird",
       "5": "House Finch",
       "6": "Barred Owl"
+    },
+    "ratings": {
+      "0": 5,
+      "1": 4
+    }
+  },
+  "18005642384922383": {
+    "ratings": {
+      "1": 5,
+      "2": 5,
+      "3": 5,
+      "6": 4
     }
   },
   "18006289808839661": {
+    "exclude_images": [
+      8
+    ],
     "image_locations": {
       "0": "Rea St.",
       "1": "Rea St.",
@@ -819,6 +879,20 @@
       "7": "American Robin"
     }
   },
+  "18016596743677312": {
+    "exclude_images": [
+      8,
+      9
+    ],
+    "ratings": {
+      "0": 4,
+      "1": 5,
+      "2": 4,
+      "3": 4,
+      "4": 4,
+      "5": 5
+    }
+  },
   "18035778122538850": {
     "image_locations": {},
     "images": {
@@ -827,6 +901,14 @@
       "2": "House Finch",
       "3": "Downy Woodpecker",
       "4": "Downy Woodpecker"
+    }
+  },
+  "18038714363570354": {
+    "ratings": {
+      "0": 5,
+      "3": 5,
+      "5": 4,
+      "6": 5
     }
   },
   "18044656358751390": {
@@ -918,6 +1000,16 @@
       "7": "Rock Pigeon",
       "8": "Common Loon",
       "9": "Common Loon"
+    }
+  },
+  "18059924762721325": {
+    "ratings": {
+      "0": 5,
+      "1": 4,
+      "2": 5,
+      "3": 4,
+      "6": 5,
+      "9": 4
     }
   },
   "18063077171354383": {
@@ -1075,6 +1167,9 @@
     }
   },
   "18069256187340916": {
+    "exclude_images": [
+      2
+    ],
     "image_locations": {
       "0": "Johnson St",
       "1": "Abbott St",
@@ -1084,6 +1179,9 @@
       "0": "Northern Mockingbird",
       "1": "American Robin",
       "2": "Red-bellied Woodpecker"
+    },
+    "ratings": {
+      "0": 4
     }
   },
   "18070143716432380": {
@@ -1170,6 +1268,24 @@
       "4": "Northern Flicker",
       "5": "Northern Cardinal",
       "6": "White-breasted Nuthatch"
+    }
+  },
+  "18076328435400600": {
+    "ratings": {
+      "0": 5,
+      "1": 5,
+      "2": 5,
+      "3": 4,
+      "4": 4,
+      "5": 4,
+      "6": 5,
+      "7": 4,
+      "8": 4
+    }
+  },
+  "18078586880177258": {
+    "ratings": {
+      "0": 5
     }
   },
   "18078611876597830": {
@@ -1278,6 +1394,10 @@
       "3": "American Goldfinch",
       "4": "House Finch",
       "5": "Blue Jay"
+    },
+    "ratings": {
+      "0": 4,
+      "1": 4
     }
   },
   "18081991499224261": {
@@ -1315,6 +1435,13 @@
       "0": "Blue Jay",
       "1": "Dark-eyed Junco",
       "2": "Bald Eagle"
+    }
+  },
+  "18087613250027679": {
+    "ratings": {
+      "0": 5,
+      "3": 5,
+      "5": 5
     }
   },
   "18087798241927498": {
@@ -1369,6 +1496,19 @@
       "7": "Little Blue Heron",
       "8": "Turkey Vulture",
       "9": "Red-bellied Woodpecker"
+    },
+    "ratings": {
+      "0": 5,
+      "1": 4,
+      "2": 4,
+      "3": 4,
+      "4": 3,
+      "5": 5
+    }
+  },
+  "18089762651601898": {
+    "ratings": {
+      "0": 5
     }
   },
   "18089770675996327": {
@@ -1411,6 +1551,14 @@
       "6": "Cooper's Hawk"
     }
   },
+  "18091332859904404": {
+    "ratings": {
+      "0": 5,
+      "1": 4,
+      "2": 4,
+      "3": 3
+    }
+  },
   "18093082894956026": {
     "image_locations": {},
     "images": {
@@ -1443,6 +1591,15 @@
       "7": "Northern Cardinal",
       "8": "Northern Cardinal",
       "9": "Mourning Dove"
+    },
+    "ratings": {
+      "0": 5,
+      "1": 4,
+      "3": 4,
+      "5": 4,
+      "6": 4,
+      "8": 4,
+      "9": 4
     }
   },
   "18094480046170247": {
@@ -1487,6 +1644,12 @@
       "7": "Cooper's Hawk",
       "8": "House Finch",
       "9": "White-breasted Nuthatch"
+    },
+    "ratings": {
+      "0": 5,
+      "1": 4,
+      "3": 4,
+      "8": 5
     }
   },
   "18095892328850980": {
@@ -1553,6 +1716,13 @@
       "7": "Hooded Merganser",
       "8": "Hooded Merganser",
       "9": "Mallard"
+    },
+    "ratings": {
+      "0": 4,
+      "2": 4,
+      "7": 4,
+      "8": 4,
+      "9": 4
     }
   },
   "18098282425882266": {
@@ -1563,6 +1733,18 @@
     "images": {
       "0": "White-throated Sparrow",
       "1": "Mallard"
+    }
+  },
+  "18100051427087410": {
+    "ratings": {
+      "0": 5,
+      "1": 4,
+      "2": 5,
+      "4": 4,
+      "5": 3,
+      "6": 4,
+      "7": 4,
+      "8": 4
     }
   },
   "18101882164922759": {
@@ -1605,6 +1787,13 @@
       "2": "Cooper's Hawk",
       "3": "Barred Owl & Cooper's Hawk",
       "4": "Barred Owl & Cooper's Hawk"
+    },
+    "ratings": {
+      "0": 5,
+      "1": 5,
+      "2": 5,
+      "3": 5,
+      "4": 4
     }
   },
   "18103240733493072": {
@@ -1635,6 +1824,11 @@
       "1": "Red-tailed Hawk",
       "2": "Red-tailed Hawk",
       "3": "Baltimore Oriole Nest"
+    }
+  },
+  "18103854235981287": {
+    "ratings": {
+      "0": 4
     }
   },
   "18104333038766011": {
@@ -1671,6 +1865,26 @@
       "6": "House Finch",
       "7": "American Robin",
       "8": "Mourning Dove"
+    }
+  },
+  "18105743036490177": {
+    "ratings": {
+      "0": 5,
+      "1": 5,
+      "2": 4
+    }
+  },
+  "18106871434987728": {
+    "ratings": {
+      "0": 5,
+      "1": 4,
+      "6": 4
+    }
+  },
+  "18106880839939758": {
+    "ratings": {
+      "0": 4,
+      "1": 5
     }
   },
   "18107556133683075": {
@@ -1771,6 +1985,11 @@
       "1": "Barred Owl Baby",
       "2": "Barred Owl Baby",
       "3": "Carolina Wren fledglings"
+    },
+    "ratings": {
+      "0": 4,
+      "1": 4,
+      "2": 5
     }
   },
   "18111673921762613": {
@@ -1835,6 +2054,11 @@
       "4": "American Goldfinch",
       "5": "Eastern Phoebe",
       "6": "Barred Owl"
+    },
+    "ratings": {
+      "0": 5,
+      "1": 5,
+      "3": 5
     }
   },
   "18129834919609071": {
@@ -1947,6 +2171,13 @@
       "4": "Common Loon",
       "5": "Common Loon",
       "6": "Common Loon"
+    },
+    "ratings": {
+      "0": 4,
+      "1": 4,
+      "3": 4,
+      "4": 4,
+      "6": 4
     }
   },
   "18174564514383378": {
@@ -2033,6 +2264,12 @@
       "4": "American Crow",
       "5": "Northern Cardinal",
       "6": "House Sparrow"
+    }
+  },
+  "18203814670339541": {
+    "ratings": {
+      "1": 5,
+      "2": 4
     }
   },
   "18209831215317209": {
@@ -2131,6 +2368,13 @@
       "2": "Carolina Wren",
       "3": "Mallard",
       "4": "Mallard"
+    }
+  },
+  "18345628081242189": {
+    "ratings": {
+      "0": 5,
+      "1": 4,
+      "2": 4
     }
   },
   "18348907453226855": {
@@ -2237,6 +2481,10 @@
       "2": "Northern Flicker",
       "3": "Mourning Dove",
       "4": "Eastern Bluebird"
+    },
+    "ratings": {
+      "0": 5,
+      "1": 4
     }
   },
   "18420525070190131": {
@@ -2289,6 +2537,15 @@
       "8": "American Robin"
     }
   },
+  "18465962284110987": {
+    "exclude_images": [
+      4
+    ],
+    "ratings": {
+      "0": 4,
+      "1": 3
+    }
+  },
   "18476592562097066": {
     "image_locations": {
       "0": "Rea St.",
@@ -2304,6 +2561,9 @@
     }
   },
   "18543836857050047": {
+    "exclude_images": [
+      3
+    ],
     "image_locations": {
       "0": "Rea St",
       "1": "Johnson St",
@@ -2419,6 +2679,12 @@
       "4": "Northern Flicker",
       "5": "Mourning Dove",
       "6": "Mourning Dove"
+    }
+  },
+  "18591166381040253": {
+    "ratings": {
+      "0": 5,
+      "1": 5
     }
   },
   "18596231053029856": {
