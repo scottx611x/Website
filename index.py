@@ -149,20 +149,20 @@ def birds_gallery():
     rating = (request.args.get("rating") or "") if curate else ""
     if rating not in ("unrated", "1", "2", "3", "4", "5"):
         rating = ""
-    reid_posts = {k.rsplit("-", 1)[0] for k in birds.reid_keys()} if curate else set()
-    hidden_posts = ({pid for pid, v in birds.load_overrides().items() if v.get("exclude_images")}
-                    if curate else set())
+    reid_keyset = birds.reid_keys() if curate else set()
+    overrides = birds.load_overrides() if curate else {}
     review_counts = {
-        "reclassified": sum(1 for s in all_shots if s.get("reclassified")),
-        "reid": sum(1 for s in all_shots if s.get("id") in reid_posts),
-        "hidden": sum(1 for s in all_shots if s.get("id") in hidden_posts),
+        "reclassified": len(birds.images_for_review(all_shots, "reclassified")),
+        "reid": len(reid_keyset),
+        "hidden": sum(len(v.get("exclude_images") or []) for v in overrides.values()),
     } if curate else {}
-    if review == "reclassified":
-        shots = [s for s in all_shots if s.get("reclassified")]
-    elif review == "reid":
-        shots = [s for s in all_shots if s.get("id") in reid_posts]
+    if review in ("reclassified", "reid"):
+        # Review filters explode to the specific IMAGES acted on, not whole posts.
+        shots = birds.images_for_review(all_shots, review, reid_keys=reid_keyset)
     elif review == "hidden":
-        shots = [s for s in all_shots if s.get("id") in hidden_posts]
+        raw = list(birds._load_manifest_from_s3() or birds._load_local_manifest() or [])
+        birds.apply_overrides(raw, apply_exclusions=False)
+        shots = birds.images_hidden(raw)
     elif bird or family or area or media or rating:
         shots = birds.images_filtered(all_shots, bird, family, area, out_of_area,
                                       media=media, rating=rating)

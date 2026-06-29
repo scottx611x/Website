@@ -417,6 +417,48 @@ def media_counts(shots, bird=None, family=None, area=None, ooa_only=()):
     return photos, videos
 
 
+def images_for_review(shots, review, reid_keys=()):
+    """Exploded frames for a curate review filter — the specific IMAGES acted on:
+    'reclassified' (species not in the IG caption) or 'reid' (flagged frames)."""
+    reid_keys = set(reid_keys)
+    buckets = []
+    for shot in shots:
+        cap = {n.lower() for n in (shot.get("caption_species") or [])}
+        bucket = []
+        for i in range(len(shot.get("images") or [])):
+            frame, canons = _pseudo_frame(shot, i)
+            names = [c[0].lower() for c in canons]
+            if review == "reclassified":
+                if not (cap and names and any(n not in cap for n in names)):
+                    continue
+            elif review == "reid":
+                key = "%s-%s" % (frame["post_id"], frame["image_indices"][0])
+                if key not in reid_keys:
+                    continue
+            else:
+                continue
+            bucket.append(frame)
+        if bucket:
+            buckets.append(bucket)
+    return _interleave_buckets(buckets)
+
+
+def images_hidden(shots):
+    """Exploded HIDDEN frames (per-image exclusions), so they can be reviewed and
+    un-hidden. ``shots`` must be loaded with exclusions OFF (full-length arrays)."""
+    overrides = load_overrides()
+    buckets = []
+    for shot in shots:
+        excl = set(overrides.get(shot.get("id"), {}).get("exclude_images") or [])
+        if not excl:
+            continue
+        bucket = [_pseudo_frame(shot, i)[0] for i in range(len(shot.get("images") or []))
+                  if i in excl]
+        if bucket:
+            buckets.append(bucket)
+    return _interleave_buckets(buckets)
+
+
 def filter_shots(shots, bird=None, family=None, area=None, ooa_only=()):
     """Whole posts that contain at least one frame matching ALL active filters.
     Used by curate mode, which edits whole-post cards (not exploded frames)."""
