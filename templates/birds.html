@@ -90,6 +90,7 @@
             <li><b>Per-image:</b> click a photo, then press <kbd>1</kbd>–<kbd>5</kbd> to rate or <b>&#8635;</b> flag for re-ID.</li>
         </ul>
         {% endif %}
+        {% if curate %}<script>window.CURATE_HIDDEN_VIEW = {{ (active_review == 'hidden')|tojson }};</script>{% endif %}
     </header>
 
     {% if shots %}

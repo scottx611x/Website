@@ -199,6 +199,7 @@
                 renderStars(f);
                 renderSuggest(f);
                 if (speciesInput) { speciesInput.value = f.species || ""; speciesInput.classList.remove("saved", "save-failed"); }
+                if (removeBtn) removeBtn.innerHTML = window.CURATE_HIDDEN_VIEW ? "↩ un-hide" : "× hide photo";
                 box.hidden = false;
                 document.body.style.overflow = "hidden";
             }
