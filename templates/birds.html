@@ -41,7 +41,7 @@
             </div>
         </div>
         <p class="media-stat mono">
-            <a class="media-link{% if active_media == 'photo' %} on{% endif %}" onclick="birdsGo(null,{media:'{{ '' if active_media == 'photo' else 'photo' }}'})"><strong>{{ media_n.photos }}</strong> photo{{ 's' if media_n.photos != 1 }}</a>{% if media_n.videos %} &middot; <a class="media-link{% if active_media == 'video' %} on{% endif %}" onclick="birdsGo(null,{media:'{{ '' if active_media == 'video' else 'video' }}'})">&#9654;&#65039; <strong>{{ media_n.videos }}</strong> video{{ 's' if media_n.videos != 1 }}</a>{% endif %}
+            <a class="media-link{% if active_media == 'photo' %} on{% endif %}" onclick="birdsGo(null,{media:'{{ '' if active_media == 'photo' else 'photo' }}'})"><strong>{{ media_n.photos }}</strong> photo{{ 's' if media_n.photos != 1 }}</a>{% if media_n.videos %} &middot; <a class="media-link{% if active_media == 'video' %} on{% endif %}" onclick="birdsGo(null,{media:'{{ '' if active_media == 'video' else 'video' }}'})"><strong>{{ media_n.videos }}</strong> video{{ 's' if media_n.videos != 1 }}</a>{% endif %}
         </p>
         {% if active_bird or active_family or active_area or active_media %}
         <div class="bird-active">
@@ -52,7 +52,7 @@
                 {% if active_bird %}<button type="button" class="chip" onclick="birdsGo(null,{bird:''})">{{ active_bird }}{% if active_bird in out_of_area %} &#9888;&#65039;{% endif %} <span>&times;</span></button>{% endif %}
             </div>
             <p class="bird-active-meta">
-                {% if active_bird %}{{ bird_family }} &middot; {% endif %}{{ shots|length }} photo{{ 's' if shots|length != 1 }} &middot; <a href="/birds">clear all</a>
+                {% if active_bird %}{{ bird_family }} &middot; {% endif %}{% set noun = 'video' if active_media == 'video' else 'photo' %}{{ shots|length }} {{ noun }}{{ 's' if shots|length != 1 }} &middot; <a href="/birds">clear all</a>
             </p>
         </div>
         {% endif %}
