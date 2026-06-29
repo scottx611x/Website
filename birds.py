@@ -912,7 +912,9 @@ def instagram_sync(token=None):
     if not shots:
         return load_gallery()
 
-    apply_overrides(shots)  # bake in hand-typed corrections so prod gets them too
+    # Bake hand-typed corrections so prod gets them too, but keep arrays full-length
+    # (exclusions are a display-time filter; baking them would misalign indices).
+    apply_overrides(shots, apply_exclusions=False)
     _write_manifest(shots)
     return shots
 
@@ -1061,8 +1063,7 @@ def _write_manifest(shots):
         pass
     # ...and update the committed copy so it's reviewable/diffable in git.
     try:
-        with open(LOCAL_MANIFEST, "w") as fh:
-            fh.write(payload)
+        _atomic_write_json(LOCAL_MANIFEST, shots)
     except OSError:
         pass
 
