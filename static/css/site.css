@@ -462,7 +462,25 @@ body.has-effect .site-footer { position: relative; z-index: 1; }
     display: block; font-family: var(--mono); font-size: 0.66rem; line-height: 1.3;
     color: rgba(255, 255, 255, 0.62); margin-top: 0.3rem;
 }
-.caption-ref.diverged { color: #f5c518; }
+/* 🔀 badge: this post's current labels differ from the Instagram caption */
+.reclassified-badge {
+    position: absolute; top: 0.5rem; left: 0.5rem; z-index: 4; cursor: help;
+    width: 1.7rem; height: 1.7rem; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(20, 16, 8, 0.6); backdrop-filter: blur(2px);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.4); outline: none;
+}
+.shot.curating .multi-badge { left: 2.5rem; }   /* make room for the 🔀 badge */
+.reclassified-mark { font-size: 0.92rem; line-height: 1; }
+.reclassified-badge::after {
+    content: attr(data-note); position: absolute; top: calc(100% + 0.4rem); left: 0;
+    width: max-content; max-width: 15rem; z-index: 5; text-align: left;
+    font-family: var(--mono); font-size: 0.68rem; line-height: 1.35;
+    color: #fff; background: rgba(20, 16, 8, 0.95); padding: 0.4rem 0.6rem; border-radius: 6px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.35);
+    opacity: 0; transform: translateY(-3px); pointer-events: none; transition: opacity 0.15s ease, transform 0.15s ease;
+}
+.reclassified-badge:hover::after, .reclassified-badge:focus::after { opacity: 1; transform: translateY(0); }
 /* Lightbox: tap an originally-detected species to assign it to this frame */
 .lightbox-suggest { display: flex; gap: 0.4rem; flex-wrap: wrap; justify-content: center; align-items: center; }
 .lightbox-suggest .suggest-label { font-family: var(--mono); font-size: 0.68rem; color: rgba(244,241,233,0.5); }

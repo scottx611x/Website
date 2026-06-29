@@ -302,11 +302,15 @@ def _pseudo_frame(shot, i):
     loc = iloc[i] if i < len(iloc) and iloc[i] else shot.get("location")
     return {
         "id": "%s-%d" % (shot.get("id"), i),
+        "post_id": shot.get("id"),
         "images": [images[i]],
         "captions": [caps[i] if i < len(caps) else ""],
         "image_species": [display],
         "image_locations": [loc],
         "image_areas": [areas[i] if i < len(areas) else "local"],
+        "image_indices": [(shot.get("image_indices") or [])[i]
+                          if i < len(shot.get("image_indices") or []) else i],
+        "caption_species": shot.get("caption_species") or [],
         "species": display,
         "location": loc,
         "date": shot.get("date"),

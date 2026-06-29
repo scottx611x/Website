@@ -160,7 +160,7 @@
                     try { sp = JSON.parse(el.getAttribute("data-image-species")); } catch (_) { sp = []; }
                     try { loc = JSON.parse(el.getAttribute("data-image-locations")); } catch (_) { loc = []; }
                     var date = el.getAttribute("data-date") || "";
-                    var pid = el.getAttribute("data-id") || "";
+                    var pid = el.getAttribute("data-post-id") || el.getAttribute("data-id") || "";
                     var rts; try { rts = JSON.parse(el.getAttribute("data-image-ratings")); } catch (_) { rts = []; }
                     var ars; try { ars = JSON.parse(el.getAttribute("data-image-areas")); } catch (_) { ars = []; }
                     var ixs; try { ixs = JSON.parse(el.getAttribute("data-image-indices")); } catch (_) { ixs = []; }
