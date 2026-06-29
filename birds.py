@@ -32,6 +32,15 @@ import requests
 HERE = os.path.dirname(os.path.abspath(__file__))
 LOCAL_MANIFEST = os.path.join(HERE, "birds", "manifest.json")
 
+
+def _atomic_write_json(path, data, sort_keys=False):
+    """Write JSON via a temp file + rename so a concurrent reader never sees a
+    half-written (or empty) file."""
+    tmp = "%s.tmp.%d" % (path, os.getpid())
+    with open(tmp, "w") as fh:
+        json.dump(data, fh, indent=2, sort_keys=sort_keys)
+    os.replace(tmp, path)
+
 GRAPH_BASE = "https://graph.instagram.com"
 MEDIA_FIELDS = (
     "id,caption,media_type,media_url,thumbnail_url,permalink,timestamp,like_count,"
@@ -673,12 +682,11 @@ def set_override(post_id, fields):
             locs[str(idx)] = (name or "").strip()
         entry["image_locations"] = {k: v for k, v in locs.items() if v}
     overrides[post_id] = entry
-    with open(OVERRIDES_FILE, "w") as fh:
-        json.dump(overrides, fh, indent=2, sort_keys=True)
+    _atomic_write_json(OVERRIDES_FILE, overrides, sort_keys=True)
     shots = _load_local_manifest() or []
-    apply_overrides(shots, overrides, apply_exclusions=False)
-    with open(LOCAL_MANIFEST, "w") as fh:
-        json.dump(shots, fh, indent=2)
+    if shots:  # never clobber the manifest with an empty/failed read
+        apply_overrides(shots, overrides, apply_exclusions=False)
+        _atomic_write_json(LOCAL_MANIFEST, shots)
     return next((s for s in shots if s.get("id") == post_id), None)
 
 
@@ -698,12 +706,11 @@ def set_rating(post_id, index, rating):
     else:
         entry.pop("ratings", None)
     overrides[post_id] = entry
-    with open(OVERRIDES_FILE, "w") as fh:
-        json.dump(overrides, fh, indent=2, sort_keys=True)
+    _atomic_write_json(OVERRIDES_FILE, overrides, sort_keys=True)
     shots = _load_local_manifest() or []
-    apply_overrides(shots, overrides, apply_exclusions=False)
-    with open(LOCAL_MANIFEST, "w") as fh:
-        json.dump(shots, fh, indent=2)
+    if shots:  # never clobber the manifest with an empty/failed read
+        apply_overrides(shots, overrides, apply_exclusions=False)
+        _atomic_write_json(LOCAL_MANIFEST, shots)
     return rating
 
 
@@ -725,8 +732,7 @@ def toggle_image_exclusion(post_id, index):
     else:
         entry.pop("exclude_images", None)
     overrides[post_id] = entry
-    with open(OVERRIDES_FILE, "w") as fh:
-        json.dump(overrides, fh, indent=2, sort_keys=True)
+    _atomic_write_json(OVERRIDES_FILE, overrides, sort_keys=True)
     return excluded
 
 
