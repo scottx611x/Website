@@ -360,6 +360,30 @@
             addEventListener("resize", function () { clearTimeout(t); t = setTimeout(layoutAll, 150); });
         })();
 
+        // Hover-autoplay a muted preview of video covers (pointer devices only).
+        (function () {
+            if (!window.matchMedia || !matchMedia("(hover: hover)").matches) return;
+            function videoUrl(card) {
+                try { var v = JSON.parse(card.getAttribute("data-image-videos") || "[]"); return v[0] || null; }
+                catch (_) { return null; }
+            }
+            document.addEventListener("mouseover", function (e) {
+                var card = e.target.closest(".shot[data-image-videos]");
+                if (!card || card._hoverVid) return;
+                var url = videoUrl(card); if (!url) return;
+                var v = document.createElement("video");
+                v.src = url; v.muted = true; v.loop = true; v.playsInline = true;
+                v.className = "hover-video";
+                card.appendChild(v); card._hoverVid = v;
+                v.play().catch(function () {});
+            });
+            document.addEventListener("mouseout", function (e) {
+                var card = e.target.closest(".shot[data-image-videos]");
+                if (!card || !card._hoverVid || card.contains(e.relatedTarget)) return;
+                card._hoverVid.pause(); card._hoverVid.remove(); card._hoverVid = null;
+            });
+        })();
+
         // Curate mode: clicking an X hides that post via the local endpoint.
         document.addEventListener("click", function (e) {
             var x = e.target.closest(".curate-x");

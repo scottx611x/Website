@@ -134,7 +134,9 @@ def birds_gallery():
     area = (request.args.get("area") or "").strip()
     if area not in ("local", "elsewhere"):
         area = ""
-    media = "video" if request.args.get("media") == "video" else ""
+    media = (request.args.get("media") or "").strip()
+    if media not in ("photo", "video"):
+        media = ""
     # Curate-only review/rating facets.
     review = (request.args.get("review") or "") if curate else ""
     if review not in ("reclassified", "reid", "hidden"):
@@ -199,6 +201,8 @@ def birds_gallery():
         active_review=review,
         active_rating=rating,
         review_counts=review_counts,
+        media_n=dict(zip(("photos", "videos"),
+                         birds.media_counts(all_shots, bird, family, area, out_of_area))),
         has_videos=birds.has_videos(all_shots),
         bird_family=bird_family,
         curate=curate,

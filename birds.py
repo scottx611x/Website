@@ -347,6 +347,7 @@ def images_filtered(shots, bird=None, family=None, area=None, ooa_only=(), media
     want_elsewhere = area in ("elsewhere", "away")
     has_area = area in ("local", "elsewhere", "away")
     want_video = media == "video"
+    want_photo = media == "photo"
     min_rating = int(rating) if (rating or "").isdigit() else None
     want_unrated = rating == "unrated"
     ooa_lower = {n.lower() for n in ooa_only}
@@ -368,6 +369,8 @@ def images_filtered(shots, bird=None, family=None, area=None, ooa_only=(), media
                     continue
             if want_video and not frame["image_videos"][0]:
                 continue
+            if want_photo and frame["image_videos"][0]:
+                continue
             if want_unrated and frame["rating"]:
                 continue
             if min_rating is not None and frame["rating"] < min_rating:
@@ -381,6 +384,37 @@ def images_filtered(shots, bird=None, family=None, area=None, ooa_only=(), media
 def has_videos(shots):
     """Whether any frame in the gallery is a video (to show the Videos filter)."""
     return any(v for s in shots for v in (s.get("image_videos") or []))
+
+
+def media_counts(shots, bird=None, family=None, area=None, ooa_only=()):
+    """(photo_count, video_count) of frames matching the species/family/area filter
+    (ignoring any media filter) — for the live, clickable totals."""
+    bird_l = (bird or "").strip().lower()
+    fam = (family or "").strip()
+    has_area = area in ("local", "elsewhere")
+    want_elsewhere = area == "elsewhere"
+    ooa_lower = {n.lower() for n in ooa_only}
+    photos = videos = 0
+    for shot in shots:
+        isp = shot.get("image_species") or []
+        vids = shot.get("image_videos") or []
+        for i in range(len(shot.get("images") or [])):
+            raw = isp[i] if i < len(isp) and isp[i] else shot.get("species")
+            canons = _canon_species_list(raw)
+            names = [c[0].lower() for c in canons]
+            if not names:
+                continue
+            if bird_l and bird_l not in names:
+                continue
+            if fam and not any(c[1] == fam for c in canons):
+                continue
+            if has_area and (all(n in ooa_lower for n in names) != want_elsewhere):
+                continue
+            if i < len(vids) and vids[i]:
+                videos += 1
+            else:
+                photos += 1
+    return photos, videos
 
 
 def filter_shots(shots, bird=None, family=None, area=None, ooa_only=()):
