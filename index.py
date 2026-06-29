@@ -134,8 +134,9 @@ def birds_gallery():
     area = (request.args.get("area") or "").strip()
     if area not in ("local", "elsewhere"):
         area = ""
-    if bird or family or area:
-        shots = birds.images_filtered(all_shots, bird, family, area, out_of_area)
+    media = "video" if request.args.get("media") == "video" else ""
+    if bird or family or area or media:
+        shots = birds.images_filtered(all_shots, bird, family, area, out_of_area, media=media)
     else:
         shots = all_shots
     total = sum(len(sp) for _, sp in groups)
@@ -172,6 +173,8 @@ def birds_gallery():
         active_bird=bird,
         active_family=family,
         active_area=area,
+        active_media=media,
+        has_videos=birds.has_videos(all_shots),
         bird_family=bird_family,
         curate=curate,
         local=_is_local(),

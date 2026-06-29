@@ -40,9 +40,15 @@
                 </div>
             </div>
         </div>
-        {% if active_bird or active_family or active_area %}
+        {% if has_videos %}
+        <p class="media-toggle">
+            <button type="button" class="chip-toggle{% if active_media == 'video' %} on{% endif %}" onclick="birdsGo(null,{media: {{ ('' if active_media == 'video' else 'video')|tojson }}})">&#9654; Videos</button>
+        </p>
+        {% endif %}
+        {% if active_bird or active_family or active_area or active_media %}
         <div class="bird-active">
             <div class="filter-chips">
+                {% if active_media %}<button type="button" class="chip" onclick="birdsGo(null,{media:''})">&#9654; Videos <span>&times;</span></button>{% endif %}
                 {% if active_area %}<button type="button" class="chip" onclick="birdsGo(null,{area:''})">{% if active_area == 'elsewhere' %}Out&#8209;of&#8209;area &#9888;&#65039;{% else %}North Andover{% endif %} <span>&times;</span></button>{% endif %}
                 {% if active_family %}<button type="button" class="chip" onclick="birdsGo(null,{family:''})">{{ active_family }} <span>&times;</span></button>{% endif %}
                 {% if active_bird %}<button type="button" class="chip" onclick="birdsGo(null,{bird:''})">{{ active_bird }}{% if active_bird in out_of_area %} &#9888;&#65039;{% endif %} <span>&times;</span></button>{% endif %}
@@ -53,7 +59,7 @@
         </div>
         {% endif %}
         <script>
-            window.BIRDS_ACTIVE = { bird: {{ active_bird|tojson }}, family: {{ active_family|tojson }}, area: {{ active_area|tojson }} };
+            window.BIRDS_ACTIVE = { bird: {{ active_bird|tojson }}, family: {{ active_family|tojson }}, area: {{ active_area|tojson }}, media: {{ active_media|tojson }} };
             function birdsGo(ev, over) {
                 if (ev) ev.preventDefault();
                 var a = Object.assign({}, window.BIRDS_ACTIVE, over);
@@ -61,6 +67,7 @@
                 if (a.bird) p.set("bird", a.bird);
                 if (a.family) p.set("family", a.family);
                 if (a.area) p.set("area", a.area);
+                if (a.media) p.set("media", a.media);
                 var q = p.toString();
                 location.href = "/birds" + (q ? "?" + q : "");
                 return false;
@@ -91,11 +98,13 @@
                 data-image-locations='{{ (shot.image_locations or [])|tojson }}'
                 data-image-ratings='{{ (shot.image_ratings or [])|tojson }}'
                 data-image-areas='{{ (shot.image_areas or [])|tojson }}'
+                data-image-videos='{{ (shot.image_videos or [])|tojson }}'
                 data-image-indices='{{ (shot.image_indices or [])|tojson }}'
                 data-caption-species='{{ (shot.caption_species or [])|tojson }}'
                 data-date='{{ shot.date or "" }}'
                 tabindex="0" role="button" aria-label="View {{ shot.species or 'photo' }} larger">
             <img loading="lazy" src="{{ shot.images[0] }}" alt="{{ shot.species or shot.caption[:80] }}">
+            {% if shot.image_videos and shot.image_videos[0] %}<span class="play-badge" aria-hidden="true">▶</span>{% endif %}
             {% if shot.images|length > 1 %}<span class="multi-badge">⧉ {{ shot.images|length }}</span>{% endif %}
             {% if shot.image_areas and shot.image_areas[0] == 'away' %}<span class="away-badge" tabindex="0" data-note="Spotted outside North Andover{% set acover = (shot.image_locations[0] if shot.image_locations else None) or shot.location %}{% if acover %} — {{ acover }}{% endif %}"><span class="away-badge-mark">⚠️</span></span>{% endif %}
             {% if curate and not shot.post_id and shot.reclassified %}<span class="reclassified-badge" tabindex="0" data-note="AI re-classified — current labels differ from the Instagram caption ({{ shot.caption_species|join(', ') }})"><span class="reclassified-mark">🔀</span></span>{% endif %}

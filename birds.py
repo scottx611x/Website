@@ -308,6 +308,8 @@ def _pseudo_frame(shot, i):
         "image_species": [display],
         "image_locations": [loc],
         "image_areas": [areas[i] if i < len(areas) else "local"],
+        "image_videos": [(shot.get("image_videos") or [None] * len(images))[i]
+                         if i < len(shot.get("image_videos") or []) else None],
         "image_indices": [(shot.get("image_indices") or [])[i]
                           if i < len(shot.get("image_indices") or []) else i],
         "caption_species": shot.get("caption_species") or [],
@@ -334,14 +336,16 @@ def _interleave_buckets(buckets):
     return out
 
 
-def images_filtered(shots, bird=None, family=None, area=None, ooa_only=()):
+def images_filtered(shots, bird=None, family=None, area=None, ooa_only=(), media=None):
     """Interleaved single-image frames matching ALL active filters (composable):
-    ``bird`` (species display name), ``family`` (Merlin group), and ``area``
-    ('local' = North Andover, 'elsewhere' = ⚠️ out-of-area-only species)."""
+    ``bird`` (species display name), ``family`` (Merlin group), ``area``
+    ('local' = North Andover, 'elsewhere' = ⚠️ out-of-area-only species), and
+    ``media`` ('video' = only frames that are videos)."""
     bird_l = (bird or "").strip().lower()
     fam = (family or "").strip()
     want_elsewhere = area in ("elsewhere", "away")
     has_area = area in ("local", "elsewhere", "away")
+    want_video = media == "video"
     ooa_lower = {n.lower() for n in ooa_only}
     buckets = []
     for shot in shots:
@@ -359,10 +363,17 @@ def images_filtered(shots, bird=None, family=None, area=None, ooa_only=()):
                 is_elsewhere = all(nm in ooa_lower for nm in names)
                 if is_elsewhere != want_elsewhere:
                     continue
+            if want_video and not frame["image_videos"][0]:
+                continue
             bucket.append(frame)
         if bucket:
             buckets.append(bucket)
     return _interleave_buckets(buckets)
+
+
+def has_videos(shots):
+    """Whether any frame in the gallery is a video (to show the Videos filter)."""
+    return any(v for s in shots for v in (s.get("image_videos") or []))
 
 
 def filter_shots(shots, bird=None, family=None, area=None, ooa_only=()):
@@ -425,7 +436,7 @@ def _shuffle_images_weighted(shot):
         rating = ratings[i] if i < len(ratings) else 0
         return (n - i) + 4.0 * rating
     order = sorted(range(n), key=lambda i: random.random() ** (1.0 / weight(i)), reverse=True)
-    for key in ("images", "captions", "image_species", "image_locations", "image_ratings", "image_areas", "image_indices"):
+    for key in ("images", "captions", "image_species", "image_locations", "image_ratings", "image_areas", "image_indices", "image_videos"):
         seq = shot.get(key)
         if isinstance(seq, list) and len(seq) == n:
             shot[key] = [seq[i] for i in order]
@@ -638,7 +649,7 @@ def _apply_image_exclusions(shot, excluded):
     if len(keep) == n:
         return
     for key in ("images", "captions", "image_species", "image_locations",
-                "image_ratings", "image_areas"):
+                "image_ratings", "image_areas", "image_videos"):
         seq = shot.get(key)
         if isinstance(seq, list) and len(seq) == n:
             shot[key] = [seq[i] for i in keep]
@@ -858,11 +869,13 @@ def instagram_sync(token=None):
     for item in media:
         # Re-host every still image in the post (carousel frames included, video
         # thumbnails for clips) so the modal can page through them all.
-        images = []
-        for i, src in enumerate(_post_images(item)):
-            hosted = _rehost_image("{}-{}".format(item["id"], i), src)
-            if hosted:
-                images.append(hosted)
+        images, videos = [], []
+        for i, (still, video) in enumerate(_post_media(item)):
+            hosted = _rehost_image("{}-{}".format(item["id"], i), still)
+            if not hosted:
+                continue
+            images.append(hosted)
+            videos.append(_rehost_video("{}-{}".format(item["id"], i), video) if video else None)
         if not images:
             continue
         caption = (item.get("caption") or "").strip()
@@ -875,6 +888,7 @@ def instagram_sync(token=None):
             {
                 "id": item["id"],
                 "images": images,
+                "image_videos": videos if any(videos) else [],
                 "captions": _frame_captions(caption, len(images), date),
                 "caption": caption,
                 "species": species_list[0] if species_list else None,
@@ -940,6 +954,52 @@ def _post_images(item):
             return urls
     url = _still_url(item)
     return [url] if url else []
+
+
+def _post_media(item):
+    """``(still_url, video_url_or_None)`` for every frame in a post, in order.
+    Video frames carry both a poster still (thumbnail) and the playable video."""
+    def frame(media):
+        still = _still_url(media)
+        video = media.get("media_url") if media.get("media_type") == "VIDEO" else None
+        return (still, video) if still else None
+
+    if item.get("media_type") == "CAROUSEL_ALBUM":
+        children = (item.get("children") or {}).get("data") or []
+        out = [f for f in (frame(c) for c in children) if f]
+        if out:
+            return out
+    f = frame(item)
+    return [f] if f else []
+
+
+def _rehost_video(media_id, src_url):
+    """Re-host a video file to S3 (Instagram's URLs expire) and return its public
+    URL. Falls back to the Instagram URL when S3 isn't configured (local dev)."""
+    if not src_url:
+        return None
+    if not os.environ.get("BIRDS_USE_S3"):
+        return src_url
+    key = "{}/videos/{}.mp4".format(S3_PREFIX, media_id)
+    public_url = "https://{}.s3.amazonaws.com/{}".format(S3_BUCKET, key)
+    try:
+        import boto3
+
+        s3 = boto3.client("s3")
+        try:
+            s3.head_object(Bucket=S3_BUCKET, Key=key)
+            return public_url
+        except Exception:  # noqa: BLE001 - not archived yet
+            pass
+        resp = requests.get(src_url, timeout=120)
+        resp.raise_for_status()
+        s3.put_object(
+            Bucket=S3_BUCKET, Key=key, Body=resp.content, ContentType="video/mp4",
+            CacheControl="public, max-age=31536000, immutable",
+        )
+        return public_url
+    except Exception:  # noqa: BLE001 - S3 unavailable: serve Instagram's URL directly
+        return src_url
 
 
 def _rehost_image(media_id, src_url):

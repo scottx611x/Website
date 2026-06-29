@@ -53,6 +53,7 @@
         <button class="lightbox-nav lightbox-next" aria-label="Next">&#8250;</button>
         <figure class="lightbox-figure">
             <img id="lightbox-img" src="" alt="">
+            <video id="lightbox-video" class="lightbox-video" controls playsinline preload="metadata" hidden></video>
             <figcaption id="lightbox-cap"></figcaption>
             {% if curate %}
             <div id="lightbox-suggest" class="lightbox-suggest" hidden></div>
@@ -86,6 +87,7 @@
         (function () {
             var box = document.getElementById("lightbox"),
                 img = document.getElementById("lightbox-img"),
+                vid = document.getElementById("lightbox-video"),
                 cap = document.getElementById("lightbox-cap"),
                 reid = document.getElementById("lightbox-reid"),
                 stars = document.getElementById("lightbox-stars"),
@@ -164,6 +166,7 @@
                     var rts; try { rts = JSON.parse(el.getAttribute("data-image-ratings")); } catch (_) { rts = []; }
                     var ars; try { ars = JSON.parse(el.getAttribute("data-image-areas")); } catch (_) { ars = []; }
                     var ixs; try { ixs = JSON.parse(el.getAttribute("data-image-indices")); } catch (_) { ixs = []; }
+                    var vds; try { vds = JSON.parse(el.getAttribute("data-image-videos")); } catch (_) { vds = []; }
                     var csp; try { csp = JSON.parse(el.getAttribute("data-caption-species")); } catch (_) { csp = []; }
                     el._frameStart = frames.length;
                     urls.forEach(function (u, i) {
@@ -173,16 +176,24 @@
                             date: date, n: i + 1, of: urls.length, postId: pid, index: i,
                             origIndex: (ixs && ixs[i] != null) ? ixs[i] : i,
                             rating: (rts && rts[i]) || 0, away: (ars && ars[i]) === "away",
-                            captionSpecies: csp || []
+                            video: (vds && vds[i]) || null, captionSpecies: csp || []
                         });
                     });
                 });
             }
+            function stopVideo() { if (vid) { vid.pause(); vid.removeAttribute("src"); vid.load(); vid.hidden = true; } }
             function show(i) {
                 if (!frames.length) return;
                 idx = (i + frames.length) % frames.length;
                 var f = frames[idx];
-                img.src = f.url;
+                if (f.video) {
+                    stopVideo();
+                    vid.src = f.video; vid.poster = f.url; vid.hidden = false;
+                    img.hidden = true;
+                } else {
+                    stopVideo();
+                    img.src = f.url; img.hidden = false;
+                }
                 renderLabel(f);
                 renderReid(f);
                 renderStars(f);
@@ -192,7 +203,7 @@
                 document.body.style.overflow = "hidden";
             }
             function close() {
-                box.hidden = true; img.src = ""; document.body.style.overflow = "";
+                box.hidden = true; img.src = ""; stopVideo(); document.body.style.overflow = "";
             }
             document.addEventListener("click", function (e) {
                 // Curate controls (hide / edit / flag) are handled separately —
@@ -213,6 +224,7 @@
                 if (e.key === "Escape") close();
                 else if (e.key === "ArrowRight") show(idx + 1);
                 else if (e.key === "ArrowLeft") show(idx - 1);
+                else if (stars && e.key >= "1" && e.key <= "5") { e.preventDefault(); rateCurrent(+e.key); }
             });
             // Swipe left/right to page images on touch devices.
             var _t0 = null, _swiped = false;
@@ -304,12 +316,9 @@
                     renderReid(f);
                 }).finally(function () { reid.disabled = false; });
             });
-            if (stars) stars.addEventListener("click", function (e) {
-                e.stopPropagation();
-                var st = e.target.closest(".star"); if (!st) return;
+            function rateCurrent(v) {
                 var f = frames[idx]; if (!f) return;
-                var v = +st.dataset.v;
-                var next = (f.rating === v) ? 0 : v;  // click current rating to clear
+                var next = (f.rating === v) ? 0 : v;  // re-rating the same value clears it
                 fetch("/curate/rate", {
                     method: "POST", headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ id: f.postId, index: f.origIndex, rating: next })
@@ -317,6 +326,10 @@
                     f.rating = d.rating;
                     renderStars(f);
                 });
+            }
+            if (stars) stars.addEventListener("click", function (e) {
+                e.stopPropagation();
+                var st = e.target.closest(".star"); if (st) rateCurrent(+st.dataset.v);
             });
         })();
 
