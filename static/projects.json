@@ -3,18 +3,25 @@
     "name": "DUCKODUCKO 🦆",
     "url": "https://duckoducko.scott-ouellette.com",
     "tech": "Godot · Web · Android",
-    "description": "A whimsical top-down, tap-to-hop duck roguelike — play it instantly in the browser, or grab the Android APK from Releases. Shipped daily."
+    "description": "A whimsical top-down, tap-to-hop duck roguelike — play it instantly in the browser, or grab the Android APK from Releases. Shipped daily.",
+    "featured": true,
+    "status": "Live",
+    "year": "2026"
   },
   {
     "name": "hcl-playground",
     "url": "https://hcl-playground.com",
     "tech": "Terraform · OpenTofu · Web",
-    "description": "Evaluate HCL expressions in the browser with Terraform or OpenTofu — version-aware autocomplete and docs, any version on demand, no install or init/console loop."
+    "description": "Evaluate HCL expressions in the browser with Terraform or OpenTofu — version-aware autocomplete and docs, any version on demand, no install or init/console loop.",
+    "featured": true,
+    "status": "Live",
+    "year": "2026"
   },
   {
     "name": "Birb Workflow",
     "tech": "Python",
-    "description": "A one-screen pipeline for my bird photography: Lightroom → Buffer → Instagram — import, auto-tone, denoise, pick, export, then caption, resize, and schedule the keepers. (It's what feeds this gallery.)"
+    "description": "A one-screen pipeline for my bird photography: Lightroom → Buffer → Instagram — import, auto-tone, denoise, pick, export, then caption, resize, and schedule the keepers. (It's what feeds this gallery.)",
+    "status": "Powers this gallery"
   },
   {
     "name": "grip-tracker",

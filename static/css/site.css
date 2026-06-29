@@ -398,6 +398,18 @@ body.has-effect .site-footer { position: relative; z-index: 1; }
 .media-link:hover { border-bottom-color: currentColor; }
 .media-link.on { color: var(--green); border-bottom-color: var(--green); }
 .curate-filters { display: flex; gap: 0.5rem; flex-wrap: wrap; justify-content: center; margin: 0.9rem auto 0; max-width: 42rem; }
+
+/* Projects: featured cards + meta */
+.featured-projects { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.2rem; margin: 2rem 0 2.5rem; }
+@media (max-width: 700px) { .featured-projects { grid-template-columns: 1fr; } }
+.featured-project {
+    display: block; padding: 1.3rem 1.4rem; border-radius: 12px; text-decoration: none; color: var(--ink);
+    background: var(--paper); border: 1px solid rgba(47, 125, 79, 0.28); box-shadow: 0 1px 3px rgba(13, 18, 14, 0.05);
+    transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+}
+.featured-project[href]:hover { transform: translateY(-2px); box-shadow: 0 10px 26px -10px rgba(13, 18, 14, 0.22); border-color: var(--green); }
+.featured-project p { margin: 0.6rem 0 0; }
+.proj-meta { display: block; margin-top: 0.7rem; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.12em; color: var(--green); }
 .chip-toggle {
     font-family: var(--mono); font-size: 0.82rem; cursor: pointer;
     padding: 0.45rem 1rem; border-radius: 999px;
