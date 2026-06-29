@@ -42,7 +42,7 @@
         </div>
         {% if has_videos %}
         <p class="media-toggle">
-            <button type="button" class="chip-toggle{% if active_media == 'video' %} on{% endif %}" onclick="birdsGo(null,{media: {{ ('' if active_media == 'video' else 'video')|tojson }}})">&#9654; Videos</button>
+            <button type="button" class="chip-toggle{% if active_media == 'video' %} on{% endif %}" onclick="birdsGo(null,{media:'{{ '' if active_media == 'video' else 'video' }}'})">&#9654; Videos</button>
         </p>
         {% endif %}
         {% if active_bird or active_family or active_area or active_media %}
@@ -59,7 +59,7 @@
         </div>
         {% endif %}
         <script>
-            window.BIRDS_ACTIVE = { bird: {{ active_bird|tojson }}, family: {{ active_family|tojson }}, area: {{ active_area|tojson }}, media: {{ active_media|tojson }} };
+            window.BIRDS_ACTIVE = { bird: {{ active_bird|tojson }}, family: {{ active_family|tojson }}, area: {{ active_area|tojson }}, media: {{ active_media|tojson }}, review: {{ active_review|tojson }}, rating: {{ active_rating|tojson }} };
             function birdsGo(ev, over) {
                 if (ev) ev.preventDefault();
                 var a = Object.assign({}, window.BIRDS_ACTIVE, over);
@@ -68,6 +68,8 @@
                 if (a.family) p.set("family", a.family);
                 if (a.area) p.set("area", a.area);
                 if (a.media) p.set("media", a.media);
+                if (a.review) p.set("review", a.review);
+                if (a.rating) p.set("rating", a.rating);
                 var q = p.toString();
                 location.href = "/birds" + (q ? "?" + q : "");
                 return false;
@@ -77,10 +79,17 @@
         {% if curate %}
         {% set flagged = shots|selectattr('ambiguous')|list|length %}
         <p class="curate-note mono"><strong>Curate mode.</strong> {{ shots|length }} shown · <strong>{{ flagged }}</strong> flagged.</p>
+        <div class="curate-filters">
+            <button type="button" class="chip-toggle{% if active_review == 'reclassified' %} on{% endif %}" onclick="birdsGo(null,{review:'{{ '' if active_review == 'reclassified' else 'reclassified' }}',bird:'',family:'',area:'',media:'',rating:''})">&#128256; Reclassified ({{ review_counts.reclassified }})</button>
+            <button type="button" class="chip-toggle{% if active_review == 'reid' %} on{% endif %}" onclick="birdsGo(null,{review:'{{ '' if active_review == 'reid' else 'reid' }}',bird:'',family:'',area:'',media:'',rating:''})">&#8635; Flagged for re-ID ({{ review_counts.reid }})</button>
+            <button type="button" class="chip-toggle{% if active_review == 'hidden' %} on{% endif %}" onclick="birdsGo(null,{review:'{{ '' if active_review == 'hidden' else 'hidden' }}',bird:'',family:'',area:'',media:'',rating:''})">&#9986; Hidden frames ({{ review_counts.hidden }})</button>
+            <button type="button" class="chip-toggle{% if active_rating == 'unrated' %} on{% endif %}" onclick="birdsGo(null,{rating:'{{ '' if active_rating == 'unrated' else 'unrated' }}',review:''})">&#9734; Unrated</button>
+            <button type="button" class="chip-toggle{% if active_rating == '4' %} on{% endif %}" onclick="birdsGo(null,{rating:'{{ '' if active_rating == '4' else '4' }}',review:''})">&#9733; 4&plus;</button>
+        </div>
         <ul class="curate-help mono">
             <li><b>Rename:</b> type in a card's species box and press <kbd>Enter</kbd> to save.</li>
             <li><b>Hide:</b> click the red <b>&times;</b> (top-right of a card).</li>
-            <li><b>Per-image:</b> click a photo to open it, then <b>★ rate</b> it or <b>&#8635; flag for re-ID</b>.</li>
+            <li><b>Per-image:</b> click a photo, then press <kbd>1</kbd>–<kbd>5</kbd> to rate or <b>&#8635;</b> flag for re-ID.</li>
         </ul>
         {% endif %}
     </header>

@@ -336,16 +336,19 @@ def _interleave_buckets(buckets):
     return out
 
 
-def images_filtered(shots, bird=None, family=None, area=None, ooa_only=(), media=None):
+def images_filtered(shots, bird=None, family=None, area=None, ooa_only=(), media=None,
+                     rating=None):
     """Interleaved single-image frames matching ALL active filters (composable):
     ``bird`` (species display name), ``family`` (Merlin group), ``area``
-    ('local' = North Andover, 'elsewhere' = ⚠️ out-of-area-only species), and
-    ``media`` ('video' = only frames that are videos)."""
+    ('local' = North Andover, 'elsewhere' = ⚠️ out-of-area-only species), ``media``
+    ('video' = only videos), and ``rating`` ('unrated' = 0 stars, or 'N' = >= N)."""
     bird_l = (bird or "").strip().lower()
     fam = (family or "").strip()
     want_elsewhere = area in ("elsewhere", "away")
     has_area = area in ("local", "elsewhere", "away")
     want_video = media == "video"
+    min_rating = int(rating) if (rating or "").isdigit() else None
+    want_unrated = rating == "unrated"
     ooa_lower = {n.lower() for n in ooa_only}
     buckets = []
     for shot in shots:
@@ -364,6 +367,10 @@ def images_filtered(shots, bird=None, family=None, area=None, ooa_only=(), media
                 if is_elsewhere != want_elsewhere:
                     continue
             if want_video and not frame["image_videos"][0]:
+                continue
+            if want_unrated and frame["rating"]:
+                continue
+            if min_rating is not None and frame["rating"] < min_rating:
                 continue
             bucket.append(frame)
         if bucket:

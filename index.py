@@ -135,8 +135,30 @@ def birds_gallery():
     if area not in ("local", "elsewhere"):
         area = ""
     media = "video" if request.args.get("media") == "video" else ""
-    if bird or family or area or media:
-        shots = birds.images_filtered(all_shots, bird, family, area, out_of_area, media=media)
+    # Curate-only review/rating facets.
+    review = (request.args.get("review") or "") if curate else ""
+    if review not in ("reclassified", "reid", "hidden"):
+        review = ""
+    rating = (request.args.get("rating") or "") if curate else ""
+    if rating not in ("unrated", "1", "2", "3", "4", "5"):
+        rating = ""
+    reid_posts = {k.rsplit("-", 1)[0] for k in birds.reid_keys()} if curate else set()
+    hidden_posts = ({pid for pid, v in birds.load_overrides().items() if v.get("exclude_images")}
+                    if curate else set())
+    review_counts = {
+        "reclassified": sum(1 for s in all_shots if s.get("reclassified")),
+        "reid": sum(1 for s in all_shots if s.get("id") in reid_posts),
+        "hidden": sum(1 for s in all_shots if s.get("id") in hidden_posts),
+    } if curate else {}
+    if review == "reclassified":
+        shots = [s for s in all_shots if s.get("reclassified")]
+    elif review == "reid":
+        shots = [s for s in all_shots if s.get("id") in reid_posts]
+    elif review == "hidden":
+        shots = [s for s in all_shots if s.get("id") in hidden_posts]
+    elif bird or family or area or media or rating:
+        shots = birds.images_filtered(all_shots, bird, family, area, out_of_area,
+                                      media=media, rating=rating)
     else:
         shots = all_shots
     total = sum(len(sp) for _, sp in groups)
@@ -174,6 +196,9 @@ def birds_gallery():
         active_family=family,
         active_area=area,
         active_media=media,
+        active_review=review,
+        active_rating=rating,
+        review_counts=review_counts,
         has_videos=birds.has_videos(all_shots),
         bird_family=bird_family,
         curate=curate,

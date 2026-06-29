@@ -389,6 +389,7 @@ body.has-effect .site-footer { position: relative; z-index: 1; }
     border-radius: 4px; background: #000; box-shadow: 0 30px 90px -20px rgba(0, 0, 0, 0.9);
 }
 .media-toggle { margin: 1rem 0 0; }
+.curate-filters { display: flex; gap: 0.5rem; flex-wrap: wrap; justify-content: center; margin: 0.9rem auto 0; max-width: 42rem; }
 .chip-toggle {
     font-family: var(--mono); font-size: 0.82rem; cursor: pointer;
     padding: 0.45rem 1rem; border-radius: 999px;
