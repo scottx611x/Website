@@ -116,7 +116,12 @@ def _curate_on():
 def curate_toggle():
     if not _is_local():
         abort(404)
-    resp = redirect(request.referrer or "/birds")
+    # Return to exactly where you were (preserving filters), via an explicit ?next=
+    # rather than the flaky Referer header.
+    nxt = request.args.get("next") or request.referrer or "/birds"
+    if not nxt.startswith("/"):  # only ever redirect within the site
+        nxt = "/birds"
+    resp = redirect(nxt)
     resp.set_cookie("curate", "0" if _curate_on() else "1", max_age=31536000, samesite="Lax")
     return resp
 

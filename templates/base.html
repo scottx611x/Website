@@ -43,7 +43,7 @@
     </footer>
 
     {% if local %}
-    <a class="curate-toggle{% if curate %} on{% endif %}" href="/curate/toggle"
+    <a class="curate-toggle{% if curate %} on{% endif %}" href="/curate/toggle?next={{ request.full_path|urlencode }}"
        title="Local only — toggle curate mode">{% if curate %}&#10003; Curating &middot; exit{% else %}&#9998; Curate{% endif %}</a>
     {% endif %}
 
