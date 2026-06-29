@@ -43,9 +43,13 @@
         <p class="media-stat mono">
             <a class="media-link{% if active_media == 'photo' %} on{% endif %}" onclick="birdsGo(null,{media:'{{ '' if active_media == 'photo' else 'photo' }}'})"><strong>{{ media_n.photos }}</strong> photo{{ 's' if media_n.photos != 1 }}</a>{% if media_n.videos %} &middot; <a class="media-link{% if active_media == 'video' %} on{% endif %}" onclick="birdsGo(null,{media:'{{ '' if active_media == 'video' else 'video' }}'})"><strong>{{ media_n.videos }}</strong> video{{ 's' if media_n.videos != 1 }}</a>{% endif %}
         </p>
-        {% if active_bird or active_family or active_area or active_media %}
+        <p class="media-toggle">
+            <button type="button" class="chip-toggle{% if active_view == 'best' %} on{% endif %}" onclick="birdsGo(null,{view:'{{ '' if active_view == 'best' else 'best' }}',bird:'',family:'',area:'',media:'',review:'',rating:''})">&#9733; Best of each species</button>
+        </p>
+        {% if active_bird or active_family or active_area or active_media or active_view %}
         <div class="bird-active">
             <div class="filter-chips">
+                {% if active_view == 'best' %}<button type="button" class="chip" onclick="birdsGo(null,{view:''})">&#9733; Best of each species <span>&times;</span></button>{% endif %}
                 {% if active_media %}<button type="button" class="chip" onclick="birdsGo(null,{media:''})">{% if active_media == 'video' %}&#9654; Videos{% else %}Photos{% endif %} <span>&times;</span></button>{% endif %}
                 {% if active_area %}<button type="button" class="chip" onclick="birdsGo(null,{area:''})">{% if active_area == 'elsewhere' %}Out&#8209;of&#8209;area &#9888;&#65039;{% else %}North Andover{% endif %} <span>&times;</span></button>{% endif %}
                 {% if active_family %}<button type="button" class="chip" onclick="birdsGo(null,{family:''})">{{ active_family }} <span>&times;</span></button>{% endif %}
@@ -57,7 +61,7 @@
         </div>
         {% endif %}
         <script>
-            window.BIRDS_ACTIVE = { bird: {{ active_bird|tojson }}, family: {{ active_family|tojson }}, area: {{ active_area|tojson }}, media: {{ active_media|tojson }}, review: {{ active_review|tojson }}, rating: {{ active_rating|tojson }} };
+            window.BIRDS_ACTIVE = { bird: {{ active_bird|tojson }}, family: {{ active_family|tojson }}, area: {{ active_area|tojson }}, media: {{ active_media|tojson }}, review: {{ active_review|tojson }}, rating: {{ active_rating|tojson }}, view: {{ active_view|tojson }} };
             function birdsGo(ev, over) {
                 if (ev) ev.preventDefault();
                 var a = Object.assign({}, window.BIRDS_ACTIVE, over);
@@ -68,6 +72,7 @@
                 if (a.media) p.set("media", a.media);
                 if (a.review) p.set("review", a.review);
                 if (a.rating) p.set("rating", a.rating);
+                if (a.view) p.set("view", a.view);
                 var q = p.toString();
                 location.href = "/birds" + (q ? "?" + q : "");
                 return false;

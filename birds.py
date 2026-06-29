@@ -476,6 +476,25 @@ def images_hidden(shots):
     return _interleave_buckets(buckets)
 
 
+def top_rated_by_species(shots):
+    """One photo per species — the highest-rated frame of each (ties broken by the
+    favorites-first order). Sorted best-rating-first: a 'best of each bird' reel."""
+    best = {}
+    for shot in shots:
+        for i in range(len(shot.get("images") or [])):
+            frame, canons = _pseudo_frame(shot, i)
+            for display, _ in canons:
+                cur = best.get(display)
+                if cur is None or frame["rating"] > cur["rating"]:
+                    best[display] = frame
+    seen, out = set(), []
+    for f in sorted(best.values(), key=lambda f: (-f["rating"], f["species"].lower())):
+        if f["id"] not in seen:
+            seen.add(f["id"])
+            out.append(f)
+    return out
+
+
 def filter_shots(shots, bird=None, family=None, area=None, ooa_only=()):
     """Whole posts that contain at least one frame matching ALL active filters.
     Used by curate mode, which edits whole-post cards (not exploded frames)."""
