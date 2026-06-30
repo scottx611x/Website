@@ -31,18 +31,20 @@ class RoutesTestCase(GenericTestBase):
         self.assertEqual(self.test_client.get("/effects/nope").status_code, 404)
 
     def test_blog_list_route(self):
-        self.assertEqual(self.test_client.get("/blog").status_code, 200)
+        # Writing is hidden for now (index.HIDDEN_PAGES).
+        self.assertEqual(self.test_client.get("/blog").status_code, 404)
 
     def test_blog_post_route(self):
         slug = blog.list_posts()[0]["slug"]
-        response = self.test_client.get("/blog/{}".format(slug))
-        self.assertEqual(response.status_code, 200)
+        # Writing is hidden for now, so even a real slug 404s.
+        self.assertEqual(self.test_client.get("/blog/{}".format(slug)).status_code, 404)
 
     def test_missing_blog_post_404(self):
         self.assertEqual(self.test_client.get("/blog/nope").status_code, 404)
 
     def test_photography_route(self):
-        self.assertEqual(self.test_client.get("/photography").status_code, 200)
+        # Photography is hidden for now.
+        self.assertEqual(self.test_client.get("/photography").status_code, 404)
 
     def test_projects_route(self):
         response = self.test_client.get("/projects")
