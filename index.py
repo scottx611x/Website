@@ -142,13 +142,10 @@ def birds_gallery():
     media = (request.args.get("media") or "").strip()
     if media not in ("photo", "video"):
         media = ""
-    # Curate-only review/rating facets.
+    # Curate-only review facets.
     review = (request.args.get("review") or "") if curate else ""
     if review not in ("reclassified", "reid", "hidden"):
         review = ""
-    rating = (request.args.get("rating") or "") if curate else ""
-    if rating not in ("unrated", "1", "2", "3", "4", "5"):
-        rating = ""
     reid_keyset = birds.reid_keys() if curate else set()
     overrides = birds.load_overrides() if curate else {}
     review_counts = {
@@ -163,13 +160,13 @@ def birds_gallery():
         raw = list(birds._load_manifest_from_s3() or birds._load_local_manifest() or [])
         birds.apply_overrides(raw, apply_exclusions=False)
         shots = birds.images_hidden(raw)
-    elif bird or family or area or media or rating:
+    elif bird or family or area or media:
         shots = birds.images_filtered(all_shots, bird, family, area, out_of_area,
-                                      media=media, rating=rating)
+                                      media=media)
     elif curate:
         shots = all_shots  # curate default: whole posts (for post-level editing)
     else:
-        shots = birds.all_photos_best_first(all_shots)  # implicit best-first order
+        shots = birds.all_photos_shuffled(all_shots)  # plain random order
     total = sum(len(sp) for _, sp in groups)
     away = sum(1 for _, sp in groups for name, _ in sp if name in out_of_area)
     # The species/family dropdowns are constrained to the selected area, so picking
@@ -206,7 +203,6 @@ def birds_gallery():
         active_area=area,
         active_media=media,
         active_review=review,
-        active_rating=rating,
         review_counts=review_counts,
         media_n=dict(zip(("photos", "videos"),
                          birds.media_counts(all_shots, bird, family, area, out_of_area))),
@@ -255,18 +251,6 @@ def curate_reid():
         post_id, data["index"], data.get("current", ""), data.get("note", "")
     )
     return {"ok": True, "queued": queued, "count": len(queue)}
-
-
-@app.route("/curate/rate", methods=["POST"])
-def curate_rate():
-    if not _curate_on():
-        abort(404)
-    data = request.get_json(silent=True) or {}
-    post_id = (data.get("id") or "").strip()
-    if not post_id or data.get("index") is None:
-        abort(400)
-    rating = birds.set_rating(post_id, data["index"], data.get("rating", 0))
-    return {"ok": True, "rating": rating}
 
 
 @app.route("/curate/exclude-image", methods=["POST"])

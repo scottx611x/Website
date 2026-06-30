@@ -311,7 +311,6 @@ def _pseudo_frame(shot, i):
     isp = shot.get("image_species") or []
     iloc = shot.get("image_locations") or []
     caps = shot.get("captions") or []
-    rts = shot.get("image_ratings") or []
     areas = shot.get("image_areas") or []
     raw = isp[i] if i < len(isp) and isp[i] else shot.get("species")
     canons = _canon_species_list(raw)
@@ -334,17 +333,13 @@ def _pseudo_frame(shot, i):
         "location": loc,
         "date": shot.get("date"),
         "caption": shot.get("caption") or "",
-        "rating": rts[i] if i < len(rts) else 0,
     }, canons
 
 
 def _interleave_buckets(buckets):
-    """Highest-rated posts lead; deal one frame per post per round (interleaved so a
-    single shoot doesn't clump)."""
-    for bucket in buckets:
-        bucket.sort(key=lambda f: f["rating"], reverse=True)  # best of each post first
+    """Deal one frame per post per round (interleaved so a single shoot doesn't
+    clump together in the grid)."""
     buckets = [b for b in buckets if b]
-    buckets.sort(key=lambda b: b[0]["rating"], reverse=True)
     out = []
     while buckets:
         for bucket in buckets:
@@ -353,20 +348,17 @@ def _interleave_buckets(buckets):
     return out
 
 
-def images_filtered(shots, bird=None, family=None, area=None, ooa_only=(), media=None,
-                     rating=None):
+def images_filtered(shots, bird=None, family=None, area=None, ooa_only=(), media=None):
     """Interleaved single-image frames matching ALL active filters (composable):
     ``bird`` (species display name), ``family`` (Merlin group), ``area``
-    ('local' = North Andover, 'elsewhere' = ⚠️ out-of-area-only species), ``media``
-    ('video' = only videos), and ``rating`` ('unrated' = 0 stars, or 'N' = >= N)."""
+    ('local' = North Andover, 'elsewhere' = ⚠️ out-of-area-only species), and
+    ``media`` ('video' = only videos, 'photo' = only stills)."""
     bird_l = (bird or "").strip().lower()
     fam = (family or "").strip()
     want_elsewhere = area in ("elsewhere", "away")
     has_area = area in ("local", "elsewhere", "away")
     want_video = media == "video"
     want_photo = media == "photo"
-    min_rating = int(rating) if (rating or "").isdigit() else None
-    want_unrated = rating == "unrated"
     ooa_lower = {n.lower() for n in ooa_only}
     buckets = []
     for shot in shots:
@@ -387,10 +379,6 @@ def images_filtered(shots, bird=None, family=None, area=None, ooa_only=(), media
             if want_video and not frame["image_videos"][0]:
                 continue
             if want_photo and frame["image_videos"][0]:
-                continue
-            if want_unrated and frame["rating"]:
-                continue
-            if min_rating is not None and frame["rating"] < min_rating:
                 continue
             bucket.append(frame)
         if bucket:
@@ -476,23 +464,14 @@ def images_hidden(shots):
     return _interleave_buckets(buckets)
 
 
-def all_photos_best_first(shots):
-    """Every frame in the gallery's implicit order. A weighted shuffle
-    (Efraimidis-Spirakis) where star rating and Instagram-likes nudge a photo
-    toward the top, but only probabilistically — so highly-rated shots lead
-    *overall* yet stay interleaved with unrated ones rather than front-loaded in a
-    block. Varies a little per load."""
+def all_photos_shuffled(shots):
+    """Every frame in the gallery, in plain random order (fresh each load)."""
     frames = []
     for shot in shots:
-        likes = shot.get("weight") or 0
         for i in range(len(shot.get("images") or [])):
             frame, _ = _pseudo_frame(shot, i)
-            # weight: a big baseline keeps unrated photos dominant in the mix; rating
-            # is only a gentle nudge toward the top, likes a touch behind it.
-            w = 1.0 + likes * 0.5 + frame["rating"] * 0.22
-            frame["_key"] = random.random() ** (1.0 / w)
             frames.append(frame)
-    frames.sort(key=lambda f: f["_key"], reverse=True)
+    random.shuffle(frames)
     return frames
 
 
@@ -549,14 +528,10 @@ def _shuffle_images_weighted(shot):
     n = len(shot.get("images") or [])
     if n < 2:
         return
-    ratings = shot.get("image_ratings") or []
-    # Efraimidis-Spirakis: weight decays by original position (favorites first), and
-    # a curate-mode star rating boosts a frame so the best shots surface as the cover.
-    def weight(i):
-        rating = ratings[i] if i < len(ratings) else 0
-        return (n - i) + 4.0 * rating
-    order = sorted(range(n), key=lambda i: random.random() ** (1.0 / weight(i)), reverse=True)
-    for key in ("images", "captions", "image_species", "image_locations", "image_ratings", "image_areas", "image_indices", "image_videos"):
+    # Efraimidis-Spirakis: weight decays by original position (Scott puts favorites
+    # first), so the cover + carousel vary per load but lean toward those favorites.
+    order = sorted(range(n), key=lambda i: random.random() ** (1.0 / (n - i)), reverse=True)
+    for key in ("images", "captions", "image_species", "image_locations", "image_areas", "image_indices", "image_videos"):
         seq = shot.get(key)
         if isinstance(seq, list) and len(seq) == n:
             shot[key] = [seq[i] for i in order]
@@ -738,10 +713,6 @@ def apply_overrides(shots, overrides=None, apply_exclusions=True):
                 shot["location"] = override["location"] or None
             if override.get("date"):
                 shot["date"] = override["date"]
-            if override.get("ratings"):
-                n = len(shot.get("images") or [])
-                rt = override["ratings"]
-                shot["image_ratings"] = [int(rt.get(str(i)) or 0) for i in range(n)]
         shot["ambiguous"] = (not override) and _is_ambiguous(shot)
         shot["image_areas"] = _image_areas(shot)
         shot["caption_species"] = caption_species(shot.get("caption") or "")
@@ -770,7 +741,7 @@ def _apply_image_exclusions(shot, excluded):
     if len(keep) == n:
         return
     for key in ("images", "captions", "image_species", "image_locations",
-                "image_ratings", "image_areas", "image_videos"):
+                "image_areas", "image_videos"):
         seq = shot.get(key)
         if isinstance(seq, list) and len(seq) == n:
             shot[key] = [seq[i] for i in keep]
@@ -824,30 +795,6 @@ def set_override(post_id, fields):
         apply_overrides(shots, overrides, apply_exclusions=False)
         _atomic_write_json(LOCAL_MANIFEST, shots)
     return next((s for s in shots if s.get("id") == post_id), None)
-
-
-def set_rating(post_id, index, rating):
-    """Persist a 0-5 star rating for one frame (0 clears it) and reflect it in the
-    local manifest now. Ratings boost a frame's prominence in the gallery."""
-    rating = max(0, min(5, int(rating or 0)))
-    overrides = load_overrides()
-    entry = overrides.get(post_id, {})
-    ratings = entry.get("ratings", {})
-    if rating:
-        ratings[str(index)] = rating
-    else:
-        ratings.pop(str(index), None)
-    if ratings:
-        entry["ratings"] = ratings
-    else:
-        entry.pop("ratings", None)
-    overrides[post_id] = entry
-    _atomic_write_json(OVERRIDES_FILE, overrides, sort_keys=True)
-    shots = _load_local_manifest() or []
-    if shots:  # never clobber the manifest with an empty/failed read
-        apply_overrides(shots, overrides, apply_exclusions=False)
-        _atomic_write_json(LOCAL_MANIFEST, shots)
-    return rating
 
 
 def toggle_image_exclusion(post_id, index):
