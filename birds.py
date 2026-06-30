@@ -487,9 +487,9 @@ def all_photos_best_first(shots):
         likes = shot.get("weight") or 0
         for i in range(len(shot.get("images") or [])):
             frame, _ = _pseudo_frame(shot, i)
-            # weight: baseline keeps every photo in play; rating is the main lift,
-            # likes a gentle secondary. Kept moderate so unrated photos mix through.
-            w = 0.5 + likes + frame["rating"] * 0.9
+            # weight: a big baseline keeps unrated photos dominant in the mix; rating
+            # is only a gentle nudge toward the top, likes a touch behind it.
+            w = 1.0 + likes * 0.5 + frame["rating"] * 0.22
             frame["_key"] = random.random() ** (1.0 / w)
             frames.append(frame)
     frames.sort(key=lambda f: f["_key"], reverse=True)
