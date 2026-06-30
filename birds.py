@@ -477,16 +477,22 @@ def images_hidden(shots):
 
 
 def all_photos_best_first(shots):
-    """Every frame, ordered by curation quality: most stars first, ties broken by
-    the post's Instagram-likes weight. The gallery's implicit default order."""
+    """Every frame in the gallery's implicit order. A weighted shuffle
+    (Efraimidis-Spirakis) where star rating and Instagram-likes nudge a photo
+    toward the top, but only probabilistically — so highly-rated shots lead
+    *overall* yet stay interleaved with unrated ones rather than front-loaded in a
+    block. Varies a little per load."""
     frames = []
     for shot in shots:
-        weight = shot.get("weight") or 0
+        likes = shot.get("weight") or 0
         for i in range(len(shot.get("images") or [])):
             frame, _ = _pseudo_frame(shot, i)
-            frame["_weight"] = weight
+            # weight: baseline keeps every photo in play; rating is the main lift,
+            # likes a gentle secondary. Kept moderate so unrated photos mix through.
+            w = 0.5 + likes + frame["rating"] * 0.9
+            frame["_key"] = random.random() ** (1.0 / w)
             frames.append(frame)
-    frames.sort(key=lambda f: (-f["rating"], -f["_weight"]))
+    frames.sort(key=lambda f: f["_key"], reverse=True)
     return frames
 
 
