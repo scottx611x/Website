@@ -147,10 +147,12 @@ body.has-effect .site-footer { position: relative; z-index: 1; }
     text-shadow: 0 2px 40px rgba(0,0,0,0.45);
 }
 .hero-sub {
-    max-width: 36rem; font-size: 1.18rem;
+    max-width: 38rem; font-size: 1.18rem;
     color: #fff; margin: 0 0 2rem;
     text-shadow: 0 1px 12px rgba(0,0,0,0.8);
 }
+.hero-tagline { color: var(--neon); transition: opacity 0.35s ease; }
+.hero-tagline.fading { opacity: 0; }
 .hero-links { display: flex; gap: 0.9rem; flex-wrap: wrap; }
 
 .btn {

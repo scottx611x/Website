@@ -35,6 +35,19 @@ def load_backgrounds():
     return DEFAULT_BACKGROUNDS
 
 
+def load_taglines():
+    """Rotating hero taglines that complete 'Software Infrastructure Engineer that …'
+    (curate them in static/taglines.json)."""
+    try:
+        with open(os.path.join(app.static_folder, "taglines.json")) as fh:
+            lines = json.load(fh)
+        if lines:
+            return lines
+    except (OSError, ValueError):
+        pass
+    return ["builds things"]
+
+
 # Pages temporarily hidden everywhere (nav, home page, direct URL). To bring one
 # back, drop it from this set.
 HIDDEN_PAGES = {"blog", "photography"}
@@ -49,6 +62,7 @@ def _home_context():
         "posts": [] if "blog" in HIDDEN_PAGES else blog.list_posts()[:3],
         "shots": shots,
         "projects": load_projects(),
+        "taglines": load_taglines(),
         "species": birds.ticker_species(shots),
     }
 

@@ -36,12 +36,30 @@
         <p class="hero-eyebrow">North Andover, Massachusetts</p>
         <h1 class="hero-title">Scott Ouellette</h1>
         <p class="hero-sub">
-            Software engineer who got way too into photographing birds.
+            Software Infrastructure Engineer that <span id="hero-tagline" class="hero-tagline"></span>
         </p>
         <div class="hero-links">
             <a class="btn" href="/birds">The birds &rarr;</a>
             <a class="btn btn-ghost" href="/projects">The code &rarr;</a>
         </div>
+        <script>
+            (function () {
+                var lines = {{ taglines|tojson }};
+                var el = document.getElementById("hero-tagline");
+                if (!el || !lines.length) return;
+                var i = Math.floor(Math.random() * lines.length);
+                el.textContent = lines[i];
+                if (lines.length < 2) return;
+                setInterval(function () {
+                    el.classList.add("fading");
+                    setTimeout(function () {
+                        i = (i + 1) % lines.length;
+                        el.textContent = lines[i];
+                        el.classList.remove("fading");
+                    }, 350);
+                }, 3800);
+            })();
+        </script>
     </section>
 
     {% if species %}
