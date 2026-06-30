@@ -35,11 +35,14 @@ def load_backgrounds():
     return DEFAULT_BACKGROUNDS
 
 
+TAGLINES_FILE = os.path.join(app.static_folder, "taglines.json")
+
+
 def load_taglines():
     """Rotating hero taglines that complete 'Software Infrastructure Engineer that …'
-    (curate them in static/taglines.json)."""
+    (curate them in static/taglines.json or the local curate UI on the home page)."""
     try:
-        with open(os.path.join(app.static_folder, "taglines.json")) as fh:
+        with open(TAGLINES_FILE) as fh:
             lines = json.load(fh)
         if lines:
             return lines
@@ -64,6 +67,7 @@ def _home_context():
         "projects": load_projects(),
         "taglines": load_taglines(),
         "species": birds.ticker_species(shots),
+        "curate": _curate_on(),
     }
 
 
@@ -344,6 +348,20 @@ def curate_projects():
             entry["hidden"] = True
         clean.append(entry)
     birds._atomic_write_json(PROJECTS_FILE, clean)
+    return {"ok": True, "count": len(clean)}
+
+
+@app.route("/curate/taglines", methods=["POST"])
+def curate_taglines():
+    """Save the reordered/edited hero taglines (local curate only)."""
+    if not _curate_on():
+        abort(404)
+    data = request.get_json(silent=True) or {}
+    incoming = data.get("taglines")
+    if not isinstance(incoming, list):
+        abort(400)
+    clean = [s.strip() for s in incoming if isinstance(s, str) and s.strip()]
+    birds._atomic_write_json(TAGLINES_FILE, clean)
     return {"ok": True, "count": len(clean)}
 
 

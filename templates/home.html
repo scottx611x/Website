@@ -62,6 +62,67 @@
         </script>
     </section>
 
+    {% if curate %}
+    <section class="tagline-curate">
+        <p class="curate-note mono"><strong>Taglines.</strong> These rotate after &ldquo;&hellip;Engineer that&rdquo; in the hero. Edit (auto-saves), reorder with &uarr;&darr;, or &times; delete.</p>
+        <div id="tagline-list" class="tagline-edit-list">
+            {% for line in taglines %}
+            <div class="tagline-edit">
+                <span class="te-prefix mono">that&hellip;</span>
+                <input class="te-field" value="{{ line }}" placeholder="got way too into photographing birds">
+                <button type="button" class="pe-btn te-up" title="Move up">&uarr;</button>
+                <button type="button" class="pe-btn te-down" title="Move down">&darr;</button>
+                <button type="button" class="pe-btn te-del" title="Delete">&times;</button>
+            </div>
+            {% endfor %}
+        </div>
+        <p class="pe-actions">
+            <button type="button" id="tagline-add" class="btn btn-inline">+ Add tagline</button>
+            <span id="tagline-saved" class="proj-saved mono" hidden>saved &#10003;</span>
+        </p>
+        <script>
+            (function () {
+                var list = document.getElementById("tagline-list");
+                var saved = document.getElementById("tagline-saved");
+                function collect() {
+                    return Array.prototype.map.call(list.querySelectorAll(".te-field"), function (f) {
+                        return f.value.trim();
+                    }).filter(Boolean);
+                }
+                var t;
+                function save() {
+                    clearTimeout(t);
+                    t = setTimeout(function () {
+                        fetch("/curate/taglines", {
+                            method: "POST", headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ taglines: collect() })
+                        }).then(function (r) { return r.json(); }).then(function (d) {
+                            if (d && d.ok) { saved.hidden = false; setTimeout(function () { saved.hidden = true; }, 1300); }
+                        });
+                    }, 450);
+                }
+                list.addEventListener("input", function (e) { if (e.target.closest(".te-field")) save(); });
+                list.addEventListener("keydown", function (e) {
+                    if (e.key === "Enter" && e.target.closest(".te-field")) { e.preventDefault(); addRow(); }
+                });
+                list.addEventListener("click", function (e) {
+                    var row = e.target.closest(".tagline-edit"); if (!row) return;
+                    if (e.target.closest(".te-up")) { var p = row.previousElementSibling; if (p) { list.insertBefore(row, p); save(); } }
+                    else if (e.target.closest(".te-down")) { var n = row.nextElementSibling; if (n) { list.insertBefore(n, row); save(); } }
+                    else if (e.target.closest(".te-del")) { row.remove(); save(); }
+                });
+                function addRow() {
+                    var blank = list.querySelector(".tagline-edit").cloneNode(true);
+                    blank.querySelector(".te-field").value = "";
+                    list.appendChild(blank);
+                    blank.querySelector(".te-field").focus();
+                }
+                document.getElementById("tagline-add").addEventListener("click", addRow);
+            })();
+        </script>
+    </section>
+    {% endif %}
+
     {% if species %}
     <div class="ticker" aria-hidden="true">
         <div class="ticker-track" style="animation-duration: {{ [species|length * 4, 40]|max }}s">

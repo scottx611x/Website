@@ -449,6 +449,22 @@ body.has-effect .site-footer { position: relative; z-index: 1; }
 .pe-del:hover { border-color: #c0392b; color: #c0392b; }
 .pe-actions { display: flex; align-items: center; gap: 1rem; margin-top: 1rem; }
 .proj-saved { color: var(--green); }
+
+/* Hero tagline curate (home page, local only) */
+.tagline-curate {
+    max-width: 46rem; margin: 0 auto; padding: 1.5rem clamp(1.2rem, 5vw, 3rem) 2rem;
+    background: var(--paper, #fff); border-radius: 12px;
+}
+.tagline-curate .curate-note { margin-top: 0; }
+.tagline-edit-list { display: flex; flex-direction: column; gap: 0.5rem; margin: 1rem 0; }
+.tagline-edit { display: flex; align-items: center; gap: 0.5rem; }
+.te-prefix { color: var(--muted, #888); white-space: nowrap; font-size: 0.8rem; }
+.te-field {
+    flex: 1; min-width: 0; font: inherit; font-size: 0.95rem; color: var(--ink);
+    padding: 0.45rem 0.6rem; border: 1px solid rgba(13, 18, 14, 0.2); border-radius: 6px;
+    background: #fff;
+}
+.te-field:focus { outline: none; border-color: var(--green); }
 .chip-toggle {
     font-family: var(--mono); font-size: 0.82rem; cursor: pointer;
     padding: 0.45rem 1rem; border-radius: 999px;
