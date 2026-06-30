@@ -399,7 +399,14 @@ body.has-effect .site-footer { position: relative; z-index: 1; }
 .media-link.on { color: var(--green); border-bottom-color: var(--green); }
 .curate-filters { display: flex; gap: 0.5rem; flex-wrap: wrap; justify-content: center; margin: 0.9rem auto 0; max-width: 42rem; }
 
-/* Projects: featured cards + meta */
+/* Projects: search + featured cards + meta */
+.project-search { margin: 1.6rem 0 0.5rem; }
+.project-search input {
+    font-family: var(--mono); font-size: 0.9rem; color: var(--ink); max-width: 100%; min-width: 18rem;
+    padding: 0.6rem 1.2rem; background: var(--paper);
+    border: 1px solid rgba(47, 125, 79, 0.32); border-radius: 999px;
+}
+.project-search input:focus { outline: none; border-color: var(--green); box-shadow: 0 0 0 3px rgba(47, 125, 79, 0.15); }
 .featured-projects { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.2rem; margin: 2rem 0 2.5rem; }
 @media (max-width: 700px) { .featured-projects { grid-template-columns: 1fr; } }
 .featured-project {

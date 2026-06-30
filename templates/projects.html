@@ -99,10 +99,16 @@
     {% set featured = visible|selectattr('featured')|list %}
     {% set rest = visible|rejectattr('featured')|list %}
 
+    {% if visible|length > 3 %}
+    <div class="project-search">
+        <input type="search" id="projectSearch" placeholder="Search projects&hellip;" aria-label="Search projects" autocomplete="off">
+    </div>
+    {% endif %}
+
     {% if featured %}
     <div class="featured-projects">
         {% for project in featured %}
-        <a class="featured-project" {% if project.url %}href="{{ project.url }}"{% else %}aria-disabled="true"{% endif %}>
+        <a class="featured-project" data-search="{{ (project.name ~ ' ' ~ (project.tech or '') ~ ' ' ~ (project.description or '') ~ ' ' ~ (project.status or ''))|lower }}" {% if project.url %}href="{{ project.url }}"{% else %}aria-disabled="true"{% endif %}>
             <span class="post-title">{{ project.name }}{% if project.tech %}<span class="tech">{{ project.tech }}</span>{% endif %}{% if not project.url %}<span class="soon">soon</span>{% endif %}</span>
             {% if project.description %}<p>{{ project.description }}</p>{% endif %}
             {{ meta(project) }}
@@ -114,7 +120,7 @@
     {% if rest %}
     <ul class="post-list">
         {% for project in rest %}
-        <li>
+        <li data-search="{{ (project.name ~ ' ' ~ (project.tech or '') ~ ' ' ~ (project.description or '') ~ ' ' ~ (project.status or ''))|lower }}">
             {% if project.url %}
             <a href="{{ project.url }}">
                 <span class="post-title">{{ project.name }}{% if project.tech %}<span class="tech">{{ project.tech }}</span>{% endif %}</span>
@@ -138,6 +144,24 @@
         <a href="https://github.com/{{ github_user }}" style="color:var(--green);">github.com/{{ github_user }}</a>.
     </p>
     {% endif %}
+    <p id="projectEmpty" class="empty mono" hidden>// no projects match that — try another term.</p>
+    <script>
+        (function () {
+            var box = document.getElementById("projectSearch");
+            if (!box) return;
+            var cards = Array.prototype.slice.call(document.querySelectorAll("[data-search]"));
+            var empty = document.getElementById("projectEmpty");
+            box.addEventListener("input", function () {
+                var q = box.value.trim().toLowerCase(), shown = 0;
+                cards.forEach(function (c) {
+                    var hit = !q || c.getAttribute("data-search").indexOf(q) !== -1;
+                    c.style.display = hit ? "" : "none";
+                    if (hit) shown++;
+                });
+                if (empty) empty.hidden = !!shown;
+            });
+        })();
+    </script>
     {% endif %}
 </section>
 {% endblock %}
