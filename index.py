@@ -35,13 +35,18 @@ def load_backgrounds():
     return DEFAULT_BACKGROUNDS
 
 
+# Pages temporarily hidden everywhere (nav, home page, direct URL). To bring one
+# back, drop it from this set.
+HIDDEN_PAGES = {"blog", "photography"}
+
+
 def _home_context():
     shots = birds.load_gallery()
     return {
         "title": TITLE,
         "effect": random.choice(EFFECTS),
         "background_image": random.choice(load_backgrounds()),
-        "posts": blog.list_posts()[:3],
+        "posts": [] if "blog" in HIDDEN_PAGES else blog.list_posts()[:3],
         "shots": shots,
         "projects": load_projects(),
         "species": birds.ticker_species(shots),
@@ -75,11 +80,15 @@ def effect(name):
 
 @app.route("/blog", methods=["GET"])
 def blog_index():
+    if "blog" in HIDDEN_PAGES:
+        abort(404)
     return render_template("blog_list.html", title="Blog", posts=blog.list_posts())
 
 
 @app.route("/blog/<slug>", methods=["GET"])
 def blog_post(slug):
+    if "blog" in HIDDEN_PAGES:
+        abort(404)
     post = blog.get_post(slug)
     if post is None:
         abort(404)
@@ -88,6 +97,8 @@ def blog_post(slug):
 
 @app.route("/photography", methods=["GET"])
 def photography():
+    if "photography" in HIDDEN_PAGES:
+        abort(404)
     return render_template(
         "photography.html", title="Photography", galleries=load_photography()
     )
