@@ -476,23 +476,18 @@ def images_hidden(shots):
     return _interleave_buckets(buckets)
 
 
-def top_rated_by_species(shots):
-    """One photo per species — the highest-rated frame of each (ties broken by the
-    favorites-first order). Sorted best-rating-first: a 'best of each bird' reel."""
-    best = {}
+def all_photos_best_first(shots):
+    """Every frame, ordered by curation quality: most stars first, ties broken by
+    the post's Instagram-likes weight. The gallery's implicit default order."""
+    frames = []
     for shot in shots:
+        weight = shot.get("weight") or 0
         for i in range(len(shot.get("images") or [])):
-            frame, canons = _pseudo_frame(shot, i)
-            for display, _ in canons:
-                cur = best.get(display)
-                if cur is None or frame["rating"] > cur["rating"]:
-                    best[display] = frame
-    seen, out = set(), []
-    for f in sorted(best.values(), key=lambda f: (-f["rating"], f["species"].lower())):
-        if f["id"] not in seen:
-            seen.add(f["id"])
-            out.append(f)
-    return out
+            frame, _ = _pseudo_frame(shot, i)
+            frame["_weight"] = weight
+            frames.append(frame)
+    frames.sort(key=lambda f: (-f["rating"], -f["_weight"]))
+    return frames
 
 
 def filter_shots(shots, bird=None, family=None, area=None, ooa_only=()):

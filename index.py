@@ -142,7 +142,6 @@ def birds_gallery():
     media = (request.args.get("media") or "").strip()
     if media not in ("photo", "video"):
         media = ""
-    view = "best" if request.args.get("view") == "best" else ""
     # Curate-only review/rating facets.
     review = (request.args.get("review") or "") if curate else ""
     if review not in ("reclassified", "reid", "hidden"):
@@ -157,9 +156,7 @@ def birds_gallery():
         "reid": len(reid_keyset),
         "hidden": sum(len(v.get("exclude_images") or []) for v in overrides.values()),
     } if curate else {}
-    if view == "best":
-        shots = birds.top_rated_by_species(all_shots)
-    elif review in ("reclassified", "reid"):
+    if review in ("reclassified", "reid"):
         # Review filters explode to the specific IMAGES acted on, not whole posts.
         shots = birds.images_for_review(all_shots, review, reid_keys=reid_keyset)
     elif review == "hidden":
@@ -169,8 +166,10 @@ def birds_gallery():
     elif bird or family or area or media or rating:
         shots = birds.images_filtered(all_shots, bird, family, area, out_of_area,
                                       media=media, rating=rating)
+    elif curate:
+        shots = all_shots  # curate default: whole posts (for post-level editing)
     else:
-        shots = all_shots
+        shots = birds.all_photos_best_first(all_shots)  # implicit best-first order
     total = sum(len(sp) for _, sp in groups)
     away = sum(1 for _, sp in groups for name, _ in sp if name in out_of_area)
     # The species/family dropdowns are constrained to the selected area, so picking
@@ -206,7 +205,6 @@ def birds_gallery():
         active_family=family,
         active_area=area,
         active_media=media,
-        active_view=view,
         active_review=review,
         active_rating=rating,
         review_counts=review_counts,
