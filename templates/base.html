@@ -37,7 +37,25 @@
                 <a href="https://www.linkedin.com/pub/scott-ouellette/69/2b/209/">LinkedIn</a>
             </div>
         </div>
-        <small class="mono">&copy; <span id="year">2026</span> &middot; built with flask, deployed with zappa</small>
+        <small class="mono">&copy; <span id="year">2026</span> &middot; <span id="footer-fact"></span></small>
+        <script>
+            (function () {
+                var facts = [
+                    "photographs birds around North Andover, MA",
+                    "has photographed 85+ species and counting",
+                    "built a duck roguelike in Godot",
+                    "funnels his grip strength into Grafana",
+                    "writes more Terraform &amp; OpenTofu than is strictly healthy",
+                    "automated his whole photo pipeline, Synology &rarr; Instagram",
+                    "has hiked Maine, New Hampshire, Norway &amp; Tuscany",
+                    "will pull over for a good summit view",
+                    "thinks the Barred Owl is underrated",
+                    "ships DUCKODUCKO updates daily"
+                ];
+                var el = document.getElementById("footer-fact");
+                if (el) el.innerHTML = facts[Math.floor(Math.random() * facts.length)];
+            })();
+        </script>
     </footer>
 
     {% if local %}
