@@ -47,6 +47,9 @@
         <p class="media-stat mono">
             <a class="media-link{% if active_media == 'photo' %} on{% endif %}" onclick="birdsGo(null,{media:'{{ '' if active_media == 'photo' else 'photo' }}'})"><strong>{{ media_n.photos }}</strong> photo{{ 's' if media_n.photos != 1 }}</a>{% if media_n.videos %} &middot; <a class="media-link{% if active_media == 'video' %} on{% endif %}" onclick="birdsGo(null,{media:'{{ '' if active_media == 'video' else 'video' }}'})"><strong>{{ media_n.videos }}</strong> video{{ 's' if media_n.videos != 1 }}</a>{% endif %}
         </p>
+        <p class="media-stat mono">
+            order: <a class="media-link{% if not active_sort %} on{% endif %}" onclick="birdsGo(null,{sort:''})">shuffle</a> &middot; <a class="media-link{% if active_sort == 'recent' %} on{% endif %}" onclick="birdsGo(null,{sort:'recent'})">newest</a> &middot; <a class="media-link{% if active_sort == 'oldest' %} on{% endif %}" onclick="birdsGo(null,{sort:'oldest'})">oldest</a>
+        </p>
         {% if active_bird or active_family or active_area or active_media %}
         <div class="bird-active">
             <div class="filter-chips">
@@ -61,7 +64,7 @@
         </div>
         {% endif %}
         <script>
-            window.BIRDS_ACTIVE = { bird: {{ active_bird|tojson }}, family: {{ active_family|tojson }}, area: {{ active_area|tojson }}, media: {{ active_media|tojson }}, review: {{ active_review|tojson }} };
+            window.BIRDS_ACTIVE = { bird: {{ active_bird|tojson }}, family: {{ active_family|tojson }}, area: {{ active_area|tojson }}, media: {{ active_media|tojson }}, sort: {{ active_sort|tojson }}, review: {{ active_review|tojson }} };
             function birdsGo(ev, over) {
                 if (ev) ev.preventDefault();
                 var a = Object.assign({}, window.BIRDS_ACTIVE, over);
@@ -70,6 +73,7 @@
                 if (a.family) p.set("family", a.family);
                 if (a.area) p.set("area", a.area);
                 if (a.media) p.set("media", a.media);
+                if (a.sort) p.set("sort", a.sort);
                 if (a.review) p.set("review", a.review);
                 var q = p.toString();
                 location.href = "/birds" + (q ? "?" + q : "");

@@ -185,6 +185,9 @@ def birds_gallery():
     media = (request.args.get("media") or "").strip()
     if media not in ("photo", "video"):
         media = ""
+    sort = (request.args.get("sort") or "").strip()
+    if sort not in ("recent", "oldest"):
+        sort = ""
     # Ordered lead-in from a home-page preview click: pin these exact frames
     # ("<post_id>.<image_index>") to the front in the given order (ignored under
     # any active filter).
@@ -216,6 +219,10 @@ def birds_gallery():
         shots = birds.start_ordered(all_shots, start_tokens)  # home-preview lead-in
     else:
         shots = birds.all_photos_shuffled(all_shots)  # plain random order
+    # Chronological ordering applies to any frame view (default or filtered),
+    # overriding the random/lead-in order; curate whole-post views are left alone.
+    if sort and not curate:
+        shots = birds.sort_frames(shots, sort)
     total = sum(len(sp) for _, sp in groups)
     away = sum(1 for _, sp in groups for name, _ in sp if name in out_of_area)
     # The species/family dropdowns are constrained to the selected area, so picking
@@ -251,6 +258,7 @@ def birds_gallery():
         active_family=family,
         active_area=area,
         active_media=media,
+        active_sort=sort,
         active_review=review,
         review_counts=review_counts,
         media_n=dict(zip(("photos", "videos"),

@@ -317,8 +317,10 @@ def _pseudo_frame(shot, i):
     canons = _canon_species_list(raw)
     display = " & ".join(c[0] for c in canons) or (shot.get("species") or "")
     loc = iloc[i] if i < len(iloc) and iloc[i] else shot.get("location")
+    _sd = _capture_date_obj(shot.get("caption") or "", shot.get("timestamp"))
     return {
         "id": "%s-%d" % (shot.get("id"), i),
+        "_sort": _sd.isoformat() if _sd else "",
         "post_id": shot.get("id"),
         "images": [images[i]],
         "captions": [caps[i] if i < len(caps) else ""],
@@ -474,6 +476,16 @@ def all_photos_shuffled(shots):
             frames.append(frame)
     random.shuffle(frames)
     return frames
+
+
+def sort_frames(frames, order):
+    """Order a frame list by capture date. ``order`` is 'recent' (newest first)
+    or 'oldest'; undated frames always go to the end. Frames within the same date
+    keep their existing relative order (stable)."""
+    dated = [f for f in frames if f.get("_sort")]
+    undated = [f for f in frames if not f.get("_sort")]
+    dated.sort(key=lambda f: f["_sort"], reverse=(order == "recent"))
+    return dated + undated
 
 
 def start_ordered(shots, tokens):
