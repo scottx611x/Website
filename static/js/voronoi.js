@@ -1,5 +1,8 @@
 $( document ).ready(function() {
-    var svg = d3.select("svg").on("touchmove mousemove", moved)
+    var svg = d3.select("svg");
+    // The effect sits behind the page content, so listen on the whole window —
+    // otherwise the content on top swallows the mouse and the effect looks dead.
+    d3.select(window).on("mousemove.voronoi touchmove.voronoi", moved);
 
     height = window.innerHeight;
     width = window.innerWidth;
@@ -33,7 +36,8 @@ $( document ).ready(function() {
         .call(redrawSite);
 
     function moved() {
-      sites[0] = d3.mouse(this);
+      var e = d3.event, t = e.touches && e.touches[0];
+      sites[0] = [t ? t.clientX : e.clientX, t ? t.clientY : e.clientY];
       redraw();
     }
 

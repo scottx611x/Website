@@ -1198,7 +1198,7 @@
       "local"
     ],
     "caption_species": [
-      "House Wren",
+      "Northern House Wren",
       "Northern Mockingbird"
     ],
     "reclassified": false,
@@ -11737,7 +11737,8 @@
       "Carolina Wren",
       "Northern Cardinal",
       "Black-capped Chickadee",
-      "Tufted Titmouse"
+      "Tufted Titmouse",
+      "Peregrine Falcon"
     ],
     "location": "/1-10-26 - Rea St.",
     "locations": [
@@ -11758,7 +11759,7 @@
       "Northern Cardinal",
       "Black-capped Chickadee",
       "Tufted Titmouse",
-      "Dark-eyed Junco"
+      "Peregrine Falcon"
     ],
     "image_locations": [
       null,
@@ -11775,7 +11776,7 @@
       "local",
       "local",
       "local",
-      "local"
+      "away"
     ],
     "caption_species": [
       "Dark-eyed Junco",
