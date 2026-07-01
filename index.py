@@ -56,10 +56,15 @@ def load_taglines():
 HIDDEN_PAGES = {"blog", "photography"}
 
 
+# tilt-shift is a subtle image parallax with no animated overlay, so it's opt-in
+# only (via the switcher); a fresh visit always gets a visibly animated effect.
+ANIMATED_EFFECTS = ["collision", "voronoi"]
+
+
 def _pick_effect():
     """The effect you last chose (cookie) sticks; first-timers get a random one."""
     chosen = request.cookies.get("effect")
-    return chosen if chosen in EFFECTS else random.choice(EFFECTS)
+    return chosen if chosen in EFFECTS else random.choice(ANIMATED_EFFECTS)
 
 
 def _home_context():
