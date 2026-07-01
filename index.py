@@ -171,9 +171,10 @@ def birds_gallery():
     media = (request.args.get("media") or "").strip()
     if media not in ("photo", "video"):
         media = ""
-    # Ordered lead-in from a home-page preview click: pin these posts' first
-    # frames to the front in the given order (ignored under any active filter).
-    start_ids = [s for s in (request.args.get("start") or "").split(",") if s][:12]
+    # Ordered lead-in from a home-page preview click: pin these exact frames
+    # ("<post_id>.<image_index>") to the front in the given order (ignored under
+    # any active filter).
+    start_tokens = [s for s in (request.args.get("start") or "").split(",") if s][:12]
     # Curate-only review facets.
     review = (request.args.get("review") or "") if curate else ""
     if review not in ("reclassified", "reid", "hidden"):
@@ -197,8 +198,8 @@ def birds_gallery():
                                       media=media)
     elif curate:
         shots = all_shots  # curate default: whole posts (for post-level editing)
-    elif start_ids:
-        shots = birds.start_ordered(all_shots, start_ids)  # home-preview lead-in
+    elif start_tokens:
+        shots = birds.start_ordered(all_shots, start_tokens)  # home-preview lead-in
     else:
         shots = birds.all_photos_shuffled(all_shots)  # plain random order
     total = sum(len(sp) for _, sp in groups)

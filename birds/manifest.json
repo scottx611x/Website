@@ -8102,8 +8102,8 @@
     "species": "Red-tailed Hawk",
     "species_list": [
       "Red-tailed Hawk",
-      "Northern Flicker",
       "Mourning Dove",
+      "Northern Flicker",
       "American Crow"
     ],
     "location": "Rea St./Johnson St.",
@@ -8123,7 +8123,7 @@
       "Red-tailed Hawk",
       "Red-tailed Hawk",
       "Red-tailed Hawk",
-      "Northern Flicker",
+      "Red-tailed Hawk",
       "Mourning Dove",
       "Northern Flicker",
       "Mourning Dove",
@@ -10923,12 +10923,12 @@
     ],
     "ambiguous": false,
     "image_areas": [
-      "local",
-      "local",
-      "local",
-      "local",
-      "local",
-      "local"
+      "away",
+      "away",
+      "away",
+      "away",
+      "away",
+      "away"
     ],
     "caption_species": [
       "Osprey",
@@ -12416,9 +12416,9 @@
     "species": "Red-bellied Woodpecker",
     "species_list": [
       "Red-bellied Woodpecker",
-      "Northern Flicker",
       "Northern Cardinal",
-      "Downy Woodpecker"
+      "Downy Woodpecker",
+      "Northern Flicker"
     ],
     "location": "Rea Street",
     "locations": [
@@ -12433,7 +12433,7 @@
     "weight": 0.812,
     "image_species": [
       "Red-bellied Woodpecker",
-      "Northern Flicker",
+      "Red-bellied Woodpecker",
       "Northern Cardinal",
       "Downy Woodpecker",
       "Downy Woodpecker",

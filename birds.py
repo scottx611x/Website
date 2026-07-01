@@ -476,16 +476,26 @@ def all_photos_shuffled(shots):
     return frames
 
 
-def start_ordered(shots, post_ids):
-    """Every frame in random order, but with the lead frame (image 0) of each
-    post in ``post_ids`` pinned to the front, in that exact order. Lets a click
-    on the home-page preview land on the gallery with those same birds leading,
-    in the same order they were shown."""
+def start_ordered(shots, tokens):
+    """Every frame in random order, but with the exact frames named by ``tokens``
+    pinned to the front, in that order. Each token is ``"<post_id>.<image_index>"``
+    where the index is the image's ORIGINAL position in its post (stable across
+    loads — plain positional order isn't, since images are reshuffled each load).
+    Lets a click on the home preview open the gallery with those same photos
+    leading, in the same order they were shown."""
     frames = all_photos_shuffled(shots)
-    by_id = {f["id"]: f for f in frames}
+    by_key = {}
+    for f in frames:
+        oi = (f.get("image_indices") or [None])[0]
+        by_key.setdefault((f.get("post_id"), oi), f)
     front, seen = [], set()
-    for pid in post_ids:
-        f = by_id.get("%s-0" % pid)
+    for tok in tokens:
+        pid, _, idx = tok.partition(".")
+        try:
+            oi = int(idx)
+        except ValueError:
+            continue
+        f = by_key.get((pid, oi))
         if f and f["id"] not in seen:
             front.append(f)
             seen.add(f["id"])

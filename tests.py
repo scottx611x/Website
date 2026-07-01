@@ -111,6 +111,18 @@ class BirdsTestCase(unittest.TestCase):
         self.assertEqual(clean, set())
         self.assertEqual(ooa, {"Osprey", "Cooper's Hawk", "Boat-tailed Grackle"})
 
+    def test_start_ordered_pins_exact_frames_by_original_index(self):
+        # Tokens are "<post>.<original image index>"; the named frames lead in
+        # order regardless of how images get shuffled within a post.
+        shots = [
+            {"id": "A", "images": ["a0", "a1"], "image_indices": [0, 1]},
+            {"id": "B", "images": ["b0"], "image_indices": [0]},
+        ]
+        out = birds.start_ordered(shots, ["B.0", "A.1"])
+        self.assertEqual([f["images"][0] for f in out[:2]], ["b0", "a1"])
+        # Nothing dropped or duplicated: still every frame exactly once.
+        self.assertCountEqual([f["images"][0] for f in out], ["a0", "a1", "b0"])
+
     def test_ticker_species_dedupes(self):
         shots = [{"species": s} for s in ["Barred Owls", "Baby Barred Owl", "Osprey"]]
         self.assertEqual(birds.ticker_species(shots), ["Barred Owl", "Osprey"])
