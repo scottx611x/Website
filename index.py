@@ -79,6 +79,7 @@ def _home_context():
         "taglines": load_taglines(),
         "species": birds.ticker_species(shots),
         "curate": _curate_on(),
+        "local": _is_local(),
     }
 
 
