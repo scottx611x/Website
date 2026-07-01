@@ -347,11 +347,6 @@
                 grid._cards.forEach(function (card, i) { cols[i % n].appendChild(card); });
             }
             function layoutAll() { document.querySelectorAll(".masonry").forEach(layout); }
-            // Called by the gallery's fill-width toggle: force a column recount.
-            window.birdsRelayout = function () {
-                document.querySelectorAll(".masonry").forEach(function (g) { g._cols = null; });
-                layoutAll();
-            };
             layoutAll();
             var t;
             addEventListener("resize", function () { clearTimeout(t); t = setTimeout(layoutAll, 150); });
