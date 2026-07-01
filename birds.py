@@ -223,9 +223,10 @@ def _caption_area_species(caption):
         warned = "⚠" in s
         text = s.replace("️", "").replace("⚠", "").strip()
         head = re.split(r"\s+[-–]\s+", text, maxsplit=1)
-        canon = _canon_species(head[0])
-        if canon:
-            block.append((canon[0], warned, len(head) > 1))
+        canons = _canon_species_list(head[0])
+        if canons:
+            for c in canons:  # a line may list several species ("A & B")
+                block.append((c[0], warned, len(head) > 1))
         elif _DATE_RE.search(text):
             flush(False)
         elif block:
@@ -473,6 +474,23 @@ def all_photos_shuffled(shots):
             frames.append(frame)
     random.shuffle(frames)
     return frames
+
+
+def start_ordered(shots, post_ids):
+    """Every frame in random order, but with the lead frame (image 0) of each
+    post in ``post_ids`` pinned to the front, in that exact order. Lets a click
+    on the home-page preview land on the gallery with those same birds leading,
+    in the same order they were shown."""
+    frames = all_photos_shuffled(shots)
+    by_id = {f["id"]: f for f in frames}
+    front, seen = [], set()
+    for pid in post_ids:
+        f = by_id.get("%s-0" % pid)
+        if f and f["id"] not in seen:
+            front.append(f)
+            seen.add(f["id"])
+    rest = [f for f in frames if f["id"] not in seen]
+    return front + rest
 
 
 def filter_shots(shots, bird=None, family=None, area=None, ooa_only=()):

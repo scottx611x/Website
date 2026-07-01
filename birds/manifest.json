@@ -2269,7 +2269,7 @@
       "Wood Duck",
       "Wood Duck",
       "Wood Duck",
-      "Wood Duck",
+      "Eastern Phoebe",
       "Eastern Phoebe"
     ],
     "image_locations": [
@@ -6252,7 +6252,7 @@
       "American Herring Gull",
       "Rock Pigeon"
     ],
-    "reclassified": true,
+    "reclassified": false,
     "image_indices": [
       0,
       1,
@@ -6772,7 +6772,7 @@
     "caption_species": [
       "Northern Cardinal"
     ],
-    "reclassified": true,
+    "reclassified": false,
     "image_indices": [
       0,
       1,
@@ -11977,7 +11977,7 @@
       "Song Sparrow",
       "Dark-eyed Junco"
     ],
-    "reclassified": true,
+    "reclassified": false,
     "image_indices": [
       0,
       1,
@@ -12383,7 +12383,7 @@
       "American Goldfinch",
       "House Finch"
     ],
-    "reclassified": true,
+    "reclassified": false,
     "image_indices": [
       0,
       1,

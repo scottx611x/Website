@@ -102,6 +102,15 @@ class BirdsTestCase(unittest.TestCase):
         self.assertEqual(birds.normalize_species("⚠️ Common Loon"), "Common Loon")
         self.assertEqual(birds.normalize_species("Ruby-throated Hummingbird"), "Ruby-throated Hummingbird")
 
+    def test_caption_area_marks_multi_species_line_out_of_area(self):
+        # A "A & B" line must not be mistaken for a location line (which would
+        # flush the block early as local); the shared ⚠️ tags the whole block.
+        caption = ("Osprey\nCooper's Hawk & Boat-tailed Grackle\n\n"
+                   "⚠️ Estero, Florida\n1-24-26")
+        clean, ooa = birds._caption_area_species(caption)
+        self.assertEqual(clean, set())
+        self.assertEqual(ooa, {"Osprey", "Cooper's Hawk", "Boat-tailed Grackle"})
+
     def test_ticker_species_dedupes(self):
         shots = [{"species": s} for s in ["Barred Owls", "Baby Barred Owl", "Osprey"]]
         self.assertEqual(birds.ticker_species(shots), ["Barred Owl", "Osprey"])

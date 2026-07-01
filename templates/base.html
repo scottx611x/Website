@@ -13,7 +13,11 @@
 </head>
 <body class="{% block body_class %}{% endblock %}">
     <header class="site-nav" id="nav">
+        {% if request.endpoint in ['index', 'effect'] %}
+        <span class="brand-spacer" aria-hidden="true"></span>
+        {% else %}
         <a class="brand" href="/"><span class="brand-dot"></span>scott&nbsp;ouellette</a>
+        {% endif %}
         <nav>
             <a href="/birds">Birds</a>
             <a href="/projects">Projects</a>
@@ -319,7 +323,12 @@
         // Masonry: deal cards across columns in reading order (row-major), so the
         // first row reads left→right while cards keep their natural heights.
         (function () {
-            function columnsFor(w) { return w <= 520 ? 1 : (w <= 820 ? 2 : 3); }
+            function columnsFor(w) {
+                if (document.body.classList.contains("birds-fill")) {
+                    return w <= 480 ? 2 : (w <= 820 ? 3 : (w <= 1200 ? 4 : (w <= 1700 ? 5 : 6)));
+                }
+                return w <= 520 ? 1 : (w <= 820 ? 2 : 3);
+            }
             function layout(grid) {
                 if (!grid._cards) {
                     grid._cards = Array.prototype.slice.call(grid.querySelectorAll(".shot"));
@@ -338,6 +347,11 @@
                 grid._cards.forEach(function (card, i) { cols[i % n].appendChild(card); });
             }
             function layoutAll() { document.querySelectorAll(".masonry").forEach(layout); }
+            // Called by the gallery's fill-width toggle: force a column recount.
+            window.birdsRelayout = function () {
+                document.querySelectorAll(".masonry").forEach(function (g) { g._cols = null; });
+                layoutAll();
+            };
             layoutAll();
             var t;
             addEventListener("resize", function () { clearTimeout(t); t = setTimeout(layoutAll, 150); });

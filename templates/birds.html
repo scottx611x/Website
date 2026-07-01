@@ -1,6 +1,10 @@
 {% extends 'base.html' %}
 
 {% block content %}
+<script>
+    // Restore the gallery's fill-width preference before the grid first lays out.
+    if (localStorage.getItem("birdsFill") === "1") document.body.classList.add("birds-fill");
+</script>
 <section class="page wide">
     <header class="gallery-header">
         <p class="kicker">North Andover, MA</p>
@@ -91,6 +95,10 @@
     </header>
 
     {% if shots %}
+    <div class="gallery-tools">
+        <button type="button" id="densityToggle" class="chip-toggle" aria-pressed="false"
+                title="Use the full screen width">&#8596; Fill width</button>
+    </div>
     <div class="masonry">
         {% for shot in shots %}
         <figure class="shot{% if curate %} curating{% if shot.ambiguous %} flagged{% endif %}{% endif %}"
@@ -135,4 +143,23 @@
     <p class="empty mono" style="text-align:center;">// gallery warming up — check back soon.</p>
     {% endif %}
 </section>
+<script>
+    (function () {
+        var btn = document.getElementById("densityToggle");
+        if (!btn) return;
+        function sync() {
+            var on = document.body.classList.contains("birds-fill");
+            btn.classList.toggle("on", on);
+            btn.setAttribute("aria-pressed", on ? "true" : "false");
+            btn.innerHTML = on ? "&#8596; Fit width" : "&#8596; Fill width";
+        }
+        sync();
+        btn.addEventListener("click", function () {
+            var on = document.body.classList.toggle("birds-fill");
+            localStorage.setItem("birdsFill", on ? "1" : "0");
+            sync();
+            if (window.birdsRelayout) window.birdsRelayout();
+        });
+    })();
+</script>
 {% endblock %}
