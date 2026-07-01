@@ -3,12 +3,14 @@ import os
 import random
 
 from flask import Flask, abort, make_response, redirect, render_template, request
+from flask_compress import Compress
 
 import birds
 import blog
 
 app = Flask(__name__)
 app.debug = False
+Compress(app)  # gzip/brotli responses — the gallery page is ~3 MB of HTML otherwise
 
 TITLE = "Scott Ouellette"
 
@@ -110,6 +112,11 @@ def _home_context():
         "curate": _curate_on(),
         "local": _is_local(),
     }
+
+
+@app.errorhandler(404)
+def not_found(_e):
+    return render_template("404.html", title="Not found"), 404
 
 
 @app.before_request
