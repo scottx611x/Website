@@ -59,6 +59,16 @@ class RoutesTestCase(GenericTestBase):
         self.assertEqual(response.status_code, 200)
         self.assertIn(b"by the numbers", response.data)
 
+    def test_birds_map_route(self):
+        response = self.test_client.get("/birds/map")
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(b"sightings-map", response.data)
+
+    def test_birds_location_filter(self):
+        response = self.test_client.get("/birds?loc=Rea%20St.")
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(b"Rea St.", response.data)
+
     def test_birds_subdomain_serves_gallery_at_root(self):
         response = self.test_client.get(
             "/", headers={"Host": "birds.scott-ouellette.com"}
@@ -131,6 +141,16 @@ class BirdsTestCase(unittest.TestCase):
     def test_ticker_species_dedupes(self):
         shots = [{"species": s} for s in ["Barred Owls", "Baby Barred Owl", "Osprey"]]
         self.assertEqual(birds.ticker_species(shots), ["Barred Owl", "Osprey"])
+
+    def test_map_points_matches_aliases(self):
+        places = [{"name": "Rea St.", "lat": 42.67, "lng": -71.1, "area": "local",
+                   "match": ["rea st"]}]
+        shots = [{"id": "a", "images": ["u1", "u2"], "species": "Barred Owl",
+                  "image_locations": ["Rea St.", "Rea Street Extension"]}]
+        pts = birds.map_points(shots, places)
+        self.assertEqual(len(pts), 1)
+        self.assertEqual(pts[0]["count"], 2)  # alias prefix folds the Extension in
+        self.assertEqual(pts[0]["top"], ["Barred Owl"])
 
     def test_gallery_stats_shape(self):
         stats = birds.gallery_stats(birds.load_gallery())

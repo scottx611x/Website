@@ -404,6 +404,36 @@
             addEventListener("resize", function () { clearTimeout(t); t = setTimeout(layoutAll, 150); });
         })();
 
+        // Gallery scroll-reveal: photos fade up as they enter the viewport.
+        // Gated behind .reveal-ready so a JS failure never hides the grid.
+        (function () {
+            if (!("IntersectionObserver" in window) ||
+                matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+            // threshold 0: lazy images have no height until they load, so any
+            // positive threshold would never fire for below-fold cards.
+            var obs = new IntersectionObserver(function (entries) {
+                entries.forEach(function (e) {
+                    if (e.isIntersecting) { e.target.classList.add("seen"); obs.unobserve(e.target); }
+                });
+            }, { threshold: 0, rootMargin: "0px 0px 6% 0px" });
+            document.querySelectorAll(".masonry").forEach(function (g) {
+                g.classList.add("reveal-ready");
+                g.querySelectorAll(".shot").forEach(function (s) { obs.observe(s); });
+            });
+        })();
+
+        // Cursor spotlight: a soft glow tracks the pointer over gallery cards.
+        (function () {
+            if (!window.matchMedia || !matchMedia("(hover: hover)").matches) return;
+            document.addEventListener("pointermove", function (e) {
+                var card = e.target.closest && e.target.closest(".masonry .shot");
+                if (!card) return;
+                var r = card.getBoundingClientRect();
+                card.style.setProperty("--mx", (e.clientX - r.left) + "px");
+                card.style.setProperty("--my", (e.clientY - r.top) + "px");
+            }, { passive: true });
+        })();
+
         // Hover-autoplay a muted preview of video covers (pointer devices only).
         (function () {
             if (!window.matchMedia || !matchMedia("(hover: hover)").matches) return;

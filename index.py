@@ -211,6 +211,10 @@ def birds_gallery():
     sort = (request.args.get("sort") or "").strip()
     if sort not in ("recent", "oldest"):
         sort = ""
+    # Location filter (from a sightings-map pin): resolves against locations.json.
+    loc_q = (request.args.get("loc") or "").strip().lower()
+    place = next((p for p in birds.load_locations()
+                  if p["name"].lower() == loc_q), None) if loc_q else None
     # Ordered lead-in from a home-page preview click: pin these exact frames
     # ("<post_id>.<image_index>") to the front in the given order (ignored under
     # any active filter).
@@ -233,6 +237,8 @@ def birds_gallery():
         raw = list(birds._load_manifest_from_s3() or birds._load_local_manifest() or [])
         birds.apply_overrides(raw, apply_exclusions=False)
         shots = birds.images_hidden(raw)
+    elif place:
+        shots = birds.images_at_place(all_shots, place)
     elif bird or family or area or media:
         shots = birds.images_filtered(all_shots, bird, family, area, out_of_area,
                                       media=media)
@@ -282,6 +288,7 @@ def birds_gallery():
         active_area=area,
         active_media=media,
         active_sort=sort,
+        active_loc=place["name"] if place else "",
         active_review=review,
         review_counts=review_counts,
         media_n=dict(zip(("photos", "videos"),
@@ -291,6 +298,20 @@ def birds_gallery():
         curate=curate,
         local=_is_local(),
         reid_queued=sorted(birds.reid_keys()) if curate else [],
+    )
+
+
+@app.route("/birds/map", methods=["GET"])
+def birds_map():
+    shots = birds.load_gallery(shuffle=False)
+    points = birds.map_points(shots)
+    return render_template(
+        "map.html",
+        title="Bird sightings map",
+        points=points,
+        mapped=sum(p["count"] for p in points),
+        local=_is_local(),
+        curate=_curate_on(),
     )
 
 

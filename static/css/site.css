@@ -378,6 +378,19 @@ body.home .site-nav { z-index: 0; }
 .masonry { display: flex; align-items: flex-start; gap: 14px; }
 .masonry-col { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; gap: 14px; }
 .masonry .shot { margin: 0; position: relative; overflow: hidden; border-radius: 4px; cursor: zoom-in; }
+/* Scroll-reveal (only once JS marks the grid ready, so no-JS never hides photos) */
+.masonry.reveal-ready .shot { opacity: 0; transform: translateY(14px); transition: opacity 0.5s ease, transform 0.5s ease; }
+.masonry.reveal-ready .shot.seen { opacity: 1; transform: none; }
+/* Cursor spotlight: a soft neon glow follows the pointer over a card */
+@media (hover: hover) {
+    .masonry .shot::after {
+        content: ""; position: absolute; inset: 0; opacity: 0; pointer-events: none;
+        transition: opacity 0.3s ease; mix-blend-mode: screen;
+        background: radial-gradient(240px circle at var(--mx, 50%) var(--my, 50%),
+                    rgba(56, 224, 138, 0.22), transparent 65%);
+    }
+    .masonry .shot:hover::after { opacity: 1; }
+}
 .masonry .shot:focus-visible { outline: 2px solid var(--neon); outline-offset: 2px; }
 .masonry .shot img { width: 100%; height: auto; display: block; transition: transform 0.6s; }
 .masonry .shot:hover img { transform: scale(1.05); }
@@ -445,6 +458,17 @@ body.home .site-nav { z-index: 0; }
 .proj-link.is-repo { color: var(--ink); border-color: rgba(13,18,14,0.25); }
 .proj-link.is-repo:hover { background: var(--ink); color: var(--paper); border-color: var(--ink); }
 .proj-year { color: var(--muted); font-size: 0.72rem; margin-left: auto; }
+
+/* ====================== SIGHTINGS MAP ====================== */
+#sightings-map {
+    height: min(72vh, 760px); border-radius: 12px; z-index: 1;
+    border: 1px solid rgba(13, 18, 14, 0.12); box-shadow: 0 10px 30px -18px rgba(13, 18, 14, 0.35);
+}
+.map-toggle { display: flex; gap: 0.5rem; justify-content: center; margin: 0 0 1rem; }
+.map-legend { text-align: center; color: var(--muted); font-size: 0.76rem; margin-top: 0.9rem; }
+.leaflet-popup-content { font-family: var(--mono); font-size: 0.8rem; line-height: 1.55; }
+.leaflet-popup-content a { color: var(--green); font-weight: 600; }
+.pop-top { color: var(--muted); }
 
 /* ====================== STATS ("by the numbers") ====================== */
 .stat-cards {

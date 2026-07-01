@@ -12,7 +12,7 @@
         <p class="empty" style="color:var(--ink);max-width:38rem;margin:0 auto;">
             A running collection of my favorite birds from around my home town.
         </p>
-        <p style="margin-top:0.7rem;"><a class="bird-stat-link" href="/birds/stats">&#128202; by the numbers &rarr;</a></p>
+        <p style="margin-top:0.7rem;"><a class="bird-stat-link" href="/birds/map">&#128506;&#65039; the map</a> &nbsp;&middot;&nbsp; <a class="bird-stat-link" href="/birds/stats">&#128202; by the numbers</a></p>
         {% if species_groups %}
         <div class="bird-filter">
             <p class="bird-stat">
@@ -51,9 +51,10 @@
         <p class="media-stat mono">
             order: <a class="media-link{% if not active_sort %} on{% endif %}" onclick="birdsGo(null,{sort:''})">shuffle</a> &middot; <a class="media-link{% if active_sort == 'recent' %} on{% endif %}" onclick="birdsGo(null,{sort:'recent'})">newest</a> &middot; <a class="media-link{% if active_sort == 'oldest' %} on{% endif %}" onclick="birdsGo(null,{sort:'oldest'})">oldest</a>
         </p>
-        {% if active_bird or active_family or active_area or active_media %}
+        {% if active_bird or active_family or active_area or active_media or active_loc %}
         <div class="bird-active">
             <div class="filter-chips">
+                {% if active_loc %}<button type="button" class="chip" onclick="birdsGo(null,{loc:''})">&#128205; {{ active_loc }} <span>&times;</span></button>{% endif %}
                 {% if active_media %}<button type="button" class="chip" onclick="birdsGo(null,{media:''})">{% if active_media == 'video' %}&#9654; Videos{% else %}Photos{% endif %} <span>&times;</span></button>{% endif %}
                 {% if active_area %}<button type="button" class="chip" onclick="birdsGo(null,{area:''})">{% if active_area == 'elsewhere' %}Out&#8209;of&#8209;area &#9888;&#65039;{% else %}North Andover{% endif %} <span>&times;</span></button>{% endif %}
                 {% if active_family %}<button type="button" class="chip" onclick="birdsGo(null,{family:''})">{{ active_family }} <span>&times;</span></button>{% endif %}
@@ -65,9 +66,13 @@
         </div>
         {% endif %}
         <script>
-            window.BIRDS_ACTIVE = { bird: {{ active_bird|tojson }}, family: {{ active_family|tojson }}, area: {{ active_area|tojson }}, media: {{ active_media|tojson }}, sort: {{ active_sort|tojson }}, review: {{ active_review|tojson }} };
+            window.BIRDS_ACTIVE = { bird: {{ active_bird|tojson }}, family: {{ active_family|tojson }}, area: {{ active_area|tojson }}, media: {{ active_media|tojson }}, sort: {{ active_sort|tojson }}, loc: {{ active_loc|tojson }}, review: {{ active_review|tojson }} };
             function birdsGo(ev, over) {
                 if (ev) ev.preventDefault();
+                // Location and species/family/area filters are mutually exclusive:
+                // picking one clears the other so the result is never ambiguous.
+                if (over.bird || over.family || over.area || over.media) over.loc = "";
+                if (over.loc) { over.bird = ""; over.family = ""; over.area = ""; over.media = ""; }
                 var a = Object.assign({}, window.BIRDS_ACTIVE, over);
                 var p = new URLSearchParams();
                 if (a.bird) p.set("bird", a.bird);
@@ -75,6 +80,7 @@
                 if (a.area) p.set("area", a.area);
                 if (a.media) p.set("media", a.media);
                 if (a.sort) p.set("sort", a.sort);
+                if (a.loc) p.set("loc", a.loc);
                 if (a.review) p.set("review", a.review);
                 var q = p.toString();
                 location.href = "/birds" + (q ? "?" + q : "");

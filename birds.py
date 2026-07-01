@@ -1422,6 +1422,87 @@ def _loc_key(loc):
     return re.sub(r"\s+", " ", k)
 
 
+LOCATIONS_FILE = os.path.join(HERE, "static", "locations.json")
+
+
+def load_locations():
+    """Geocoded shooting spots for the sightings map (static/locations.json).
+    Each place: name, lat, lng, area, and `match` — normalized _loc_key aliases;
+    a frame belongs to the place when its key equals or extends an alias."""
+    try:
+        with open(LOCATIONS_FILE) as fh:
+            return json.load(fh)
+    except (OSError, ValueError):
+        return []
+
+
+def _place_index(places):
+    """alias -> place lookups, longest aliases first so the most specific wins
+    (e.g. 'harborwalk holocaust memorial boston' before 'harborwalk boston')."""
+    pairs = [(alias, p) for p in places for alias in p.get("match", [])]
+    return sorted(pairs, key=lambda ap: -len(ap[0]))
+
+
+def _match_place(loc, alias_index):
+    key = _loc_key(loc)
+    if not key:
+        return None
+    for alias, place in alias_index:
+        if key == alias or key.startswith(alias + " "):
+            return place
+    return None
+
+
+def map_points(shots, places=None):
+    """Aggregate every frame onto its geocoded place: count, species set, and
+    top species per pin. Frames whose location isn't in locations.json are
+    skipped (they still show in the gallery, just not on the map)."""
+    import collections
+    places = places if places is not None else load_locations()
+    idx = _place_index(places)
+    counts = collections.Counter()
+    species = collections.defaultdict(collections.Counter)
+    for shot in shots:
+        iloc = shot.get("image_locations") or []
+        isp = shot.get("image_species") or []
+        for i in range(len(shot.get("images") or [])):
+            loc = iloc[i] if i < len(iloc) and iloc[i] else shot.get("location")
+            if not loc:
+                continue
+            place = _match_place(loc, idx)
+            if not place:
+                continue
+            counts[place["name"]] += 1
+            raw = isp[i] if i < len(isp) and isp[i] else shot.get("species")
+            for c in _canon_species_list(raw):
+                species[place["name"]][c[0]] += 1
+    out = []
+    for p in places:
+        n = counts.get(p["name"], 0)
+        if not n:
+            continue
+        sp = species[p["name"]]
+        out.append({
+            "name": p["name"], "lat": p["lat"], "lng": p["lng"], "area": p["area"],
+            "count": n, "species": len(sp),
+            "top": [s for s, _ in sp.most_common(3)],
+        })
+    out.sort(key=lambda p: -p["count"])
+    return out
+
+
+def images_at_place(shots, place):
+    """Every frame taken at ``place`` (a locations.json entry), for /birds?loc=."""
+    idx = _place_index([place])
+    frames = []
+    for shot in shots:
+        for i in range(len(shot.get("images") or [])):
+            frame, _ = _pseudo_frame(shot, i)
+            if frame.get("location") and _match_place(frame["location"], idx):
+                frames.append(frame)
+    return frames
+
+
 def gallery_stats(shots):
     """Aggregate numbers for the 'by the numbers' page: counts, families, top
     species/locations, seasonal activity, and the date span. Derived entirely
