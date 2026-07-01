@@ -1413,6 +1413,80 @@ def _capture_date(caption, timestamp):
     return dt.strftime("%b %-d, %Y") if dt else None
 
 
+def _loc_key(loc):
+    """Normalized key so 'Rea St.' and 'Rea Street' count as one place."""
+    k = re.sub(r"[^a-z0-9 ]", "", (loc or "").lower()).strip()
+    k = re.sub(r"\bstreet\b", "st", k)
+    k = re.sub(r"\bavenue\b", "ave", k)
+    k = re.sub(r"\broad\b", "rd", k)
+    return re.sub(r"\s+", " ", k)
+
+
+def gallery_stats(shots):
+    """Aggregate numbers for the 'by the numbers' page: counts, families, top
+    species/locations, seasonal activity, and the date span. Derived entirely
+    from the existing gallery data (no network)."""
+    import collections
+    species_ct = collections.Counter()
+    family_ct = collections.Counter()
+    loc_ct = collections.Counter()
+    loc_display = {}
+    by_month = [0] * 12
+    by_year = collections.Counter()
+    species_family = {}
+    photos = videos = local = away = 0
+    dates = []
+    for shot in shots:
+        images = shot.get("images") or []
+        isp = shot.get("image_species") or []
+        iloc = shot.get("image_locations") or []
+        areas = shot.get("image_areas") or []
+        vids = shot.get("image_videos") or []
+        d = _capture_date_obj(shot.get("caption") or "", shot.get("timestamp"))
+        for i in range(len(images)):
+            if i < len(vids) and vids[i]:
+                videos += 1
+            else:
+                photos += 1
+            if (areas[i] if i < len(areas) else "local") == "away":
+                away += 1
+            else:
+                local += 1
+            loc = iloc[i] if i < len(iloc) and iloc[i] else shot.get("location")
+            if loc:
+                k = _loc_key(loc)
+                if k:
+                    loc_ct[k] += 1
+                    loc_display.setdefault(k, loc)
+            if d:
+                dates.append(d)
+                by_month[d.month - 1] += 1
+                by_year[d.year] += 1
+            raw = isp[i] if i < len(isp) and isp[i] else shot.get("species")
+            for c in _canon_species_list(raw):
+                species_ct[c[0]] += 1
+                family_ct[c[1]] += 1
+                species_family[c[0]] = c[1]
+    fam_order = {f: n for n, f in enumerate(_FAMILY_ORDER)}
+    families = sorted(family_ct.items(), key=lambda kv: fam_order.get(kv[0], 999))
+    return {
+        "species": len(species_ct),
+        "photos": photos,
+        "videos": videos,
+        "local": local,
+        "away": away,
+        "families": families,
+        "family_species": {f: sum(1 for s, fam in species_family.items() if fam == f)
+                           for f in family_ct},
+        "top_species": [(s, c, species_family.get(s, "")) for s, c in species_ct.most_common(15)],
+        "top_locations": [(loc_display[k], c) for k, c in loc_ct.most_common(12)],
+        "by_month": by_month,
+        "years": sorted(by_year.items()),
+        "first": min(dates) if dates else None,
+        "last": max(dates) if dates else None,
+    }
+
+
 def ticker_species(shots):
     """De-duplicated, normalized species names across all posts, first-seen order.
 

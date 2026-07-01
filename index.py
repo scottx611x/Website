@@ -294,6 +294,24 @@ def birds_gallery():
     )
 
 
+@app.route("/birds/stats", methods=["GET"])
+def birds_stats():
+    shots = birds.load_gallery(shuffle=False)
+    stats = birds.gallery_stats(shots)
+    span_months = 0
+    if stats["first"] and stats["last"]:
+        span_months = ((stats["last"].year - stats["first"].year) * 12
+                       + stats["last"].month - stats["first"].month + 1)
+    return render_template(
+        "stats.html",
+        title="Birds by the numbers",
+        stats=stats,
+        span_months=span_months,
+        local=_is_local(),
+        curate=_curate_on(),
+    )
+
+
 @app.route("/curate/exclude", methods=["POST"])
 def curate_exclude():
     if not _curate_on():

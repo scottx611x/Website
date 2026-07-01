@@ -54,6 +54,11 @@ class RoutesTestCase(GenericTestBase):
     def test_birds_route(self):
         self.assertEqual(self.test_client.get("/birds").status_code, 200)
 
+    def test_birds_stats_route(self):
+        response = self.test_client.get("/birds/stats")
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(b"by the numbers", response.data)
+
     def test_birds_subdomain_serves_gallery_at_root(self):
         response = self.test_client.get(
             "/", headers={"Host": "birds.scott-ouellette.com"}
@@ -126,6 +131,12 @@ class BirdsTestCase(unittest.TestCase):
     def test_ticker_species_dedupes(self):
         shots = [{"species": s} for s in ["Barred Owls", "Baby Barred Owl", "Osprey"]]
         self.assertEqual(birds.ticker_species(shots), ["Barred Owl", "Osprey"])
+
+    def test_gallery_stats_shape(self):
+        stats = birds.gallery_stats(birds.load_gallery())
+        for key in ("species", "photos", "videos", "families", "top_species", "by_month"):
+            self.assertIn(key, stats)
+        self.assertEqual(len(stats["by_month"]), 12)
 
     def test_capture_date_from_caption(self):
         self.assertEqual(birds._capture_date("Barred Owl\n\nRea St.\n\n3-27-26", None), "Mar 27, 2026")

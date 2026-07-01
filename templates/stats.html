@@ -1,0 +1,100 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<section class="page wide stats">
+    <header class="gallery-header">
+        <p class="kicker">North Andover, MA</p>
+        <h1>Birds, by the numbers</h1>
+        <p class="empty" style="color:var(--ink);max-width:40rem;margin:0 auto;">
+            Everything I've pointed a lens at, counted up &mdash; all from the gallery data.
+        </p>
+        <p style="margin-top:1rem;"><a class="bird-stat-link" href="/birds">&larr; back to the gallery</a></p>
+    </header>
+
+    <div class="stat-cards">
+        <div class="stat-card"><span class="stat-num">{{ stats.species }}</span><span class="stat-lbl">species</span></div>
+        <div class="stat-card"><span class="stat-num">{{ "{:,}".format(stats.photos) }}</span><span class="stat-lbl">photos</span></div>
+        {% if stats.videos %}<div class="stat-card"><span class="stat-num">{{ stats.videos }}</span><span class="stat-lbl">videos</span></div>{% endif %}
+        <div class="stat-card"><span class="stat-num">{{ span_months }}</span><span class="stat-lbl">months tracked</span></div>
+        <div class="stat-card"><span class="stat-num">{{ stats.away }}</span><span class="stat-lbl">out&#8209;of&#8209;area</span></div>
+    </div>
+    {% if stats.first %}
+    <p class="stat-span mono">First frame {{ stats.first.strftime('%b %-d, %Y') }} &middot; latest {{ stats.last.strftime('%b %-d, %Y') }}</p>
+    {% endif %}
+
+    <div class="stat-grid">
+        <!-- Seasonal activity -->
+        <div class="stat-block stat-span-2">
+            <h2>When they show up</h2>
+            <p class="stat-sub mono">photos captured, by month of year</p>
+            {% set mmax = stats.by_month|max %}
+            <div class="month-chart">
+                {% for m in stats.by_month %}
+                <div class="month-col" title="{{ ['January','February','March','April','May','June','July','August','September','October','November','December'][loop.index0] }}: {{ m }}">
+                    <div class="month-bar-wrap"><div class="month-bar" style="height: {{ (m / mmax * 100)|round(1) if mmax else 0 }}%"></div></div>
+                    <span class="month-lbl">{{ ['J','F','M','A','M','J','J','A','S','O','N','D'][loop.index0] }}</span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Most photographed -->
+        <div class="stat-block">
+            <h2>Most photographed</h2>
+            <p class="stat-sub mono">click a bird to see its shots</p>
+            {% set smax = stats.top_species[0][1] %}
+            {% for name, count, fam in stats.top_species %}
+            <a class="bar-row" href="/birds?bird={{ name|urlencode }}">
+                <span class="bar-label">{{ name }}</span>
+                <span class="bar-track"><span class="bar-fill" style="width: {{ (count / smax * 100)|round(1) }}%"></span></span>
+                <span class="bar-val mono">{{ count }}</span>
+            </a>
+            {% endfor %}
+        </div>
+
+        <!-- By family -->
+        <div class="stat-block">
+            <h2>By family</h2>
+            <p class="stat-sub mono">{{ stats.families|length }} families represented</p>
+            {% set fmax = stats.families[0][1] %}
+            {% for fam, count in stats.families[:12] %}
+            <a class="bar-row" href="/birds?family={{ fam|urlencode }}">
+                <span class="bar-label">{{ fam }}{% if stats.family_species[fam] > 1 %} <span class="bar-sub">{{ stats.family_species[fam] }} spp.</span>{% endif %}</span>
+                <span class="bar-track"><span class="bar-fill alt" style="width: {{ (count / fmax * 100)|round(1) }}%"></span></span>
+                <span class="bar-val mono">{{ count }}</span>
+            </a>
+            {% endfor %}
+        </div>
+
+        <!-- Top spots -->
+        <div class="stat-block">
+            <h2>Where I find them</h2>
+            <p class="stat-sub mono">top locations by frame</p>
+            {% set lmax = stats.top_locations[0][1] %}
+            {% for loc, count in stats.top_locations %}
+            <div class="bar-row static">
+                <span class="bar-label">{{ loc }}</span>
+                <span class="bar-track"><span class="bar-fill warm" style="width: {{ (count / lmax * 100)|round(1) }}%"></span></span>
+                <span class="bar-val mono">{{ count }}</span>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Local vs away -->
+        <div class="stat-block">
+            <h2>Home turf vs. away</h2>
+            <p class="stat-sub mono">frames in North Andover vs. elsewhere</p>
+            {% set tot = stats.local + stats.away %}
+            <div class="split-bar">
+                <span class="split-local" style="width: {{ (stats.local / tot * 100)|round(1) if tot else 100 }}%"></span>
+                <span class="split-away" style="width: {{ (stats.away / tot * 100)|round(1) if tot else 0 }}%"></span>
+            </div>
+            <p class="split-legend mono">
+                <a href="/birds?area=local"><span class="dot dot-local"></span>{{ "{:,}".format(stats.local) }} local</a>
+                &nbsp;&nbsp;
+                <a href="/birds?area=elsewhere"><span class="dot dot-away"></span>{{ stats.away }} away &#9888;&#65039;</a>
+            </p>
+        </div>
+    </div>
+</section>
+{% endblock %}
