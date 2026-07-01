@@ -92,8 +92,14 @@ def _pick_effect():
 
 def _home_context():
     shots = birds.load_gallery()
+    stats = birds.gallery_stats(shots)
     return {
         "title": TITLE,
+        "bird_stats": {
+            "species": stats["species"],
+            "photos": stats["photos"] + stats["videos"],
+            "places": len(birds.map_points(shots)),
+        },
         "effect": _pick_effect(),
         "background_image": random.choice(load_backgrounds()),
         "posts": [] if "blog" in HIDDEN_PAGES else blog.list_posts()[:3],

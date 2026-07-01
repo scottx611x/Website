@@ -19,8 +19,8 @@
         <a class="brand" href="/"><span class="brand-dot"></span>scott&nbsp;ouellette</a>
         {% endif %}
         <nav>
-            <a href="/birds">Birds</a>
-            <a href="/projects">Projects</a>
+            <a href="/birds" class="{{ 'on' if request.path.startswith('/birds') }}">Birds</a>
+            <a href="/projects" class="{{ 'on' if request.path.startswith('/projects') }}">Projects</a>
             <a class="nav-archive" href="/archive">old site</a>
         </nav>
     </header>

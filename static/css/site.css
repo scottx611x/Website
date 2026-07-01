@@ -81,6 +81,7 @@ a { color: inherit; text-decoration: none; }
     width: 0; height: 2px; background: var(--neon); transition: width 0.22s;
 }
 .site-nav nav a:hover::after { width: 100%; }
+.site-nav nav a.on::after { width: 100%; }   /* underline the current section */
 .nav-archive { opacity: 0.6; }
 
 /* over the dark hero, nav text is light */
@@ -458,6 +459,22 @@ body.home .site-nav { z-index: 0; }
 .proj-link.is-repo { color: var(--ink); border-color: rgba(13,18,14,0.25); }
 .proj-link.is-repo:hover { background: var(--ink); color: var(--paper); border-color: var(--ink); }
 .proj-year { color: var(--muted); font-size: 0.72rem; margin-left: auto; }
+
+/* Bird section sub-nav (gallery / map / stats) */
+.birds-subnav { display: flex; justify-content: center; flex-wrap: wrap; gap: 0.5rem; margin-top: 1.1rem; }
+.birds-subnav a {
+    font-size: 0.8rem; text-decoration: none; color: var(--ink);
+    padding: 0.35rem 0.95rem; border-radius: 999px;
+    border: 1px solid rgba(13, 18, 14, 0.18); transition: all 0.15s ease;
+}
+.birds-subnav a:hover { border-color: var(--green); color: var(--green); }
+.birds-subnav a.on { background: var(--green); border-color: var(--green); color: #fff; }
+
+/* Home birds strip: live numbers + destination links */
+.strip-stats { max-width: 1100px; margin: 1.8rem auto 0; color: var(--muted); font-size: 0.8rem; }
+.strip-stats strong { color: var(--green); font-size: 0.95rem; }
+.strip-links { max-width: 1100px; margin: 0 auto; display: flex; flex-wrap: wrap; gap: 0.3rem 1.8rem; }
+.strip-links .more { margin: 0.8rem 0 0; }
 
 /* ====================== SIGHTINGS MAP ====================== */
 #sightings-map {

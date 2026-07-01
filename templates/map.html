@@ -14,10 +14,7 @@
             Every shooting spot, pinned &mdash; {{ "{:,}".format(mapped) }} photos across {{ points|length }} places.
             Click a pin to see what turned up there.
         </p>
-        <p style="margin-top:0.7rem;" class="mono map-links">
-            <a class="bird-stat-link" href="/birds">&larr; gallery</a> &middot;
-            <a class="bird-stat-link" href="/birds/stats">by the numbers &rarr;</a>
-        </p>
+        {% set subnav_active = 'map' %}{% include '_birds_nav.html' %}
     </header>
 
     <div class="map-toggle mono">

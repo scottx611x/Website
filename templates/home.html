@@ -181,8 +181,14 @@
         </div>
         <p class="hint">More photos appear here as the gallery updates.</p>
         {% endif %}
-        <a class="more" href="/birds">See all photos &rarr;</a>
-        <a class="more" href="/birds/map" style="margin-left:1.4rem;">The sightings map &rarr;</a>
+        {% if bird_stats %}
+        <p class="strip-stats mono"><strong>{{ bird_stats.species }}</strong> species &middot; <strong>{{ "{:,}".format(bird_stats.photos) }}</strong> photos &amp; videos &middot; <strong>{{ bird_stats.places }}</strong> places pinned</p>
+        {% endif %}
+        <div class="strip-links">
+            <a class="more" href="/birds">See all photos &rarr;</a>
+            <a class="more" href="/birds/map">The sightings map &rarr;</a>
+            <a class="more" href="/birds/stats">By the numbers &rarr;</a>
+        </div>
     </section>
 
     <!-- ============ PROJECTS ============ -->
