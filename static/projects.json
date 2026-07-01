@@ -1,40 +1,40 @@
 [
   {
     "name": "hcl-playground",
-    "url": "https://hcl-playground.com",
-    "tech": "Terraform \u00b7 OpenTofu \u00b7 Web",
-    "description": "Evaluate HCL expressions in the browser with Terraform or OpenTofu \u2014 version-aware autocomplete and docs, any version on demand, no install or init/console loop.",
-    "status": "Live",
+    "repo": "https://github.com/scottx611x/hcl-playground",
+    "site": "https://hcl-playground.com",
+    "tech": "Terraform · OpenTofu · Web",
+    "description": "Evaluate HCL expressions in the browser with Terraform or OpenTofu — version-aware autocomplete and docs, any version on demand, no install or init/console loop.",
     "year": "2026",
     "featured": true
   },
   {
-    "name": "DUCKODUCKO \ud83e\udd86",
-    "url": "https://duckoducko.scott-ouellette.com",
-    "tech": "Godot \u00b7 Web \u00b7 Android",
+    "name": "DUCKODUCKO 🦆",
+    "repo": "https://github.com/scottx611x/DUCKODUCKO",
+    "site": "https://duckoducko.scott-ouellette.com",
+    "tech": "Godot · Web · Android",
     "description": "A whimsical top-down, tap-to-hop duck roguelike. Play it instantly in the browser, or grab the Android APK from Releases",
-    "status": "Live",
     "year": "2026",
     "featured": true
   },
   {
     "name": "bird-photography-pipeline",
-    "url": "https://github.com/scottx611x/bird-photography-pipeline",
+    "repo": "https://github.com/scottx611x/bird-photography-pipeline",
     "tech": "Python",
-    "description": "A one-screen pipeline for my bird photography: Synology \u2192 Lightroom \u2192 Buffer \u2192 Instagram. Import, auto-tone, denoise, pick, export, then caption, resize, and schedule the keepers.",
+    "description": "A one-screen pipeline for my bird photography: Synology → Lightroom → Buffer → Instagram. Import, auto-tone, denoise, pick, export, then caption, resize, and schedule the keepers.",
     "year": "2026",
     "featured": true
   },
   {
     "name": "google-photos-archiver",
-    "url": "https://github.com/scottx611x/google-photos-archiver",
+    "repo": "https://github.com/scottx611x/google-photos-archiver",
     "tech": "Python",
     "description": "A simple, fast, extensible tool to back up Google Photos to a destination of your choosing.",
     "year": "2021"
   },
   {
     "name": "grip-tracker",
-    "url": "https://github.com/scottx611x/grip-tracker",
+    "repo": "https://github.com/scottx611x/grip-tracker",
     "tech": "Python",
     "description": "A modded grip tracker that funnels data to Grafana",
     "year": "2025",

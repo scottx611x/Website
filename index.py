@@ -344,7 +344,7 @@ def curate_projects():
         if not name:
             continue
         entry = {"name": name}
-        for key in ("url", "tech", "description", "status", "year"):
+        for key in ("repo", "site", "tech", "description", "year"):
             val = (p.get(key) or "").strip()
             if val:
                 entry[key] = val

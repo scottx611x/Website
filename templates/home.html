@@ -176,9 +176,10 @@
         {% if projects %}
         <ul class="proj-list">
             {% for p in projects[:5] %}
+            {% set primary = p.site or p.repo %}
             <li>
-                {% set inner %}<span class="proj-name">{{ p.name }}</span>{% if p.tech %}<span class="proj-tech">{{ p.tech }}</span>{% endif %}{% if not p.url %}<span class="soon">soon</span>{% endif %}{% if p.description %}<span class="proj-desc">{{ p.description }}</span>{% endif %}{% endset %}
-                {% if p.url %}<a href="{{ p.url }}">{{ inner }}</a>{% else %}<div class="no-link">{{ inner }}</div>{% endif %}
+                {% set inner %}<span class="proj-name">{{ p.name }}</span>{% if p.tech %}<span class="proj-tech">{{ p.tech }}</span>{% endif %}{% if not primary %}<span class="soon">soon</span>{% endif %}{% if p.description %}<span class="proj-desc">{{ p.description }}</span>{% endif %}{% endset %}
+                {% if primary %}<a href="{{ primary }}">{{ inner }}</a>{% else %}<div class="no-link">{{ inner }}</div>{% endif %}
             </li>
             {% endfor %}
         </ul>

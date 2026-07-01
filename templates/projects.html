@@ -1,7 +1,12 @@
 {% extends 'base.html' %}
 
-{% macro meta(project) %}
-{% if project.status or project.year %}<span class="proj-meta mono">{% if project.status %}{{ project.status }}{% endif %}{% if project.status and project.year %} &middot; {% endif %}{% if project.year %}{{ project.year }}{% endif %}</span>{% endif %}
+{% macro links(p) %}
+<span class="proj-links">
+    {% if p.site %}<a class="proj-link is-site" href="{{ p.site }}" target="_blank" rel="noopener">Live&nbsp;site&nbsp;&#8599;</a>{% endif %}
+    {% if p.repo %}<a class="proj-link is-repo" href="{{ p.repo }}" target="_blank" rel="noopener">GitHub&nbsp;&#8599;</a>{% endif %}
+    {% if not p.site and not p.repo %}<span class="soon">soon</span>{% endif %}
+    {% if p.year %}<span class="proj-year mono">{{ p.year }}</span>{% endif %}
+</span>
 {% endmacro %}
 
 {% block content %}
@@ -22,10 +27,10 @@
             <div class="pe-fields">
                 <input class="pe-field pe-name" data-k="name" value="{{ project.name }}" placeholder="Name">
                 <input class="pe-field" data-k="tech" value="{{ project.tech or '' }}" placeholder="Tech · stack">
-                <input class="pe-field" data-k="url" value="{{ project.url or '' }}" placeholder="https://…  (blank = ‘soon’)">
+                <input class="pe-field" data-k="site" value="{{ project.site or '' }}" placeholder="Live site / demo URL (optional)">
+                <input class="pe-field" data-k="repo" value="{{ project.repo or '' }}" placeholder="GitHub repo URL">
                 <textarea class="pe-field pe-desc" data-k="description" placeholder="Description">{{ project.description or '' }}</textarea>
                 <div class="pe-row">
-                    <input class="pe-field pe-small" data-k="status" value="{{ project.status or '' }}" placeholder="Status">
                     <input class="pe-field pe-small" data-k="year" value="{{ project.year or '' }}" placeholder="Year">
                 </div>
             </div>
@@ -108,11 +113,11 @@
     {% if featured %}
     <div class="featured-projects">
         {% for project in featured %}
-        <a class="featured-project" data-search="{{ (project.name ~ ' ' ~ (project.tech or '') ~ ' ' ~ (project.description or '') ~ ' ' ~ (project.status or ''))|lower }}" {% if project.url %}href="{{ project.url }}"{% else %}aria-disabled="true"{% endif %}>
-            <span class="post-title">{{ project.name }}{% if project.tech %}<span class="tech">{{ project.tech }}</span>{% endif %}{% if not project.url %}<span class="soon">soon</span>{% endif %}</span>
+        <div class="featured-project" data-search="{{ (project.name ~ ' ' ~ (project.tech or '') ~ ' ' ~ (project.description or ''))|lower }}">
+            <span class="post-title">{{ project.name }}{% if project.tech %}<span class="tech">{{ project.tech }}</span>{% endif %}</span>
             {% if project.description %}<p>{{ project.description }}</p>{% endif %}
-            {{ meta(project) }}
-        </a>
+            {{ links(project) }}
+        </div>
         {% endfor %}
     </div>
     {% endif %}
@@ -120,20 +125,12 @@
     {% if rest %}
     <ul class="post-list">
         {% for project in rest %}
-        <li data-search="{{ (project.name ~ ' ' ~ (project.tech or '') ~ ' ' ~ (project.description or '') ~ ' ' ~ (project.status or ''))|lower }}">
-            {% if project.url %}
-            <a href="{{ project.url }}">
+        <li data-search="{{ (project.name ~ ' ' ~ (project.tech or '') ~ ' ' ~ (project.description or ''))|lower }}">
+            <div class="no-link">
                 <span class="post-title">{{ project.name }}{% if project.tech %}<span class="tech">{{ project.tech }}</span>{% endif %}</span>
                 {% if project.description %}<p>{{ project.description }}</p>{% endif %}
-                {{ meta(project) }}
-            </a>
-            {% else %}
-            <div class="no-link">
-                <span class="post-title">{{ project.name }}{% if project.tech %}<span class="tech">{{ project.tech }}</span>{% endif %}<span class="soon">soon</span></span>
-                {% if project.description %}<p>{{ project.description }}</p>{% endif %}
-                {{ meta(project) }}
+                {{ links(project) }}
             </div>
-            {% endif %}
         </li>
         {% endfor %}
     </ul>
