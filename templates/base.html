@@ -13,15 +13,10 @@
 </head>
 <body class="{% block body_class %}{% endblock %}">
     <header class="site-nav" id="nav">
-        {% if request.endpoint in ['index', 'effect'] and species %}
-        <div class="nav-ticker brand--reveal" aria-label="Bird species">
-            <div class="nav-ticker-track">
-                {% for s in species %}<a class="nav-ticker-bird" href="/birds?bird={{ s|urlencode }}">{{ s }}</a><span class="sep" aria-hidden="true">&bull;</span>{% endfor %}
-                {% for s in species %}<a class="nav-ticker-bird" href="/birds?bird={{ s|urlencode }}" tabindex="-1" aria-hidden="true">{{ s }}</a><span class="sep" aria-hidden="true">&bull;</span>{% endfor %}
-            </div>
-        </div>
+        {% if request.endpoint in ['index', 'effect'] %}
+        <span class="brand-spacer" aria-hidden="true"></span>
         {% else %}
-        <a class="brand{% if request.endpoint in ['index', 'effect'] %} brand--reveal{% endif %}" href="/"><span class="brand-dot"></span>scott&nbsp;ouellette</a>
+        <a class="brand" href="/"><span class="brand-dot"></span>scott&nbsp;ouellette</a>
         {% endif %}
         <nav>
             <a href="/birds">Birds</a>

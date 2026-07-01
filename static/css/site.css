@@ -58,14 +58,6 @@ a { color: inherit; text-decoration: none; }
     align-items: center;
     gap: 0.55rem;
 }
-/* Home page: brand is hidden over the hero and phases in once you scroll. */
-.brand--reveal {
-    opacity: 0; visibility: hidden; transform: translateY(-4px); pointer-events: none;
-    transition: opacity 0.3s ease, transform 0.3s ease, visibility 0.3s ease;
-}
-.site-nav.scrolled .brand--reveal {
-    opacity: 1; visibility: visible; transform: none; pointer-events: auto;
-}
 .brand-dot {
     width: 11px; height: 11px; border-radius: 50%;
     background: var(--neon);
@@ -77,22 +69,6 @@ a { color: inherit; text-decoration: none; }
     70% { box-shadow: 0 0 0 9px rgba(56,224,138,0); }
     100% { box-shadow: 0 0 0 0 rgba(56,224,138,0); }
 }
-/* Home page: a scrolling species banner takes the brand's slot, revealed on scroll. */
-.nav-ticker {
-    flex: 1 1 auto; min-width: 0; overflow: hidden; white-space: nowrap;
-    margin-right: 1.2rem; color: rgba(244, 241, 233, 0.92);
-    -webkit-mask-image: linear-gradient(to right, transparent, #000 2rem, #000 calc(100% - 2rem), transparent);
-    mask-image: linear-gradient(to right, transparent, #000 2rem, #000 calc(100% - 2rem), transparent);
-}
-.nav-ticker-track {
-    display: inline-block; font-family: var(--mono); font-size: 0.82rem;
-    letter-spacing: 0.04em; animation: scroll-x 40s linear infinite;
-}
-.nav-ticker-bird { color: inherit; text-decoration: none; font-style: italic; opacity: 0.85; transition: color 0.15s, opacity 0.15s; }
-.nav-ticker-bird:hover, .nav-ticker-bird:focus-visible { color: var(--neon); opacity: 1; }
-.nav-ticker .sep { color: var(--neon); margin: 0 0.9rem; }
-.nav-ticker:hover .nav-ticker-track { animation-play-state: paused; }
-@media (max-width: 640px) { .nav-ticker { display: none; } }
 .site-nav nav { display: flex; gap: 1.4rem; flex-wrap: wrap; }
 .site-nav nav a {
     font-size: 0.9rem;
@@ -110,6 +86,9 @@ a { color: inherit; text-decoration: none; }
 /* over the dark hero, nav text is light */
 body.has-effect .site-nav:not(.scrolled) .brand,
 body.has-effect .site-nav:not(.scrolled) nav a { color: #fff; }
+/* Scrolled nav has a dark bar, so its links/brand go light for contrast. */
+.site-nav.scrolled .brand,
+.site-nav.scrolled nav a { color: rgba(244, 241, 233, 0.92); }
 
 .content { flex: 1 0 auto; }
 /* On the home page the page background is dark so the live effect shows through
@@ -189,11 +168,16 @@ body.has-effect .site-footer { position: relative; z-index: 1; }
 .btn-ghost:hover { background: rgba(255,255,255,0.1); border-color: #fff; }
 
 /* ====================== TICKER ====================== */
+/* On the home page, let the sticky ticker (inside .content, z-index:1) rise over
+   the nav as you scroll — so drop the nav beneath the content there. */
+body.home .site-nav { z-index: 0; }
 .ticker {
     background: var(--ink); color: var(--paper);
     border-top: 1px solid var(--line); border-bottom: 1px solid var(--line);
-    overflow: hidden; white-space: nowrap; padding: 0.7rem 0;
-    position: relative; z-index: 1;
+    overflow: hidden; white-space: nowrap; padding: 0.8rem 0;
+    /* Rises up on scroll to take the place of the nav header (sits above it). */
+    position: sticky; top: 0; z-index: 60;
+    box-shadow: 0 6px 18px -8px rgba(0, 0, 0, 0.5);
 }
 .ticker-track {
     display: inline-block; font-family: var(--mono); font-size: 0.85rem;
@@ -758,5 +742,5 @@ body.has-effect .site-footer { position: relative; z-index: 1; }
 }
 @media (prefers-reduced-motion: reduce) {
     .reveal { opacity: 1; transform: none; }
-    .ticker-track, .nav-ticker-track, .brand-dot, .scroll-cue span, .cursor, .blink::before { animation: none; }
+    .ticker-track, .brand-dot, .scroll-cue span, .cursor, .blink::before { animation: none; }
 }
