@@ -106,6 +106,9 @@ body.has-effect .site-footer { position: relative; z-index: 1; }
    with a transparent body) so the layer renders above the dark page canvas. */
 #bg-effect #collision, #bg-effect #voronoi { height: 100%; width: 100%; z-index: 0; }
 #bg-effect img.back { z-index: 0; }
+/* The effect SVG was unpositioned, so the absolutely-positioned .back image
+   painted over it and hid the animation. Lift it above the image. */
+#bg-effect .svg { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 1; }
 .bg-scrim {
     position: absolute; inset: 0; z-index: 1;
     background:
@@ -193,6 +196,14 @@ body.home .site-nav { z-index: 0; }
 /* ====================== STRIPS ====================== */
 .strip { position: relative; z-index: 1; padding: 6rem 1.6rem; }
 .strip-head { display: flex; gap: 1.5rem; align-items: flex-start; max-width: 1100px; margin: 0 auto 2.5rem; }
+.ig-link {
+    display: inline-flex; align-items: center; gap: 0.5rem; margin-top: 1rem;
+    font-family: var(--mono); font-size: 0.82rem; text-decoration: none; color: #fff;
+    padding: 0.45rem 0.95rem; border-radius: 999px;
+    background: linear-gradient(45deg, #feda75, #fa7e1e, #d62976, #962fbf, #4f5bd5);
+    transition: transform 0.15s ease, filter 0.15s ease;
+}
+.ig-link:hover { transform: translateY(-1px); filter: brightness(1.07); }
 .strip-head h2 { font-family: var(--display); font-size: clamp(1.8rem, 4vw, 3rem); font-weight: 500; margin: 0 0 0.4rem; letter-spacing: -0.02em; }
 .lede { font-size: 1.08rem; max-width: 40rem; margin: 0; }
 .lede a, .editorial a { color: var(--green); text-decoration: underline; text-underline-offset: 3px; }

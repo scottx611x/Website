@@ -2,7 +2,7 @@ import json
 import os
 import random
 
-from flask import Flask, abort, redirect, render_template, request
+from flask import Flask, abort, make_response, redirect, render_template, request
 
 import birds
 import blog
@@ -56,11 +56,17 @@ def load_taglines():
 HIDDEN_PAGES = {"blog", "photography"}
 
 
+def _pick_effect():
+    """The effect you last chose (cookie) sticks; first-timers get a random one."""
+    chosen = request.cookies.get("effect")
+    return chosen if chosen in EFFECTS else random.choice(EFFECTS)
+
+
 def _home_context():
     shots = birds.load_gallery()
     return {
         "title": TITLE,
-        "effect": random.choice(EFFECTS),
+        "effect": _pick_effect(),
         "background_image": random.choice(load_backgrounds()),
         "posts": [] if "blog" in HIDDEN_PAGES else blog.list_posts()[:3],
         "shots": shots,
@@ -93,7 +99,9 @@ def effect(name):
         abort(404)
     context = _home_context()
     context["effect"] = name
-    return render_template("home.html", **context)
+    resp = make_response(render_template("home.html", **context))
+    resp.set_cookie("effect", name, max_age=31536000, samesite="Lax")
+    return resp
 
 
 @app.route("/blog", methods=["GET"])
