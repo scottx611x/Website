@@ -340,6 +340,7 @@ def birds_stats():
         "stats.html",
         title="Birds by the numbers",
         stats=stats,
+        series=birds.stats_series(shots),
         span_months=span_months,
         local=_is_local(),
         curate=_curate_on(),

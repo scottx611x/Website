@@ -522,14 +522,16 @@ body.home .site-nav { z-index: 0; }
 .bar-val { font-size: 0.8rem; color: var(--muted); text-align: right; }
 @keyframes bar-grow { from { transform: scaleX(0); } to { transform: scaleX(1); } }
 
-/* month/seasonal chart */
-.month-chart { display: flex; align-items: flex-end; gap: 0.5rem; height: 160px; }
-.month-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 0.4rem; height: 100%; }
-.month-bar-wrap { flex: 1; width: 100%; display: flex; align-items: flex-end; }
-.month-bar { width: 100%; border-radius: 4px 4px 0 0; background: linear-gradient(180deg, var(--neon), var(--green));
-    min-height: 2px; animation: bar-rise 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) both; transform-origin: bottom; }
-.month-lbl { font-family: var(--mono); font-size: 0.7rem; color: var(--muted); }
-@keyframes bar-rise { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+/* d3 charts (life list, ridgeline, calendar heatmap) */
+.d3-chart svg { width: 100%; height: auto; display: block; }
+.cal-scroll { overflow-x: auto; }
+.cal-scroll svg { width: auto; }
+.chart-tick { font-family: var(--mono); font-size: 10px; fill: var(--muted); }
+.chart-note { font-family: var(--mono); font-size: 12px; font-weight: 700; fill: var(--green); }
+.ridge-label { font-family: var(--mono); font-size: 11px; fill: var(--ink); }
+.ridge-label:hover { fill: var(--green); text-decoration: underline; }
+.accum-dot:hover { r: 5; }
+.d3-chart .tick text { font-family: var(--mono); font-size: 10px; }
 
 /* local vs away split */
 .split-bar { display: flex; height: 1.4rem; border-radius: 999px; overflow: hidden; margin: 0.4rem 0 0.9rem; }

@@ -1568,6 +1568,42 @@ def gallery_stats(shots):
     }
 
 
+def stats_series(shots, ridge_species=14):
+    """Time-series data for the stats page charts, derived from capture dates:
+    per-day photo counts (calendar heatmap), per-species monthly rhythm sorted by
+    seasonal peak (phenology ridgeline), and the cumulative life list (species
+    accumulation)."""
+    import collections
+    per_day = collections.Counter()
+    sp_month = collections.defaultdict(lambda: [0] * 12)
+    sp_total = collections.Counter()
+    first_seen = {}
+    for shot in shots:
+        d = _capture_date_obj(shot.get("caption") or "", shot.get("timestamp"))
+        if not d:
+            continue
+        isp = shot.get("image_species") or []
+        for i in range(len(shot.get("images") or [])):
+            per_day[d.isoformat()] += 1
+            raw = isp[i] if i < len(isp) and isp[i] else shot.get("species")
+            for c in _canon_species_list(raw):
+                name = c[0]
+                sp_month[name][d.month - 1] += 1
+                sp_total[name] += 1
+                if name not in first_seen or d < first_seen[name]:
+                    first_seen[name] = d
+    top = [s for s, _ in sp_total.most_common(ridge_species)]
+    # Sort ridgeline rows by seasonal peak so the ridges cascade through the year.
+    top.sort(key=lambda s: max(range(12), key=lambda m: sp_month[s][m]))
+    accum = [{"d": d.isoformat(), "s": s}
+             for s, d in sorted(first_seen.items(), key=lambda kv: kv[1])]
+    return {
+        "per_day": dict(per_day),
+        "ridge": [{"name": s, "months": sp_month[s]} for s in top],
+        "accum": accum,
+    }
+
+
 def ticker_species(shots):
     """De-duplicated, normalized species names across all posts, first-seen order.
 
