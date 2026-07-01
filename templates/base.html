@@ -13,11 +13,7 @@
 </head>
 <body class="{% block body_class %}{% endblock %}">
     <header class="site-nav" id="nav">
-        {% if request.endpoint in ['index', 'effect'] %}
-        <span class="brand-spacer" aria-hidden="true"></span>
-        {% else %}
-        <a class="brand" href="/"><span class="brand-dot"></span>scott&nbsp;ouellette</a>
-        {% endif %}
+        <a class="brand{% if request.endpoint in ['index', 'effect'] %} brand--reveal{% endif %}" href="/"><span class="brand-dot"></span>scott&nbsp;ouellette</a>
         <nav>
             <a href="/birds">Birds</a>
             <a href="/projects">Projects</a>
