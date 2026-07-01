@@ -128,13 +128,30 @@
                 });
             }
             function renderLabel(f) {
+                cap.innerHTML = "";
                 var loc = f.location ? ((f.away ? "⚠️ " : "") + f.location) : "";
-                var base = f.species ? (f.species + (loc ? "  ·  " + loc : "")) : f.caption;
-                if (f.date) base += "  ·  " + f.date;
-                if (f.away && !f.species) base = "⚠️ " + base;
-                var label = base + (f.of > 1 ? "  (" + f.n + "/" + f.of + ")" : "");
-                cap.textContent = label.trim();
-                cap.hidden = !label.trim();
+                if (f.species) {
+                    // Each species is a link to its filtered gallery view.
+                    f.species.split(" & ").forEach(function (sp, i) {
+                        if (i) cap.appendChild(document.createTextNode(" & "));
+                        var a = document.createElement("a");
+                        a.className = "cap-species-link";
+                        a.href = "/birds?bird=" + encodeURIComponent(sp);
+                        a.textContent = sp;
+                        cap.appendChild(a);
+                    });
+                    var rest = (loc ? "  ·  " + loc : "");
+                    if (f.date) rest += "  ·  " + f.date;
+                    if (f.of > 1) rest += "  (" + f.n + "/" + f.of + ")";
+                    if (rest) cap.appendChild(document.createTextNode(rest));
+                } else {
+                    var base = f.caption;
+                    if (f.date) base += "  ·  " + f.date;
+                    if (f.away) base = "⚠️ " + base;
+                    if (f.of > 1) base += "  (" + f.n + "/" + f.of + ")";
+                    cap.textContent = base.trim();
+                }
+                cap.hidden = !cap.textContent.trim();
             }
             function reidKey(f) { return f.postId + "-" + f.origIndex; }
             function renderReid(f) {

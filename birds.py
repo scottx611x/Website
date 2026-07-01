@@ -555,7 +555,9 @@ def resolve_species(query, groups):
     subs = [n for n in names if low in n.lower()]
     if subs:
         return min(subs, key=len)
-    match = difflib.get_close_matches(query, names, n=1, cutoff=0.5)
+    # Only snap to a real species for close typos (e.g. "Grat Blue Heron"); a
+    # loose cutoff mapped unrelated notes like "Heron Rookery" -> "Hairy Woodpecker".
+    match = difflib.get_close_matches(query, names, n=1, cutoff=0.75)
     return match[0] if match else query
 
 
@@ -1421,10 +1423,13 @@ def ticker_species(shots):
     for shot in shots:
         names = shot.get("species_list") or ([shot["species"]] if shot.get("species") else [])
         for raw in names:
-            name = normalize_species(raw)
-            if name and name.lower() not in seen:
-                seen.add(name.lower())
-                out.append(name)
+            # Canonicalize so only real birds appear (drops caption notes like
+            # "Heron Rookery") and the ticker shows current names.
+            for canon in _canon_species_list(raw):
+                name = canon[0]
+                if name.lower() not in seen:
+                    seen.add(name.lower())
+                    out.append(name)
     return out
 
 

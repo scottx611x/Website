@@ -640,6 +640,11 @@ body.home .site-nav { z-index: 0; }
     color: rgba(244,241,233,0.88); text-align: center;
     max-width: 60ch; text-wrap: balance;
 }
+.cap-species-link {
+    color: inherit; cursor: pointer; text-decoration: underline;
+    text-decoration-color: rgba(255,255,255,0.35); text-underline-offset: 3px;
+}
+.cap-species-link:hover { color: var(--neon); text-decoration-color: var(--neon); }
 .lightbox-reid {
     font-family: var(--mono); font-size: 0.75rem; cursor: pointer;
     padding: 0.35rem 0.8rem; border-radius: 999px; letter-spacing: 0.02em;
