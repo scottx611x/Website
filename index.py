@@ -35,6 +35,29 @@ def load_backgrounds():
     return DEFAULT_BACKGROUNDS
 
 
+FACTS_FILE = os.path.join(app.static_folder, "facts.json")
+
+
+def load_facts():
+    """Rotating footer facts about me (curate them in static/facts.json or the
+    local curate UI on the home page)."""
+    try:
+        with open(FACTS_FILE) as fh:
+            facts = json.load(fh)
+        if facts:
+            return facts
+    except (OSError, ValueError):
+        pass
+    return ["builds things"]
+
+
+@app.context_processor
+def _inject_facts():
+    # The footer (in base.html) renders on every page, so facts must be available
+    # to all templates, not just the home context.
+    return {"facts": load_facts()}
+
+
 TAGLINES_FILE = os.path.join(app.static_folder, "taglines.json")
 
 
@@ -390,6 +413,20 @@ def curate_taglines():
         abort(400)
     clean = [s.strip() for s in incoming if isinstance(s, str) and s.strip()]
     birds._atomic_write_json(TAGLINES_FILE, clean)
+    return {"ok": True, "count": len(clean)}
+
+
+@app.route("/curate/facts", methods=["POST"])
+def curate_facts():
+    """Save the reordered/edited footer facts (local curate only)."""
+    if not _curate_on():
+        abort(404)
+    data = request.get_json(silent=True) or {}
+    incoming = data.get("facts")
+    if not isinstance(incoming, list):
+        abort(400)
+    clean = [s.strip() for s in incoming if isinstance(s, str) and s.strip()]
+    birds._atomic_write_json(FACTS_FILE, clean)
     return {"ok": True, "count": len(clean)}
 
 

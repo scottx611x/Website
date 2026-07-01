@@ -39,8 +39,8 @@
             Software Infrastructure Engineer that <span id="hero-tagline" class="hero-tagline"></span>
         </p>
         <div class="hero-links">
-            <a class="btn" href="/birds">The birds &rarr;</a>
-            <a class="btn btn-ghost" href="/projects">The code &rarr;</a>
+            <a class="btn" href="/birds">Birds &rarr;</a>
+            <a class="btn btn-ghost" href="/projects">Coding Projects &rarr;</a>
         </div>
         <script>
             (function () {
@@ -80,47 +80,65 @@
             <button type="button" id="tagline-add" class="btn btn-inline">+ Add tagline</button>
             <span id="tagline-saved" class="proj-saved mono" hidden>saved &#10003;</span>
         </p>
-        <script>
-            (function () {
-                var list = document.getElementById("tagline-list");
-                var saved = document.getElementById("tagline-saved");
-                function collect() {
-                    return Array.prototype.map.call(list.querySelectorAll(".te-field"), function (f) {
-                        return f.value.trim();
-                    }).filter(Boolean);
-                }
-                var t;
-                function save() {
-                    clearTimeout(t);
-                    t = setTimeout(function () {
-                        fetch("/curate/taglines", {
-                            method: "POST", headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify({ taglines: collect() })
-                        }).then(function (r) { return r.json(); }).then(function (d) {
-                            if (d && d.ok) { saved.hidden = false; setTimeout(function () { saved.hidden = true; }, 1300); }
-                        });
-                    }, 450);
-                }
-                list.addEventListener("input", function (e) { if (e.target.closest(".te-field")) save(); });
-                list.addEventListener("keydown", function (e) {
-                    if (e.key === "Enter" && e.target.closest(".te-field")) { e.preventDefault(); addRow(); }
-                });
-                list.addEventListener("click", function (e) {
-                    var row = e.target.closest(".tagline-edit"); if (!row) return;
-                    if (e.target.closest(".te-up")) { var p = row.previousElementSibling; if (p) { list.insertBefore(row, p); save(); } }
-                    else if (e.target.closest(".te-down")) { var n = row.nextElementSibling; if (n) { list.insertBefore(n, row); save(); } }
-                    else if (e.target.closest(".te-del")) { row.remove(); save(); }
-                });
-                function addRow() {
-                    var blank = list.querySelector(".tagline-edit").cloneNode(true);
-                    blank.querySelector(".te-field").value = "";
-                    list.appendChild(blank);
-                    blank.querySelector(".te-field").focus();
-                }
-                document.getElementById("tagline-add").addEventListener("click", addRow);
-            })();
-        </script>
     </section>
+    <section class="tagline-curate">
+        <p class="curate-note mono"><strong>Facts.</strong> These rotate in the footer (after the year) across the whole site. Edit (auto-saves), reorder, or &times; delete.</p>
+        <div id="fact-list" class="tagline-edit-list">
+            {% for fact in facts %}
+            <div class="tagline-edit">
+                <span class="te-prefix mono">Scott&hellip;</span>
+                <input class="te-field" value="{{ fact }}" placeholder="photographs birds around North Andover, MA">
+                <button type="button" class="pe-btn te-up" title="Move up">&uarr;</button>
+                <button type="button" class="pe-btn te-down" title="Move down">&darr;</button>
+                <button type="button" class="pe-btn te-del" title="Delete">&times;</button>
+            </div>
+            {% endfor %}
+        </div>
+        <p class="pe-actions">
+            <button type="button" id="fact-add" class="btn btn-inline">+ Add fact</button>
+            <span id="fact-saved" class="proj-saved mono" hidden>saved &#10003;</span>
+        </p>
+    </section>
+    <script>
+        // Reusable inline list editor (taglines, facts): edit/add/reorder/delete,
+        // auto-saving the whole list to `endpoint` under `key`.
+        function initListEditor(listId, addId, savedId, endpoint, key) {
+            var list = document.getElementById(listId);
+            if (!list) return;
+            var saved = document.getElementById(savedId), t;
+            function collect() {
+                return Array.prototype.map.call(list.querySelectorAll(".te-field"), function (f) { return f.value.trim(); }).filter(Boolean);
+            }
+            function save() {
+                clearTimeout(t);
+                t = setTimeout(function () {
+                    var body = {}; body[key] = collect();
+                    fetch(endpoint, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) })
+                        .then(function (r) { return r.json(); }).then(function (d) {
+                            if (d && d.ok && saved) { saved.hidden = false; setTimeout(function () { saved.hidden = true; }, 1300); }
+                        });
+                }, 450);
+            }
+            function addRow() {
+                var blank = list.querySelector(".tagline-edit").cloneNode(true);
+                blank.querySelector(".te-field").value = "";
+                list.appendChild(blank);
+                blank.querySelector(".te-field").focus();
+            }
+            list.addEventListener("input", function (e) { if (e.target.closest(".te-field")) save(); });
+            list.addEventListener("keydown", function (e) { if (e.key === "Enter" && e.target.closest(".te-field")) { e.preventDefault(); addRow(); } });
+            list.addEventListener("click", function (e) {
+                var row = e.target.closest(".tagline-edit"); if (!row) return;
+                if (e.target.closest(".te-up")) { var p = row.previousElementSibling; if (p) { list.insertBefore(row, p); save(); } }
+                else if (e.target.closest(".te-down")) { var n = row.nextElementSibling; if (n) { list.insertBefore(n, row); save(); } }
+                else if (e.target.closest(".te-del")) { row.remove(); save(); }
+            });
+            var addBtn = document.getElementById(addId);
+            if (addBtn) addBtn.addEventListener("click", addRow);
+        }
+        initListEditor("tagline-list", "tagline-add", "tagline-saved", "/curate/taglines", "taglines");
+        initListEditor("fact-list", "fact-add", "fact-saved", "/curate/facts", "facts");
+    </script>
     {% endif %}
 
     {% if species %}

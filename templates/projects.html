@@ -101,8 +101,7 @@
     {% else %}
 
     {% set visible = projects|rejectattr('hidden')|list %}
-    {% set featured = visible|selectattr('featured')|list %}
-    {% set rest = visible|rejectattr('featured')|list %}
+    {% set ordered = (visible|selectattr('featured')|list) + (visible|rejectattr('featured')|list) %}
 
     {% if visible|length > 3 %}
     <div class="project-search">
@@ -110,9 +109,9 @@
     </div>
     {% endif %}
 
-    {% if featured %}
+    {% if ordered %}
     <div class="featured-projects">
-        {% for project in featured %}
+        {% for project in ordered %}
         <div class="featured-project" data-search="{{ (project.name ~ ' ' ~ (project.tech or '') ~ ' ' ~ (project.description or ''))|lower }}">
             <span class="post-title">{{ project.name }}{% if project.tech %}<span class="tech">{{ project.tech }}</span>{% endif %}</span>
             {% if project.description %}<p>{{ project.description }}</p>{% endif %}
@@ -120,20 +119,6 @@
         </div>
         {% endfor %}
     </div>
-    {% endif %}
-
-    {% if rest %}
-    <ul class="post-list">
-        {% for project in rest %}
-        <li data-search="{{ (project.name ~ ' ' ~ (project.tech or '') ~ ' ' ~ (project.description or ''))|lower }}">
-            <div class="no-link">
-                <span class="post-title">{{ project.name }}{% if project.tech %}<span class="tech">{{ project.tech }}</span>{% endif %}</span>
-                {% if project.description %}<p>{{ project.description }}</p>{% endif %}
-                {{ links(project) }}
-            </div>
-        </li>
-        {% endfor %}
-    </ul>
     {% endif %}
 
     {% if not visible %}
