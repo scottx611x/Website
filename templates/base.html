@@ -65,6 +65,7 @@
 
     <div id="lightbox" class="lightbox" hidden>
         <button class="lightbox-close" aria-label="Close">&times;</button>
+        <button type="button" class="lightbox-share" id="lightbox-share" title="Copy a link to this photo" aria-label="Copy a link to this photo">&#128279;&nbsp;<span class="lightbox-share-txt">Copy link</span></button>
         <button class="lightbox-nav lightbox-prev" aria-label="Previous">&#8249;</button>
         <button class="lightbox-nav lightbox-next" aria-label="Next">&#8250;</button>
         <figure class="lightbox-figure">
@@ -108,7 +109,9 @@
                 speciesInput = document.getElementById("lightbox-species"),
                 removeBtn = document.getElementById("lightbox-remove"),
                 suggest = document.getElementById("lightbox-suggest"),
+                shareBtn = document.getElementById("lightbox-share"),
                 frames = [], idx = -1;
+            function frameToken(f) { return f.postId + "." + f.origIndex; }
             function renderSuggest(f) {
                 if (!suggest) return;
                 var list = f.captionSpecies || [];
@@ -200,9 +203,12 @@
                 if (removeBtn) removeBtn.innerHTML = window.CURATE_HIDDEN_VIEW ? "↩ un-hide" : "× hide photo";
                 box.hidden = false;
                 document.body.style.overflow = "hidden";
+                // Reflect the open photo in the URL so it can be linked/shared.
+                try { history.replaceState(null, "", location.pathname + location.search + "#img-" + frameToken(f)); } catch (_) {}
             }
             function close() {
                 box.hidden = true; img.src = ""; stopVideo(); document.body.style.overflow = "";
+                try { history.replaceState(null, "", location.pathname + location.search); } catch (_) {}
             }
             document.addEventListener("click", function (e) {
                 // Curate controls (hide / edit / flag) are handled separately —
@@ -314,6 +320,46 @@
                     renderReid(f);
                 }).finally(function () { reid.disabled = false; });
             });
+            // Copy a shareable permalink to the current photo/video.
+            if (shareBtn) shareBtn.addEventListener("click", function (e) {
+                e.stopPropagation();
+                var f = frames[idx]; if (!f) return;
+                var url = location.origin + location.pathname + "#img-" + frameToken(f);
+                var txt = shareBtn.querySelector(".lightbox-share-txt");
+                function flash(msg) {
+                    if (!txt) return;
+                    var prev = "Copy link";
+                    txt.textContent = msg; shareBtn.classList.add("copied");
+                    setTimeout(function () { txt.textContent = prev; shareBtn.classList.remove("copied"); }, 1600);
+                }
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(url).then(function () { flash("Link copied ✓"); }, function () { flash("Copy failed"); });
+                } else {
+                    var ta = document.createElement("textarea");
+                    ta.value = url; ta.style.position = "fixed"; ta.style.opacity = "0";
+                    document.body.appendChild(ta); ta.select();
+                    try { document.execCommand("copy"); flash("Link copied ✓"); } catch (_) { flash("Copy failed"); }
+                    document.body.removeChild(ta);
+                }
+            });
+            // Open a photo directly from a #img-<post>.<index> permalink.
+            function openFromHash() {
+                var m = /^#img-(.+)$/.exec(location.hash || "");
+                if (!m) return false;
+                var tok = m[1], dot = tok.lastIndexOf(".");
+                if (dot < 0) return false;
+                var pid = tok.slice(0, dot), oi = tok.slice(dot + 1);
+                build();
+                for (var i = 0; i < frames.length; i++) {
+                    if (frames[i].postId === pid && String(frames[i].origIndex) === oi) { show(i); return true; }
+                }
+                return false;
+            }
+            addEventListener("hashchange", function () {
+                if (!location.hash) { if (!box.hidden) close(); }
+                else if (box.hidden) openFromHash();
+            });
+            openFromHash();
         })();
 
         // Masonry: deal cards across columns in reading order (row-major), so the
