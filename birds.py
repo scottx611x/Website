@@ -137,7 +137,7 @@ for _names, _family in [
     (["Ruby-crowned Kinglet", "Golden-crowned Kinglet"], "Kinglets"),
     (["White-breasted Nuthatch"], "Nuthatches"),
     (["Brown Creeper"], "Creepers"),
-    (["Carolina Wren", "House Wren"], "Wrens"),
+    (["Carolina Wren", "Northern House Wren"], "Wrens"),
     (["European Starling"], "Starlings"),
     (["Northern Mockingbird", "Gray Catbird"], "Mockingbirds & Thrashers"),
     (["American Robin", "Eastern Bluebird"], "Thrushes"),
@@ -159,7 +159,7 @@ for _names, _family in [
 _SPECIES_ALIAS = {
     "a very wet barred owl": "barred owl",
     "a very wet red-tailed hawk": "red-tailed hawk",
-    "northern house wren": "house wren",
+    "house wren": "northern house wren",
     "european starling juvenile": "european starling",
     "cooper's hawk barred owl": "barred owl",
     "red-tailed hawk blue jay": "red-tailed hawk",
