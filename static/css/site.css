@@ -193,10 +193,6 @@ body.home .site-nav { z-index: 0; }
 /* ====================== STRIPS ====================== */
 .strip { position: relative; z-index: 1; padding: 6rem 1.6rem; }
 .strip-head { display: flex; gap: 1.5rem; align-items: flex-start; max-width: 1100px; margin: 0 auto 2.5rem; }
-.numeral {
-    font-family: var(--display); font-size: 3.5rem; font-weight: 900; line-height: 1;
-    color: transparent; -webkit-text-stroke: 1.5px currentColor; opacity: 0.4;
-}
 .strip-head h2 { font-family: var(--display); font-size: clamp(1.8rem, 4vw, 3rem); font-weight: 500; margin: 0 0 0.4rem; letter-spacing: -0.02em; }
 .lede { font-size: 1.08rem; max-width: 40rem; margin: 0; }
 .lede a, .editorial a { color: var(--green); text-decoration: underline; text-underline-offset: 3px; }
@@ -234,7 +230,6 @@ body.home .site-nav { z-index: 0; }
 .techy { background: var(--ink); color: var(--paper); }
 .techy .lede { color: rgba(244,241,233,0.75); }
 .techy .lede a { color: var(--neon); }
-.techy .numeral, .writing .numeral { color: var(--neon); opacity: 0.55; }
 .proj-list { max-width: 1100px; margin: 0 auto; list-style: none; padding: 0; }
 .proj-list li { border-top: 1px solid var(--line); }
 .proj-list a { display: grid; grid-template-columns: 1fr auto; gap: 0.2rem 1rem; padding: 1.4rem 0; transition: padding-left 0.2s; }
