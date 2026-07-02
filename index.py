@@ -77,15 +77,12 @@ FACTS_FILE = os.path.join(app.static_folder, "facts.json")
 
 def load_facts():
     """Rotating footer facts about me (curate them in static/facts.json or the
-    local curate UI on the home page)."""
+    local curate UI on the home page). An empty list means no fact line."""
     try:
         with open(FACTS_FILE) as fh:
-            facts = json.load(fh)
-        if facts:
-            return facts
+            return json.load(fh)
     except (OSError, ValueError):
-        pass
-    return ["builds things"]
+        return []
 
 
 @app.context_processor
