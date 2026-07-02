@@ -88,11 +88,16 @@
 
     <script>
         document.getElementById("year").textContent = new Date().getFullYear();
-        // Shrink nav on scroll
+        // Shrink nav on scroll. Hysteresis (on past 64, off under 12) so tiny
+        // scroll jitter around a single threshold can't strobe the transition.
         var nav = document.getElementById("nav");
-        addEventListener("scroll", function () {
-            nav.classList.toggle("scrolled", scrollY > 24);
-        }, { passive: true });
+        var navOn = false;
+        function navScrolled() {
+            if (!navOn && scrollY > 64) { navOn = true; nav.classList.add("scrolled"); }
+            else if (navOn && scrollY < 12) { navOn = false; nav.classList.remove("scrolled"); }
+        }
+        addEventListener("scroll", navScrolled, { passive: true });
+        navScrolled();
         // Reveal-on-scroll
         var io = new IntersectionObserver(function (entries) {
             entries.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); } });
