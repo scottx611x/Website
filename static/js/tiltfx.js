@@ -187,8 +187,9 @@
 		var self = this,
 			moveOpts = self.options.movement;
 
-		// mousemove event..
-		this.tiltWrapper.addEventListener('mousemove', function(ev) {
+		// mousemove event.. (listen on the window: the tilt layer sits behind the
+		// page content, so it never receives the mouse directly)
+		window.addEventListener('mousemove', function(ev) {
 			requestAnimationFrame(function() {
 					// mouse position relative to the document.
 				var mousepos = getMousePos(ev),
@@ -217,8 +218,8 @@
 			});
 		});
 
-		// reset all when mouse leaves the main wrapper.
-		this.tiltWrapper.addEventListener('mouseleave', function(ev) {
+		// reset all when the mouse leaves the page.
+		document.documentElement.addEventListener('mouseleave', function(ev) {
 			setTimeout(function() {
 			for(var i = 0, len = self.imgElems.length; i < len; ++i) {
 				var el = self.imgElems[i];

@@ -40,10 +40,12 @@ $( document ).ready(function() {
         .attr("cy", function(d) { return d.y; });
   });
 
-  svg.on("mousemove", function() {
-    var p1 = d3.mouse(this);
-    root.px = p1[0];
-    root.py = p1[1];
+  // The effect sits behind the page content, so listen on the whole window —
+  // otherwise the content on top swallows the mouse and the blob won't follow it.
+  d3.select(window).on("mousemove.collide touchmove.collide", function() {
+    var e = d3.event, t = e.touches && e.touches[0];
+    root.px = t ? t.clientX : e.clientX;
+    root.py = t ? t.clientY : e.clientY;
     force.resume();
   });
 

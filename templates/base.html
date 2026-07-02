@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ title }}{% if title != "Scott Ouellette" %} &middot; Scott Ouellette{% endif %}</title>
+    {% set meta_desc %}{% block meta_description %}Software infrastructure engineer &amp; bird photographer in North Andover, MA — a bird gallery, sightings map, and side projects.{% endblock %}{% endset %}
+    <meta name="description" content="{{ meta_desc|trim }}">
+    <meta property="og:title" content="{{ title }}{% if title != 'Scott Ouellette' %} · Scott Ouellette{% endif %}">
+    <meta property="og:description" content="{{ meta_desc|trim }}">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="{{ request.url_root.rstrip('/') }}{{ request.path }}">
+    <meta property="og:image" content="{{ request.url_root.rstrip('/') }}{{ url_for('static', filename='img/fall.jpg') }}">
+    <meta name="twitter:card" content="summary_large_image">
+    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://birds-scott-ouellette.s3.amazonaws.com">
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,500;9..144,600;9..144,900&family=Space+Grotesk:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/site.css', v=asset_v) }}">
+    {% block head %}{% endblock %}
+</head>
+<body class="{% block body_class %}{% endblock %}">
+    <header class="site-nav" id="nav">
+        {% if request.endpoint == 'index' %}
+        <span class="brand-spacer" aria-hidden="true"></span>
+        {% else %}
+        <a class="brand" href="/"><span class="brand-dot"></span>scott&nbsp;ouellette</a>
+        {% endif %}
+        <nav>
+            <a href="/birds" class="{{ 'on' if request.path.startswith('/birds') }}">Birds</a>
+            <a href="/projects" class="{{ 'on' if request.path.startswith('/projects') }}">Projects</a>
+            <a class="nav-archive" href="/archive">old site</a>
+        </nav>
+    </header>
+
+    <main class="content">
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="site-footer">
+        <div class="footer-inner">
+            <div class="footer-brand">
+                <span class="mono">scott-ouellette.com</span>
+                <p>Engineer &amp; bird photographer in North Andover, MA.</p>
+            </div>
+            <div class="social">
+                <a href="https://www.instagram.com/birdsofnorthandover/" rel="me">Instagram</a>
+                <a href="https://github.com/scottx611x">GitHub</a>
+                <a href="https://www.linkedin.com/pub/scott-ouellette/69/2b/209/">LinkedIn</a>
+            </div>
+        </div>
+        <small class="mono">&copy; <span id="year">2026</span> &middot; <span id="footer-fact"></span></small>
+        <script>
+            (function () {
+                var facts = {{ facts|tojson }};
+                var el = document.getElementById("footer-fact");
+                if (el && facts.length) el.textContent = facts[Math.floor(Math.random() * facts.length)];
+            })();
+        </script>
+    </footer>
+
+    {% if local %}
+    <a class="curate-toggle{% if curate %} on{% endif %}" href="/curate/toggle?next={{ request.full_path|urlencode }}"
+       title="Local only — toggle curate mode">{% if curate %}&#10003; Curating &middot; exit{% else %}&#9998; Curate{% endif %}</a>
+    {% endif %}
+
+    <div id="lightbox" class="lightbox" hidden>
+        <button class="lightbox-close" aria-label="Close">&times;</button>
+        <button type="button" class="lightbox-share" id="lightbox-share" title="Copy a link to this photo" aria-label="Copy a link to this photo">&#128279;&nbsp;<span class="lightbox-share-txt">Copy link</span></button>
+        <button class="lightbox-nav lightbox-prev" aria-label="Previous">&#8249;</button>
+        <button class="lightbox-nav lightbox-next" aria-label="Next">&#8250;</button>
+        <figure class="lightbox-figure">
+            <img id="lightbox-img" src="" alt="">
+            <video id="lightbox-video" class="lightbox-video" controls playsinline preload="metadata" hidden></video>
+            <figcaption id="lightbox-cap"></figcaption>
+            {% if curate %}
+            <div id="lightbox-suggest" class="lightbox-suggest" hidden></div>
+            <div class="lightbox-curate">
+                <input type="text" id="lightbox-species" class="lightbox-species" placeholder="species" aria-label="Rename this bird">
+                <button type="button" id="lightbox-reid" class="lightbox-reid" hidden></button>
+                <button type="button" id="lightbox-remove" class="lightbox-remove" title="Hide just this photo from the gallery">&times; hide photo</button>
+            </div>
+            {% endif %}
+        </figure>
+    </div>
+    {% if curate %}<script>window.REID_QUEUED = new Set({{ reid_queued|default([], true)|tojson }});</script>{% endif %}
+
+    <script>
+        document.getElementById("year").textContent = new Date().getFullYear();
+        // Shrink nav on scroll
+        var nav = document.getElementById("nav");
+        addEventListener("scroll", function () {
+            nav.classList.toggle("scrolled", scrollY > 24);
+        }, { passive: true });
+        // Reveal-on-scroll
+        var io = new IntersectionObserver(function (entries) {
+            entries.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); } });
+        }, { threshold: 0.12 });
+        document.querySelectorAll(".reveal").forEach(function (el) { io.observe(el); });
+
+        // Lightbox: cards carry [data-images] (JSON list). We flatten every image
+        // across all cards into one sequence so prev/next pages through whole
+        // carousels and on into the next post.
+        (function () {
+            var box = document.getElementById("lightbox"),
+                img = document.getElementById("lightbox-img"),
+                vid = document.getElementById("lightbox-video"),
+                cap = document.getElementById("lightbox-cap"),
+                reid = document.getElementById("lightbox-reid"),
+                speciesInput = document.getElementById("lightbox-species"),
+                removeBtn = document.getElementById("lightbox-remove"),
+                suggest = document.getElementById("lightbox-suggest"),
+                shareBtn = document.getElementById("lightbox-share"),
+                frames = [], idx = -1;
+            function frameToken(f) { return f.postId + "." + f.origIndex; }
+            function renderSuggest(f) {
+                if (!suggest) return;
+                var list = f.captionSpecies || [];
+                suggest.innerHTML = "";
+                suggest.hidden = !list.length;
+                if (!list.length) return;
+                var lbl = document.createElement("span");
+                lbl.className = "suggest-label"; lbl.textContent = "IG detected:";
+                suggest.appendChild(lbl);
+                list.forEach(function (name) {
+                    var c = document.createElement("button");
+                    c.type = "button"; c.className = "chip-suggest";
+                    if (name === f.species) c.className += " is-current";
+                    c.textContent = name;
+                    c.addEventListener("click", function (e) {
+                        e.stopPropagation();
+                        if (speciesInput) speciesInput.value = name;
+                        saveLightboxSpecies();
+                    });
+                    suggest.appendChild(c);
+                });
+            }
+            function renderLabel(f) {
+                cap.innerHTML = "";
+                var loc = f.location ? ((f.away ? "⚠️ " : "") + f.location) : "";
+                if (f.species) {
+                    // Each species is a link to its filtered gallery view.
+                    f.species.split(" & ").forEach(function (sp, i) {
+                        if (i) cap.appendChild(document.createTextNode(" & "));
+                        var a = document.createElement("a");
+                        a.className = "cap-species-link";
+                        a.href = "/birds?bird=" + encodeURIComponent(sp);
+                        a.textContent = sp;
+                        cap.appendChild(a);
+                    });
+                    var rest = (loc ? "  ·  " + loc : "");
+                    if (f.date) rest += "  ·  " + f.date;
+                    if (f.of > 1) rest += "  (" + f.n + "/" + f.of + ")";
+                    if (rest) cap.appendChild(document.createTextNode(rest));
+                } else {
+                    var base = f.caption;
+                    if (f.date) base += "  ·  " + f.date;
+                    if (f.away) base = "⚠️ " + base;
+                    if (f.of > 1) base += "  (" + f.n + "/" + f.of + ")";
+                    cap.textContent = base.trim();
+                }
+                cap.hidden = !cap.textContent.trim();
+            }
+            function reidKey(f) { return f.postId + "-" + f.origIndex; }
+            function renderReid(f) {
+                if (!reid) return;
+                reid.hidden = false;
+                var q = window.REID_QUEUED && window.REID_QUEUED.has(reidKey(f));
+                reid.textContent = q ? "✓ flagged for re-ID" : "↻ flag for re-ID";
+                reid.classList.toggle("is-flagged", !!q);
+            }
+            function build() {
+                frames = [];
+                var cards = Array.prototype.slice.call(document.querySelectorAll("[data-images]"));
+                // Follow reading order, not DOM column order, for prev/next.
+                cards.sort(function (a, b) {
+                    return (+a.getAttribute("data-index") || 0) - (+b.getAttribute("data-index") || 0);
+                });
+                cards.forEach(function (el) {
+                    var urls, caps, sp, loc;
+                    try { urls = JSON.parse(el.getAttribute("data-images")); } catch (_) { urls = []; }
+                    try { caps = JSON.parse(el.getAttribute("data-captions")); } catch (_) { caps = []; }
+                    try { sp = JSON.parse(el.getAttribute("data-image-species")); } catch (_) { sp = []; }
+                    try { loc = JSON.parse(el.getAttribute("data-image-locations")); } catch (_) { loc = []; }
+                    var date = el.getAttribute("data-date") || "";
+                    var pid = el.getAttribute("data-post-id") || el.getAttribute("data-id") || "";
+                    var ars; try { ars = JSON.parse(el.getAttribute("data-image-areas")); } catch (_) { ars = []; }
+                    var ixs; try { ixs = JSON.parse(el.getAttribute("data-image-indices")); } catch (_) { ixs = []; }
+                    var vds; try { vds = JSON.parse(el.getAttribute("data-image-videos")); } catch (_) { vds = []; }
+                    var csp; try { csp = JSON.parse(el.getAttribute("data-caption-species")); } catch (_) { csp = []; }
+                    el._frameStart = frames.length;
+                    urls.forEach(function (u, i) {
+                        frames.push({
+                            url: u, caption: caps[i] || caps[0] || "",
+                            species: (sp && sp[i]) || "", location: (loc && loc[i]) || "",
+                            date: date, n: i + 1, of: urls.length, postId: pid, index: i,
+                            origIndex: (ixs && ixs[i] != null) ? ixs[i] : i,
+                            away: (ars && ars[i]) === "away",
+                            video: (vds && vds[i]) || null, captionSpecies: csp || []
+                        });
+                    });
+                });
+            }
+            function stopVideo() { if (vid) { vid.pause(); vid.removeAttribute("src"); vid.load(); vid.hidden = true; } }
+            function show(i) {
+                if (!frames.length) return;
+                idx = (i + frames.length) % frames.length;
+                var f = frames[idx];
+                if (f.video) {
+                    stopVideo();
+                    vid.src = f.video; vid.poster = f.url; vid.hidden = false;
+                    img.hidden = true;
+                } else {
+                    stopVideo();
+                    img.src = f.url; img.hidden = false;
+                }
+                renderLabel(f);
+                renderReid(f);
+                renderSuggest(f);
+                if (speciesInput) { speciesInput.value = f.species || ""; speciesInput.classList.remove("saved", "save-failed"); }
+                if (removeBtn) removeBtn.innerHTML = window.CURATE_HIDDEN_VIEW ? "↩ un-hide" : "× hide photo";
+                box.hidden = false;
+                document.body.style.overflow = "hidden";
+                // Reflect the open photo in the URL so it can be linked/shared.
+                try { history.replaceState(null, "", location.pathname + location.search + "#img-" + frameToken(f)); } catch (_) {}
+            }
+            function close() {
+                box.hidden = true; img.src = ""; stopVideo(); document.body.style.overflow = "";
+                try { history.replaceState(null, "", location.pathname + location.search); } catch (_) {}
+            }
+            document.addEventListener("click", function (e) {
+                // Curate controls (hide / edit / flag) are handled separately —
+                // a click on any of them must not open the lightbox.
+                if (e.target.closest(".curate-x, .species-edit, .flag-badge")) return;
+                var card = e.target.closest("[data-images]");
+                if (card) { e.preventDefault(); build(); show(card._frameStart || 0); return; }
+                if (e.target.closest(".lightbox-next")) { e.stopPropagation(); show(idx + 1); return; }
+                if (e.target.closest(".lightbox-prev")) { e.stopPropagation(); show(idx - 1); return; }
+                if (e.target.closest(".lightbox-close") || e.target === box) { close(); }
+            });
+            addEventListener("keydown", function (e) {
+                if (box.hidden) return;
+                if (e.target === speciesInput) {  // typing a rename — don't navigate
+                    if (e.key === "Enter") { e.preventDefault(); saveLightboxSpecies(); speciesInput.blur(); }
+                    return;
+                }
+                if (e.key === "Escape") close();
+                else if (e.key === "ArrowRight") show(idx + 1);
+                else if (e.key === "ArrowLeft") show(idx - 1);
+            });
+            // Swipe left/right to page images on touch devices.
+            var _t0 = null, _swiped = false;
+            box.addEventListener("touchstart", function (e) {
+                if (e.target.closest(".lightbox-curate")) { _t0 = null; return; }
+                if (e.touches.length === 1) _t0 = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+            }, { passive: true });
+            box.addEventListener("touchend", function (e) {
+                if (!_t0) return;
+                var dx = e.changedTouches[0].clientX - _t0.x, dy = e.changedTouches[0].clientY - _t0.y;
+                _t0 = null;
+                if (Math.abs(dx) > 45 && Math.abs(dx) > Math.abs(dy)) { _swiped = true; show(dx < 0 ? idx + 1 : idx - 1); }
+            }, { passive: true });
+            box.addEventListener("click", function (e) {
+                if (_swiped) { _swiped = false; e.stopPropagation(); }  // swipe shouldn't close
+            }, true);
+            function saveLightboxSpecies() {
+                var f = frames[idx]; if (!f || !speciesInput) return;
+                var name = speciesInput.value.trim();
+                speciesInput.classList.remove("saved", "save-failed");
+                var imgs = {}; imgs[f.origIndex] = name;
+                fetch("/curate/override", {
+                    method: "POST", headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ id: f.postId, images: imgs })
+                }).then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+                  .then(function () {
+                    f.species = name;
+                    speciesInput.classList.add("saved");
+                    setTimeout(function () { speciesInput.classList.remove("saved"); }, 1500);
+                    renderLabel(f);
+                    renderSuggest(f);
+                    // keep the underlying card's lightbox data in sync
+                    var card = document.querySelector('[data-id="' + f.postId + '"]');
+                    if (card) { try {
+                        var arr = JSON.parse(card.getAttribute("data-image-species") || "[]");
+                        while (arr.length <= f.index) arr.push("");
+                        arr[f.index] = name;
+                        card.setAttribute("data-image-species", JSON.stringify(arr));
+                    } catch (_) {} }
+                  }).catch(function () { speciesInput.classList.add("save-failed"); });
+            }
+            if (speciesInput) {
+                speciesInput.addEventListener("click", function (e) { e.stopPropagation(); });
+                speciesInput.addEventListener("change", saveLightboxSpecies);
+            }
+            if (removeBtn) removeBtn.addEventListener("click", function (e) {
+                e.stopPropagation();
+                var f = frames[idx]; if (!f) return;
+                removeBtn.disabled = true;
+                fetch("/curate/exclude-image", {
+                    method: "POST", headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ id: f.postId, index: f.origIndex })
+                }).then(function (r) { return r.json(); }).then(function () {
+                    // Drop this frame from its card's data (positional index f.index).
+                    var card = document.querySelector('[data-id="' + f.postId + '"]');
+                    if (card) {
+                        ["data-images", "data-captions", "data-image-species",
+                         "data-image-locations", "data-image-areas",
+                         "data-image-indices"].forEach(function (attr) {
+                            var arr; try { arr = JSON.parse(card.getAttribute(attr) || "[]"); } catch (_) { arr = []; }
+                            if (f.index < arr.length) { arr.splice(f.index, 1); card.setAttribute(attr, JSON.stringify(arr)); }
+                        });
+                        var left = [];
+                        try { left = JSON.parse(card.getAttribute("data-images") || "[]"); } catch (_) {}
+                        if (!left.length) { card.remove(); }
+                        else {
+                            var ci = card.querySelector("img"); if (ci) ci.src = left[0];
+                            var mb = card.querySelector(".multi-badge");
+                            if (mb) { if (left.length > 1) mb.textContent = "⧉ " + left.length; else mb.remove(); }
+                        }
+                    }
+                    build();  // rebuild the flat frame sequence without that frame
+                    if (!frames.length) close();
+                    else show(Math.min(idx, frames.length - 1));
+                }).finally(function () { removeBtn.disabled = false; });
+            });
+            if (reid) reid.addEventListener("click", function (e) {
+                e.stopPropagation();
+                var f = frames[idx];
+                if (!f) return;
+                reid.disabled = true;
+                fetch("/curate/reid", {
+                    method: "POST", headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ id: f.postId, index: f.origIndex, current: f.species })
+                }).then(function (r) { return r.json(); }).then(function (d) {
+                    if (!window.REID_QUEUED) window.REID_QUEUED = new Set();
+                    if (d.queued) window.REID_QUEUED.add(reidKey(f));
+                    else window.REID_QUEUED.delete(reidKey(f));
+                    renderReid(f);
+                }).finally(function () { reid.disabled = false; });
+            });
+            // Copy a shareable permalink to the current photo/video.
+            if (shareBtn) shareBtn.addEventListener("click", function (e) {
+                e.stopPropagation();
+                var f = frames[idx]; if (!f) return;
+                var url = location.origin + location.pathname + "#img-" + frameToken(f);
+                var txt = shareBtn.querySelector(".lightbox-share-txt");
+                function flash(msg) {
+                    if (!txt) return;
+                    var prev = "Copy link";
+                    txt.textContent = msg; shareBtn.classList.add("copied");
+                    setTimeout(function () { txt.textContent = prev; shareBtn.classList.remove("copied"); }, 1600);
+                }
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(url).then(function () { flash("Link copied ✓"); }, function () { flash("Copy failed"); });
+                } else {
+                    var ta = document.createElement("textarea");
+                    ta.value = url; ta.style.position = "fixed"; ta.style.opacity = "0";
+                    document.body.appendChild(ta); ta.select();
+                    try { document.execCommand("copy"); flash("Link copied ✓"); } catch (_) { flash("Copy failed"); }
+                    document.body.removeChild(ta);
+                }
+            });
+            // Open a photo directly from a #img-<post>.<index> permalink.
+            function openFromHash() {
+                var m = /^#img-(.+)$/.exec(location.hash || "");
+                if (!m) return false;
+                var tok = m[1], dot = tok.lastIndexOf(".");
+                if (dot < 0) return false;
+                var pid = tok.slice(0, dot), oi = tok.slice(dot + 1);
+                build();
+                for (var i = 0; i < frames.length; i++) {
+                    if (frames[i].postId === pid && String(frames[i].origIndex) === oi) { show(i); return true; }
+                }
+                return false;
+            }
+            addEventListener("hashchange", function () {
+                if (!location.hash) { if (!box.hidden) close(); }
+                else if (box.hidden) openFromHash();
+            });
+            openFromHash();
+        })();
+
+        // Masonry: deal cards across columns in reading order (row-major), so the
+        // first row reads left→right while cards keep their natural heights.
+        (function () {
+            function columnsFor(w) {
+                if (document.body.classList.contains("birds-fill")) {
+                    return w <= 480 ? 2 : (w <= 820 ? 3 : (w <= 1200 ? 4 : (w <= 1700 ? 5 : 6)));
+                }
+                return w <= 520 ? 1 : (w <= 820 ? 2 : 3);
+            }
+            function layout(grid) {
+                if (!grid._cards) {
+                    grid._cards = Array.prototype.slice.call(grid.querySelectorAll(".shot"));
+                }
+                var n = columnsFor(window.innerWidth);
+                if (grid._cols === n) return;
+                grid._cols = n;
+                grid.innerHTML = "";
+                var cols = [];
+                for (var i = 0; i < n; i++) {
+                    var c = document.createElement("div");
+                    c.className = "masonry-col";
+                    grid.appendChild(c);
+                    cols.push(c);
+                }
+                grid._cards.forEach(function (card, i) { cols[i % n].appendChild(card); });
+            }
+            function layoutAll() { document.querySelectorAll(".masonry").forEach(layout); }
+            layoutAll();
+            var t;
+            addEventListener("resize", function () { clearTimeout(t); t = setTimeout(layoutAll, 150); });
+        })();
+
+        // Grid images are S3 thumbnails; if one is ever missing, fall back to
+        // the card's full-resolution image instead of showing a broken frame.
+        addEventListener("error", function (e) {
+            var img = e.target;
+            if (!(img instanceof HTMLImageElement)) return;
+            var card = img.closest && img.closest("[data-images]");
+            if (!card || img._fellBack) return;
+            try {
+                var full = JSON.parse(card.getAttribute("data-images"))[0];
+                if (full && full !== img.src) { img._fellBack = true; img.src = full; }
+            } catch (_) { /* leave the broken image */ }
+        }, true);
+
+        // Gallery scroll-reveal: photos fade up as they enter the viewport.
+        // Gated behind .reveal-ready so a JS failure never hides the grid.
+        (function () {
+            if (!("IntersectionObserver" in window) ||
+                matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+            // threshold 0: lazy images have no height until they load, so any
+            // positive threshold would never fire for below-fold cards.
+            var obs = new IntersectionObserver(function (entries) {
+                entries.forEach(function (e) {
+                    if (e.isIntersecting) { e.target.classList.add("seen"); obs.unobserve(e.target); }
+                });
+            }, { threshold: 0, rootMargin: "0px 0px 6% 0px" });
+            document.querySelectorAll(".masonry").forEach(function (g) {
+                g.classList.add("reveal-ready");
+                g.querySelectorAll(".shot").forEach(function (s) { obs.observe(s); });
+            });
+        })();
+
+        // Cursor spotlight: a soft glow tracks the pointer over gallery cards.
+        (function () {
+            if (!window.matchMedia || !matchMedia("(hover: hover)").matches) return;
+            document.addEventListener("pointermove", function (e) {
+                var card = e.target.closest && e.target.closest(".masonry .shot");
+                if (!card) return;
+                var r = card.getBoundingClientRect();
+                card.style.setProperty("--mx", (e.clientX - r.left) + "px");
+                card.style.setProperty("--my", (e.clientY - r.top) + "px");
+            }, { passive: true });
+        })();
+
+        // Hover-autoplay a muted preview of video covers (pointer devices only).
+        (function () {
+            if (!window.matchMedia || !matchMedia("(hover: hover)").matches) return;
+            function videoUrl(card) {
+                try { var v = JSON.parse(card.getAttribute("data-image-videos") || "[]"); return v[0] || null; }
+                catch (_) { return null; }
+            }
+            document.addEventListener("mouseover", function (e) {
+                var card = e.target.closest(".shot[data-image-videos]");
+                if (!card || card._hoverVid) return;
+                var url = videoUrl(card); if (!url) return;
+                var v = document.createElement("video");
+                v.src = url; v.muted = true; v.loop = true; v.playsInline = true;
+                v.className = "hover-video";
+                card.appendChild(v); card._hoverVid = v;
+                v.play().catch(function () {});
+            });
+            document.addEventListener("mouseout", function (e) {
+                var card = e.target.closest(".shot[data-image-videos]");
+                if (!card || !card._hoverVid || card.contains(e.relatedTarget)) return;
+                card._hoverVid.pause(); card._hoverVid.remove(); card._hoverVid = null;
+            });
+        })();
+
+        // Curate mode: clicking an X hides that post via the local endpoint.
+        document.addEventListener("click", function (e) {
+            var x = e.target.closest(".curate-x");
+            if (!x) return;
+            e.preventDefault(); e.stopPropagation();
+            var card = x.closest("[data-images]"), id = x.getAttribute("data-exclude-id");
+            x.disabled = true;
+            fetch("/curate/exclude", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ id: id })
+            }).then(function (r) {
+                if (r.ok && card) {
+                    var grid = card.closest(".masonry");
+                    if (grid && grid._cards) grid._cards = grid._cards.filter(function (c) { return c !== card; });
+                    card.style.transition = "opacity .2s"; card.style.opacity = "0";
+                    setTimeout(function () { card.remove(); }, 200);
+                } else { x.disabled = false; }
+            }).catch(function () { x.disabled = false; });
+        });
+
+        // Curate mode: edit a post's species text -> persist it (clears the flag).
+        // Auto-saves shortly after you stop typing, and on Enter / blur. A failed
+        // save turns the field red so it's never silent.
+        function saveSpecies(input) {
+            var fig = input.closest(".shot");
+            input.classList.remove("saved", "save-failed");
+            input.classList.add("saving");
+            fetch("/curate/override", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ id: input.getAttribute("data-id"), species: input.value })
+            }).then(function (r) {
+                if (!r.ok) throw new Error(r.status);
+                return r.json();
+            }).then(function (d) {
+                input.classList.remove("saving");
+                input.classList.add("saved");
+                setTimeout(function () { input.classList.remove("saved"); }, 1600);
+                if (fig) {
+                    fig.classList.toggle("flagged", !!d.ambiguous);
+                    var badge = fig.querySelector(".flag-badge");
+                    if (badge && !d.ambiguous) badge.remove();
+                }
+            }).catch(function () {
+                input.classList.remove("saving");
+                input.classList.add("save-failed");
+                input.title = "Save failed — is curate mode still on?";
+            });
+        }
+        var _saveTimer;
+        document.addEventListener("input", function (e) {
+            var input = e.target.closest(".species-edit");
+            if (!input) return;
+            clearTimeout(_saveTimer);
+            _saveTimer = setTimeout(function () { saveSpecies(input); }, 700);
+        });
+        document.addEventListener("change", function (e) {
+            var input = e.target.closest(".species-edit");
+            if (input) { clearTimeout(_saveTimer); saveSpecies(input); }
+        });
+        document.addEventListener("keydown", function (e) {
+            if (e.key !== "Enter") return;
+            var input = e.target.closest(".species-edit");
+            if (input) { e.preventDefault(); clearTimeout(_saveTimer); saveSpecies(input); input.blur(); }
+        });
+    </script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

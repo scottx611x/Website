@@ -15,13 +15,13 @@
 <title>{{ title }}</title>
 <div class="page-wrap">
     <body>
-        {% include 'choose-effect.html' %}
+        {% include 'archive/choose-effect.html' %}
 
         {% block background %}{% endblock %}
 
         <div class="container-fluid">
-            {% include 'nav.html' %}
-            {% include 'moi.html' %}
+            {% include 'archive/nav.html' %}
+            {% include 'archive/moi.html' %}
         </div>
     </div>
 </body>
@@ -32,8 +32,9 @@
         <script>
         new Date().getFullYear() > 2014 && document.write("- " + new Date().getFullYear());
         </script>, Scott Ouellette
-        <p>Hosted with the aid of
-            <a class="pool" href="https://github.com/Miserlou/Zappa">Zappa</a>
+        <p>
+            This is the archived original site &middot;
+            <a class="pool" href="/" style="color:#74c476;">&larr; back to scott-ouellette.com</a>
         </p>
     </div>
 </div>
@@ -44,8 +45,8 @@
 <script type="text/javascript" src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script>
 {% block js %}
 {% endblock %}
-{% include 'source-handlers.html' %}
-{% include 'ga.html' %}
+{% include 'archive/source-handlers.html' %}
+{% include 'archive/ga.html' %}
 <script type="text/javascript">
     $(function () {
       $('[data-toggle="tooltip"]').tooltip()

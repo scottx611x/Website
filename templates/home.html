@@ -1,0 +1,220 @@
+{% extends 'base.html' %}
+{% block body_class %}has-effect home{% endblock %}
+
+{% set bg = url_for('static', filename='img/' + background_image) %}
+
+{% block content %}
+    <!-- ============ HERO ============ -->
+    <div id="bg-effect" aria-hidden="true">
+        <img class="back" src="{{ bg }}" alt="">
+        <div class="bg-scrim"></div>
+    </div>
+
+    <section class="hero">
+        <p class="hero-eyebrow">North Andover, Massachusetts</p>
+        <h1 class="hero-title">Scott Ouellette</h1>
+        <p class="hero-sub">
+            Software Infrastructure Engineer that <span id="hero-tagline" class="hero-tagline"></span>
+        </p>
+        <div class="hero-links">
+            <a class="btn" href="/birds">Birds &rarr;</a>
+            <a class="btn btn-ghost" href="/projects">Coding Projects &rarr;</a>
+        </div>
+        <script>
+            (function () {
+                var lines = {{ taglines|tojson }};
+                var el = document.getElementById("hero-tagline");
+                if (!el || !lines.length) return;
+                var i = Math.floor(Math.random() * lines.length);
+                el.textContent = lines[i];
+                if (lines.length < 2) return;
+                setInterval(function () {
+                    el.classList.add("fading");
+                    setTimeout(function () {
+                        i = (i + 1) % lines.length;
+                        el.textContent = lines[i];
+                        el.classList.remove("fading");
+                    }, 350);
+                }, 3800);
+            })();
+        </script>
+    </section>
+
+    {% if curate %}
+    <section class="tagline-curate">
+        <p class="curate-note mono"><strong>Taglines.</strong> These rotate after &ldquo;&hellip;Engineer that&rdquo; in the hero. Edit (auto-saves), reorder with &uarr;&darr;, or &times; delete.</p>
+        <div id="tagline-list" class="tagline-edit-list">
+            {% for line in taglines %}
+            <div class="tagline-edit">
+                <span class="te-prefix mono">that&hellip;</span>
+                <input class="te-field" value="{{ line }}" placeholder="got way too into photographing birds">
+                <button type="button" class="pe-btn te-up" title="Move up">&uarr;</button>
+                <button type="button" class="pe-btn te-down" title="Move down">&darr;</button>
+                <button type="button" class="pe-btn te-del" title="Delete">&times;</button>
+            </div>
+            {% endfor %}
+        </div>
+        <p class="pe-actions">
+            <button type="button" id="tagline-add" class="btn btn-inline">+ Add tagline</button>
+            <span id="tagline-saved" class="proj-saved mono" hidden>saved &#10003;</span>
+        </p>
+    </section>
+    <section class="tagline-curate">
+        <p class="curate-note mono"><strong>Facts.</strong> These rotate in the footer (after the year) across the whole site. Edit (auto-saves), reorder, or &times; delete.</p>
+        <div id="fact-list" class="tagline-edit-list">
+            {% for fact in facts %}
+            <div class="tagline-edit">
+                <span class="te-prefix mono">Scott&hellip;</span>
+                <input class="te-field" value="{{ fact }}" placeholder="photographs birds around North Andover, MA">
+                <button type="button" class="pe-btn te-up" title="Move up">&uarr;</button>
+                <button type="button" class="pe-btn te-down" title="Move down">&darr;</button>
+                <button type="button" class="pe-btn te-del" title="Delete">&times;</button>
+            </div>
+            {% endfor %}
+        </div>
+        <p class="pe-actions">
+            <button type="button" id="fact-add" class="btn btn-inline">+ Add fact</button>
+            <span id="fact-saved" class="proj-saved mono" hidden>saved &#10003;</span>
+        </p>
+    </section>
+    <script>
+        // Reusable inline list editor (taglines, facts): edit/add/reorder/delete,
+        // auto-saving the whole list to `endpoint` under `key`.
+        function initListEditor(listId, addId, savedId, endpoint, key) {
+            var list = document.getElementById(listId);
+            if (!list) return;
+            var saved = document.getElementById(savedId), t;
+            function collect() {
+                return Array.prototype.map.call(list.querySelectorAll(".te-field"), function (f) { return f.value.trim(); }).filter(Boolean);
+            }
+            function save() {
+                clearTimeout(t);
+                t = setTimeout(function () {
+                    var body = {}; body[key] = collect();
+                    fetch(endpoint, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) })
+                        .then(function (r) { return r.json(); }).then(function (d) {
+                            if (d && d.ok && saved) { saved.hidden = false; setTimeout(function () { saved.hidden = true; }, 1300); }
+                        });
+                }, 450);
+            }
+            function addRow() {
+                var blank = list.querySelector(".tagline-edit").cloneNode(true);
+                blank.querySelector(".te-field").value = "";
+                list.appendChild(blank);
+                blank.querySelector(".te-field").focus();
+            }
+            list.addEventListener("input", function (e) { if (e.target.closest(".te-field")) save(); });
+            list.addEventListener("keydown", function (e) { if (e.key === "Enter" && e.target.closest(".te-field")) { e.preventDefault(); addRow(); } });
+            list.addEventListener("click", function (e) {
+                var row = e.target.closest(".tagline-edit"); if (!row) return;
+                if (e.target.closest(".te-up")) { var p = row.previousElementSibling; if (p) { list.insertBefore(row, p); save(); } }
+                else if (e.target.closest(".te-down")) { var n = row.nextElementSibling; if (n) { list.insertBefore(n, row); save(); } }
+                else if (e.target.closest(".te-del")) { row.remove(); save(); }
+            });
+            var addBtn = document.getElementById(addId);
+            if (addBtn) addBtn.addEventListener("click", addRow);
+        }
+        initListEditor("tagline-list", "tagline-add", "tagline-saved", "/curate/taglines", "taglines");
+        initListEditor("fact-list", "fact-add", "fact-saved", "/curate/facts", "facts");
+    </script>
+    {% endif %}
+
+    {% if species %}
+    <div class="ticker">
+        <div class="ticker-track" style="animation-duration: {{ [species|length * 4, 40]|max }}s">
+            {% for s in species %}<a class="ticker-bird" href="/birds?bird={{ s|urlencode }}">{{ s }}</a><span class="sep" aria-hidden="true">&bull;</span>{% endfor %}
+            {% for s in species %}<a class="ticker-bird" href="/birds?bird={{ s|urlencode }}" tabindex="-1" aria-hidden="true">{{ s }}</a><span class="sep" aria-hidden="true">&bull;</span>{% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- ============ BIRDS ============ -->
+    <section class="strip editorial reveal">
+        <div class="strip-head">
+            <div>
+                <h2>Birds of North Andover</h2>
+                <p class="lede">A rotating selection of my favorite shots from around my hometown.</p>
+                <a class="ig-link" href="https://www.instagram.com/birdsofnorthandover/" target="_blank" rel="me noopener">
+                    <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><rect x="2" y="2" width="20" height="20" rx="5.5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="4.5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="17.6" cy="6.4" r="1.4" fill="currentColor"/></svg>
+                    @birdsofnorthandover
+                </a>
+            </div>
+        </div>
+        {% if shots %}
+        {% set preview = shots[:5] %}
+        {% set start_tokens = [] %}
+        {% for s in preview %}{% set _ = start_tokens.append(s.id ~ '.' ~ (s.image_indices[0] if s.image_indices else 0)) %}{% endfor %}
+        {% set start_ids = start_tokens|join(',') %}
+        <div class="feature-grid">
+            {% for shot in preview %}
+            <a class="feature-tile{% if loop.first %} lead{% endif %}" href="/birds?start={{ start_ids }}">
+                <img loading="lazy" decoding="async" src="{{ shot.images[0]|thumb }}" alt="{{ shot.species or '' }}">
+                {% if shot.species %}<span class="tile-cap">{{ shot.species }}</span>{% endif %}
+            </a>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="feature-grid placeholder">
+            {% for i in range(5) %}<div class="feature-tile{% if loop.first %} lead{% endif %} ph"></div>{% endfor %}
+        </div>
+        <p class="hint">More photos appear here as the gallery updates.</p>
+        {% endif %}
+        {% if bird_stats %}
+        <p class="strip-stats mono"><strong>{{ bird_stats.species }}</strong> species &middot; <strong>{{ "{:,}".format(bird_stats.photos) }}</strong> photos &amp; videos &middot; <strong>{{ bird_stats.places }}</strong> places pinned</p>
+        {% endif %}
+        <div class="strip-links">
+            <a class="more" href="/birds">See all photos &rarr;</a>
+            <a class="more" href="/birds/map">The sightings map &rarr;</a>
+            <a class="more" href="/birds/stats">By the numbers &rarr;</a>
+        </div>
+    </section>
+
+    <!-- ============ PROJECTS ============ -->
+    <section class="strip techy reveal">
+        <div class="strip-head">
+            <div>
+                <h2>Projects</h2>
+                <p class="lede">I build things for work and for fun. The current list is on
+                <a href="https://github.com/scottx611x">GitHub</a>.</p>
+            </div>
+        </div>
+        {% if projects %}
+        <ul class="proj-list">
+            {% for p in projects[:5] %}
+            {% set primary = p.site or p.repo %}
+            <li>
+                {% set inner %}<span class="proj-name">{{ p.name }}</span>{% if p.tech %}<span class="proj-tech">{{ p.tech }}</span>{% endif %}{% if not primary %}<span class="soon">soon</span>{% endif %}{% if p.description %}<span class="proj-desc">{{ p.description }}</span>{% endif %}{% endset %}
+                {% if primary %}<a href="{{ primary }}">{{ inner }}</a>{% else %}<div class="no-link">{{ inner }}</div>{% endif %}
+            </li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+        <a class="more" href="https://github.com/scottx611x">View GitHub &rarr;</a>
+    </section>
+
+    <!-- ============ WRITING ============ -->
+    {% if posts %}
+    <section class="strip writing reveal">
+        <div class="strip-head">
+            <div><h2>Writing</h2><p class="lede">Occasional posts on code, photography, and whatever I'm working on.</p></div>
+        </div>
+        <ul class="note-list">
+            {% for post in posts %}
+            <li>
+                <a href="/blog/{{ post.slug }}">
+                    <time>{{ post.date.strftime('%b %-d, %Y') if post.date.year > 1 else '' }}</time>
+                    <span class="note-title">{{ post.title }}</span>
+                    {% if post.summary %}<span class="note-sum">{{ post.summary }}</span>{% endif %}
+                </a>
+            </li>
+            {% endfor %}
+        </ul>
+        <a class="more" href="/blog">All posts &rarr;</a>
+    </section>
+    {% endif %}
+
+    <p class="effect-note">
+        The <a href="/archive">original site</a> still lives here.
+    </p>
+{% endblock %}
+

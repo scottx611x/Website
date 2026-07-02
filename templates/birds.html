@@ -1,0 +1,159 @@
+{% extends 'base.html' %}
+
+{% block meta_description %}{{ species_count }} bird species photographed around North Andover, MA — hawks, owls, warblers, and more, with photos and videos.{% endblock %}
+
+{% block content %}
+<script>
+    // The gallery always uses the full screen width.
+    document.body.classList.add("birds-fill");
+</script>
+<section class="page wide">
+    <header class="gallery-header">
+        <h1>Birds of North Andover</h1>
+        {% set subnav_active = 'gallery' %}{% include '_birds_nav.html' %}
+        {% if species_groups %}
+        <div class="bird-filter">
+            <p class="bird-stat">
+                <a href="/birds?area=local" class="bird-stat-link{% if active_area == 'local' %} is-active{% endif %}" onclick="return birdsGo(event,{area:'local'})"><strong>{{ local_count }}</strong> species here</a>{% if away_count %} &middot; <a href="/birds?area=elsewhere" class="bird-stat-link bird-stat-away{% if active_area == 'elsewhere' %} is-active{% endif %}" onclick="return birdsGo(event,{area:'elsewhere'})">{{ away_count }} spotted elsewhere&nbsp;&#9888;&#65039;</a>{% endif %}
+            </p>
+            <div class="filter-controls">
+                <div class="filter-search">
+                    <input type="search" id="speciesSearch" list="speciesList" autocomplete="off"
+                           placeholder="Search species&hellip;" value="{{ active_bird }}"
+                           aria-label="Search species"
+                           onchange="birdsGo(null,{bird:this.value})"
+                           onkeydown="if(event.key==='Enter')birdsGo(null,{bird:this.value})">
+                    <datalist id="speciesList">
+                        {% for family, sp in species_groups %}{% for name, count in sp %}<option value="{{ name }}">{{ family }} ({{ count }})</option>{% endfor %}{% endfor %}
+                    </datalist>
+                </div>
+                <div class="bird-select">
+                    <select id="familyFilter" aria-label="Browse by family or species"
+                            onchange="var v=this.value; if(v.indexOf('fam:')===0){birdsGo(null,{family:v.slice(4),bird:''})}else{birdsGo(null,{bird:v,family:''})}">
+                        <option value="">Browse by family&hellip;</option>
+                        {% for family, sp in species_groups %}
+                        <optgroup label="{{ family }}">
+                            <option value="fam:{{ family }}"{% if family == active_family and not active_bird %} selected{% endif %}>&#9656; All {{ family }} ({{ family_counts[family] }})</option>
+                            {% for name, count in sp %}
+                            <option value="{{ name }}"{% if name == active_bird %} selected{% endif %}>{{ name }} ({{ count }})</option>
+                            {% endfor %}
+                        </optgroup>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+        </div>
+        <p class="media-stat mono">
+            <a class="media-link{% if active_media == 'photo' %} on{% endif %}" onclick="birdsGo(null,{media:'{{ '' if active_media == 'photo' else 'photo' }}'})"><strong>{{ media_n.photos }}</strong> photo{{ 's' if media_n.photos != 1 }}</a>{% if media_n.videos %} &middot; <a class="media-link{% if active_media == 'video' %} on{% endif %}" onclick="birdsGo(null,{media:'{{ '' if active_media == 'video' else 'video' }}'})"><strong>{{ media_n.videos }}</strong> video{{ 's' if media_n.videos != 1 }}</a>{% endif %}
+        </p>
+        <p class="media-stat mono">
+            order: <a class="media-link{% if not active_sort %} on{% endif %}" onclick="birdsGo(null,{sort:''})">shuffle</a> &middot; <a class="media-link{% if active_sort == 'posted' %} on{% endif %}" onclick="birdsGo(null,{sort:'posted'})">newest (post date)</a> &middot; <a class="media-link{% if active_sort == 'recent' %} on{% endif %}" onclick="birdsGo(null,{sort:'recent'})">newest (sighting date)</a> &middot; <a class="media-link{% if active_sort == 'oldest' %} on{% endif %}" onclick="birdsGo(null,{sort:'oldest'})">oldest</a>
+        </p>
+        {% if active_bird or active_family or active_area or active_media or active_loc or active_on or active_month %}
+        <div class="bird-active">
+            <div class="filter-chips">
+                {% if active_on %}<button type="button" class="chip" onclick="birdsGo(null,{on:''})">&#128197; {{ active_on_display }} <span>&times;</span></button>{% endif %}
+                {% if active_month %}<button type="button" class="chip" onclick="birdsGo(null,{month:''})">&#128197; every {{ active_month_display }} <span>&times;</span></button>{% endif %}
+                {% if active_loc %}<button type="button" class="chip" onclick="birdsGo(null,{loc:''})">&#128205; {{ active_loc }} <span>&times;</span></button>{% endif %}
+                {% if active_media %}<button type="button" class="chip" onclick="birdsGo(null,{media:''})">{% if active_media == 'video' %}&#9654; Videos{% else %}Photos{% endif %} <span>&times;</span></button>{% endif %}
+                {% if active_area %}<button type="button" class="chip" onclick="birdsGo(null,{area:''})">{% if active_area == 'elsewhere' %}Out&#8209;of&#8209;area &#9888;&#65039;{% else %}North Andover{% endif %} <span>&times;</span></button>{% endif %}
+                {% if active_family %}<button type="button" class="chip" onclick="birdsGo(null,{family:''})">{{ active_family }} <span>&times;</span></button>{% endif %}
+                {% if active_bird %}<button type="button" class="chip" onclick="birdsGo(null,{bird:''})">{{ active_bird }}{% if active_bird in out_of_area %} &#9888;&#65039;{% endif %} <span>&times;</span></button>{% endif %}
+            </div>
+            <p class="bird-active-meta">
+                {% if active_bird %}{{ bird_family }} &middot; {% endif %}{% set noun = 'video' if active_media == 'video' else 'photo' %}{{ shots|length }} {{ noun }}{{ 's' if shots|length != 1 }} &middot; <a href="/birds">clear all</a>
+            </p>
+        </div>
+        {% endif %}
+        <script>
+            window.BIRDS_ACTIVE = { bird: {{ active_bird|tojson }}, family: {{ active_family|tojson }}, area: {{ active_area|tojson }}, media: {{ active_media|tojson }}, sort: {{ active_sort|tojson }}, loc: {{ active_loc|tojson }}, on: {{ active_on|tojson }}, month: {{ (active_month or "")|tojson }}, review: {{ active_review|tojson }} };
+            function birdsGo(ev, over) {
+                if (ev) ev.preventDefault();
+                // Location/day and species/family/area/month filters are mutually
+                // exclusive: picking one clears the others so the result is never
+                // ambiguous (month composes with species/family/area/media).
+                if (over.bird || over.family || over.area || over.media || over.month) { over.loc = ""; over.on = ""; }
+                if (over.loc || over.on) { over.bird = ""; over.family = ""; over.area = ""; over.media = ""; over.month = ""; }
+                var a = Object.assign({}, window.BIRDS_ACTIVE, over);
+                var p = new URLSearchParams();
+                if (a.bird) p.set("bird", a.bird);
+                if (a.family) p.set("family", a.family);
+                if (a.area) p.set("area", a.area);
+                if (a.media) p.set("media", a.media);
+                if (a.sort) p.set("sort", a.sort);
+                if (a.loc) p.set("loc", a.loc);
+                if (a.on) p.set("on", a.on);
+                if (a.month) p.set("month", a.month);
+                if (a.review) p.set("review", a.review);
+                var q = p.toString();
+                location.href = "/birds" + (q ? "?" + q : "");
+                return false;
+            }
+        </script>
+        {% endif %}
+        {% if curate %}
+        {% set flagged = shots|selectattr('ambiguous')|list|length %}
+        <p class="curate-note mono"><strong>Curate mode.</strong> {{ shots|length }} shown · <strong>{{ flagged }}</strong> flagged.</p>
+        <div class="curate-filters">
+            <button type="button" class="chip-toggle{% if active_review == 'reclassified' %} on{% endif %}" onclick="birdsGo(null,{review:'{{ '' if active_review == 'reclassified' else 'reclassified' }}',bird:'',family:'',area:'',media:''})">&#128256; Reclassified ({{ review_counts.reclassified }})</button>
+            <button type="button" class="chip-toggle{% if active_review == 'reid' %} on{% endif %}" onclick="birdsGo(null,{review:'{{ '' if active_review == 'reid' else 'reid' }}',bird:'',family:'',area:'',media:''})">&#8635; Flagged for re-ID ({{ review_counts.reid }})</button>
+            <button type="button" class="chip-toggle{% if active_review == 'hidden' %} on{% endif %}" onclick="birdsGo(null,{review:'{{ '' if active_review == 'hidden' else 'hidden' }}',bird:'',family:'',area:'',media:''})">&#9986; Hidden frames ({{ review_counts.hidden }})</button>
+        </div>
+        <ul class="curate-help mono">
+            <li><b>Rename:</b> type in a card's species box and press <kbd>Enter</kbd> to save.</li>
+            <li><b>Hide:</b> click the red <b>&times;</b> (top-right of a card).</li>
+            <li><b>Per-image:</b> click a photo to rename it, <b>&#8635;</b> flag for re-ID, or hide it.</li>
+        </ul>
+        {% endif %}
+        {% if curate %}<script>window.CURATE_HIDDEN_VIEW = {{ (active_review == 'hidden')|tojson }};</script>{% endif %}
+    </header>
+
+    {% if shots %}
+    <div class="masonry">
+        {% for shot in shots %}
+        <figure class="shot{% if curate %} curating{% if shot.ambiguous %} flagged{% endif %}{% endif %}"
+                data-index="{{ loop.index0 }}"
+                data-id="{{ shot.id }}"
+                {% if shot.post_id %}data-post-id="{{ shot.post_id }}"{% endif %}
+                data-images='{{ shot.images|tojson }}'
+                data-captions='{{ shot.captions|tojson }}'
+                data-image-species='{{ (shot.image_species or [])|tojson }}'
+                data-image-locations='{{ (shot.image_locations or [])|tojson }}'
+                data-image-areas='{{ (shot.image_areas or [])|tojson }}'
+                data-image-videos='{{ (shot.image_videos or [])|tojson }}'
+                data-image-indices='{{ (shot.image_indices or [])|tojson }}'
+                {% if curate %}data-caption-species='{{ (shot.caption_species or [])|tojson }}'{% endif %}
+                data-date='{{ shot.date or "" }}'
+                tabindex="0" role="button" aria-label="View {{ shot.species or 'photo' }} larger">
+            {% set dm = (shot.image_dims or [none])[0] %}
+            <img loading="lazy" decoding="async" src="{{ shot.images[0]|thumb }}"
+                 {% if dm %}width="{{ dm[0] }}" height="{{ dm[1] }}"{% endif %}
+                 alt="{{ shot.species or shot.caption[:80] }}">
+            {% if shot.image_videos and shot.image_videos[0] %}<span class="play-badge" aria-hidden="true">▶</span>{% endif %}
+            {% if shot.images|length > 1 %}<span class="multi-badge">⧉ {{ shot.images|length }}</span>{% endif %}
+            {% if shot.image_areas and shot.image_areas[0] == 'away' %}<span class="away-badge" tabindex="0" data-note="Spotted outside North Andover{% set acover = (shot.image_locations[0] if shot.image_locations else None) or shot.location %}{% if acover %} — {{ acover }}{% endif %}"><span class="away-badge-mark">⚠️</span></span>{% endif %}
+            {% if curate and not shot.post_id and shot.reclassified %}<span class="reclassified-badge" tabindex="0" data-note="AI re-classified — current labels differ from the Instagram caption ({{ shot.caption_species|join(', ') }})"><span class="reclassified-mark">🔀</span></span>{% endif %}
+            {% if curate and not shot.post_id and shot.ambiguous %}<span class="flag-badge" title="{{ shot.species_list|join(', ') }} — set the primary species">⚠ {{ shot.species_list|length }}</span>{% endif %}
+            {% if curate and not shot.post_id %}<button class="curate-x" data-exclude-id="{{ shot.id }}" aria-label="Hide this photo">&times;</button>{% endif %}
+            {% if curate and not shot.post_id %}
+            <figcaption>
+                <input class="species-edit" data-id="{{ shot.id }}" value="{{ shot.species or '' }}" placeholder="species?" aria-label="Species for this post">
+                {% if shot.caption_species %}
+                <span class="caption-ref mono" title="Species originally detected from the Instagram caption">IG: {{ shot.caption_species|join(', ') }}</span>
+                {% endif %}
+                {% if shot.date %}<span class="shot-date">{{ shot.date }}</span>{% endif %}
+            </figcaption>
+            {% elif shot.species or shot.date %}
+            <figcaption>
+                <span class="species">{{ shot.species or '' }}{% if shot.location %} &middot; {{ shot.location }}{% endif %}</span>
+                {% if shot.date %}<span class="shot-date">{{ shot.date }}</span>{% endif %}
+            </figcaption>
+            {% endif %}
+        </figure>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p class="empty mono" style="text-align:center;">// gallery warming up — check back soon.</p>
+    {% endif %}
+</section>
+{% endblock %}

@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<section class="page">
+    <p class="kicker">field notes</p>
+    <h1>Writing</h1>
+    {% if posts %}
+    <ul class="post-list">
+        {% for post in posts %}
+        <li>
+            <a href="/blog/{{ post.slug }}">
+                <span class="post-title">{{ post.title }}</span>
+                <time>{{ post.date.strftime('%Y.%m.%d') if post.date.year > 1 else '' }}</time>
+                {% if post.summary %}<p>{{ post.summary }}</p>{% endif %}
+            </a>
+        </li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <p class="empty">No posts yet — first one's coming soon.</p>
+    {% endif %}
+</section>
+{% endblock %}

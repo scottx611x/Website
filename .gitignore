@@ -1,1 +1,7 @@
 *.pyc
+__pycache__/
+.venv/
+.pytest_cache/
+.coverage
+.ig_token
+birds/reid_queue.json

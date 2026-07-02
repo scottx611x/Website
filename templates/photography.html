@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<section class="page wide">
+    <header class="gallery-header">
+        <p class="kicker">beyond the birds</p>
+        <h1>Photography</h1>
+        <p class="empty" style="color:var(--ink);max-width:38rem;margin:0 auto;">
+            A wider collection — landscapes, macro, and whatever else caught my eye.
+        </p>
+    </header>
+
+    {% if galleries %}
+        {% for category, items in galleries.items() %}
+        <h2 class="gallery-category">{{ category }}</h2>
+        <div class="masonry">
+            {% for item in items %}
+            <figure class="shot">
+                <img loading="lazy"
+                     src="{{ url_for('static', filename='img/photography/' + item.image) }}"
+                     alt="{{ item.title }}">
+                {% if item.title %}<figcaption><span class="species">{{ item.title }}</span></figcaption>{% endif %}
+            </figure>
+            {% endfor %}
+        </div>
+        {% endfor %}
+    {% else %}
+    <p class="empty mono" style="text-align:center;">// galleries coming soon.</p>
+    {% endif %}
+</section>
+{% endblock %}

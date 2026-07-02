@@ -1,0 +1,381 @@
+[
+  {
+    "name": "Atlantic Wharf, Boston",
+    "lat": 42.353273,
+    "lng": -71.05246,
+    "area": "away",
+    "match": [
+      "atlantic wharf docks boston"
+    ]
+  },
+  {
+    "name": "Boston, MA",
+    "lat": 42.358834,
+    "lng": -71.05783,
+    "area": "away",
+    "match": [
+      "boston ma"
+    ]
+  },
+  {
+    "name": "Canal St., Boston",
+    "lat": 42.364501,
+    "lng": -71.060058,
+    "area": "away",
+    "match": [
+      "canal st boston"
+    ]
+  },
+  {
+    "name": "Congress St. Bridge, Boston",
+    "lat": 42.352124,
+    "lng": -71.051728,
+    "area": "away",
+    "match": [
+      "congress st bridge boston",
+      "congress st boston",
+      "harborwalkcongress st bridge"
+    ]
+  },
+  {
+    "name": "Crane Beach, Ipswich",
+    "lat": 42.678423,
+    "lng": -70.741443,
+    "area": "away",
+    "match": [
+      "crane beach ipswich"
+    ]
+  },
+  {
+    "name": "Dorchester Ave., Boston",
+    "lat": 42.341806,
+    "lng": -71.05711,
+    "area": "away",
+    "match": [
+      "dorchester ave"
+    ]
+  },
+  {
+    "name": "Estero, Florida",
+    "lat": 26.438147,
+    "lng": -81.806754,
+    "area": "away",
+    "match": [
+      "estero florida"
+    ]
+  },
+  {
+    "name": "Great Meadows NWR, Concord",
+    "lat": 42.478631,
+    "lng": -71.327547,
+    "area": "away",
+    "match": [
+      "great meadows national wildlife refuge"
+    ]
+  },
+  {
+    "name": "Harborwalk, Boston",
+    "lat": 42.35479,
+    "lng": -71.04491,
+    "area": "away",
+    "match": [
+      "harborwalk boston"
+    ]
+  },
+  {
+    "name": "Holocaust Memorial, Boston",
+    "lat": 42.36137,
+    "lng": -71.057324,
+    "area": "away",
+    "match": [
+      "holocaust memorial boston",
+      "harborwalk holocaust memorial boston"
+    ]
+  },
+  {
+    "name": "Ipswich River Wildlife Sanctuary",
+    "lat": 42.631028,
+    "lng": -70.913127,
+    "area": "away",
+    "match": [
+      "ipswich river wildlife sanctuary"
+    ]
+  },
+  {
+    "name": "Lewiston, Maine",
+    "lat": 44.099072,
+    "lng": -70.21771,
+    "area": "away",
+    "match": [
+      "lewiston maine"
+    ]
+  },
+  {
+    "name": "Litchfield, Maine",
+    "lat": 44.154436,
+    "lng": -69.946546,
+    "area": "away",
+    "match": [
+      "litchfield maine"
+    ]
+  },
+  {
+    "name": "Pearl St., Boston",
+    "lat": 42.378503,
+    "lng": -71.064493,
+    "area": "away",
+    "match": [
+      "pearl st boston"
+    ]
+  },
+  {
+    "name": "Post Office Square, Boston",
+    "lat": 42.35643,
+    "lng": -71.055719,
+    "area": "away",
+    "match": [
+      "post office square boston",
+      "postoffice square boston"
+    ]
+  },
+  {
+    "name": "Railroad St., Andover",
+    "lat": 42.659461,
+    "lng": -71.14447,
+    "area": "away",
+    "match": [
+      "railroad st andover"
+    ]
+  },
+  {
+    "name": "Seaport Blvd. Bridge, Boston",
+    "lat": 42.349711,
+    "lng": -71.040892,
+    "area": "away",
+    "match": [
+      "seaport blvd bridge boston"
+    ]
+  },
+  {
+    "name": "Shawsheen River, Andover",
+    "lat": 42.6603,
+    "lng": -71.144,
+    "area": "away",
+    "match": [
+      "shawsheen river"
+    ]
+  },
+  {
+    "name": "Summer St. Bridge, Boston",
+    "lat": 42.351031,
+    "lng": -71.052018,
+    "area": "away",
+    "match": [
+      "summer st bridge boston"
+    ]
+  },
+  {
+    "name": "Westborough, MA",
+    "lat": 42.269431,
+    "lng": -71.612991,
+    "area": "away",
+    "match": [
+      "westborough ma"
+    ]
+  },
+  {
+    "name": "Wiggly Bridge, York, ME",
+    "lat": 43.136934,
+    "lng": -70.647411,
+    "area": "away",
+    "match": [
+      "york me wiggly bridge"
+    ]
+  },
+  {
+    "name": "Abbott St.",
+    "lat": 42.669702,
+    "lng": -71.094409,
+    "area": "local",
+    "match": [
+      "abbott st",
+      "abbot st"
+    ]
+  },
+  {
+    "name": "Annie L. Sargent School",
+    "lat": 42.67096,
+    "lng": -71.09838,
+    "area": "local",
+    "match": [
+      "annie l sargent school"
+    ]
+  },
+  {
+    "name": "Chestnut St.",
+    "lat": 42.655706,
+    "lng": -71.103534,
+    "area": "local",
+    "match": [
+      "chestnut st"
+    ]
+  },
+  {
+    "name": "Elm St.",
+    "lat": 42.70019,
+    "lng": -71.1258,
+    "area": "local",
+    "match": [
+      "elm st"
+    ]
+  },
+  {
+    "name": "Glennie Woodlot",
+    "lat": 42.686299,
+    "lng": -71.079752,
+    "area": "local",
+    "match": [
+      "glennie woodlot"
+    ]
+  },
+  {
+    "name": "Harold Parker State Forest",
+    "lat": 42.612743,
+    "lng": -71.0741,
+    "area": "local",
+    "match": [
+      "harold parker state forest"
+    ]
+  },
+  {
+    "name": "High St.",
+    "lat": 42.70586,
+    "lng": -71.12541,
+    "area": "local",
+    "match": [
+      "high st"
+    ]
+  },
+  {
+    "name": "Hillside Rd.",
+    "lat": 42.668855,
+    "lng": -71.114185,
+    "area": "local",
+    "match": [
+      "hillside rd"
+    ]
+  },
+  {
+    "name": "James Swamp",
+    "lat": 42.663914,
+    "lng": -71.091846,
+    "area": "local",
+    "match": [
+      "james swamp"
+    ]
+  },
+  {
+    "name": "Johnson St.",
+    "lat": 42.683191,
+    "lng": -71.111999,
+    "area": "local",
+    "match": [
+      "johnson st"
+    ]
+  },
+  {
+    "name": "Lake Cochichewick",
+    "lat": 42.700741,
+    "lng": -71.085574,
+    "area": "local",
+    "match": [
+      "lake cochichewick"
+    ]
+  },
+  {
+    "name": "Market Basket",
+    "lat": 42.684597,
+    "lng": -71.136176,
+    "area": "local",
+    "match": [
+      "market basket"
+    ]
+  },
+  {
+    "name": "Molly Towne Road",
+    "lat": 42.66455,
+    "lng": -71.08457,
+    "area": "local",
+    "match": [
+      "molly towne rd"
+    ]
+  },
+  {
+    "name": "North Cross Road",
+    "lat": 42.667479,
+    "lng": -71.088886,
+    "area": "local",
+    "match": [
+      "north cross rd"
+    ]
+  },
+  {
+    "name": "Nutmeg Ln.",
+    "lat": 42.670598,
+    "lng": -71.09077,
+    "area": "local",
+    "match": [
+      "nutmeg ln",
+      "nutmeg lane"
+    ]
+  },
+  {
+    "name": "Rea St.",
+    "lat": 42.668706,
+    "lng": -71.094924,
+    "area": "local",
+    "match": [
+      "rea st",
+      "rea stjohnson st",
+      "11026 rea st"
+    ]
+  },
+  {
+    "name": "Stevens Pond",
+    "lat": 42.691419,
+    "lng": -71.108429,
+    "area": "local",
+    "match": [
+      "stevens pond"
+    ]
+  },
+  {
+    "name": "Thistle Rd.",
+    "lat": 42.6723,
+    "lng": -71.09501,
+    "area": "local",
+    "match": [
+      "thistle st",
+      "thistle rd"
+    ]
+  },
+  {
+    "name": "Waverly Road",
+    "lat": 42.67807,
+    "lng": -71.13403,
+    "area": "local",
+    "match": [
+      "waverly rd",
+      "waverley rd"
+    ]
+  },
+  {
+    "name": "Weir Hill",
+    "lat": 42.694985,
+    "lng": -71.105404,
+    "area": "local",
+    "match": [
+      "weir hill"
+    ]
+  }
+]

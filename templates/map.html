@@ -1,0 +1,151 @@
+{% extends 'base.html' %}
+
+{% block head %}
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+          integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+{% endblock %}
+
+{% block content %}
+<section class="page wide">
+    <header class="gallery-header">
+        <h1>Where the birds are</h1>
+        <p class="empty" style="color:var(--ink);max-width:40rem;margin:0 auto;">
+            {{ "{:,}".format(mapped) }} photos across {{ points|length }} places &mdash; click a pin.
+        </p>
+        {% set subnav_active = 'map' %}{% include '_birds_nav.html' %}
+    </header>
+
+    <div class="map-toggle mono">
+        <button type="button" id="viewLocal" class="chip-toggle on">North Andover</button>
+        <button type="button" id="viewAll" class="chip-toggle">Everywhere</button>
+    </div>
+    <div id="sightings-map"></div>
+    <div class="map-scrub mono" id="mapScrub" hidden>
+        <button type="button" id="scrubPlay" class="chip-toggle" title="Play through the months">&#9654;</button>
+        <input type="range" id="scrubRange" min="0" value="0" step="1" aria-label="Month">
+        <span id="scrubLabel" class="scrub-label">All time</span>
+        <button type="button" id="scrubAll" class="chip-toggle" title="Show everything">All</button>
+    </div>
+    <p class="map-legend mono">
+        <span class="dot dot-local"></span> North Andover
+        &nbsp;&nbsp;<span class="dot dot-away"></span> spotted elsewhere &#9888;&#65039;
+        &nbsp;&nbsp;pin size &prop; photos
+    </p>
+</section>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script>
+    (function () {
+        var points = {{ points|tojson }};
+        var map = L.map("sightings-map", { scrollWheelZoom: false });
+        L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png", {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
+            maxZoom: 19
+        }).addTo(map);
+
+        function pinSize(n) { return Math.min(7 + 4.5 * Math.sqrt(n), 34); }
+        var localGroup = [], allGroup = [], markers = [];
+        points.forEach(function (p) {
+            var away = p.area === "away";
+            var m = L.circleMarker([p.lat, p.lng], {
+                radius: pinSize(p.count),
+                color: "#fff", weight: 1.5,
+                fillColor: away ? "#d9863b" : "#2f7d4f", fillOpacity: 0.82
+            }).addTo(map);
+            var noun = p.count === 1 ? "photo" : "photos";
+            m.bindPopup(
+                '<strong>' + (away ? "⚠️ " : "") + p.name + '</strong><br>' +
+                p.count + ' ' + noun + ' · ' + p.species + ' species<br>' +
+                '<span class="pop-top">' + p.top.join(", ") + '</span><br>' +
+                '<a href="/birds?loc=' + encodeURIComponent(p.name) + '">see the shots &rarr;</a>'
+            );
+            m.bindTooltip(p.name + " (" + p.count + ")", { direction: "top", offset: [0, -6] });
+            allGroup.push(m);
+            if (!away) localGroup.push(m);
+            markers.push({ m: m, p: p });
+        });
+
+        // ---- Time scrubber: drag through the months, watch the pins breathe ----
+        (function () {
+            var yms = {};
+            points.forEach(function (p) { Object.keys(p.months || {}).forEach(function (k) { yms[k] = 1; }); });
+            var keys = Object.keys(yms).sort();
+            if (keys.length < 2) return;
+            // continuous month axis from first to last
+            var months = [], cur = keys[0].split("-").map(Number), last = keys[keys.length - 1];
+            while (true) {
+                var ym = cur[0] + "-" + String(cur[1]).padStart(2, "0");
+                months.push(ym);
+                if (ym === last) break;
+                if (++cur[1] > 12) { cur[1] = 1; cur[0]++; }
+            }
+            var wrap = document.getElementById("mapScrub"),
+                range = document.getElementById("scrubRange"),
+                label = document.getElementById("scrubLabel"),
+                play = document.getElementById("scrubPlay"),
+                allBtn = document.getElementById("scrubAll");
+            wrap.hidden = false;
+            range.max = months.length - 1;
+            range.value = months.length - 1;
+            function fmt(ym) {
+                var p = ym.split("-");
+                return new Date(+p[0], +p[1] - 1, 1)
+                    .toLocaleString("en-US", { month: "short", year: "numeric" });
+            }
+            function setMonth(i) {
+                var ym = months[i];
+                label.textContent = fmt(ym);
+                allBtn.classList.remove("on");
+                markers.forEach(function (mk) {
+                    var n = (mk.p.months || {})[ym] || 0;
+                    if (n) mk.m.setStyle({ fillOpacity: 0.85, opacity: 1 }).setRadius(pinSize(n));
+                    else mk.m.setStyle({ fillOpacity: 0.1, opacity: 0.25 }).setRadius(3);
+                });
+            }
+            function setAll() {
+                stop();
+                label.textContent = "All time";
+                allBtn.classList.add("on");
+                range.value = months.length - 1;
+                markers.forEach(function (mk) {
+                    mk.m.setStyle({ fillOpacity: 0.82, opacity: 1 }).setRadius(pinSize(mk.p.count));
+                });
+            }
+            var timer = null;
+            function stop() {
+                if (timer) { clearInterval(timer); timer = null; play.innerHTML = "&#9654;"; play.classList.remove("on"); }
+            }
+            play.addEventListener("click", function () {
+                if (timer) { stop(); return; }
+                play.innerHTML = "&#10074;&#10074;"; play.classList.add("on");
+                var i = +range.value >= months.length - 1 ? -1 : +range.value;
+                timer = setInterval(function () {
+                    i++;
+                    if (i >= months.length) { stop(); return; }
+                    range.value = i;
+                    setMonth(i);
+                }, 550);
+            });
+            range.addEventListener("input", function () { stop(); setMonth(+range.value); });
+            allBtn.addEventListener("click", setAll);
+            allBtn.classList.add("on");
+        })();
+
+        function fit(markers, pad) {
+            var b = L.latLngBounds(markers.map(function (m) { return m.getLatLng(); }));
+            map.fitBounds(b, { padding: [pad, pad] });
+        }
+        var btnLocal = document.getElementById("viewLocal"),
+            btnAll = document.getElementById("viewAll");
+        function setView(local) {
+            btnLocal.classList.toggle("on", local);
+            btnAll.classList.toggle("on", !local);
+            fit(local ? localGroup : allGroup, local ? 40 : 50);
+        }
+        btnLocal.addEventListener("click", function () { setView(true); });
+        btnAll.addEventListener("click", function () { setView(false); });
+        setView(true);
+    })();
+</script>
+{% endblock %}
