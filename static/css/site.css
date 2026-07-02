@@ -503,7 +503,9 @@ body.home .site-nav { z-index: 0; }
 
 .stat-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.2rem; }
 .stat-span-2 { grid-column: 1 / -1; }
-.stat-block { padding: 1.5rem 1.6rem; border-radius: 12px; background: var(--paper); border: 1px solid rgba(13, 18, 14, 0.1); }
+/* min-width: 0 lets blocks shrink below their content (the fixed-width calendar
+   SVG was stretching the whole page sideways on phones). */
+.stat-block { min-width: 0; padding: 1.5rem 1.6rem; border-radius: 12px; background: var(--paper); border: 1px solid rgba(13, 18, 14, 0.1); }
 .stat-block h2 { font-family: var(--display); font-size: 1.35rem; font-weight: 500; margin: 0 0 0.15rem; }
 
 /* horizontal bars */
@@ -524,7 +526,7 @@ body.home .site-nav { z-index: 0; }
 
 /* d3 charts (life list, ridgeline, calendar heatmap) */
 .d3-chart svg { width: 100%; height: auto; display: block; }
-.cal-scroll { overflow-x: auto; }
+.cal-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
 .cal-scroll svg { width: auto; }
 .chart-tick { font-family: var(--mono); font-size: 10px; fill: var(--muted); }
 .chart-note { font-family: var(--mono); font-size: 12px; font-weight: 700; fill: var(--green); }

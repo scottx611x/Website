@@ -111,11 +111,16 @@
         var MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
         if (typeof d3 === "undefined") return;   // CDN blocked? page still works
 
+        // Charts render at the container's real width (1 viewBox unit = 1 CSS px)
+        // and re-render on resize, so text never scales down illegibly on phones.
+        function chartWidth(el) { return Math.max(el.clientWidth, 300); }
+
         // ---- The life list: species accumulation, one dot per new bird ----
-        (function () {
+        function renderAccum() {
             var el = document.getElementById("accum-chart");
-            var W = Math.max(el.clientWidth, 560), H = 280,
-                m = { t: 12, r: 46, b: 26, l: 34 };
+            el.innerHTML = "";
+            var W = chartWidth(el), narrow = W < 520, H = narrow ? 230 : 280,
+                m = { t: 12, r: narrow ? 30 : 46, b: 26, l: narrow ? 28 : 34 };
             var data = S.accum.map(function (a, i) { return { d: new Date(a.d), s: a.s, n: i + 1 }; });
             var x = d3.scaleTime(d3.extent(data, function (d) { return d.d; }), [m.l, W - m.r]);
             var y = d3.scaleLinear([0, data.length], [H - m.b, m.t]);
@@ -128,28 +133,32 @@
             svg.append("path").datum(data).attr("d", line)
                 .attr("fill", "none").attr("stroke", GREEN).attr("stroke-width", 2);
             svg.append("g").attr("transform", "translate(0," + (H - m.b) + ")")
-                .call(d3.axisBottom(x).ticks(6).tickSizeOuter(0));
+                .call(d3.axisBottom(x).ticks(narrow ? 4 : 6).tickSizeOuter(0));
             svg.append("g").attr("transform", "translate(" + m.l + ",0)")
                 .call(d3.axisLeft(y).ticks(5).tickSizeOuter(0));
             svg.selectAll(".dot").data(data).enter().append("circle")
                 .attr("cx", function (d) { return x(d.d); }).attr("cy", function (d) { return y(d.n); })
-                .attr("r", 3).attr("fill", GREEN).attr("class", "accum-dot")
+                .attr("r", narrow ? 2.5 : 3).attr("fill", GREEN).attr("class", "accum-dot")
                 .append("title").text(function (d) {
                     return "#" + d.n + "  " + d.s + " — " + d3.timeFormat("%b %-d, %Y")(d.d);
                 });
             var last = data[data.length - 1];
-            svg.append("text").attr("x", x(last.d) + 8).attr("y", y(last.n) + 4)
+            svg.append("text").attr("x", x(last.d) + 6).attr("y", y(last.n) + 4)
                 .attr("class", "chart-note").text(last.n);
             svg.selectAll(".domain, .tick line").attr("stroke", "rgba(13,18,14,0.25)");
             svg.selectAll(".tick text").attr("fill", MUTED);
-        })();
+        }
 
         // ---- The year in birds: phenology ridgeline ----
-        (function () {
+        function renderRidge() {
             var el = document.getElementById("ridge-chart");
-            var rows = S.ridge, rowH = 34, amp = 58, gutter = 168, pad = 26;
-            var W = Math.max(el.clientWidth, 560), H = rows.length * rowH + 46 + pad;
-            var x = d3.scalePoint(d3.range(12), [gutter, W - 18]);
+            el.innerHTML = "";
+            var rows = S.ridge, W = chartWidth(el), narrow = W < 520;
+            // Wide: labels in a left gutter. Narrow: labels sit above each ridge.
+            var rowH = narrow ? 52 : 34, amp = narrow ? 34 : 58,
+                gutter = narrow ? 8 : 168, pad = narrow ? 8 : 26;
+            var H = rows.length * rowH + 46 + pad;
+            var x = d3.scalePoint(d3.range(12), [gutter, W - (narrow ? 8 : 18)]);
             var svg = d3.select(el).append("svg").attr("viewBox", "0 0 " + W + " " + H);
             rows.forEach(function (r, i) {
                 var base = (i + 1) * rowH + 6 + pad;
@@ -161,16 +170,29 @@
                 svg.append("path").datum(pts).attr("d", area)
                     .attr("fill", NEON).attr("opacity", 0.28)
                     .attr("stroke", GREEN).attr("stroke-width", 1.4);
-                svg.append("a").attr("href", "/birds?bird=" + encodeURIComponent(r.name))
-                    .append("text").attr("x", gutter - 10).attr("y", base - 2)
-                    .attr("text-anchor", "end").attr("class", "ridge-label").text(r.name);
+                var a = svg.append("a").attr("href", "/birds?bird=" + encodeURIComponent(r.name));
+                if (narrow) {
+                    a.append("text").attr("x", 8).attr("y", base - amp - 4)
+                        .attr("class", "ridge-label").text(r.name);
+                } else {
+                    a.append("text").attr("x", gutter - 10).attr("y", base - 2)
+                        .attr("text-anchor", "end").attr("class", "ridge-label").text(r.name);
+                }
             });
             var ax = svg.append("g").attr("transform", "translate(0," + (rows.length * rowH + 24 + pad) + ")");
             MONTHS.forEach(function (mo, i) {
                 ax.append("text").attr("x", x(i)).attr("y", 0).attr("text-anchor", "middle")
                     .attr("class", "chart-tick").text(mo[0]);
             });
-        })();
+        }
+
+        renderAccum();
+        renderRidge();
+        var rt;
+        addEventListener("resize", function () {
+            clearTimeout(rt);
+            rt = setTimeout(function () { renderAccum(); renderRidge(); }, 200);
+        });
 
         // ---- Shooting days: GitHub-style calendar heatmap, last 12 months ----
         (function () {
