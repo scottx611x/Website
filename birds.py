@@ -333,7 +333,6 @@ def _pseudo_frame(shot, i):
                          if i < len(shot.get("image_videos") or []) else None],
         "image_indices": [(shot.get("image_indices") or [])[i]
                           if i < len(shot.get("image_indices") or []) else i],
-        "weight": shot.get("weight") or 0,
         "caption_species": shot.get("caption_species") or [],
         "species": display,
         "location": loc,
@@ -480,29 +479,13 @@ def images_hidden(shots):
 
 
 def all_photos_shuffled(shots):
-    """Every frame in the gallery, shuffled with a bias toward its post's
-    weight (likes percentile, or recency for fresh posts) — so well-liked and
-    just-posted shots trend toward the top while every load still feels new.
-
-    Posts from the last week don't just get better lottery odds: their cover
-    frame is spliced into the first rows outright, so "I posted it yesterday,
-    where is it?" always has an answer above the fold."""
-    now = datetime.datetime.now(datetime.timezone.utc)
-    frames, fresh_lead = [], {}
+    """Every frame in the gallery, in plain random order (fresh each load)."""
+    frames = []
     for shot in shots:
-        fresh = _freshness(shot.get("timestamp"), now)
         for i in range(len(shot.get("images") or [])):
             frame, _ = _pseudo_frame(shot, i)
             frames.append(frame)
-            if i == 0 and fresh > 0.5:
-                fresh_lead[shot.get("id")] = frame
-    frames.sort(key=lambda f: random.random() ** (1.0 / ((f.get("weight") or 0) + 0.05)),
-                reverse=True)
-    lead = list(fresh_lead.values())[:6]
-    lead_ids = {f["id"] for f in lead}
-    frames = [f for f in frames if f["id"] not in lead_ids]
-    for f in lead:
-        frames.insert(random.randrange(0, 15), f)
+    random.shuffle(frames)
     return frames
 
 
@@ -649,28 +632,12 @@ def _assign_weights(shots):
 
     We keep only the percentile in the manifest (never the raw count) so likes
     influence ordering without ever being stored or shown.
-
-    Fresh posts haven't had time to earn likes, which would bury exactly the
-    posts a visitor most expects to see — so recency carries a new post for its
-    first two weeks (decaying daily; the percentile takes over once it's earned).
     """
     likes = sorted(shot.get("_like", 0) for shot in shots)
     total = len(likes)
-    now = datetime.datetime.now(datetime.timezone.utc)
     for shot in shots:
         like = shot.pop("_like", 0)
-        weight = bisect.bisect_right(likes, like) / total if total else 1.0
-        shot["weight"] = round(max(weight, _freshness(shot.get("timestamp"), now)), 3)
-
-
-def _freshness(timestamp, now):
-    """1.0 for a just-posted shot, fading to 0.0 over 14 days."""
-    try:
-        posted = datetime.datetime.strptime(timestamp[:19], "%Y-%m-%dT%H:%M:%S")
-        age_days = (now.replace(tzinfo=None) - posted).total_seconds() / 86400.0
-        return max(0.0, 1.0 - age_days / 14.0)
-    except (TypeError, ValueError):
-        return 0.0
+        shot["weight"] = round(bisect.bisect_right(likes, like) / total, 3) if total else 1.0
 
 
 # ---------------------------------------------------------------------------
