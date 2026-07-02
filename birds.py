@@ -1618,6 +1618,35 @@ def images_at_place(shots, place):
     return frames
 
 
+def images_posted_on(shots, day):
+    """Every frame from posts PUBLISHED on ``day`` (ISO date) — the click-through
+    for the lightbox's post date, complementing images_on_date's sighting day."""
+    buckets = []
+    for shot in shots:
+        if (shot.get("timestamp") or "")[:10] != day:
+            continue
+        bucket = [_pseudo_frame(shot, i)[0]
+                  for i in range(len(shot.get("images") or []))]
+        if bucket:
+            buckets.append(bucket)
+    return _interleave_buckets(buckets)
+
+
+def location_places(shots):
+    """Map each distinct raw location string used by any frame to its geocoded
+    place name (locations.json), so UI labels can link to /birds?loc=. Locations
+    that don't resolve to a pin are simply absent."""
+    idx = _place_index(load_locations())
+    out = {}
+    for shot in shots:
+        for loc in (shot.get("image_locations") or []) + [shot.get("location")]:
+            if loc and loc not in out:
+                place = _match_place(loc, idx)
+                if place:
+                    out[loc] = place["name"]
+    return out
+
+
 def gallery_stats(shots):
     """Aggregate numbers for the 'by the numbers' page: counts, families, top
     species/locations, seasonal activity, and the date span. Derived entirely

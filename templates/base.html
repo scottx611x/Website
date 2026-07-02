@@ -141,30 +141,50 @@
                     suggest.appendChild(c);
                 });
             }
+            function capLink(href, text) {
+                var a = document.createElement("a");
+                a.className = "cap-species-link";
+                a.href = href;
+                a.textContent = text;
+                return a;
+            }
+            function fmtDay(iso) {
+                return new Date(iso + "T12:00:00").toLocaleDateString("en-US",
+                    { month: "short", day: "numeric", year: "numeric" });
+            }
             function renderLabel(f) {
+                // Species, location, sighting date, and post date are all doors
+                // into their filtered gallery views.
                 cap.innerHTML = "";
-                var loc = f.location ? ((f.away ? "⚠️ " : "") + f.location) : "";
+                function sep() { if (cap.childNodes.length) cap.appendChild(document.createTextNode("  ·  ")); }
                 if (f.species) {
-                    // Each species is a link to its filtered gallery view.
                     f.species.split(" & ").forEach(function (sp, i) {
                         if (i) cap.appendChild(document.createTextNode(" & "));
-                        var a = document.createElement("a");
-                        a.className = "cap-species-link";
-                        a.href = "/birds?bird=" + encodeURIComponent(sp);
-                        a.textContent = sp;
-                        cap.appendChild(a);
+                        cap.appendChild(capLink("/birds?bird=" + encodeURIComponent(sp), sp));
                     });
-                    var rest = (loc ? "  ·  " + loc : "");
-                    if (f.date) rest += "  ·  " + f.date;
-                    if (f.of > 1) rest += "  (" + f.n + "/" + f.of + ")";
-                    if (rest) cap.appendChild(document.createTextNode(rest));
-                } else {
+                    if (f.location) {
+                        sep();
+                        if (f.away) cap.appendChild(document.createTextNode("⚠️ "));
+                        var place = (window.LOC_PLACE || {})[f.location];
+                        if (place) cap.appendChild(capLink("/birds?loc=" + encodeURIComponent(place), f.location));
+                        else cap.appendChild(document.createTextNode(f.location));
+                    }
+                    if (f.date) {
+                        sep();
+                        if (f.sighted) cap.appendChild(capLink("/birds?on=" + f.sighted, f.date));
+                        else cap.appendChild(document.createTextNode(f.date));
+                    }
+                } else if (f.caption) {
                     var base = f.caption;
                     if (f.date) base += "  ·  " + f.date;
                     if (f.away) base = "⚠️ " + base;
-                    if (f.of > 1) base += "  (" + f.n + "/" + f.of + ")";
-                    cap.textContent = base.trim();
+                    cap.appendChild(document.createTextNode(base.trim()));
                 }
+                if (f.posted) {
+                    sep();
+                    cap.appendChild(capLink("/birds?posted=" + f.posted, "posted " + fmtDay(f.posted)));
+                }
+                if (f.of > 1) cap.appendChild(document.createTextNode("  (" + f.n + "/" + f.of + ")"));
                 cap.hidden = !cap.textContent.trim();
             }
             function reidKey(f) { return f.postId + "-" + f.origIndex; }
@@ -189,6 +209,8 @@
                     try { sp = JSON.parse(el.getAttribute("data-image-species")); } catch (_) { sp = []; }
                     try { loc = JSON.parse(el.getAttribute("data-image-locations")); } catch (_) { loc = []; }
                     var date = el.getAttribute("data-date") || "";
+                    var sighted = el.getAttribute("data-sighted") || "";
+                    var posted = el.getAttribute("data-posted") || "";
                     var pid = el.getAttribute("data-post-id") || el.getAttribute("data-id") || "";
                     var ars; try { ars = JSON.parse(el.getAttribute("data-image-areas")); } catch (_) { ars = []; }
                     var ixs; try { ixs = JSON.parse(el.getAttribute("data-image-indices")); } catch (_) { ixs = []; }
@@ -199,7 +221,8 @@
                         frames.push({
                             url: u, caption: caps[i] || caps[0] || "",
                             species: (sp && sp[i]) || "", location: (loc && loc[i]) || "",
-                            date: date, n: i + 1, of: urls.length, postId: pid, index: i,
+                            date: date, sighted: sighted, posted: posted,
+                            n: i + 1, of: urls.length, postId: pid, index: i,
                             origIndex: (ixs && ixs[i] != null) ? ixs[i] : i,
                             away: (ars && ars[i]) === "away",
                             video: (vds && vds[i]) || null, captionSpecies: csp || []

@@ -49,10 +49,11 @@
         <p class="media-stat mono">
             order: <a class="media-link{% if not active_sort %} on{% endif %}" onclick="birdsGo(null,{sort:''})">shuffle</a> &middot; <a class="media-link{% if active_sort == 'posted' %} on{% endif %}" onclick="birdsGo(null,{sort:'posted'})">newest (post date)</a> &middot; <a class="media-link{% if active_sort == 'recent' %} on{% endif %}" onclick="birdsGo(null,{sort:'recent'})">newest (sighting date)</a> &middot; <a class="media-link{% if active_sort == 'oldest' %} on{% endif %}" onclick="birdsGo(null,{sort:'oldest'})">oldest</a>
         </p>
-        {% if active_bird or active_family or active_area or active_media or active_loc or active_on or active_month %}
+        {% if active_bird or active_family or active_area or active_media or active_loc or active_on or active_posted or active_month %}
         <div class="bird-active">
             <div class="filter-chips">
-                {% if active_on %}<button type="button" class="chip" onclick="birdsGo(null,{on:''})">&#128197; {{ active_on_display }} <span>&times;</span></button>{% endif %}
+                {% if active_on %}<button type="button" class="chip" onclick="birdsGo(null,{on:''})">&#128197; sighted {{ active_on_display }} <span>&times;</span></button>{% endif %}
+                {% if active_posted %}<button type="button" class="chip" onclick="birdsGo(null,{posted:''})">&#128228; posted {{ active_posted_display }} <span>&times;</span></button>{% endif %}
                 {% if active_month %}<button type="button" class="chip" onclick="birdsGo(null,{month:''})">&#128197; every {{ active_month_display }} <span>&times;</span></button>{% endif %}
                 {% if active_loc %}<button type="button" class="chip" onclick="birdsGo(null,{loc:''})">&#128205; {{ active_loc }} <span>&times;</span></button>{% endif %}
                 {% if active_media %}<button type="button" class="chip" onclick="birdsGo(null,{media:''})">{% if active_media == 'video' %}&#9654; Videos{% else %}Photos{% endif %} <span>&times;</span></button>{% endif %}
@@ -66,14 +67,17 @@
         </div>
         {% endif %}
         <script>
-            window.BIRDS_ACTIVE = { bird: {{ active_bird|tojson }}, family: {{ active_family|tojson }}, area: {{ active_area|tojson }}, media: {{ active_media|tojson }}, sort: {{ active_sort|tojson }}, loc: {{ active_loc|tojson }}, on: {{ active_on|tojson }}, month: {{ (active_month or "")|tojson }}, review: {{ active_review|tojson }} };
+            window.BIRDS_ACTIVE = { bird: {{ active_bird|tojson }}, family: {{ active_family|tojson }}, area: {{ active_area|tojson }}, media: {{ active_media|tojson }}, sort: {{ active_sort|tojson }}, loc: {{ active_loc|tojson }}, on: {{ active_on|tojson }}, posted: {{ active_posted|tojson }}, month: {{ (active_month or "")|tojson }}, review: {{ active_review|tojson }} };
+            window.LOC_PLACE = {{ loc_place_map|tojson }};
             function birdsGo(ev, over) {
                 if (ev) ev.preventDefault();
                 // Location/day and species/family/area/month filters are mutually
                 // exclusive: picking one clears the others so the result is never
                 // ambiguous (month composes with species/family/area/media).
-                if (over.bird || over.family || over.area || over.media || over.month) { over.loc = ""; over.on = ""; }
-                if (over.loc || over.on) { over.bird = ""; over.family = ""; over.area = ""; over.media = ""; over.month = ""; }
+                if (over.bird || over.family || over.area || over.media || over.month) { over.loc = ""; over.on = ""; over.posted = ""; }
+                if (over.loc || over.on || over.posted) { over.bird = ""; over.family = ""; over.area = ""; over.media = ""; over.month = ""; }
+                if (over.on) over.posted = "";
+                if (over.posted) over.on = "";
                 var a = Object.assign({}, window.BIRDS_ACTIVE, over);
                 var p = new URLSearchParams();
                 if (a.bird) p.set("bird", a.bird);
@@ -83,6 +87,7 @@
                 if (a.sort) p.set("sort", a.sort);
                 if (a.loc) p.set("loc", a.loc);
                 if (a.on) p.set("on", a.on);
+                if (a.posted) p.set("posted", a.posted);
                 if (a.month) p.set("month", a.month);
                 if (a.review) p.set("review", a.review);
                 var q = p.toString();
@@ -124,6 +129,8 @@
                 data-image-indices='{{ (shot.image_indices or [])|tojson }}'
                 {% if curate %}data-caption-species='{{ (shot.caption_species or [])|tojson }}'{% endif %}
                 data-date='{{ shot.date or "" }}'
+                data-sighted='{{ shot._sort or "" }}'
+                data-posted='{{ ((shot._posted if shot._posted is defined else none) or shot.timestamp or "")[:10] }}'
                 tabindex="0" role="button" aria-label="View {{ shot.species or 'photo' }} larger">
             {% set dm = (shot.image_dims or [none])[0] %}
             <img loading="lazy" decoding="async" src="{{ shot.images[0]|thumb }}"

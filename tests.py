@@ -208,6 +208,19 @@ class BirdsTestCase(unittest.TestCase):
         self.assertEqual(birds.images_filtered(shots, bird=row["name"], month=None
                                                ).__len__(), row["total"])
 
+    def test_images_posted_on_matches_post_timestamps(self):
+        shots = birds.load_gallery(shuffle=False)
+        day = max(s.get("timestamp") or "" for s in shots)[:10]
+        frames = birds.images_posted_on(shots, day)
+        expected = sum(len(s.get("images") or []) for s in shots
+                       if (s.get("timestamp") or "")[:10] == day)
+        self.assertEqual(len(frames), expected)
+        self.assertGreater(len(frames), 0)
+
+    def test_location_places_resolves_known_spot(self):
+        places = birds.location_places(birds.load_gallery(shuffle=False))
+        self.assertIn("Rea St.", places)
+
     def test_images_on_date_matches_per_day_counts(self):
         shots = birds.load_gallery(shuffle=False)
         series = birds.stats_series(shots)

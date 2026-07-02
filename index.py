@@ -222,8 +222,8 @@ def birds_gallery():
     # arrangement. Plain /birds redirects to a fresh seed, and the "shuffle"
     # control just drops the seed to reroll.
     if not curate and not any(request.args.get(k) for k in (
-            "bird", "family", "area", "media", "loc", "on", "month", "sort",
-            "review", "start")):
+            "bird", "family", "area", "media", "loc", "on", "posted", "month",
+            "sort", "review", "start")):
         seed = request.args.get("seed") or ""
         if not seed.isdigit():
             return redirect("/birds?seed=%d" % random.randrange(1_000_000_000))
@@ -248,12 +248,19 @@ def birds_gallery():
     loc_q = (request.args.get("loc") or "").strip().lower()
     place = next((p for p in birds.load_locations()
                   if p["name"].lower() == loc_q), None) if loc_q else None
-    # Day filter (from a shooting-days calendar cell): a strict ISO date.
+    # Day filters, both strict ISO dates: `on` = sighting (capture) day, from
+    # the calendar / lightbox sighting date; `posted` = Instagram post day,
+    # from the lightbox post date.
     on = (request.args.get("on") or "").strip()
     try:
         on_date = datetime.date.fromisoformat(on) if on else None
     except ValueError:
         on, on_date = "", None
+    posted = (request.args.get("posted") or "").strip()
+    try:
+        posted_date = datetime.date.fromisoformat(posted) if posted else None
+    except ValueError:
+        posted, posted_date = "", None
     # Month filter (from a phenology-matrix cell): 1-12, any year; composable
     # with the species/family/area/media filters.
     try:
@@ -287,6 +294,8 @@ def birds_gallery():
         shots = birds.images_at_place(all_shots, place)
     elif on:
         shots = birds.images_on_date(all_shots, on)
+    elif posted:
+        shots = birds.images_posted_on(all_shots, posted)
     elif bird or family or area or media or month:
         shots = birds.images_filtered(all_shots, bird, family, area, out_of_area,
                                       media=media, month=month or None)
@@ -340,6 +349,9 @@ def birds_gallery():
         active_loc=place["name"] if place else "",
         active_on=on,
         active_on_display=on_date.strftime("%b %-d, %Y") if on_date else "",
+        active_posted=posted,
+        active_posted_display=posted_date.strftime("%b %-d, %Y") if posted_date else "",
+        loc_place_map=birds.location_places(all_shots),
         active_month=month,
         active_month_display=datetime.date(2000, month, 1).strftime("%B") if month else "",
         active_review=review,
