@@ -186,6 +186,16 @@ class BirdsTestCase(unittest.TestCase):
         newest_post = max(s.get("timestamp") or "" for s in shots)
         self.assertEqual(frames[0]["_posted"], newest_post)
 
+    def test_images_at_place_interleaves_posts(self):
+        shots = birds.load_gallery(shuffle=False)
+        place = next(p for p in birds.load_locations()
+                     if p["name"] == "Annie L. Sargent School")
+        frames = birds.images_at_place(shots, place)
+        posts = {f["post_id"] for f in frames}
+        if len(posts) > 1:  # interleave deals one frame per post per round
+            lead = {f["post_id"] for f in frames[:len(posts)]}
+            self.assertEqual(lead, posts)
+
     def test_seed_pins_filtered_views_too(self):
         import index, re
         client = index.app.test_client()

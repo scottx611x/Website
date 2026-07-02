@@ -1607,15 +1607,20 @@ def map_points(shots, places=None):
 
 
 def images_at_place(shots, place):
-    """Every frame taken at ``place`` (a locations.json entry), for /birds?loc=."""
+    """Every frame taken at ``place`` (a locations.json entry), for /birds?loc=.
+    Interleaved one-frame-per-post like the other filters, so a single long
+    shoot doesn't sit in the grid as one solid block."""
     idx = _place_index([place])
-    frames = []
+    buckets = []
     for shot in shots:
+        bucket = []
         for i in range(len(shot.get("images") or [])):
             frame, _ = _pseudo_frame(shot, i)
             if frame.get("location") and _match_place(frame["location"], idx):
-                frames.append(frame)
-    return frames
+                bucket.append(frame)
+        if bucket:
+            buckets.append(bucket)
+    return _interleave_buckets(buckets)
 
 
 def images_posted_on(shots, day):
