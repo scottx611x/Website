@@ -186,6 +186,16 @@ class BirdsTestCase(unittest.TestCase):
         newest_post = max(s.get("timestamp") or "" for s in shots)
         self.assertEqual(frames[0]["_posted"], newest_post)
 
+    def test_seed_pins_filtered_views_too(self):
+        import index, re
+        client = index.app.test_client()
+        def ids(url):
+            return re.findall(r'data-id="([^"]+)"',
+                              client.get(url).get_data(as_text=True))[:8]
+        url = "/birds?loc=Annie%20L.%20Sargent%20School&seed="
+        self.assertEqual(ids(url + "42"), ids(url + "42"))
+        self.assertNotEqual(ids(url + "42"), ids(url + "43"))
+
     def test_gallery_seed_pins_the_shuffle(self):
         import index
         client = index.app.test_client()

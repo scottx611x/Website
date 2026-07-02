@@ -217,17 +217,20 @@ def curate_toggle():
 @app.route("/birds", methods=["GET"])
 def birds_gallery():
     curate = _curate_on()
-    # A stable ?seed pins the shuffled order, so reloading — and especially
-    # round-tripping through the curate toggle — lands on exactly the same
-    # arrangement. Plain /birds redirects to a fresh seed, and the "shuffle"
-    # control just drops the seed to reroll.
-    if not curate and not any(request.args.get(k) for k in (
-            "bird", "family", "area", "media", "loc", "on", "posted", "month",
-            "sort", "review", "start")):
-        seed = request.args.get("seed") or ""
-        if not seed.isdigit():
+    # A stable ?seed pins the shuffled order on ANY view, so reloading — and
+    # especially round-tripping through the curate toggle — lands on exactly
+    # the same arrangement. Plain /birds redirects to a fresh seed; the
+    # "shuffle" control mints a new seed each click (a same-URL navigation
+    # can be served from cache, which made shuffle look dead on filtered
+    # views like ?loc=).
+    seed = request.args.get("seed") or ""
+    if not curate:
+        if not seed.isdigit() and not any(request.args.get(k) for k in (
+                "bird", "family", "area", "media", "loc", "on", "posted",
+                "month", "sort", "review", "start")):
             return redirect("/birds?seed=%d" % random.randrange(1_000_000_000))
-        random.seed(int(seed))
+        if seed.isdigit():
+            random.seed(int(seed))
     all_shots = birds.load_gallery(shuffle=not curate)
     groups = birds.species_groups(all_shots)
     out_of_area = birds.out_of_area_species(all_shots)
@@ -347,6 +350,7 @@ def birds_gallery():
         active_media=media,
         active_sort=sort,
         active_loc=place["name"] if place else "",
+        active_seed=seed if seed.isdigit() else "",
         active_on=on,
         active_on_display=on_date.strftime("%b %-d, %Y") if on_date else "",
         active_posted=posted,

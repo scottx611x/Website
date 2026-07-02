@@ -47,7 +47,7 @@
             <a class="media-link{% if active_media == 'photo' %} on{% endif %}" onclick="birdsGo(null,{media:'{{ '' if active_media == 'photo' else 'photo' }}'})"><strong>{{ media_n.photos }}</strong> photo{{ 's' if media_n.photos != 1 }}</a>{% if media_n.videos %} &middot; <a class="media-link{% if active_media == 'video' %} on{% endif %}" onclick="birdsGo(null,{media:'{{ '' if active_media == 'video' else 'video' }}'})"><strong>{{ media_n.videos }}</strong> video{{ 's' if media_n.videos != 1 }}</a>{% endif %}
         </p>
         <p class="media-stat mono">
-            order: <a class="media-link{% if not active_sort %} on{% endif %}" onclick="birdsGo(null,{sort:''})">shuffle</a> &middot; <a class="media-link{% if active_sort == 'posted' %} on{% endif %}" onclick="birdsGo(null,{sort:'posted'})">newest (post date)</a> &middot; <a class="media-link{% if active_sort == 'recent' %} on{% endif %}" onclick="birdsGo(null,{sort:'recent'})">newest (sighting date)</a> &middot; <a class="media-link{% if active_sort == 'oldest' %} on{% endif %}" onclick="birdsGo(null,{sort:'oldest'})">oldest</a>
+            order: <a class="media-link{% if not active_sort %} on{% endif %}" onclick="birdsGo(null,{sort:'',seed:String(Math.floor(Math.random()*1e9))})">shuffle</a> &middot; <a class="media-link{% if active_sort == 'posted' %} on{% endif %}" onclick="birdsGo(null,{sort:'posted'})">newest (post date)</a> &middot; <a class="media-link{% if active_sort == 'recent' %} on{% endif %}" onclick="birdsGo(null,{sort:'recent'})">newest (sighting date)</a> &middot; <a class="media-link{% if active_sort == 'oldest' %} on{% endif %}" onclick="birdsGo(null,{sort:'oldest'})">oldest</a>
         </p>
         {% if active_bird or active_family or active_area or active_media or active_loc or active_on or active_posted or active_month %}
         <div class="bird-active">
@@ -67,7 +67,7 @@
         </div>
         {% endif %}
         <script>
-            window.BIRDS_ACTIVE = { bird: {{ active_bird|tojson }}, family: {{ active_family|tojson }}, area: {{ active_area|tojson }}, media: {{ active_media|tojson }}, sort: {{ active_sort|tojson }}, loc: {{ active_loc|tojson }}, on: {{ active_on|tojson }}, posted: {{ active_posted|tojson }}, month: {{ (active_month or "")|tojson }}, review: {{ active_review|tojson }} };
+            window.BIRDS_ACTIVE = { bird: {{ active_bird|tojson }}, family: {{ active_family|tojson }}, area: {{ active_area|tojson }}, media: {{ active_media|tojson }}, sort: {{ active_sort|tojson }}, loc: {{ active_loc|tojson }}, on: {{ active_on|tojson }}, posted: {{ active_posted|tojson }}, month: {{ (active_month or "")|tojson }}, seed: {{ active_seed|tojson }}, review: {{ active_review|tojson }} };
             window.LOC_PLACE = {{ loc_place_map|tojson }};
             function birdsGo(ev, over) {
                 if (ev) ev.preventDefault();
@@ -89,6 +89,7 @@
                 if (a.on) p.set("on", a.on);
                 if (a.posted) p.set("posted", a.posted);
                 if (a.month) p.set("month", a.month);
+                if (a.seed) p.set("seed", a.seed);
                 if (a.review) p.set("review", a.review);
                 var q = p.toString();
                 location.href = "/birds" + (q ? "?" + q : "");
