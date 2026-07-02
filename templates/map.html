@@ -22,6 +22,12 @@
         <button type="button" id="viewAll" class="chip-toggle">Everywhere</button>
     </div>
     <div id="sightings-map"></div>
+    <div class="map-scrub mono" id="mapScrub" hidden>
+        <button type="button" id="scrubPlay" class="chip-toggle" title="Play through the months">&#9654;</button>
+        <input type="range" id="scrubRange" min="0" value="0" step="1" aria-label="Month">
+        <span id="scrubLabel" class="scrub-label">All time</span>
+        <button type="button" id="scrubAll" class="chip-toggle" title="Show everything">All</button>
+    </div>
     <p class="map-legend mono">
         <span class="dot dot-local"></span> North Andover
         &nbsp;&nbsp;<span class="dot dot-away"></span> spotted elsewhere &#9888;&#65039;
@@ -40,12 +46,12 @@
             maxZoom: 19
         }).addTo(map);
 
-        var localGroup = [], allGroup = [];
+        function pinSize(n) { return Math.min(7 + 4.5 * Math.sqrt(n), 34); }
+        var localGroup = [], allGroup = [], markers = [];
         points.forEach(function (p) {
             var away = p.area === "away";
-            var r = 7 + 4.5 * Math.sqrt(p.count);   // pin size grows with photo count
             var m = L.circleMarker([p.lat, p.lng], {
-                radius: Math.min(r, 34),
+                radius: pinSize(p.count),
                 color: "#fff", weight: 1.5,
                 fillColor: away ? "#d9863b" : "#2f7d4f", fillOpacity: 0.82
             }).addTo(map);
@@ -59,7 +65,74 @@
             m.bindTooltip(p.name + " (" + p.count + ")", { direction: "top", offset: [0, -6] });
             allGroup.push(m);
             if (!away) localGroup.push(m);
+            markers.push({ m: m, p: p });
         });
+
+        // ---- Time scrubber: drag through the months, watch the pins breathe ----
+        (function () {
+            var yms = {};
+            points.forEach(function (p) { Object.keys(p.months || {}).forEach(function (k) { yms[k] = 1; }); });
+            var keys = Object.keys(yms).sort();
+            if (keys.length < 2) return;
+            // continuous month axis from first to last
+            var months = [], cur = keys[0].split("-").map(Number), last = keys[keys.length - 1];
+            while (true) {
+                var ym = cur[0] + "-" + String(cur[1]).padStart(2, "0");
+                months.push(ym);
+                if (ym === last) break;
+                if (++cur[1] > 12) { cur[1] = 1; cur[0]++; }
+            }
+            var wrap = document.getElementById("mapScrub"),
+                range = document.getElementById("scrubRange"),
+                label = document.getElementById("scrubLabel"),
+                play = document.getElementById("scrubPlay"),
+                allBtn = document.getElementById("scrubAll");
+            wrap.hidden = false;
+            range.max = months.length - 1;
+            range.value = months.length - 1;
+            function fmt(ym) {
+                var p = ym.split("-");
+                return new Date(+p[0], +p[1] - 1, 1)
+                    .toLocaleString("en-US", { month: "short", year: "numeric" });
+            }
+            function setMonth(i) {
+                var ym = months[i];
+                label.textContent = fmt(ym);
+                allBtn.classList.remove("on");
+                markers.forEach(function (mk) {
+                    var n = (mk.p.months || {})[ym] || 0;
+                    if (n) mk.m.setStyle({ fillOpacity: 0.85, opacity: 1 }).setRadius(pinSize(n));
+                    else mk.m.setStyle({ fillOpacity: 0.1, opacity: 0.25 }).setRadius(3);
+                });
+            }
+            function setAll() {
+                stop();
+                label.textContent = "All time";
+                allBtn.classList.add("on");
+                range.value = months.length - 1;
+                markers.forEach(function (mk) {
+                    mk.m.setStyle({ fillOpacity: 0.82, opacity: 1 }).setRadius(pinSize(mk.p.count));
+                });
+            }
+            var timer = null;
+            function stop() {
+                if (timer) { clearInterval(timer); timer = null; play.innerHTML = "&#9654;"; play.classList.remove("on"); }
+            }
+            play.addEventListener("click", function () {
+                if (timer) { stop(); return; }
+                play.innerHTML = "&#10074;&#10074;"; play.classList.add("on");
+                var i = +range.value >= months.length - 1 ? -1 : +range.value;
+                timer = setInterval(function () {
+                    i++;
+                    if (i >= months.length) { stop(); return; }
+                    range.value = i;
+                    setMonth(i);
+                }, 550);
+            });
+            range.addEventListener("input", function () { stop(); setMonth(+range.value); });
+            allBtn.addEventListener("click", setAll);
+            allBtn.classList.add("on");
+        })();
 
         function fit(markers, pad) {
             var b = L.latLngBounds(markers.map(function (m) { return m.getLatLng(); }));

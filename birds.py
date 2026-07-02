@@ -1462,9 +1462,12 @@ def map_points(shots, places=None):
     idx = _place_index(places)
     counts = collections.Counter()
     species = collections.defaultdict(collections.Counter)
+    monthly = collections.defaultdict(collections.Counter)  # place -> "YYYY-MM" -> n
     for shot in shots:
         iloc = shot.get("image_locations") or []
         isp = shot.get("image_species") or []
+        d = _capture_date_obj(shot.get("caption") or "", shot.get("timestamp"))
+        ym = d.isoformat()[:7] if d else None
         for i in range(len(shot.get("images") or [])):
             loc = iloc[i] if i < len(iloc) and iloc[i] else shot.get("location")
             if not loc:
@@ -1473,6 +1476,8 @@ def map_points(shots, places=None):
             if not place:
                 continue
             counts[place["name"]] += 1
+            if ym:
+                monthly[place["name"]][ym] += 1
             raw = isp[i] if i < len(isp) and isp[i] else shot.get("species")
             for c in _canon_species_list(raw):
                 species[place["name"]][c[0]] += 1
@@ -1486,6 +1491,7 @@ def map_points(shots, places=None):
             "name": p["name"], "lat": p["lat"], "lng": p["lng"], "area": p["area"],
             "count": n, "species": len(sp),
             "top": [s for s, _ in sp.most_common(3)],
+            "months": dict(monthly[p["name"]]),
         })
     out.sort(key=lambda p: -p["count"])
     return out
