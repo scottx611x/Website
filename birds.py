@@ -632,12 +632,28 @@ def _assign_weights(shots):
 
     We keep only the percentile in the manifest (never the raw count) so likes
     influence ordering without ever being stored or shown.
+
+    Fresh posts haven't had time to earn likes, which would bury exactly the
+    posts a visitor most expects to see — so recency carries a new post for its
+    first two weeks (decaying daily; the percentile takes over once it's earned).
     """
     likes = sorted(shot.get("_like", 0) for shot in shots)
     total = len(likes)
+    now = datetime.datetime.now(datetime.timezone.utc)
     for shot in shots:
         like = shot.pop("_like", 0)
-        shot["weight"] = round(bisect.bisect_right(likes, like) / total, 3) if total else 1.0
+        weight = bisect.bisect_right(likes, like) / total if total else 1.0
+        shot["weight"] = round(max(weight, _freshness(shot.get("timestamp"), now)), 3)
+
+
+def _freshness(timestamp, now):
+    """1.0 for a just-posted shot, fading to 0.0 over 14 days."""
+    try:
+        posted = datetime.datetime.strptime(timestamp[:19], "%Y-%m-%dT%H:%M:%S")
+        age_days = (now.replace(tzinfo=None) - posted).total_seconds() / 86400.0
+        return max(0.0, 1.0 - age_days / 14.0)
+    except (TypeError, ValueError):
+        return 0.0
 
 
 # ---------------------------------------------------------------------------
