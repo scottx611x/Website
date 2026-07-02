@@ -9,16 +9,12 @@
 </script>
 <section class="page wide">
     <header class="gallery-header">
-        <p class="kicker">North Andover, MA</p>
         <h1>Birds of North Andover</h1>
-        <p class="empty" style="color:var(--ink);max-width:38rem;margin:0 auto;">
-            A running collection of my favorite birds from around my home town.
-        </p>
         {% set subnav_active = 'gallery' %}{% include '_birds_nav.html' %}
         {% if species_groups %}
         <div class="bird-filter">
             <p class="bird-stat">
-                <a href="/birds?area=local" class="bird-stat-link{% if active_area == 'local' %} is-active{% endif %}" onclick="return birdsGo(event,{area:'local'})"><strong>{{ local_count }}</strong> species in North&nbsp;Andover</a>{% if away_count %} &middot; <a href="/birds?area=elsewhere" class="bird-stat-link bird-stat-away{% if active_area == 'elsewhere' %} is-active{% endif %}" onclick="return birdsGo(event,{area:'elsewhere'})">{{ away_count }} spotted elsewhere&nbsp;&#9888;&#65039;</a>{% endif %}
+                <a href="/birds?area=local" class="bird-stat-link{% if active_area == 'local' %} is-active{% endif %}" onclick="return birdsGo(event,{area:'local'})"><strong>{{ local_count }}</strong> species here</a>{% if away_count %} &middot; <a href="/birds?area=elsewhere" class="bird-stat-link bird-stat-away{% if active_area == 'elsewhere' %} is-active{% endif %}" onclick="return birdsGo(event,{area:'elsewhere'})">{{ away_count }} spotted elsewhere&nbsp;&#9888;&#65039;</a>{% endif %}
             </p>
             <div class="filter-controls">
                 <div class="filter-search">

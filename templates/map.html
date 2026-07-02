@@ -8,11 +8,9 @@
 {% block content %}
 <section class="page wide">
     <header class="gallery-header">
-        <p class="kicker">North Andover, MA &amp; beyond</p>
         <h1>Where the birds are</h1>
         <p class="empty" style="color:var(--ink);max-width:40rem;margin:0 auto;">
-            Every shooting spot, pinned &mdash; {{ "{:,}".format(mapped) }} photos across {{ points|length }} places.
-            Click a pin to see what turned up there.
+            {{ "{:,}".format(mapped) }} photos across {{ points|length }} places &mdash; click a pin.
         </p>
         {% set subnav_active = 'map' %}{% include '_birds_nav.html' %}
     </header>
