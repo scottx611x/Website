@@ -180,6 +180,12 @@ class BirdsTestCase(unittest.TestCase):
             self.assertGreaterEqual(val["n"], len(val["sp"]) and 1)
             self.assertTrue(val["img"])
 
+    def test_sort_posted_leads_with_newest_instagram_posts(self):
+        shots = birds.load_gallery(shuffle=False)
+        frames = birds.sort_frames(birds.all_photos_shuffled(shots), "posted")
+        newest_post = max(s.get("timestamp") or "" for s in shots)
+        self.assertEqual(frames[0]["_posted"], newest_post)
+
     def test_gallery_seed_pins_the_shuffle(self):
         import index
         client = index.app.test_client()

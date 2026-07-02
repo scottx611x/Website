@@ -322,6 +322,7 @@ def _pseudo_frame(shot, i):
     return {
         "id": "%s-%d" % (shot.get("id"), i),
         "_sort": _sd.isoformat() if _sd else "",
+        "_posted": shot.get("timestamp") or "",
         "post_id": shot.get("id"),
         "images": [images[i]],
         "image_dims": [dims[i] if i < len(dims) else None],
@@ -490,12 +491,15 @@ def all_photos_shuffled(shots):
 
 
 def sort_frames(frames, order):
-    """Order a frame list by capture date. ``order`` is 'recent' (newest first)
-    or 'oldest'; undated frames always go to the end. Frames within the same date
-    keep their existing relative order (stable)."""
-    dated = [f for f in frames if f.get("_sort")]
-    undated = [f for f in frames if not f.get("_sort")]
-    dated.sort(key=lambda f: f["_sort"], reverse=(order == "recent"))
+    """Order a frame list by date. ``order`` is 'recent' / 'oldest' (capture
+    date, from the caption) or 'posted' (Instagram post time — photos are often
+    posted weeks after they're shot, so this answers "what went up lately?").
+    Undated frames always go to the end; same-date frames keep their existing
+    relative order (stable)."""
+    key = "_posted" if order == "posted" else "_sort"
+    dated = [f for f in frames if f.get(key)]
+    undated = [f for f in frames if not f.get(key)]
+    dated.sort(key=lambda f: f[key], reverse=(order in ("recent", "posted")))
     return dated + undated
 
 

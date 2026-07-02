@@ -245,7 +245,7 @@ def birds_gallery():
     if media not in ("photo", "video"):
         media = ""
     sort = (request.args.get("sort") or "").strip()
-    if sort not in ("recent", "oldest"):
+    if sort not in ("recent", "oldest", "posted"):
         sort = ""
     # Location filter (from a sightings-map pin): resolves against locations.json.
     loc_q = (request.args.get("loc") or "").strip().lower()
