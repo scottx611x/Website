@@ -95,6 +95,18 @@
                 location.href = "/birds" + (q ? "?" + q : "");
                 return false;
             }
+            // A deliberate REFRESH should reshuffle; navigation (curate
+            // round-trips, back/forward) keeps the pinned seed. The browser
+            // tells us which one this load was.
+            (function () {
+                var nav = performance.getEntriesByType &&
+                          performance.getEntriesByType("navigation")[0];
+                if (nav && nav.type === "reload" && window.BIRDS_ACTIVE.seed && !window.BIRDS_ACTIVE.sort) {
+                    var p = new URLSearchParams(location.search);
+                    p.set("seed", String(Math.floor(Math.random() * 1e9)));
+                    location.replace(location.pathname + "?" + p);
+                }
+            })();
         </script>
         {% endif %}
         {% if curate %}
