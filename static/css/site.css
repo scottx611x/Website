@@ -539,6 +539,16 @@ body.home .site-nav { z-index: 0; }
 .ridge-label:hover { fill: var(--green); text-decoration: underline; }
 .accum-dot:hover { r: 5; }
 .d3-chart .tick text { font-family: var(--mono); font-size: 10px; }
+.chart-readout {
+    font-size: 0.8rem; color: var(--ink); margin: 0.7rem 0 0; min-height: 1.5em;
+    padding: 0.45rem 0.7rem; background: rgba(47, 125, 79, 0.07); border-radius: 8px;
+}
+.chart-readout a { color: var(--green); font-weight: 600; }
+.chart-readout strong { color: var(--green); }
+.ridge-tip {
+    font-family: var(--mono); font-size: 12px; font-weight: 700; fill: var(--green);
+    paint-order: stroke; stroke: var(--paper); stroke-width: 4px; pointer-events: none;
+}
 
 /* local vs away split */
 .split-bar { display: flex; height: 1.4rem; border-radius: 999px; overflow: hidden; margin: 0.4rem 0 0.9rem; }

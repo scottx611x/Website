@@ -111,16 +111,30 @@
         // and re-render on resize, so text never scales down illegibly on phones.
         function chartWidth(el) { return Math.max(el.clientWidth, 300); }
 
-        // ---- The life list: species accumulation, one dot per new bird ----
+        // Hover tooltips don't exist on touch, so each chart gets a readout bar:
+        // tap or drag anywhere on the chart and the details land here.
+        function readoutFor(el) {
+            var r = el.parentNode.querySelector(".chart-readout");
+            if (!r) {
+                r = document.createElement("p");
+                r.className = "chart-readout mono";
+                el.parentNode.insertBefore(r, el.nextSibling);
+            }
+            return r;
+        }
+
+        // ---- The life list: species accumulation, scrub the timeline ----
         function renderAccum() {
             var el = document.getElementById("accum-chart");
             el.innerHTML = "";
+            var out = readoutFor(el);
             var W = chartWidth(el), narrow = W < 520, H = narrow ? 230 : 280,
                 m = { t: 12, r: narrow ? 30 : 46, b: 26, l: narrow ? 28 : 34 };
             var data = S.accum.map(function (a, i) { return { d: new Date(a.d), s: a.s, n: i + 1 }; });
             var x = d3.scaleTime(d3.extent(data, function (d) { return d.d; }), [m.l, W - m.r]);
             var y = d3.scaleLinear([0, data.length], [H - m.b, m.t]);
-            var svg = d3.select(el).append("svg").attr("viewBox", "0 0 " + W + " " + H);
+            var svg = d3.select(el).append("svg").attr("viewBox", "0 0 " + W + " " + H)
+                .style("touch-action", "pan-y");
             var line = d3.line().curve(d3.curveStepAfter)
                 .x(function (d) { return x(d.d); }).y(function (d) { return y(d.n); });
             var area = d3.area().curve(d3.curveStepAfter)
@@ -134,28 +148,49 @@
                 .call(d3.axisLeft(y).ticks(5).tickSizeOuter(0));
             svg.selectAll(".dot").data(data).enter().append("circle")
                 .attr("cx", function (d) { return x(d.d); }).attr("cy", function (d) { return y(d.n); })
-                .attr("r", narrow ? 2.5 : 3).attr("fill", GREEN).attr("class", "accum-dot")
-                .append("title").text(function (d) {
-                    return "#" + d.n + "  " + d.s + " — " + d3.timeFormat("%b %-d, %Y")(d.d);
-                });
-            var last = data[data.length - 1];
-            svg.append("text").attr("x", x(last.d) + 6).attr("y", y(last.n) + 4)
-                .attr("class", "chart-note").text(last.n);
+                .attr("r", narrow ? 2.5 : 3).attr("fill", GREEN);
             svg.selectAll(".domain, .tick line").attr("stroke", "rgba(13,18,14,0.25)");
             svg.selectAll(".tick text").attr("fill", MUTED);
+            // scrub focus
+            var guide = svg.append("line").attr("y1", m.t).attr("y2", H - m.b)
+                .attr("stroke", GREEN).attr("stroke-dasharray", "3 3").attr("opacity", 0);
+            var focus = svg.append("circle").attr("r", 5.5)
+                .attr("fill", NEON).attr("stroke", GREEN).attr("stroke-width", 2).attr("opacity", 0);
+            var bisect = d3.bisector(function (d) { return d.d; }).left;
+            function show(d) {
+                guide.attr("x1", x(d.d)).attr("x2", x(d.d)).attr("opacity", 0.5);
+                focus.attr("cx", x(d.d)).attr("cy", y(d.n)).attr("opacity", 1);
+                out.innerHTML = "#" + d.n + " &nbsp;<a href=\"/birds?bird=" +
+                    encodeURIComponent(d.s) + "\">" + d.s + "</a> · " +
+                    d3.timeFormat("%b %-d, %Y")(d.d);
+            }
+            function scrub(ev) {
+                var px = d3.pointer(ev, svg.node())[0];
+                var i = bisect(data, x.invert(px));
+                var d = data[Math.max(0, Math.min(i, data.length - 1))];
+                // pick the closer of the two neighbours
+                var prev = data[Math.max(0, i - 1)];
+                if (Math.abs(x(prev.d) - px) < Math.abs(x(d.d) - px)) d = prev;
+                show(d);
+            }
+            svg.on("pointerdown pointermove", scrub);
+            show(data[data.length - 1]);
         }
 
-        // ---- The year in birds: phenology ridgeline ----
+        // ---- The year in birds: phenology ridgeline, tap a ridge ----
         function renderRidge() {
             var el = document.getElementById("ridge-chart");
             el.innerHTML = "";
+            var out = readoutFor(el);
             var rows = S.ridge, W = chartWidth(el), narrow = W < 520;
             // Wide: labels in a left gutter. Narrow: labels sit above each ridge.
             var rowH = narrow ? 52 : 34, amp = narrow ? 34 : 58,
                 gutter = narrow ? 8 : 168, pad = narrow ? 8 : 26;
             var H = rows.length * rowH + 46 + pad;
             var x = d3.scalePoint(d3.range(12), [gutter, W - (narrow ? 8 : 18)]);
-            var svg = d3.select(el).append("svg").attr("viewBox", "0 0 " + W + " " + H);
+            var svg = d3.select(el).append("svg").attr("viewBox", "0 0 " + W + " " + H)
+                .style("touch-action", "pan-y");
+            var paths = [];
             rows.forEach(function (r, i) {
                 var base = (i + 1) * rowH + 6 + pad;
                 var peak = d3.max(r.months) || 1;
@@ -163,23 +198,38 @@
                 var area = d3.area().curve(d3.curveCatmullRom.alpha(0.6))
                     .x(function (d) { return x(d.mo); })
                     .y0(base).y1(function (d) { return base - d.v * amp; });
-                svg.append("path").datum(pts).attr("d", area)
+                paths.push(svg.append("path").datum(pts).attr("d", area)
                     .attr("fill", NEON).attr("opacity", 0.28)
-                    .attr("stroke", GREEN).attr("stroke-width", 1.4);
-                var a = svg.append("a").attr("href", "/birds?bird=" + encodeURIComponent(r.name));
-                if (narrow) {
-                    a.append("text").attr("x", 8).attr("y", base - amp - 4)
-                        .attr("class", "ridge-label").text(r.name);
-                } else {
-                    a.append("text").attr("x", gutter - 10).attr("y", base - 2)
-                        .attr("text-anchor", "end").attr("class", "ridge-label").text(r.name);
-                }
+                    .attr("stroke", GREEN).attr("stroke-width", 1.4));
+                var lbl = narrow
+                    ? svg.append("text").attr("x", 8).attr("y", base - amp - 6)
+                    : svg.append("text").attr("x", gutter - 10).attr("y", base - 2).attr("text-anchor", "end");
+                lbl.attr("class", "ridge-label").text(r.name);
             });
             var ax = svg.append("g").attr("transform", "translate(0," + (rows.length * rowH + 24 + pad) + ")");
             MONTHS.forEach(function (mo, i) {
                 ax.append("text").attr("x", x(i)).attr("y", 0).attr("text-anchor", "middle")
                     .attr("class", "chart-tick").text(mo[0]);
             });
+            // tap/drag: pick the row under the finger and the nearest month; the
+            // value floats at the fingertip (the readout may be scrolled away).
+            var tip = svg.append("text").attr("class", "ridge-tip").attr("text-anchor", "middle");
+            function pick(ev) {
+                var p = d3.pointer(ev, svg.node());
+                var i = Math.max(0, Math.min(rows.length - 1,
+                    Math.round((p[1] - pad - 6) / rowH) - 1));
+                var mo = Math.max(0, Math.min(11, Math.round((p[0] - gutter) / x.step())));
+                var r = rows[i], total = r.months.reduce(function (a, b) { return a + b; }, 0);
+                paths.forEach(function (pp, j) { pp.attr("opacity", j === i ? 0.55 : 0.14); });
+                tip.attr("x", Math.max(40, Math.min(W - 40, p[0])))
+                   .attr("y", Math.max(14, p[1] - 18))
+                   .text(MONTHS[mo] + ": " + r.months[mo]);
+                out.innerHTML = "<a href=\"/birds?bird=" + encodeURIComponent(r.name) + "\">" +
+                    r.name + "</a> · " + MONTHS[mo] + ": <strong>" + r.months[mo] +
+                    "</strong> photo" + (r.months[mo] === 1 ? "" : "s") + " (" + total + " all year)";
+            }
+            svg.on("pointerdown pointermove", pick);
+            out.innerHTML = "tap or drag a ridge to explore — tap the name for its photos";
         }
 
         renderAccum();
@@ -222,6 +272,21 @@
             ["Mon", "Wed", "Fri"].forEach(function (lbl, i) {
                 svg.append("text").attr("x", 0).attr("y", top + (1 + i * 2) * (cell + gap) + 10)
                     .attr("class", "chart-tick").text(lbl[0]);
+            });
+            // tap a cell for its day (hover titles don't exist on touch)
+            var out = readoutFor(el);
+            out.textContent = "tap a square for that day";
+            svg.on("pointerdown pointermove", function (ev) {
+                if (ev.type === "pointermove" && ev.pressure === 0 && ev.pointerType !== "mouse") return;
+                var p = d3.pointer(ev, svg.node());
+                var wk = Math.floor((p[0] - left) / (cell + gap)),
+                    dow = Math.floor((p[1] - top) / (cell + gap));
+                if (wk < 0 || dow < 0 || dow > 6) return;
+                var d = d3.timeDay.offset(start, wk * 7 + dow);
+                if (d < start || d > end) return;
+                var n = S.per_day[d3.timeFormat("%Y-%m-%d")(d)] || 0;
+                out.textContent = d3.timeFormat("%a, %b %-d, %Y")(d) + " — " +
+                    n + (n === 1 ? " photo" : " photos");
             });
         })();
     })();
