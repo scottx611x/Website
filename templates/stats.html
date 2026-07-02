@@ -19,66 +19,89 @@
     {% endif %}
 
     <div class="stat-grid">
-        <!-- Life list accumulation -->
+        <!-- Life list accumulation: scrub the timeline, see each lifer's photo -->
         <div class="stat-block stat-span-2">
             <h2>The life list</h2>
-            <p class="stat-sub mono">every new species, the day I first photographed it &mdash; hover the dots</p>
-            <div id="accum-chart" class="d3-chart"></div>
+            <p class="stat-sub mono">every species, the day I first photographed it &mdash; scrub the line (or use &larr; &rarr;) to relive each lifer</p>
+            <div id="accum-chart" class="d3-chart" tabindex="0" role="application"
+                 aria-label="Life list timeline. Use left and right arrow keys to step through species."></div>
+            <div id="accum-card" class="lifer-card" hidden>
+                <img id="lifer-img" alt="" loading="lazy">
+                <div class="lifer-text">
+                    <span class="lifer-rank mono" id="lifer-rank"></span>
+                    <a id="lifer-name" class="lifer-name" href="/birds"></a>
+                    <span class="lifer-meta mono" id="lifer-meta"></span>
+                    <a id="lifer-count" class="lifer-count mono" href="/birds"></a>
+                </div>
+            </div>
         </div>
 
-        <!-- Phenology ridgeline -->
+        <!-- Phenology matrix: every species x every month -->
         <div class="stat-block stat-span-2">
             <h2>The year, in birds</h2>
-            <p class="stat-sub mono">when each species shows up, month by month &mdash; sorted by season</p>
-            <div id="ridge-chart" class="d3-chart"></div>
+            <p class="stat-sub mono">all {{ series.pheno|length }} species, month by month &mdash; each row shaded to its own rhythm, darkest = that bird&rsquo;s peak. tap a month letter to spotlight it, tap any cell for that bird&rsquo;s photos from that month</p>
+            <div class="pheno-controls">
+                <input id="pheno-search" class="pheno-search mono" type="search"
+                       placeholder="Filter species or family&hellip;" autocomplete="off">
+                <div class="pheno-sorts mono" role="group" aria-label="Sort the matrix">
+                    <button type="button" data-sort="season" class="on">season</button><button type="button" data-sort="fam">family</button><button type="button" data-sort="az">a&ndash;z</button><button type="button" data-sort="count">most shot</button>
+                </div>
+            </div>
+            <div id="pheno-matrix" class="pheno-matrix"></div>
+            <p class="chart-readout mono" id="pheno-readout"></p>
         </div>
 
-        <!-- Calendar heatmap -->
+        <!-- Calendar heatmap: every day is a door into that day's photos -->
         <div class="stat-block stat-span-2">
             <h2>Shooting days</h2>
-            <p class="stat-sub mono">photos per day, last 12 months &mdash; the birding contribution graph</p>
+            <p class="stat-sub mono">the birding contribution graph, last 12 months &mdash; click any day to open its photos</p>
+            <div class="cal-chips mono" id="cal-chips"></div>
             <div id="cal-chart" class="d3-chart cal-scroll"></div>
         </div>
 
         <!-- Most photographed -->
         <div class="stat-block">
             <h2>Most photographed</h2>
-            <p class="stat-sub mono">click a bird to see its shots</p>
-            {% set smax = stats.top_species[0][1] %}
-            {% for name, count, fam in stats.top_species %}
-            <a class="bar-row" href="/birds?bird={{ name|urlencode }}">
-                <span class="bar-label">{{ name }}</span>
-                <span class="bar-track"><span class="bar-fill" style="width: {{ (count / smax * 100)|round(1) }}%"></span></span>
-                <span class="bar-val mono">{{ count }}</span>
+            <p class="stat-sub mono">the birds that keep posing &mdash; click through to their shots</p>
+            {% set smax = series.top[0].n %}
+            {% for t in series.top %}
+            <a class="bar-row rich" href="/birds?bird={{ t.name|urlencode }}">
+                <img class="bird-avatar" src="{{ t.img }}" alt="" loading="lazy"
+                     onerror="this.classList.add('missing')">
+                <span class="bar-label">{{ t.name }} <span class="bar-sub">{{ t.fam }}</span></span>
+                <span class="bar-track"><span class="bar-fill" style="width: {{ (t.n / smax * 100)|round(1) }}%"></span></span>
+                <span class="bar-val mono">{{ t.n }}</span>
             </a>
             {% endfor %}
         </div>
 
-        <!-- By family -->
+        <!-- By family treemap -->
         <div class="stat-block">
             <h2>By family</h2>
-            <p class="stat-sub mono">{{ stats.families|length }} families represented</p>
-            {% set fmax = stats.families[0][1] %}
-            {% for fam, count in stats.families[:12] %}
-            <a class="bar-row" href="/birds?family={{ fam|urlencode }}">
-                <span class="bar-label">{{ fam }}{% if stats.family_species[fam] > 1 %} <span class="bar-sub">{{ stats.family_species[fam] }} spp.</span>{% endif %}</span>
-                <span class="bar-track"><span class="bar-fill alt" style="width: {{ (count / fmax * 100)|round(1) }}%"></span></span>
-                <span class="bar-val mono">{{ count }}</span>
-            </a>
-            {% endfor %}
+            <p class="stat-sub mono">{{ stats.families|length }} families &mdash; area = photos, deeper green = more species. click one to browse it</p>
+            <div id="fam-chart" class="d3-chart"></div>
+            <p class="chart-readout mono" id="fam-readout"></p>
         </div>
 
         <!-- Top spots -->
         <div class="stat-block">
             <h2>Where I find them</h2>
-            <p class="stat-sub mono">top locations by frame</p>
+            <p class="stat-sub mono">top locations by frame &mdash; mapped spots click through</p>
             {% set lmax = stats.top_locations[0][1] %}
             {% for loc, count in stats.top_locations %}
+            {% if loc_place.get(loc) %}
+            <a class="bar-row" href="/birds?loc={{ loc_place[loc]|urlencode }}">
+                <span class="bar-label">&#128205; {{ loc }}</span>
+                <span class="bar-track"><span class="bar-fill warm" style="width: {{ (count / lmax * 100)|round(1) }}%"></span></span>
+                <span class="bar-val mono">{{ count }}</span>
+            </a>
+            {% else %}
             <div class="bar-row static">
                 <span class="bar-label">{{ loc }}</span>
                 <span class="bar-track"><span class="bar-fill warm" style="width: {{ (count / lmax * 100)|round(1) }}%"></span></span>
                 <span class="bar-val mono">{{ count }}</span>
             </div>
+            {% endif %}
             {% endfor %}
         </div>
 
@@ -103,34 +126,58 @@
 <script>
     (function () {
         var S = {{ series|tojson }};
+        var FAM = [{% for fam, count in stats.families %}{ name: {{ fam|tojson }}, n: {{ count }}, spp: {{ stats.family_species[fam] }} }{{ "," if not loop.last }}{% endfor %}];
         var GREEN = "#2f7d4f", NEON = "#38e08a", INK = "#0d120e", MUTED = "#8a9486";
-        var MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+        // Sequential green ramp (one hue, light->dark) shared by matrix, calendar,
+        // and treemap. Zero stays a faint neutral so "few" never reads as "none".
+        var RAMP = ["#a5d5b2", "#79bf8f", "#4fa06c", "#2f7d4f", "#12522f"];
+        var ZERO = "rgba(13,18,14,0.05)";
+        var MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
         if (typeof d3 === "undefined") return;   // CDN blocked? page still works
 
-        // Charts render at the container's real width (1 viewBox unit = 1 CSS px)
-        // and re-render on resize, so text never scales down illegibly on phones.
         function chartWidth(el) { return Math.max(el.clientWidth, 300); }
+        function birdURL(name) { return "/birds?bird=" + encodeURIComponent(name); }
 
-        // Hover tooltips don't exist on touch, so each chart gets a readout bar:
-        // tap or drag anywhere on the chart and the details land here.
-        function readoutFor(el) {
-            var r = el.parentNode.querySelector(".chart-readout");
-            if (!r) {
-                r = document.createElement("p");
-                r.className = "chart-readout mono";
-                el.parentNode.insertBefore(r, el.nextSibling);
+        // One floating tooltip for the matrix / calendar / treemap. Content is
+        // built with textContent only (species names come from IG captions).
+        var tip = document.createElement("div");
+        tip.className = "viz-tip mono";
+        tip.setAttribute("aria-hidden", "true");
+        document.body.appendChild(tip);
+        function tipShow(ev, lines, img) {
+            tip.textContent = "";
+            if (img) {   // a peek into the time pocket being hovered
+                var pic = document.createElement("img");
+                pic.className = "viz-tip-img";
+                pic.src = img;
+                pic.alt = "";
+                pic.addEventListener("error", function () { pic.remove(); });
+                tip.appendChild(pic);
             }
-            return r;
+            lines.forEach(function (line, i) {
+                var row = document.createElement("div");
+                if (i === 0) row.className = "viz-tip-lead";
+                row.textContent = line;
+                tip.appendChild(row);
+            });
+            tip.style.display = "block";
+            var pad = 12, w = tip.offsetWidth;
+            var x = Math.min(ev.pageX + pad, document.documentElement.scrollWidth - w - 8);
+            tip.style.left = Math.max(8, x) + "px";
+            tip.style.top = (ev.pageY - tip.offsetHeight - pad) + "px";
         }
+        function tipHide() { tip.style.display = "none"; }
 
-        // ---- The life list: species accumulation, scrub the timeline ----
+        // ---- The life list: scrub the timeline, meet every lifer ----
         function renderAccum() {
             var el = document.getElementById("accum-chart");
             el.innerHTML = "";
-            var out = readoutFor(el);
-            var W = chartWidth(el), narrow = W < 520, H = narrow ? 230 : 280,
-                m = { t: 12, r: narrow ? 30 : 46, b: 26, l: narrow ? 28 : 34 };
-            var data = S.accum.map(function (a, i) { return { d: new Date(a.d), s: a.s, n: i + 1 }; });
+            var W = chartWidth(el), narrow = W < 520, H = narrow ? 220 : 280,
+                m = { t: 20, r: narrow ? 16 : 24, b: 26, l: narrow ? 28 : 34 };
+            var data = S.accum.map(function (a, i) {
+                return { d: new Date(a.d + "T12:00:00"), s: a.s, img: a.img,
+                         fam: a.fam, total: a.total, n: i + 1 };
+            });
             var x = d3.scaleTime(d3.extent(data, function (d) { return d.d; }), [m.l, W - m.r]);
             var y = d3.scaleLinear([0, data.length], [H - m.b, m.t]);
             var svg = d3.select(el).append("svg").attr("viewBox", "0 0 " + W + " " + H)
@@ -139,130 +186,297 @@
                 .x(function (d) { return x(d.d); }).y(function (d) { return y(d.n); });
             var area = d3.area().curve(d3.curveStepAfter)
                 .x(function (d) { return x(d.d); }).y0(y(0)).y1(function (d) { return y(d.n); });
-            svg.append("path").datum(data).attr("d", area).attr("fill", NEON).attr("opacity", 0.12);
+            svg.append("path").datum(data).attr("d", area).attr("fill", NEON).attr("opacity", 0.1);
             svg.append("path").datum(data).attr("d", line)
-                .attr("fill", "none").attr("stroke", GREEN).attr("stroke-width", 2);
+                .attr("fill", "none").attr("stroke", GREEN).attr("stroke-width", 2)
+                .attr("stroke-linejoin", "round");
             svg.append("g").attr("transform", "translate(0," + (H - m.b) + ")")
                 .call(d3.axisBottom(x).ticks(narrow ? 4 : 6).tickSizeOuter(0));
             svg.append("g").attr("transform", "translate(" + m.l + ",0)")
                 .call(d3.axisLeft(y).ticks(5).tickSizeOuter(0));
-            svg.selectAll(".dot").data(data).enter().append("circle")
-                .attr("cx", function (d) { return x(d.d); }).attr("cy", function (d) { return y(d.n); })
-                .attr("r", narrow ? 2.5 : 3).attr("fill", GREEN);
-            svg.selectAll(".domain, .tick line").attr("stroke", "rgba(13,18,14,0.25)");
+            svg.selectAll(".domain, .tick line").attr("stroke", "rgba(13,18,14,0.2)");
             svg.selectAll(".tick text").attr("fill", MUTED);
-            // scrub focus
+            // Milestones: #1, every 25th, and the latest lifer.
+            var marks = [0, 24, 49, 74, data.length - 1].filter(function (i, k, a) {
+                return i < data.length && a.indexOf(i) === k;
+            });
+            marks.forEach(function (i) {
+                var d = data[i];
+                svg.append("circle").attr("cx", x(d.d)).attr("cy", y(d.n)).attr("r", 4.5)
+                    .attr("fill", NEON).attr("stroke", GREEN).attr("stroke-width", 1.5);
+                svg.append("text").attr("x", x(d.d)).attr("y", y(d.n) - 9)
+                    .attr("text-anchor", i > data.length * 0.85 ? "end" : "middle")
+                    .attr("class", "chart-tick").text("#" + d.n);
+            });
             var guide = svg.append("line").attr("y1", m.t).attr("y2", H - m.b)
                 .attr("stroke", GREEN).attr("stroke-dasharray", "3 3").attr("opacity", 0);
-            var focus = svg.append("circle").attr("r", 5.5)
+            var focus = svg.append("circle").attr("r", 6)
                 .attr("fill", NEON).attr("stroke", GREEN).attr("stroke-width", 2).attr("opacity", 0);
-            var bisect = d3.bisector(function (d) { return d.d; }).left;
-            function show(d) {
+
+            // The lifer card: the photo I took the day each species joined the list.
+            var card = document.getElementById("accum-card");
+            var cardImg = document.getElementById("lifer-img");
+            var cardRank = document.getElementById("lifer-rank");
+            var cardName = document.getElementById("lifer-name");
+            var cardMeta = document.getElementById("lifer-meta");
+            var cardCount = document.getElementById("lifer-count");
+            cardImg.addEventListener("error", function () { card.classList.add("no-img"); });
+            cardImg.addEventListener("load", function () { card.classList.remove("no-img"); });
+            var sel = data.length - 1;
+            function show(i) {
+                sel = Math.max(0, Math.min(i, data.length - 1));
+                var d = data[sel];
                 guide.attr("x1", x(d.d)).attr("x2", x(d.d)).attr("opacity", 0.5);
                 focus.attr("cx", x(d.d)).attr("cy", y(d.n)).attr("opacity", 1);
-                out.innerHTML = "#" + d.n + " &nbsp;<a href=\"/birds?bird=" +
-                    encodeURIComponent(d.s) + "\">" + d.s + "</a> · " +
-                    d3.timeFormat("%b %-d, %Y")(d.d);
+                card.hidden = false;
+                if (cardImg.getAttribute("src") !== d.img) cardImg.src = d.img;
+                cardImg.alt = d.s;
+                cardRank.textContent = "lifer #" + d.n;
+                cardName.textContent = d.s;
+                cardName.href = birdURL(d.s);
+                cardMeta.textContent = d3.timeFormat("%b %-d, %Y")(d.d) + " · " + d.fam;
+                cardCount.textContent = d.total === 1 ? "1 photo so far →"
+                    : d.total + " photos so far →";
+                cardCount.href = birdURL(d.s);
             }
-            function scrub(ev) {
+            var bisect = d3.bisector(function (d) { return d.d; }).left;
+            svg.on("pointerdown pointermove", function (ev) {
                 var px = d3.pointer(ev, svg.node())[0];
                 var i = bisect(data, x.invert(px));
-                var d = data[Math.max(0, Math.min(i, data.length - 1))];
-                // pick the closer of the two neighbours
+                i = Math.max(0, Math.min(i, data.length - 1));
                 var prev = data[Math.max(0, i - 1)];
-                if (Math.abs(x(prev.d) - px) < Math.abs(x(d.d) - px)) d = prev;
-                show(d);
-            }
-            svg.on("pointerdown pointermove", scrub);
-            show(data[data.length - 1]);
+                if (Math.abs(x(prev.d) - px) < Math.abs(x(data[i].d) - px)) i = Math.max(0, i - 1);
+                show(i);
+            });
+            el.addEventListener("keydown", function (ev) {
+                if (ev.key === "ArrowRight") { show(sel + 1); ev.preventDefault(); }
+                if (ev.key === "ArrowLeft") { show(sel - 1); ev.preventDefault(); }
+            });
+            show(data.length - 1);
         }
 
-        // ---- The year in birds: phenology ridgeline, tap a ridge ----
-        function renderRidge() {
-            var el = document.getElementById("ridge-chart");
-            el.innerHTML = "";
-            var out = readoutFor(el);
-            var rows = S.ridge, W = chartWidth(el), narrow = W < 520;
-            // Wide: labels in a left gutter. Narrow: labels sit above each ridge.
-            var rowH = narrow ? 52 : 34, amp = narrow ? 34 : 58,
-                gutter = narrow ? 8 : 168, pad = narrow ? 8 : 26;
-            var H = rows.length * rowH + 46 + pad;
-            var x = d3.scalePoint(d3.range(12), [gutter, W - (narrow ? 8 : 18)]);
-            var svg = d3.select(el).append("svg").attr("viewBox", "0 0 " + W + " " + H)
-                .style("touch-action", "pan-y");
-            var paths = [];
-            rows.forEach(function (r, i) {
-                var base = (i + 1) * rowH + 6 + pad;
-                var peak = d3.max(r.months) || 1;
-                var pts = r.months.map(function (v, mo) { return { mo: mo, v: v / peak }; });
-                var area = d3.area().curve(d3.curveCatmullRom.alpha(0.6))
-                    .x(function (d) { return x(d.mo); })
-                    .y0(base).y1(function (d) { return base - d.v * amp; });
-                paths.push(svg.append("path").datum(pts).attr("d", area)
-                    .attr("fill", NEON).attr("opacity", 0.28)
-                    .attr("stroke", GREEN).attr("stroke-width", 1.4));
-                var lbl = narrow
-                    ? svg.append("text").attr("x", 8).attr("y", base - amp - 6)
-                    : svg.append("text").attr("x", gutter - 10).attr("y", base - 2).attr("text-anchor", "end");
-                lbl.attr("class", "ridge-label").text(r.name);
-            });
-            var ax = svg.append("g").attr("transform", "translate(0," + (rows.length * rowH + 24 + pad) + ")");
+        // ---- The year, in birds: the full phenology matrix ----
+        function renderPheno() {
+            var host = document.getElementById("pheno-matrix");
+            var readout = document.getElementById("pheno-readout");
+            var search = document.getElementById("pheno-search");
+            var sortBtns = document.querySelectorAll(".pheno-sorts button");
+            var nowMonth = new Date().getMonth();
+            var sortMode = "season", spotlight = -1, query = "";
+
+            function peakMonth(r) {
+                var best = 0;
+                for (var i = 1; i < 12; i++) if (r.months[i] > r.months[best]) best = i;
+                return best;
+            }
+            // Per-row shading: sqrt of the share of that bird's peak month, so
+            // shoulder-season sightings stay visible next to a big peak.
+            function shade(v, peak) {
+                if (!v) return ZERO;
+                var k = Math.sqrt(v / peak);
+                return RAMP[Math.min(RAMP.length - 1, Math.floor(k * RAMP.length))];
+            }
+
+            // Build every row once; sorting and filtering just reorder/hide them.
+            var header = document.createElement("div");
+            header.className = "pheno-row pheno-head mono";
+            var hSpacer = document.createElement("span");
+            hSpacer.className = "pheno-name";
+            header.appendChild(hSpacer);
             MONTHS.forEach(function (mo, i) {
-                ax.append("text").attr("x", x(i)).attr("y", 0).attr("text-anchor", "middle")
-                    .attr("class", "chart-tick").text(mo[0]);
+                var h = document.createElement("button");
+                h.type = "button";
+                h.className = "pheno-mo" + (i === nowMonth ? " now" : "");
+                h.textContent = mo[0];
+                h.title = mo + (i === nowMonth ? " (this month)" : "") + " — tap to spotlight";
+                h.addEventListener("click", function () {
+                    spotlight = (spotlight === i) ? -1 : i;
+                    order();
+                });
+                header.appendChild(h);
             });
-            // tap/drag: pick the row under the finger and the nearest month; the
-            // value floats at the fingertip (the readout may be scrolled away).
-            var tip = svg.append("text").attr("class", "ridge-tip").attr("text-anchor", "middle");
-            function pick(ev) {
-                var p = d3.pointer(ev, svg.node());
-                var i = Math.max(0, Math.min(rows.length - 1,
-                    Math.round((p[1] - pad - 6) / rowH) - 1));
-                var mo = Math.max(0, Math.min(11, Math.round((p[0] - gutter) / x.step())));
-                var r = rows[i], total = r.months.reduce(function (a, b) { return a + b; }, 0);
-                paths.forEach(function (pp, j) { pp.attr("opacity", j === i ? 0.55 : 0.14); });
-                tip.attr("x", Math.max(40, Math.min(W - 40, p[0])))
-                   .attr("y", Math.max(14, p[1] - 18))
-                   .text(MONTHS[mo] + ": " + r.months[mo]);
-                out.innerHTML = "<a href=\"/birds?bird=" + encodeURIComponent(r.name) + "\">" +
-                    r.name + "</a> · " + MONTHS[mo] + ": <strong>" + r.months[mo] +
-                    "</strong> photo" + (r.months[mo] === 1 ? "" : "s") + " (" + total + " all year)";
+
+            var rows = S.pheno.map(function (r) {
+                var peak = d3.max(r.months) || 1, pk = peakMonth(r);
+                var el = document.createElement("div");
+                el.className = "pheno-row";
+                var name = document.createElement("a");
+                name.className = "pheno-name";
+                name.href = birdURL(r.name);
+                name.textContent = r.name;
+                name.setAttribute("aria-label", r.name + ", " + r.total +
+                    " photos, peak in " + MONTHS[pk]);
+                el.appendChild(name);
+                r.months.forEach(function (v, mi) {
+                    // Cells with photos are real links to that bird × month view.
+                    var c = document.createElement(v ? "a" : "span");
+                    c.className = "pheno-cell";
+                    c.style.background = shade(v, peak);
+                    c.dataset.m = mi;
+                    if (v) {
+                        c.href = birdURL(r.name) + "&month=" + (mi + 1);
+                        c.setAttribute("aria-label", r.name + " in " + MONTHS[mi] +
+                            ": " + v + (v === 1 ? " photo" : " photos"));
+                    }
+                    el.appendChild(c);
+                });
+                el.dataset.name = r.name.toLowerCase();
+                el.dataset.fam = r.fam.toLowerCase();
+                return { el: el, r: r, peak: pk };
+            });
+
+            // Hover / tap anywhere on the grid resolves to (species, month).
+            host.addEventListener("pointermove", handle);
+            host.addEventListener("pointerdown", handle);
+            host.addEventListener("pointerleave", tipHide);
+            function handle(ev) {
+                var cell = ev.target.closest(".pheno-cell");
+                if (!cell) return;
+                var row = rows.find(function (w) { return w.el === cell.parentNode; });
+                if (!row) return;
+                var mi = +cell.dataset.m, v = row.r.months[mi];
+                var lines = [row.r.name,
+                             MONTHS[mi] + ": " + v + (v === 1 ? " photo" : " photos"),
+                             row.r.total + " all time · " + row.r.fam];
+                if (v) lines.push("click for the photos →");
+                tipShow(ev, lines, row.r.imgs[mi]);
+                readout.textContent = row.r.name + " — " + MONTHS[mi] + ": " + v +
+                    (v === 1 ? " photo" : " photos") + " (" + row.r.total + " all time)";
             }
-            svg.on("pointerdown pointermove", pick);
-            out.innerHTML = "tap or drag a ridge to explore — tap the name for its photos";
+
+            function famHeader(fam) {
+                var h = document.createElement("div");
+                h.className = "pheno-fam mono";
+                h.textContent = fam;
+                return h;
+            }
+            function order() {
+                var sorted = rows.slice();
+                if (spotlight >= 0) {
+                    sorted.sort(function (a, b) {
+                        return b.r.months[spotlight] - a.r.months[spotlight] ||
+                               b.r.total - a.r.total;
+                    });
+                } else if (sortMode === "az") {
+                    sorted.sort(function (a, b) { return a.r.name < b.r.name ? -1 : 1; });
+                } else if (sortMode === "count") {
+                    sorted.sort(function (a, b) { return b.r.total - a.r.total; });
+                } else if (sortMode === "season") {
+                    sorted.sort(function (a, b) { return a.peak - b.peak || b.r.total - a.r.total; });
+                }   // "fam" keeps the taxonomic order rows were built in
+                host.textContent = "";
+                host.appendChild(header);
+                header.querySelectorAll(".pheno-mo").forEach(function (h, i) {
+                    h.classList.toggle("lit", i === spotlight);
+                });
+                host.classList.toggle("spotlit", spotlight >= 0);
+                var shown = 0, lastFam = null;
+                sorted.forEach(function (w) {
+                    if (query && w.el.dataset.name.indexOf(query) === -1 &&
+                        w.el.dataset.fam.indexOf(query) === -1) return;
+                    if (spotlight >= 0 && !w.r.months[spotlight]) return;
+                    if (sortMode === "fam" && spotlight < 0 && w.r.fam !== lastFam) {
+                        host.appendChild(famHeader(w.r.fam));
+                        lastFam = w.r.fam;
+                    }
+                    w.el.querySelectorAll(".pheno-cell").forEach(function (c, i) {
+                        c.classList.toggle("dim", spotlight >= 0 && i !== spotlight);
+                    });
+                    host.appendChild(w.el);
+                    shown++;
+                });
+                readout.textContent = spotlight >= 0
+                    ? shown + " species on the board in " + MONTHS[spotlight] +
+                      " — tap " + MONTHS[spotlight][0] + " again to clear"
+                    : (query ? shown + " of " + rows.length + " species"
+                             : rows.length + " species — it's " + MONTHS[nowMonth] +
+                               " (marked ●): tap it to see who's around now");
+            }
+            search.addEventListener("input", function () {
+                query = search.value.trim().toLowerCase();
+                order();
+            });
+            sortBtns.forEach(function (b) {
+                b.addEventListener("click", function () {
+                    sortMode = b.dataset.sort;
+                    spotlight = -1;
+                    sortBtns.forEach(function (o) { o.classList.toggle("on", o === b); });
+                    order();
+                });
+            });
+            order();
         }
 
-        renderAccum();
-        renderRidge();
-        var rt;
-        addEventListener("resize", function () {
-            clearTimeout(rt);
-            rt = setTimeout(function () { renderAccum(); renderRidge(); }, 200);
-        });
-
-        // ---- Shooting days: GitHub-style calendar heatmap, last 12 months ----
-        (function () {
+        // ---- Shooting days: the clickable birding contribution graph ----
+        function renderCal() {
             var el = document.getElementById("cal-chart");
             var days = Object.keys(S.per_day);
             if (!days.length) return;
-            var end = new Date(days.sort()[days.length - 1] + "T12:00:00");
+            var fmt = d3.timeFormat("%Y-%m-%d");
+            // Anchor the window to TODAY (not the last photo), so the quiet
+            // days since the last shoot still show — an honest, complete year.
+            var end = new Date();
+            end.setHours(12, 0, 0, 0);
             var start = d3.timeSunday.floor(d3.timeDay.offset(end, -364));
+            var inWindow = days.filter(function (k) {
+                return new Date(k + "T12:00:00") >= start;
+            }).sort();
+            // Streaks & records for the chip row.
+            var longest = 0, run = 0, prev = null;
+            inWindow.forEach(function (k) {
+                var d = new Date(k + "T12:00:00");
+                run = (prev && d - prev === 864e5) ? run + 1 : 1;
+                longest = Math.max(longest, run);
+                prev = d;
+            });
+            var busiest = inWindow.reduce(function (a, k) {
+                return S.per_day[k].n > S.per_day[a].n ? k : a;
+            }, inWindow[0]);
+            var chips = document.getElementById("cal-chips");
+            [[inWindow.length, " days out"],
+             [longest, longest === 1 ? " day longest streak" : " days longest streak"],
+             [S.per_day[busiest].n, " photos on " + d3.timeFormat("%b %-d")(new Date(busiest + "T12:00:00")) + ", the big day"]
+            ].forEach(function (c) {
+                var s = document.createElement("span");
+                s.className = "cal-chip";
+                var b = document.createElement("strong");
+                b.textContent = c[0];
+                s.appendChild(b);
+                s.appendChild(document.createTextNode(c[1]));
+                chips.appendChild(s);
+            });
+
             var cell = 13, gap = 3, top = 22, left = 30;
             var weeks = d3.timeSunday.count(start, end) + 1;
             var W = left + weeks * (cell + gap), H = top + 7 * (cell + gap) + 4;
-            var color = d3.scaleQuantize([1, Math.max(d3.max(Object.values(S.per_day)), 4)],
-                ["#c9e8cf", "#7cc98f", GREEN, "#0d3b22"]);
-            var svg = d3.select(el).append("svg")
-                .attr("width", W).attr("height", H);
+            var peak = d3.max(inWindow, function (k) { return S.per_day[k].n; }) || 1;
+            var color = d3.scaleQuantize([1, Math.max(peak, RAMP.length)], RAMP);
+            var svg = d3.select(el).append("svg").attr("width", W).attr("height", H);
             d3.timeDay.range(start, d3.timeDay.offset(end, 1)).forEach(function (d) {
                 var wk = d3.timeSunday.count(start, d), dow = d.getDay();
-                var key = d3.timeFormat("%Y-%m-%d")(d), n = S.per_day[key] || 0;
-                svg.append("rect")
+                var key = fmt(d), day = S.per_day[key];
+                // Days with photos are real links (keyboard / middle-click friendly).
+                var parent = day ? svg.append("a").attr("href", "/birds?on=" + key)
+                                        .attr("aria-label", key + ", " + day.n + " photos")
+                                 : svg;
+                var rect = parent.append("rect")
                     .attr("x", left + wk * (cell + gap)).attr("y", top + dow * (cell + gap))
                     .attr("width", cell).attr("height", cell).attr("rx", 3)
-                    .attr("fill", n ? color(n) : "rgba(13,18,14,0.06)")
-                    .append("title").text(n + (n === 1 ? " photo — " : " photos — ") +
-                                          d3.timeFormat("%b %-d, %Y")(d));
+                    .attr("fill", day ? color(day.n) : ZERO);
+                if (fmt(d) === fmt(end)) {   // today gets the amber "now" ring
+                    rect.attr("stroke", "#e8b04b").attr("stroke-width", 1.5);
+                }
+                if (day) {
+                    rect.attr("class", "cal-day")
+                        .on("pointermove", function (ev) {
+                            var sp = day.sp.slice(0, 3).join(", ") +
+                                     (day.sp.length > 3 ? " +" + (day.sp.length - 3) + " more" : "");
+                            tipShow(ev, [d3.timeFormat("%a, %b %-d, %Y")(d),
+                                         day.n + (day.n === 1 ? " photo" : " photos"),
+                                         sp, "click for the photos →"], day.img);
+                        })
+                        .on("pointerleave", tipHide);
+                }
             });
             d3.timeMonth.range(d3.timeMonth.ceil(start), end).forEach(function (d) {
                 svg.append("text").attr("x", left + d3.timeSunday.count(start, d) * (cell + gap))
@@ -273,22 +487,72 @@
                 svg.append("text").attr("x", 0).attr("y", top + (1 + i * 2) * (cell + gap) + 10)
                     .attr("class", "chart-tick").text(lbl[0]);
             });
-            // tap a cell for its day (hover titles don't exist on touch)
-            var out = readoutFor(el);
-            out.textContent = "tap a square for that day";
-            svg.on("pointerdown pointermove", function (ev) {
-                if (ev.type === "pointermove" && ev.pressure === 0 && ev.pointerType !== "mouse") return;
-                var p = d3.pointer(ev, svg.node());
-                var wk = Math.floor((p[0] - left) / (cell + gap)),
-                    dow = Math.floor((p[1] - top) / (cell + gap));
-                if (wk < 0 || dow < 0 || dow > 6) return;
-                var d = d3.timeDay.offset(start, wk * 7 + dow);
-                if (d < start || d > end) return;
-                var n = S.per_day[d3.timeFormat("%Y-%m-%d")(d)] || 0;
-                out.textContent = d3.timeFormat("%a, %b %-d, %Y")(d) + " — " +
-                    n + (n === 1 ? " photo" : " photos");
+        }
+
+        // ---- By family: treemap — area = photos, depth of green = species ----
+        function renderFam() {
+            var el = document.getElementById("fam-chart");
+            el.innerHTML = "";
+            var readout = document.getElementById("fam-readout");
+            var W = chartWidth(el), H = Math.max(280, Math.round(W * 0.9));
+            var sppMax = d3.max(FAM, function (f) { return f.spp; });
+            var fill = d3.scaleQuantize([1, sppMax + 1], RAMP);
+            var root = d3.hierarchy({ children: FAM }).sum(function (f) { return f.n || 0; })
+                .sort(function (a, b) { return b.value - a.value; });
+            d3.treemap().size([W, H]).paddingInner(2).round(true)(root);
+            var svg = d3.select(el).append("svg").attr("viewBox", "0 0 " + W + " " + H);
+            root.leaves().forEach(function (leaf) {
+                var f = leaf.data, w = leaf.x1 - leaf.x0, h = leaf.y1 - leaf.y0;
+                var bg = fill(f.spp);
+                var dark = RAMP.indexOf(bg) >= 3;   // ink on light greens, white on dark
+                var g = svg.append("a").attr("href", "/birds?family=" + encodeURIComponent(f.name))
+                    .attr("class", "fam-cell");
+                g.append("rect").attr("x", leaf.x0).attr("y", leaf.y0)
+                    .attr("width", w).attr("height", h).attr("rx", 3).attr("fill", bg);
+                // Direct labels only where they genuinely fit — one line, or two
+                // for long names like "Chickadees & Titmice"; the tooltip +
+                // readout carry the rest.
+                var lines = null, words = f.name.split(" ");
+                if (w > f.name.length * 6.2 + 12) {
+                    lines = [f.name];
+                } else if (words.length > 1) {
+                    var mid = Math.ceil(words.length / 2);
+                    var l1 = words.slice(0, mid).join(" "), l2 = words.slice(mid).join(" ");
+                    if (w > Math.max(l1.length, l2.length) * 6.2 + 12) lines = [l1, l2];
+                }
+                if (lines && h > 16 + lines.length * 15) {
+                    lines.forEach(function (line, li) {
+                        g.append("text").attr("x", leaf.x0 + 7).attr("y", leaf.y0 + 16 + li * 14)
+                            .attr("class", "fam-label" + (dark ? " inverse" : ""))
+                            .text(line);
+                    });
+                    var sub = f.n + " · " + f.spp + " spp.";
+                    if (h > 32 + lines.length * 15 && w > sub.length * 5.6 + 12) {
+                        g.append("text").attr("x", leaf.x0 + 7)
+                            .attr("y", leaf.y0 + 17 + lines.length * 14)
+                            .attr("class", "fam-sub" + (dark ? " inverse" : ""))
+                            .text(sub);
+                    }
+                }
+                g.on("pointermove", function (ev) {
+                    tipShow(ev, [f.name,
+                                 f.n + (f.n === 1 ? " photo" : " photos") + " · " +
+                                 f.spp + (f.spp === 1 ? " species" : " species")]);
+                    readout.textContent = f.name + " — " + f.n + " photos, " + f.spp + " species";
+                }).on("pointerleave", tipHide);
             });
-        })();
+            readout.textContent = "tap a family to browse its photos";
+        }
+
+        renderAccum();
+        renderPheno();
+        renderCal();
+        renderFam();
+        var rt;
+        addEventListener("resize", function () {
+            clearTimeout(rt);
+            rt = setTimeout(function () { renderAccum(); renderFam(); }, 200);
+        });
     })();
 </script>
 <script>

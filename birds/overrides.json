@@ -1422,7 +1422,7 @@
     "images": {
       "0": "Mallard",
       "1": "Mallard",
-      "2": "American Crow",
+      "2": "Mallard",
       "3": "Song Sparrow",
       "4": "Song Sparrow",
       "5": "Northern Harrier",
@@ -1614,7 +1614,7 @@
     "images": {
       "0": "Barred Owl",
       "1": "Barred Owl",
-      "2": "Red-tailed Hawk",
+      "2": "Barred Owl",
       "3": "Tree Swallow",
       "4": "Mallard",
       "5": "Red-bellied Woodpecker"
@@ -2633,6 +2633,13 @@
       "4": "Common Loon",
       "5": "American Tree Sparrow",
       "6": "White-throated Sparrow"
+    }
+  },
+  "18570565219023967": {
+    "images": {
+      "0": "Red-tailed Hawk",
+      "2": "Dark-eyed Junco",
+      "3": "Black-capped Chickadee"
     }
   },
   "18572825836049750": {

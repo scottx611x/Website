@@ -2,6 +2,7 @@
     "production": {
         "app_function": "index.app",
         "timeout_seconds": 300,
+        "memory_size": 1024,
         "aws_region": "us-east-1",
         "s3_bucket": "zappa-0206au0bc",
         "domain": "www.scott-ouellette.com",

@@ -351,17 +351,20 @@ def _interleave_buckets(buckets):
     return out
 
 
-def images_filtered(shots, bird=None, family=None, area=None, ooa_only=(), media=None):
+def images_filtered(shots, bird=None, family=None, area=None, ooa_only=(), media=None,
+                    month=None):
     """Interleaved single-image frames matching ALL active filters (composable):
     ``bird`` (species display name), ``family`` (Merlin group), ``area``
-    ('local' = North Andover, 'elsewhere' = ⚠️ out-of-area-only species), and
-    ``media`` ('video' = only videos, 'photo' = only stills)."""
+    ('local' = North Andover, 'elsewhere' = ⚠️ out-of-area-only species),
+    ``media`` ('video' = only videos, 'photo' = only stills), and ``month``
+    (1–12: frames captured that month in any year — the phenology-matrix cells)."""
     bird_l = (bird or "").strip().lower()
     fam = (family or "").strip()
     want_elsewhere = area in ("elsewhere", "away")
     has_area = area in ("local", "elsewhere", "away")
     want_video = media == "video"
     want_photo = media == "photo"
+    month_key = "-%02d-" % month if month else None
     ooa_lower = {n.lower() for n in ooa_only}
     buckets = []
     for shot in shots:
@@ -374,6 +377,8 @@ def images_filtered(shots, bird=None, family=None, area=None, ooa_only=(), media
             if bird_l and bird_l not in names:
                 continue
             if fam and not any(c[1] == fam for c in canons):
+                continue
+            if month_key and month_key not in (frame.get("_sort") or ""):
                 continue
             if has_area:
                 is_elsewhere = all(nm in ooa_lower for nm in names)
@@ -394,9 +399,9 @@ def has_videos(shots):
     return any(v for s in shots for v in (s.get("image_videos") or []))
 
 
-def media_counts(shots, bird=None, family=None, area=None, ooa_only=()):
-    """(photo_count, video_count) of frames matching the species/family/area filter
-    (ignoring any media filter) — for the live, clickable totals."""
+def media_counts(shots, bird=None, family=None, area=None, ooa_only=(), month=None):
+    """(photo_count, video_count) of frames matching the species/family/area/month
+    filter (ignoring any media filter) — for the live, clickable totals."""
     bird_l = (bird or "").strip().lower()
     fam = (family or "").strip()
     has_area = area in ("local", "elsewhere")
@@ -404,6 +409,10 @@ def media_counts(shots, bird=None, family=None, area=None, ooa_only=()):
     ooa_lower = {n.lower() for n in ooa_only}
     photos = videos = 0
     for shot in shots:
+        if month:
+            d = _capture_date_obj(shot.get("caption") or "", shot.get("timestamp"))
+            if not d or d.month != month:
+                continue
         isp = shot.get("image_species") or []
         vids = shot.get("image_videos") or []
         for i in range(len(shot.get("images") or [])):
@@ -1120,7 +1129,8 @@ def _rehost_image(media_id, src_url):
     Instagram's own URLs expire, so in production we copy the still into S3 and
     serve from there. When S3 isn't available (e.g. local dev with no AWS creds)
     we fall back to the Instagram URL so the gallery still renders — those links
-    just won't last.
+    just won't last. A grid-sized thumbnail rides along under thumbs/ (see
+    ``thumb_url``); the full-resolution copy stays for the lightbox.
     """
     if not src_url:
         return None
@@ -1138,6 +1148,7 @@ def _rehost_image(media_id, src_url):
         # post, and we avoid re-downloading. Images are keyed by immutable media id.
         try:
             s3.head_object(Bucket=S3_BUCKET, Key=key)
+            _ensure_thumb(s3, media_id)  # backfill thumbs for older archives
             return public_url
         except Exception:  # noqa: BLE001 - not there yet, fetch + upload below
             pass
@@ -1151,9 +1162,67 @@ def _rehost_image(media_id, src_url):
             ContentType="image/jpeg",
             CacheControl="public, max-age=31536000, immutable",
         )
+        _ensure_thumb(s3, media_id, resp.content)
         return public_url
     except Exception:  # noqa: BLE001 - S3 unavailable: serve Instagram's URL directly
         return src_url
+
+
+# Grid thumbnails: the masonry/preview grids only ever render ~640 CSS px wide
+# images, but IG originals run 300-700 KB. A 640px progressive JPEG is ~8x
+# lighter; the lightbox still opens the full-resolution copy.
+THUMB_WIDTH = 640
+
+
+def thumb_url(url):
+    """The grid-sized thumbnail URL for a re-hosted image (falls back to the
+    original for anything not in our archive, e.g. local-dev IG URLs)."""
+    marker = "/{}/images/".format(S3_PREFIX)
+    if marker in (url or ""):
+        return url.replace(marker, "/{}/thumbs/".format(S3_PREFIX))
+    return url
+
+
+def _make_thumb(data):
+    from io import BytesIO
+
+    from PIL import Image, ImageOps
+
+    im = ImageOps.exif_transpose(Image.open(BytesIO(data))).convert("RGB")
+    if im.width > THUMB_WIDTH:
+        im = im.resize(
+            (THUMB_WIDTH, max(1, round(im.height * THUMB_WIDTH / im.width))),
+            Image.LANCZOS,
+        )
+    out = BytesIO()
+    im.save(out, "JPEG", quality=78, optimize=True, progressive=True)
+    return out.getvalue()
+
+
+def _ensure_thumb(s3, media_id, data=None):
+    """Create thumbs/{id}.jpg if it doesn't exist yet. Best-effort: on any
+    failure (Pillow unavailable, corrupt image) the grid's error handler falls
+    back to the full image, so a missing thumb never breaks the gallery."""
+    key = "{}/thumbs/{}.jpg".format(S3_PREFIX, media_id)
+    try:
+        s3.head_object(Bucket=S3_BUCKET, Key=key)
+        return
+    except Exception:  # noqa: BLE001 - not there yet
+        pass
+    try:
+        if data is None:
+            data = s3.get_object(
+                Bucket=S3_BUCKET, Key="{}/images/{}.jpg".format(S3_PREFIX, media_id)
+            )["Body"].read()
+        s3.put_object(
+            Bucket=S3_BUCKET,
+            Key=key,
+            Body=_make_thumb(data),
+            ContentType="image/jpeg",
+            CacheControl="public, max-age=31536000, immutable",
+        )
+    except Exception:  # noqa: BLE001
+        pass
 
 
 def _write_manifest(shots):
@@ -1574,40 +1643,96 @@ def gallery_stats(shots):
     }
 
 
-def stats_series(shots, ridge_species=14):
-    """Time-series data for the stats page charts, derived from capture dates:
-    per-day photo counts (calendar heatmap), per-species monthly rhythm sorted by
-    seasonal peak (phenology ridgeline), and the cumulative life list (species
-    accumulation)."""
+def stats_series(shots, top_n=15):
+    """Data for the stats page charts, derived from capture dates:
+
+    - ``per_day``: date -> {n, sp} photo count + species list (calendar heatmap,
+      with click-through to /birds?on=<date> and species in the tooltip).
+    - ``pheno``: EVERY species' monthly rhythm with family + total (the full
+      phenology matrix), in family/taxonomic order, plus the best photo per
+      month so hovering a cell previews that species in that time pocket.
+    - ``accum``: the cumulative life list — each species with the date AND the
+      photo of its first sighting, so the timeline can show the actual lifer shot.
+    - ``top``: most-photographed leaderboard with an avatar image per species.
+    """
     import collections
-    per_day = collections.Counter()
+    per_day_n = collections.Counter()
+    per_day_sp = collections.defaultdict(set)
+    day_best = {}    # date -> (post weight, image url) for the calendar preview
     sp_month = collections.defaultdict(lambda: [0] * 12)
+    sp_month_best = collections.defaultdict(lambda: [None] * 12)  # (weight, img)
     sp_total = collections.Counter()
-    first_seen = {}
+    sp_family = {}
+    first_seen = {}  # name -> (date, first-sighting image url)
+    best_shot = {}   # name -> (post weight, image url) for the avatar
     for shot in shots:
         d = _capture_date_obj(shot.get("caption") or "", shot.get("timestamp"))
         if not d:
             continue
+        key = d.isoformat()
         isp = shot.get("image_species") or []
-        for i in range(len(shot.get("images") or [])):
-            per_day[d.isoformat()] += 1
+        images = shot.get("images") or []
+        weight = shot.get("weight") or 0
+        for i in range(len(images)):
+            per_day_n[key] += 1
+            if key not in day_best or weight > day_best[key][0]:
+                day_best[key] = (weight, images[i])
             raw = isp[i] if i < len(isp) and isp[i] else shot.get("species")
-            for c in _canon_species_list(raw):
-                name = c[0]
+            for name, family in _canon_species_list(raw):
+                per_day_sp[key].add(name)
                 sp_month[name][d.month - 1] += 1
                 sp_total[name] += 1
-                if name not in first_seen or d < first_seen[name]:
-                    first_seen[name] = d
-    top = [s for s, _ in sp_total.most_common(ridge_species)]
-    # Sort ridgeline rows by seasonal peak so the ridges cascade through the year.
-    top.sort(key=lambda s: max(range(12), key=lambda m: sp_month[s][m]))
-    accum = [{"d": d.isoformat(), "s": s}
-             for s, d in sorted(first_seen.items(), key=lambda kv: kv[1])]
+                sp_family[name] = family
+                cur = sp_month_best[name][d.month - 1]
+                if cur is None or weight > cur[0]:
+                    sp_month_best[name][d.month - 1] = (weight, images[i])
+                if name not in first_seen or d < first_seen[name][0]:
+                    first_seen[name] = (d, images[i])
+                if name not in best_shot or weight > best_shot[name][0]:
+                    best_shot[name] = (weight, images[i])
+    fam_order = {f: n for n, f in enumerate(_FAMILY_ORDER)}
+    # Every preview here renders small (tooltips, avatars, the lifer card), so
+    # they all ride the grid thumbnails rather than full-resolution copies.
+    pheno = [{"name": s, "fam": sp_family[s], "months": sp_month[s], "total": sp_total[s],
+              "imgs": [thumb_url(b[1]) if b else None for b in sp_month_best[s]]}
+             for s in sorted(sp_total, key=lambda s: (fam_order.get(sp_family[s], 999), s))]
+    accum = [{"d": d.isoformat(), "s": s, "img": thumb_url(img), "fam": sp_family[s],
+              "total": sp_total[s]}
+             for s, (d, img) in sorted(first_seen.items(), key=lambda kv: kv[1][0])]
+    top = [{"name": s, "n": n, "fam": sp_family[s], "img": thumb_url(best_shot[s][1])}
+           for s, n in sp_total.most_common(top_n)]
     return {
-        "per_day": dict(per_day),
-        "ridge": [{"name": s, "months": sp_month[s]} for s in top],
+        "per_day": {k: {"n": n, "sp": sorted(per_day_sp[k]), "img": thumb_url(day_best[k][1])}
+                    for k, n in per_day_n.items()},
+        "pheno": pheno,
         "accum": accum,
+        "top": top,
     }
+
+
+def images_on_date(shots, day):
+    """Every frame captured on ``day`` (ISO date string) — the click-through
+    target for the shooting-days calendar (/birds?on=YYYY-MM-DD). Uses the same
+    post-level capture date as the calendar counts, so the numbers always agree.
+
+    All frames share a capture date here, so plain date sorting would be a
+    no-op: ``_sort`` gets the post time appended (newest/oldest fall back to
+    posting order) and the default order is a fresh shuffle, like the gallery.
+    """
+    buckets = []
+    for shot in shots:
+        d = _capture_date_obj(shot.get("caption") or "", shot.get("timestamp"))
+        if not d or d.isoformat() != day:
+            continue
+        bucket = []
+        for i in range(len(shot.get("images") or [])):
+            frame, _ = _pseudo_frame(shot, i)
+            frame["_sort"] = "%sT%s" % (day, (shot.get("timestamp") or "")[11:19])
+            bucket.append(frame)
+        if bucket:
+            buckets.append(bucket)
+    random.shuffle(buckets)
+    return _interleave_buckets(buckets)
 
 
 def ticker_species(shots):

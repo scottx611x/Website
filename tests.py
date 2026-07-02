@@ -52,7 +52,10 @@ class RoutesTestCase(GenericTestBase):
         self.assertIn(b"github.com/scottx611x", response.data)
 
     def test_birds_route(self):
-        self.assertEqual(self.test_client.get("/birds").status_code, 200)
+        # Plain /birds redirects to a seeded URL that pins the shuffle.
+        response = self.test_client.get("/birds", follow_redirects=True)
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("seed=", response.request.url)
 
     def test_birds_stats_route(self):
         response = self.test_client.get("/birds/stats")
@@ -71,7 +74,8 @@ class RoutesTestCase(GenericTestBase):
 
     def test_birds_subdomain_serves_gallery_at_root(self):
         response = self.test_client.get(
-            "/", headers={"Host": "birds.scott-ouellette.com"}
+            "/", headers={"Host": "birds.scott-ouellette.com"},
+            follow_redirects=True,
         )
         self.assertEqual(response.status_code, 200)
         self.assertIn(b"Birds of North Andover", response.data)
@@ -157,6 +161,55 @@ class BirdsTestCase(unittest.TestCase):
         for key in ("species", "photos", "videos", "families", "top_species", "by_month"):
             self.assertIn(key, stats)
         self.assertEqual(len(stats["by_month"]), 12)
+
+    def test_stats_series_shape(self):
+        shots = birds.load_gallery(shuffle=False)
+        series = birds.stats_series(shots)
+        # The phenology matrix is comprehensive: one row per life-list species.
+        self.assertEqual(len(series["pheno"]), birds.species_count(shots))
+        for row in series["pheno"]:
+            self.assertEqual(len(row["months"]), 12)
+            self.assertEqual(sum(row["months"]), row["total"])
+            # Hover previews: exactly the months with photos carry an image.
+            self.assertEqual([bool(i) for i in row["imgs"]],
+                             [bool(n) for n in row["months"]])
+        # Every lifer carries its first-sighting photo for the timeline card.
+        for entry in series["accum"]:
+            self.assertTrue(entry["img"])
+            self.assertTrue(entry["fam"])
+        for day, val in series["per_day"].items():
+            self.assertGreaterEqual(val["n"], len(val["sp"]) and 1)
+            self.assertTrue(val["img"])
+
+    def test_gallery_seed_pins_the_shuffle(self):
+        import index
+        client = index.app.test_client()
+        r = client.get("/birds")
+        self.assertEqual(r.status_code, 302)
+        self.assertIn("seed=", r.headers["Location"])
+        seeded = r.headers["Location"]
+        import re
+        first = re.findall(r'data-id="([^"]+)"', client.get(seeded).get_data(as_text=True))[:8]
+        again = re.findall(r'data-id="([^"]+)"', client.get(seeded).get_data(as_text=True))[:8]
+        self.assertEqual(first, again)  # same seed -> same arrangement
+
+    def test_images_filtered_by_month_matches_pheno(self):
+        shots = birds.load_gallery(shuffle=False)
+        series = birds.stats_series(shots)
+        row = max(series["pheno"], key=lambda r: r["total"])
+        month = max(range(12), key=lambda m: row["months"][m]) + 1
+        frames = birds.images_filtered(shots, bird=row["name"], month=month)
+        self.assertEqual(len(frames), row["months"][month - 1])
+        self.assertEqual(birds.images_filtered(shots, bird=row["name"], month=None
+                                               ).__len__(), row["total"])
+
+    def test_images_on_date_matches_per_day_counts(self):
+        shots = birds.load_gallery(shuffle=False)
+        series = birds.stats_series(shots)
+        day = max(series["per_day"], key=lambda k: series["per_day"][k]["n"])
+        frames = birds.images_on_date(shots, day)
+        self.assertEqual(len(frames), series["per_day"][day]["n"])
+        self.assertEqual(birds.images_on_date(shots, "1999-01-01"), [])
 
     def test_capture_date_from_caption(self):
         self.assertEqual(birds._capture_date("Barred Owl\n\nRea St.\n\n3-27-26", None), "Mar 27, 2026")

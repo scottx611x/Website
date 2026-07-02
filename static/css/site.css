@@ -529,15 +529,12 @@ body.home .site-nav { z-index: 0; }
 .bar-val { font-size: 0.8rem; color: var(--muted); text-align: right; }
 @keyframes bar-grow { from { transform: scaleX(0); } to { transform: scaleX(1); } }
 
-/* d3 charts (life list, ridgeline, calendar heatmap) */
+/* d3 charts (life list, phenology matrix, calendar heatmap, family treemap) */
 .d3-chart svg { width: 100%; height: auto; display: block; }
+.d3-chart:focus-visible { outline: 2px solid var(--green); outline-offset: 4px; border-radius: 8px; }
 .cal-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
 .cal-scroll svg { width: auto; }
 .chart-tick { font-family: var(--mono); font-size: 10px; fill: var(--muted); }
-.chart-note { font-family: var(--mono); font-size: 12px; font-weight: 700; fill: var(--green); }
-.ridge-label { font-family: var(--mono); font-size: 11px; fill: var(--ink); }
-.ridge-label:hover { fill: var(--green); text-decoration: underline; }
-.accum-dot:hover { r: 5; }
 .d3-chart .tick text { font-family: var(--mono); font-size: 10px; }
 .chart-readout {
     font-size: 0.8rem; color: var(--ink); margin: 0.7rem 0 0; min-height: 1.5em;
@@ -545,10 +542,97 @@ body.home .site-nav { z-index: 0; }
 }
 .chart-readout a { color: var(--green); font-weight: 600; }
 .chart-readout strong { color: var(--green); }
-.ridge-tip {
-    font-family: var(--mono); font-size: 12px; font-weight: 700; fill: var(--green);
-    paint-order: stroke; stroke: var(--paper); stroke-width: 4px; pointer-events: none;
+
+/* shared floating tooltip (matrix / calendar / treemap) */
+.viz-tip {
+    position: absolute; display: none; z-index: 60; pointer-events: none;
+    max-width: 16rem; padding: 0.5rem 0.65rem; border-radius: 8px;
+    background: var(--ink); color: var(--paper); font-size: 0.72rem; line-height: 1.45;
+    box-shadow: 0 4px 14px rgba(13, 18, 14, 0.25);
 }
+.viz-tip-lead { font-weight: 700; color: var(--neon); }
+.viz-tip-img {
+    display: block; width: 12rem; height: 7rem; object-fit: cover;
+    border-radius: 6px; margin-bottom: 0.45rem; background: rgba(255, 255, 255, 0.08);
+}
+
+/* the lifer card under the life-list timeline */
+.lifer-card {
+    display: grid; grid-template-columns: 96px 1fr; gap: 0.9rem; align-items: center;
+    margin-top: 0.7rem; padding: 0.6rem; border-radius: 10px;
+    background: rgba(47, 125, 79, 0.07);
+}
+.lifer-card img {
+    width: 96px; height: 96px; object-fit: cover; border-radius: 8px; display: block;
+    background: var(--paper-2);
+}
+.lifer-card.no-img { grid-template-columns: 1fr; }
+.lifer-card.no-img img { display: none; }
+.lifer-text { display: flex; flex-direction: column; gap: 0.1rem; min-width: 0; }
+.lifer-rank { font-size: 0.68rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.lifer-name { font-family: var(--display); font-size: 1.15rem; font-weight: 600; color: var(--ink); }
+.lifer-name:hover { color: var(--green); }
+.lifer-meta { font-size: 0.72rem; color: var(--muted); }
+.lifer-count { font-size: 0.75rem; color: var(--green); font-weight: 700; margin-top: 0.15rem; }
+
+/* phenology matrix */
+.pheno-controls { display: flex; flex-wrap: wrap; gap: 0.6rem; align-items: center; margin-bottom: 0.8rem; }
+.pheno-search {
+    flex: 1 1 11rem; min-width: 0; font-size: 0.78rem; padding: 0.4rem 0.7rem;
+    border: 1px solid rgba(13, 18, 14, 0.18); border-radius: 999px;
+    background: transparent; color: var(--ink);
+}
+.pheno-search:focus { outline: none; border-color: var(--green); }
+.pheno-sorts { display: flex; border: 1px solid rgba(13, 18, 14, 0.18); border-radius: 999px; overflow: hidden; }
+.pheno-sorts button {
+    font-family: var(--mono); font-size: 0.68rem; padding: 0.35rem 0.7rem; cursor: pointer;
+    border: 0; background: transparent; color: var(--muted);
+}
+.pheno-sorts button.on { background: var(--green); color: var(--paper); }
+.pheno-row { display: grid; grid-template-columns: 11rem repeat(12, 1fr); gap: 2px; align-items: center; margin-bottom: 2px; }
+.pheno-name {
+    font-size: 0.78rem; color: var(--ink); white-space: nowrap; overflow: hidden;
+    text-overflow: ellipsis; padding-right: 0.6rem;
+}
+a.pheno-name:hover { color: var(--green); text-decoration: underline; }
+.pheno-cell { display: block; height: 15px; border-radius: 3px; transition: opacity 0.15s; }
+.pheno-cell.dim { opacity: 0.22; }
+a.pheno-cell:hover, a.pheno-cell:focus-visible {
+    outline: 1.5px solid var(--ink); outline-offset: -1px;
+}
+.pheno-head { position: sticky; top: 3.1rem; z-index: 5; background: var(--paper); padding: 0.25rem 0; }
+.pheno-mo {
+    font-family: var(--mono); font-size: 0.68rem; color: var(--muted); text-align: center;
+    border: 0; background: transparent; cursor: pointer; padding: 0.15rem 0; border-radius: 4px;
+}
+.pheno-mo:hover { color: var(--green); background: rgba(47, 125, 79, 0.1); }
+.pheno-mo.now::after { content: "●"; display: block; font-size: 0.45rem; color: var(--amber); line-height: 0.6; }
+.pheno-mo.lit { background: var(--green); color: var(--paper); font-weight: 700; }
+.pheno-fam {
+    font-size: 0.64rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted);
+    margin: 0.7rem 0 0.25rem; border-bottom: 1px solid rgba(13, 18, 14, 0.1); padding-bottom: 0.15rem;
+}
+
+/* shooting days */
+.cal-chips { display: flex; flex-wrap: wrap; gap: 0.5rem 1.4rem; margin-bottom: 0.8rem; font-size: 0.75rem; color: var(--muted); }
+.cal-chip strong { color: var(--green); font-size: 1rem; margin-right: 0.25rem; }
+.cal-day { cursor: pointer; }
+.cal-day:hover { stroke: var(--ink); stroke-width: 1.5; }
+
+/* most photographed avatars */
+.bar-row.rich { grid-template-columns: 2.3rem minmax(7rem, 12rem) 1fr 2.4rem; }
+.bird-avatar {
+    width: 2.1rem; height: 2.1rem; border-radius: 50%; object-fit: cover; display: block;
+    background: var(--paper-2); border: 1.5px solid rgba(47, 125, 79, 0.35);
+}
+.bird-avatar.missing { visibility: hidden; }
+
+/* family treemap */
+.fam-cell rect:hover { opacity: 0.85; }
+.fam-label { font-family: var(--ui); font-size: 12px; font-weight: 600; fill: var(--ink); pointer-events: none; }
+.fam-sub { font-family: var(--mono); font-size: 10px; fill: rgba(13, 18, 14, 0.65); pointer-events: none; }
+.fam-label.inverse { fill: #f4f1e9; }
+.fam-sub.inverse { fill: rgba(244, 241, 233, 0.75); }
 
 /* local vs away split */
 .split-bar { display: flex; height: 1.4rem; border-radius: 999px; overflow: hidden; margin: 0.4rem 0 0.9rem; }
@@ -562,6 +646,12 @@ body.home .site-nav { z-index: 0; }
 @media (max-width: 720px) {
     .stat-grid { grid-template-columns: 1fr; }
     .bar-row { grid-template-columns: 8rem 1fr 2.2rem; }
+    .bar-row.rich { grid-template-columns: 2.3rem minmax(5.5rem, 8rem) 1fr 2.4rem; }
+    .pheno-row { grid-template-columns: 7.5rem repeat(12, 1fr); gap: 1.5px; }
+    .pheno-name { font-size: 0.7rem; }
+    .pheno-cell { height: 13px; }
+    .lifer-card { grid-template-columns: 72px 1fr; }
+    .lifer-card img { width: 72px; height: 72px; }
 }
 
 /* Projects curate editor */

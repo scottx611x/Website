@@ -49,9 +49,11 @@
         <p class="media-stat mono">
             order: <a class="media-link{% if not active_sort %} on{% endif %}" onclick="birdsGo(null,{sort:''})">shuffle</a> &middot; <a class="media-link{% if active_sort == 'recent' %} on{% endif %}" onclick="birdsGo(null,{sort:'recent'})">newest</a> &middot; <a class="media-link{% if active_sort == 'oldest' %} on{% endif %}" onclick="birdsGo(null,{sort:'oldest'})">oldest</a>
         </p>
-        {% if active_bird or active_family or active_area or active_media or active_loc %}
+        {% if active_bird or active_family or active_area or active_media or active_loc or active_on or active_month %}
         <div class="bird-active">
             <div class="filter-chips">
+                {% if active_on %}<button type="button" class="chip" onclick="birdsGo(null,{on:''})">&#128197; {{ active_on_display }} <span>&times;</span></button>{% endif %}
+                {% if active_month %}<button type="button" class="chip" onclick="birdsGo(null,{month:''})">&#128197; every {{ active_month_display }} <span>&times;</span></button>{% endif %}
                 {% if active_loc %}<button type="button" class="chip" onclick="birdsGo(null,{loc:''})">&#128205; {{ active_loc }} <span>&times;</span></button>{% endif %}
                 {% if active_media %}<button type="button" class="chip" onclick="birdsGo(null,{media:''})">{% if active_media == 'video' %}&#9654; Videos{% else %}Photos{% endif %} <span>&times;</span></button>{% endif %}
                 {% if active_area %}<button type="button" class="chip" onclick="birdsGo(null,{area:''})">{% if active_area == 'elsewhere' %}Out&#8209;of&#8209;area &#9888;&#65039;{% else %}North Andover{% endif %} <span>&times;</span></button>{% endif %}
@@ -64,13 +66,14 @@
         </div>
         {% endif %}
         <script>
-            window.BIRDS_ACTIVE = { bird: {{ active_bird|tojson }}, family: {{ active_family|tojson }}, area: {{ active_area|tojson }}, media: {{ active_media|tojson }}, sort: {{ active_sort|tojson }}, loc: {{ active_loc|tojson }}, review: {{ active_review|tojson }} };
+            window.BIRDS_ACTIVE = { bird: {{ active_bird|tojson }}, family: {{ active_family|tojson }}, area: {{ active_area|tojson }}, media: {{ active_media|tojson }}, sort: {{ active_sort|tojson }}, loc: {{ active_loc|tojson }}, on: {{ active_on|tojson }}, month: {{ (active_month or "")|tojson }}, review: {{ active_review|tojson }} };
             function birdsGo(ev, over) {
                 if (ev) ev.preventDefault();
-                // Location and species/family/area filters are mutually exclusive:
-                // picking one clears the other so the result is never ambiguous.
-                if (over.bird || over.family || over.area || over.media) over.loc = "";
-                if (over.loc) { over.bird = ""; over.family = ""; over.area = ""; over.media = ""; }
+                // Location/day and species/family/area/month filters are mutually
+                // exclusive: picking one clears the others so the result is never
+                // ambiguous (month composes with species/family/area/media).
+                if (over.bird || over.family || over.area || over.media || over.month) { over.loc = ""; over.on = ""; }
+                if (over.loc || over.on) { over.bird = ""; over.family = ""; over.area = ""; over.media = ""; over.month = ""; }
                 var a = Object.assign({}, window.BIRDS_ACTIVE, over);
                 var p = new URLSearchParams();
                 if (a.bird) p.set("bird", a.bird);
@@ -79,6 +82,8 @@
                 if (a.media) p.set("media", a.media);
                 if (a.sort) p.set("sort", a.sort);
                 if (a.loc) p.set("loc", a.loc);
+                if (a.on) p.set("on", a.on);
+                if (a.month) p.set("month", a.month);
                 if (a.review) p.set("review", a.review);
                 var q = p.toString();
                 location.href = "/birds" + (q ? "?" + q : "");
@@ -120,7 +125,7 @@
                 {% if curate %}data-caption-species='{{ (shot.caption_species or [])|tojson }}'{% endif %}
                 data-date='{{ shot.date or "" }}'
                 tabindex="0" role="button" aria-label="View {{ shot.species or 'photo' }} larger">
-            <img loading="lazy" src="{{ shot.images[0] }}" alt="{{ shot.species or shot.caption[:80] }}">
+            <img loading="lazy" decoding="async" src="{{ shot.images[0]|thumb }}" alt="{{ shot.species or shot.caption[:80] }}">
             {% if shot.image_videos and shot.image_videos[0] %}<span class="play-badge" aria-hidden="true">▶</span>{% endif %}
             {% if shot.images|length > 1 %}<span class="multi-badge">⧉ {{ shot.images|length }}</span>{% endif %}
             {% if shot.image_areas and shot.image_areas[0] == 'away' %}<span class="away-badge" tabindex="0" data-note="Spotted outside North Andover{% set acover = (shot.image_locations[0] if shot.image_locations else None) or shot.location %}{% if acover %} — {{ acover }}{% endif %}"><span class="away-badge-mark">⚠️</span></span>{% endif %}

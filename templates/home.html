@@ -3,9 +3,9 @@
 
 {% block head %}
     {% if effect == 'collision' %}
-        <link rel="stylesheet" href="{{ url_for('static', filename='css/collision.css') }}">
+        <link rel="stylesheet" href="{{ url_for('static', filename='css/collision.css', v=asset_v) }}">
     {% elif effect == 'voronoi' %}
-        <link rel="stylesheet" href="{{ url_for('static', filename='css/voronoi.css') }}">
+        <link rel="stylesheet" href="{{ url_for('static', filename='css/voronoi.css', v=asset_v) }}">
     {% endif %}
 {% endblock %}
 
@@ -170,7 +170,7 @@
         <div class="feature-grid">
             {% for shot in preview %}
             <a class="feature-tile{% if loop.first %} lead{% endif %}" href="/birds?start={{ start_ids }}">
-                <img loading="lazy" src="{{ shot.images[0] }}" alt="{{ shot.species or '' }}">
+                <img loading="lazy" decoding="async" src="{{ shot.images[0]|thumb }}" alt="{{ shot.species or '' }}">
                 {% if shot.species %}<span class="tile-cap">{{ shot.species }}</span>{% endif %}
             </a>
             {% endfor %}
@@ -245,14 +245,14 @@
 {% endblock %}
 
 {% block scripts %}
-    <script src="{{ url_for('static', filename='js/jquery-1.11.3.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/jquery-1.11.3.min.js', v=asset_v) }}"></script>
     {% if effect == 'collision' %}
         <script src="https://d3js.org/d3.v3.min.js"></script>
-        <script src="{{ url_for('static', filename='js/collision.js') }}"></script>
+        <script src="{{ url_for('static', filename='js/collision.js', v=asset_v) }}"></script>
     {% elif effect == 'voronoi' %}
         <script src="https://d3js.org/d3.v4.min.js"></script>
-        <script src="{{ url_for('static', filename='js/voronoi.js') }}"></script>
+        <script src="{{ url_for('static', filename='js/voronoi.js', v=asset_v) }}"></script>
     {% else %}
-        <script src="{{ url_for('static', filename='js/tiltfx.js') }}"></script>
+        <script src="{{ url_for('static', filename='js/tiltfx.js', v=asset_v) }}"></script>
     {% endif %}
 {% endblock %}

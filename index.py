@@ -1,3 +1,4 @@
+import datetime
 import json
 import os
 import random
@@ -11,6 +12,42 @@ import blog
 app = Flask(__name__)
 app.debug = False
 Compress(app)  # gzip/brotli responses — the gallery page is ~3 MB of HTML otherwise
+
+# Static assets get immutable-style caching; templates append ?v=<asset_v> to
+# css/js so a deploy busts the cache (see _asset_version below).
+app.config["SEND_FILE_MAX_AGE_DEFAULT"] = 31536000
+
+# Gallery grids render S3 thumbnails; the lightbox keeps the full image.
+app.add_template_filter(birds.thumb_url, "thumb")
+
+
+def _asset_version():
+    """Cache-buster derived from the newest css/js mtime, fixed at boot."""
+    newest = 0
+    for root, _dirs, files in os.walk(app.static_folder):
+        for name in files:
+            if name.endswith((".css", ".js")):
+                newest = max(newest, os.path.getmtime(os.path.join(root, name)))
+    return format(int(newest), "x")
+
+
+ASSET_V = _asset_version()
+
+
+@app.context_processor
+def _inject_asset_version():
+    return {"asset_v": ASSET_V}
+
+
+@app.after_request
+def _page_cache(resp):
+    """The stats and map pages recompute from a manifest that changes ~daily;
+    let browsers hold them briefly instead of refetching on every back/forward.
+    Skipped locally so curate-mode toggles never show a stale header."""
+    if (request.endpoint in ("birds_stats", "birds_map") and resp.status_code == 200
+            and not _is_local()):
+        resp.headers.setdefault("Cache-Control", "public, max-age=300")
+    return resp
 
 TITLE = "Scott Ouellette"
 
@@ -208,6 +245,17 @@ def curate_toggle():
 @app.route("/birds", methods=["GET"])
 def birds_gallery():
     curate = _curate_on()
+    # A stable ?seed pins the shuffled order, so reloading — and especially
+    # round-tripping through the curate toggle — lands on exactly the same
+    # arrangement. Plain /birds redirects to a fresh seed, and the "shuffle"
+    # control just drops the seed to reroll.
+    if not curate and not any(request.args.get(k) for k in (
+            "bird", "family", "area", "media", "loc", "on", "month", "sort",
+            "review", "start")):
+        seed = request.args.get("seed") or ""
+        if not seed.isdigit():
+            return redirect("/birds?seed=%d" % random.randrange(1_000_000_000))
+        random.seed(int(seed))
     all_shots = birds.load_gallery(shuffle=not curate)
     groups = birds.species_groups(all_shots)
     out_of_area = birds.out_of_area_species(all_shots)
@@ -228,6 +276,19 @@ def birds_gallery():
     loc_q = (request.args.get("loc") or "").strip().lower()
     place = next((p for p in birds.load_locations()
                   if p["name"].lower() == loc_q), None) if loc_q else None
+    # Day filter (from a shooting-days calendar cell): a strict ISO date.
+    on = (request.args.get("on") or "").strip()
+    try:
+        on_date = datetime.date.fromisoformat(on) if on else None
+    except ValueError:
+        on, on_date = "", None
+    # Month filter (from a phenology-matrix cell): 1-12, any year; composable
+    # with the species/family/area/media filters.
+    try:
+        month = int(request.args.get("month") or 0)
+    except ValueError:
+        month = 0
+    month = month if 1 <= month <= 12 else 0
     # Ordered lead-in from a home-page preview click: pin these exact frames
     # ("<post_id>.<image_index>") to the front in the given order (ignored under
     # any active filter).
@@ -252,9 +313,11 @@ def birds_gallery():
         shots = birds.images_hidden(raw)
     elif place:
         shots = birds.images_at_place(all_shots, place)
-    elif bird or family or area or media:
+    elif on:
+        shots = birds.images_on_date(all_shots, on)
+    elif bird or family or area or media or month:
         shots = birds.images_filtered(all_shots, bird, family, area, out_of_area,
-                                      media=media)
+                                      media=media, month=month or None)
     elif curate:
         shots = all_shots  # curate default: whole posts (for post-level editing)
     elif start_tokens:
@@ -265,6 +328,7 @@ def birds_gallery():
     # overriding the random/lead-in order; curate whole-post views are left alone.
     if sort and not curate:
         shots = birds.sort_frames(shots, sort)
+    random.seed()  # drop any ?seed determinism before other random consumers
     total = sum(len(sp) for _, sp in groups)
     away = sum(1 for _, sp in groups for name, _ in sp if name in out_of_area)
     # The species/family dropdowns are constrained to the selected area, so picking
@@ -302,10 +366,15 @@ def birds_gallery():
         active_media=media,
         active_sort=sort,
         active_loc=place["name"] if place else "",
+        active_on=on,
+        active_on_display=on_date.strftime("%b %-d, %Y") if on_date else "",
+        active_month=month,
+        active_month_display=datetime.date(2000, month, 1).strftime("%B") if month else "",
         active_review=review,
         review_counts=review_counts,
         media_n=dict(zip(("photos", "videos"),
-                         birds.media_counts(all_shots, bird, family, area, out_of_area))),
+                         birds.media_counts(all_shots, bird, family, area, out_of_area,
+                                            month=month or None))),
         has_videos=birds.has_videos(all_shots),
         bird_family=bird_family,
         curate=curate,
@@ -336,11 +405,30 @@ def birds_stats():
     if stats["first"] and stats["last"]:
         span_months = ((stats["last"].year - stats["first"].year) * 12
                        + stats["last"].month - stats["first"].month + 1)
+    # Fold top locations onto their geocoded place (map pin) when we have one,
+    # so caption spelling variants ("Harborwalk, Boston" / "... Boston MA")
+    # collapse into a single clickable row under the pin's canonical name.
+    place_index = birds._place_index(birds.load_locations())
+    loc_place, merged, by_name = {}, [], {}
+    for loc, count in stats["top_locations"]:
+        place = birds._match_place(loc, place_index)
+        name = place["name"] if place else loc
+        if name in by_name:
+            by_name[name][1] += count
+        else:
+            row = [name, count]
+            by_name[name] = row
+            merged.append(row)
+            if place:
+                loc_place[name] = place["name"]
+    merged.sort(key=lambda r: -r[1])
+    stats["top_locations"] = [tuple(r) for r in merged]
     return render_template(
         "stats.html",
         title="Birds by the numbers",
         stats=stats,
         series=birds.stats_series(shots),
+        loc_place=loc_place,
         span_months=span_months,
         local=_is_local(),
         curate=_curate_on(),

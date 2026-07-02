@@ -15,8 +15,9 @@
     <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://birds-scott-ouellette.s3.amazonaws.com">
     <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,500;9..144,600;9..144,900&family=Space+Grotesk:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/site.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/site.css', v=asset_v) }}">
     {% block head %}{% endblock %}
 </head>
 <body class="{% block body_class %}{% endblock %}">
@@ -411,6 +412,19 @@
             var t;
             addEventListener("resize", function () { clearTimeout(t); t = setTimeout(layoutAll, 150); });
         })();
+
+        // Grid images are S3 thumbnails; if one is ever missing, fall back to
+        // the card's full-resolution image instead of showing a broken frame.
+        addEventListener("error", function (e) {
+            var img = e.target;
+            if (!(img instanceof HTMLImageElement)) return;
+            var card = img.closest && img.closest("[data-images]");
+            if (!card || img._fellBack) return;
+            try {
+                var full = JSON.parse(card.getAttribute("data-images"))[0];
+                if (full && full !== img.src) { img._fellBack = true; img.src = full; }
+            } catch (_) { /* leave the broken image */ }
+        }, true);
 
         // Gallery scroll-reveal: photos fade up as they enter the viewport.
         // Gated behind .reveal-ready so a JS failure never hides the grid.
