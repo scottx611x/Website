@@ -22,7 +22,7 @@
 </head>
 <body class="{% block body_class %}{% endblock %}">
     <header class="site-nav" id="nav">
-        {% if request.endpoint in ['index', 'effect'] %}
+        {% if request.endpoint == 'index' %}
         <span class="brand-spacer" aria-hidden="true"></span>
         {% else %}
         <a class="brand" href="/"><span class="brand-dot"></span>scott&nbsp;ouellette</a>

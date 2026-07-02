@@ -22,7 +22,7 @@
         <!-- Life list accumulation: scrub the timeline, see each lifer's photo -->
         <div class="stat-block stat-span-2">
             <h2>The life list</h2>
-            <p class="stat-sub mono">every species, the day I first photographed it &mdash; scrub the line (or use &larr; &rarr;) to relive each lifer</p>
+            <p class="stat-sub mono">every species, the day I first photographed it &mdash; scrub the line, click to pin a lifer (or use &larr; &rarr;)</p>
             <div id="accum-chart" class="d3-chart" tabindex="0" role="application"
                  aria-label="Life list timeline. Use left and right arrow keys to step through species."></div>
             <div id="accum-card" class="lifer-card" hidden>
@@ -222,16 +222,18 @@
             var cardCount = document.getElementById("lifer-count");
             cardImg.addEventListener("error", function () { card.classList.add("no-img"); });
             cardImg.addEventListener("load", function () { card.classList.remove("no-img"); });
-            var sel = data.length - 1;
+            var sel = data.length - 1, pinned = false;
             function show(i) {
                 sel = Math.max(0, Math.min(i, data.length - 1));
                 var d = data[sel];
                 guide.attr("x1", x(d.d)).attr("x2", x(d.d)).attr("opacity", 0.5);
-                focus.attr("cx", x(d.d)).attr("cy", y(d.n)).attr("opacity", 1);
+                focus.attr("cx", x(d.d)).attr("cy", y(d.n)).attr("opacity", 1)
+                    .attr("stroke", pinned ? INK : GREEN);
                 card.hidden = false;
                 if (cardImg.getAttribute("src") !== d.img) cardImg.src = d.img;
                 cardImg.alt = d.s;
-                cardRank.textContent = "lifer #" + d.n;
+                cardRank.textContent = "lifer #" + d.n +
+                    (pinned ? " · pinned — click the chart to unpin" : "");
                 cardName.textContent = d.s;
                 cardName.href = birdURL(d.s);
                 cardMeta.textContent = d3.timeFormat("%b %-d, %Y")(d.d) + " · " + d.fam;
@@ -240,13 +242,32 @@
                 cardCount.href = birdURL(d.s);
             }
             var bisect = d3.bisector(function (d) { return d.d; }).left;
-            svg.on("pointerdown pointermove", function (ev) {
+            function idxAt(ev) {
                 var px = d3.pointer(ev, svg.node())[0];
                 var i = bisect(data, x.invert(px));
                 i = Math.max(0, Math.min(i, data.length - 1));
                 var prev = data[Math.max(0, i - 1)];
                 if (Math.abs(x(prev.d) - px) < Math.abs(x(data[i].d) - px)) i = Math.max(0, i - 1);
-                show(i);
+                return i;
+            }
+            // Hover scrubs; a CLICK (or tap) pins the selection so the pointer
+            // can travel down to the card's links without re-scrubbing en route.
+            // A drag always scrubs, pinned or not (that's the touch gesture).
+            var downAt = null;
+            svg.on("pointerdown", function (ev) {
+                downAt = [ev.clientX, ev.clientY];
+                show(idxAt(ev));
+            });
+            svg.on("pointermove", function (ev) {
+                if (ev.buttons > 0) show(idxAt(ev));
+                else if (!pinned) show(idxAt(ev));
+            });
+            svg.on("pointerup", function (ev) {
+                if (downAt && Math.hypot(ev.clientX - downAt[0], ev.clientY - downAt[1]) < 8) {
+                    pinned = !pinned;
+                    show(sel);
+                }
+                downAt = null;
             });
             el.addEventListener("keydown", function (ev) {
                 if (ev.key === "ArrowRight") { show(sel + 1); ev.preventDefault(); }

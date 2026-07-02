@@ -22,13 +22,12 @@ class RoutesTestCase(GenericTestBase):
         response = self.test_client.get("/")
         self.assertIn(b"bg-effect", response.data)
 
-    def test_effect_route(self):
-        for name in index.EFFECTS:
-            response = self.test_client.get("/effects/{}".format(name))
-            self.assertEqual(response.status_code, 200)
-
-    def test_unknown_effect_404(self):
-        self.assertEqual(self.test_client.get("/effects/nope").status_code, 404)
+    def test_effects_retired_from_home(self):
+        # The legacy background effects live only on /archive now.
+        self.assertEqual(self.test_client.get("/effects/collision").status_code, 404)
+        home = self.test_client.get("/").data
+        self.assertNotIn(b"collision.js", home)
+        self.assertNotIn(b"jquery", home)
 
     def test_blog_list_route(self):
         # Writing is hidden for now (index.HIDDEN_PAGES).
@@ -84,7 +83,7 @@ class RoutesTestCase(GenericTestBase):
         self.assertEqual(self.test_client.get("/archive").status_code, 200)
 
     def test_archive_effect_routes(self):
-        for name in index.EFFECTS:
+        for name in index.ARCHIVE_EFFECTS:
             response = self.test_client.get("/archive/{}".format(name))
             self.assertEqual(response.status_code, 200)
 

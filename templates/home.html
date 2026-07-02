@@ -1,34 +1,12 @@
 {% extends 'base.html' %}
 {% block body_class %}has-effect home{% endblock %}
 
-{% block head %}
-    {% if effect == 'collision' %}
-        <link rel="stylesheet" href="{{ url_for('static', filename='css/collision.css', v=asset_v) }}">
-    {% elif effect == 'voronoi' %}
-        <link rel="stylesheet" href="{{ url_for('static', filename='css/voronoi.css', v=asset_v) }}">
-    {% endif %}
-{% endblock %}
-
 {% set bg = url_for('static', filename='img/' + background_image) %}
 
 {% block content %}
     <!-- ============ HERO ============ -->
     <div id="bg-effect" aria-hidden="true">
-        {% if effect == 'collision' %}
-            <div id="collision">
-                <img class="back" src="{{ bg }}" height="100%" width="100%">
-                <svg class="svg" height="100%" width="100%"></svg>
-            </div>
-        {% elif effect == 'voronoi' %}
-            <div id="voronoi">
-                <img class="back" src="{{ bg }}" height="100%" width="100%">
-                <svg class="svg" height="100%" width="100%"></svg>
-            </div>
-        {% else %}
-            <img class="test tilt-effect"
-                 data-tilt-options='{ "opacity": 0.6, "movement": { "perspective": 1500, "translateX": 10, "translateY": 10, "translateZ": 5, "rotateX": 5, "rotateY": 5 } }'
-                 src="{{ bg }}" height="100%" width="100%">
-        {% endif %}
+        <img class="back" src="{{ bg }}" alt="">
         <div class="bg-scrim"></div>
     </div>
 
@@ -236,23 +214,7 @@
     {% endif %}
 
     <p class="effect-note">
-        Background effect: <strong>{{ effect }}</strong> &mdash;
-        <a href="/effects/collision">collision</a>,
-        <a href="/effects/tilt-shift">tilt-shift</a>,
-        <a href="/effects/voronoi">voronoi</a>.
         The <a href="/archive">original site</a> still lives here.
     </p>
 {% endblock %}
 
-{% block scripts %}
-    <script src="{{ url_for('static', filename='js/jquery-1.11.3.min.js', v=asset_v) }}"></script>
-    {% if effect == 'collision' %}
-        <script src="https://d3js.org/d3.v3.min.js"></script>
-        <script src="{{ url_for('static', filename='js/collision.js', v=asset_v) }}"></script>
-    {% elif effect == 'voronoi' %}
-        <script src="https://d3js.org/d3.v4.min.js"></script>
-        <script src="{{ url_for('static', filename='js/voronoi.js', v=asset_v) }}"></script>
-    {% else %}
-        <script src="{{ url_for('static', filename='js/tiltfx.js', v=asset_v) }}"></script>
-    {% endif %}
-{% endblock %}

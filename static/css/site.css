@@ -102,14 +102,20 @@ body.has-effect .site-footer { position: relative; z-index: 1; }
 #bg-effect {
     position: fixed; inset: 0; z-index: -1; overflow: hidden; background: transparent;
 }
-#bg-effect img.back { object-fit: cover; }
-/* Override the original effect CSS (which used z-index:-1, designed for a page
-   with a transparent body) so the layer renders above the dark page canvas. */
-#bg-effect #collision, #bg-effect #voronoi { height: 100%; width: 100%; z-index: 0; }
-#bg-effect img.back { z-index: 0; }
-/* The effect SVG was unpositioned, so the absolutely-positioned .back image
-   painted over it and hid the animation. Lift it above the image. */
-#bg-effect .svg { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 1; }
+/* A whisper of motion instead of the legacy animated effects: the hero photo
+   drifts a few percent over a minute and a half, like holding a long lens. */
+#bg-effect img.back {
+    position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
+    z-index: 0; animation: bg-drift 90s ease-in-out infinite alternate;
+    will-change: transform;
+}
+@keyframes bg-drift {
+    from { transform: scale(1.04); }
+    to { transform: scale(1.11) translate(-1.2%, 0.8%); }
+}
+@media (prefers-reduced-motion: reduce) {
+    #bg-effect img.back { animation: none; }
+}
 .bg-scrim {
     position: absolute; inset: 0; z-index: 1;
     background:
@@ -378,7 +384,10 @@ body.home .site-nav { z-index: 0; }
    first row reads left→right (cards keep their natural, uncropped height). */
 .masonry { display: flex; align-items: flex-start; gap: 14px; }
 .masonry-col { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; gap: 14px; }
-.masonry .shot { margin: 0; position: relative; overflow: hidden; border-radius: 4px; cursor: zoom-in; }
+.masonry .shot { margin: 0; position: relative; overflow: hidden; border-radius: 4px; cursor: zoom-in;
+    /* Skip layout/paint for offscreen cards — with ~1,200 in the grid this is
+       the difference between choppy and smooth scroll. */
+    content-visibility: auto; contain-intrinsic-size: auto 340px; }
 /* Scroll-reveal (only once JS marks the grid ready, so no-JS never hides photos) */
 .masonry.reveal-ready .shot { opacity: 0; transform: translateY(14px); transition: opacity 0.5s ease, transform 0.5s ease; }
 .masonry.reveal-ready .shot.seen { opacity: 1; transform: none; }

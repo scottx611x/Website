@@ -3,7 +3,7 @@ import json
 import os
 import random
 
-from flask import Flask, abort, make_response, redirect, render_template, request
+from flask import Flask, abort, redirect, render_template, request
 from flask_compress import Compress
 
 import birds
@@ -51,8 +51,6 @@ def _page_cache(resp):
 
 TITLE = "Scott Ouellette"
 
-# The original animated backgrounds, kept alive as the home-page backdrop.
-EFFECTS = ["collision", "tilt-shift", "voronoi"]
 
 # Swappable background images. Drop a file in static/img/backgrounds/ and add its
 # name to static/img/backgrounds/manifest.json (paths are relative to static/img)
@@ -118,17 +116,6 @@ def load_taglines():
 HIDDEN_PAGES = {"blog", "photography"}
 
 
-# tilt-shift is a subtle image parallax with no animated overlay, so it's opt-in
-# only (via the switcher); a fresh visit always gets a visibly animated effect.
-ANIMATED_EFFECTS = ["collision", "voronoi"]
-
-
-def _pick_effect():
-    """The effect you last chose (cookie) sticks; first-timers get a random one."""
-    chosen = request.cookies.get("effect")
-    return chosen if chosen in EFFECTS else random.choice(ANIMATED_EFFECTS)
-
-
 def _home_context():
     shots = birds.load_gallery()
     stats = birds.gallery_stats(shots)
@@ -139,7 +126,6 @@ def _home_context():
             "photos": stats["photos"] + stats["videos"],
             "places": len(birds.map_points(shots)),
         },
-        "effect": _pick_effect(),
         "background_image": random.choice(load_backgrounds()),
         "posts": [] if "blog" in HIDDEN_PAGES else blog.list_posts()[:3],
         "shots": shots,
@@ -170,17 +156,6 @@ def serve_birds_subdomain():
 @app.route("/", methods=["GET"])
 def index():
     return render_template("home.html", **_home_context())
-
-
-@app.route("/effects/<name>", methods=["GET"])
-def effect(name):
-    if name not in EFFECTS:
-        abort(404)
-    context = _home_context()
-    context["effect"] = name
-    resp = make_response(render_template("home.html", **context))
-    resp.set_cookie("effect", name, max_age=31536000, samesite="Lax")
-    return resp
 
 
 @app.route("/blog", methods=["GET"])
@@ -590,16 +565,19 @@ def load_photography():
 # ---------------------------------------------------------------------------
 ARCHIVE_CONTEXT = {"title": "Scott's Website (archive)", "background_image": "fall.jpg"}
 
+# The original site's animated backgrounds, preserved only on /archive.
+ARCHIVE_EFFECTS = ["collision", "tilt-shift", "voronoi"]
+
 
 @app.route("/archive", methods=["GET"])
 def archive():
-    template = "archive/{}.html".format(random.choice(EFFECTS))
+    template = "archive/{}.html".format(random.choice(ARCHIVE_EFFECTS))
     return render_template(template, **ARCHIVE_CONTEXT)
 
 
 @app.route("/archive/<effect>", methods=["GET"])
 def archive_effect(effect):
-    if effect not in EFFECTS:
+    if effect not in ARCHIVE_EFFECTS:
         abort(404)
     return render_template("archive/{}.html".format(effect), **ARCHIVE_CONTEXT)
 

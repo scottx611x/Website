@@ -125,7 +125,10 @@
                 {% if curate %}data-caption-species='{{ (shot.caption_species or [])|tojson }}'{% endif %}
                 data-date='{{ shot.date or "" }}'
                 tabindex="0" role="button" aria-label="View {{ shot.species or 'photo' }} larger">
-            <img loading="lazy" decoding="async" src="{{ shot.images[0]|thumb }}" alt="{{ shot.species or shot.caption[:80] }}">
+            {% set dm = (shot.image_dims or [none])[0] %}
+            <img loading="lazy" decoding="async" src="{{ shot.images[0]|thumb }}"
+                 {% if dm %}width="{{ dm[0] }}" height="{{ dm[1] }}"{% endif %}
+                 alt="{{ shot.species or shot.caption[:80] }}">
             {% if shot.image_videos and shot.image_videos[0] %}<span class="play-badge" aria-hidden="true">▶</span>{% endif %}
             {% if shot.images|length > 1 %}<span class="multi-badge">⧉ {{ shot.images|length }}</span>{% endif %}
             {% if shot.image_areas and shot.image_areas[0] == 'away' %}<span class="away-badge" tabindex="0" data-note="Spotted outside North Andover{% set acover = (shot.image_locations[0] if shot.image_locations else None) or shot.location %}{% if acover %} — {{ acover }}{% endif %}"><span class="away-badge-mark">⚠️</span></span>{% endif %}

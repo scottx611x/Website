@@ -317,12 +317,14 @@ def _pseudo_frame(shot, i):
     canons = _canon_species_list(raw)
     display = " & ".join(c[0] for c in canons) or (shot.get("species") or "")
     loc = iloc[i] if i < len(iloc) and iloc[i] else shot.get("location")
+    dims = shot.get("image_dims") or []
     _sd = _capture_date_obj(shot.get("caption") or "", shot.get("timestamp"))
     return {
         "id": "%s-%d" % (shot.get("id"), i),
         "_sort": _sd.isoformat() if _sd else "",
         "post_id": shot.get("id"),
         "images": [images[i]],
+        "image_dims": [dims[i] if i < len(dims) else None],
         "captions": [caps[i] if i < len(caps) else ""],
         "image_species": [display],
         "image_locations": [loc],
@@ -582,7 +584,8 @@ def _shuffle_images_weighted(shot):
     # Efraimidis-Spirakis: weight decays by original position (Scott puts favorites
     # first), so the cover + carousel vary per load but lean toward those favorites.
     order = sorted(range(n), key=lambda i: random.random() ** (1.0 / (n - i)), reverse=True)
-    for key in ("images", "captions", "image_species", "image_locations", "image_areas", "image_indices", "image_videos"):
+    for key in ("images", "captions", "image_species", "image_locations", "image_areas",
+                "image_indices", "image_videos", "image_dims"):
         seq = shot.get(key)
         if isinstance(seq, list) and len(seq) == n:
             shot[key] = [seq[i] for i in order]
@@ -792,7 +795,7 @@ def _apply_image_exclusions(shot, excluded):
     if len(keep) == n:
         return
     for key in ("images", "captions", "image_species", "image_locations",
-                "image_areas", "image_videos"):
+                "image_areas", "image_videos", "image_dims"):
         seq = shot.get(key)
         if isinstance(seq, list) and len(seq) == n:
             shot[key] = [seq[i] for i in keep]
@@ -878,16 +881,30 @@ def _load_local_manifest():
         return None
 
 
+# The manifest only changes on the daily sync, but a warm Lambda serves many
+# requests — cache the raw S3 payload in-process for a few minutes so each page
+# render is a local json.loads (~10 ms) instead of a 1+ MB S3 round-trip.
+_MANIFEST_TTL = 300
+_manifest_cache = {"at": 0.0, "raw": None}
+
+
 def _load_manifest_from_s3():
     if not os.environ.get("BIRDS_USE_S3"):
         return None
+    import time
+
+    if _manifest_cache["raw"] is not None and time.time() - _manifest_cache["at"] < _MANIFEST_TTL:
+        return json.loads(_manifest_cache["raw"])
     try:
         import boto3
 
         obj = boto3.client("s3").get_object(
             Bucket=S3_BUCKET, Key="{}/manifest.json".format(S3_PREFIX)
         )
-        return json.loads(obj["Body"].read())
+        raw = obj["Body"].read()
+        shots = json.loads(raw)  # parse BEFORE caching so bad payloads never stick
+        _manifest_cache.update(at=time.time(), raw=raw)
+        return shots
     except Exception:  # noqa: BLE001 - any S3/parse error => fall back to repo copy
         return None
 
@@ -984,6 +1001,13 @@ def instagram_sync(token=None):
     media = [m for m in media if m.get("id") not in excluded]
     media = media[:MAX_POSTS]
 
+    # Carry image dimensions forward for frames whose thumbs already exist
+    # (their bytes aren't re-downloaded, so dims can't be recomputed).
+    for prev in _load_local_manifest() or []:
+        for i, dims in enumerate(prev.get("image_dims") or []):
+            if dims:
+                _THUMB_DIMS.setdefault("{}-{}".format(prev.get("id"), i), dims)
+
     shots = []
     for item in media:
         # Re-host every still image in the post (carousel frames included, video
@@ -1007,6 +1031,8 @@ def instagram_sync(token=None):
             {
                 "id": item["id"],
                 "images": images,
+                "image_dims": [_THUMB_DIMS.get("{}-{}".format(item["id"], i))
+                               for i in range(len(images))],
                 "image_videos": videos if any(videos) else [],
                 "captions": _frame_captions(caption, len(images), date),
                 "caption": caption,
@@ -1183,7 +1209,15 @@ def thumb_url(url):
     return url
 
 
+# Thumb pixel sizes gathered while syncing ("<post id>-<index>" -> [w, h]).
+# Rendered as width/height attributes so the grid reserves space before images
+# load (no layout jumps). Seeded from the previous manifest for already-archived
+# frames, filled fresh whenever a thumbnail is (re)generated.
+_THUMB_DIMS = {}
+
+
 def _make_thumb(data):
+    """(jpeg bytes, [w, h]) of the grid thumbnail for one full image."""
     from io import BytesIO
 
     from PIL import Image, ImageOps
@@ -1196,7 +1230,7 @@ def _make_thumb(data):
         )
     out = BytesIO()
     im.save(out, "JPEG", quality=78, optimize=True, progressive=True)
-    return out.getvalue()
+    return out.getvalue(), [im.width, im.height]
 
 
 def _ensure_thumb(s3, media_id, data=None):
@@ -1214,13 +1248,15 @@ def _ensure_thumb(s3, media_id, data=None):
             data = s3.get_object(
                 Bucket=S3_BUCKET, Key="{}/images/{}.jpg".format(S3_PREFIX, media_id)
             )["Body"].read()
+        body, dims = _make_thumb(data)
         s3.put_object(
             Bucket=S3_BUCKET,
             Key=key,
-            Body=_make_thumb(data),
+            Body=body,
             ContentType="image/jpeg",
             CacheControl="public, max-age=31536000, immutable",
         )
+        _THUMB_DIMS[media_id] = dims
     except Exception:  # noqa: BLE001
         pass
 
