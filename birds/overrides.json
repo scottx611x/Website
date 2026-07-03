@@ -1099,7 +1099,7 @@
     "images": {
       "0": "Northern Flicker",
       "1": "Northern Flicker",
-      "10": "Cooper's Hawk",
+      "10": "Red-bellied Woodpecker",
       "11": "Cooper's Hawk",
       "12": "Red-bellied Woodpecker",
       "13": "Northern Flicker",
@@ -1305,7 +1305,7 @@
       "2": "Black-capped Chickadee",
       "3": "White-throated Sparrow",
       "4": "White-throated Sparrow",
-      "5": "Pileated Woodpecker",
+      "5": "Cooper's Hawk",
       "6": "Cooper's Hawk",
       "7": "Blue Jay"
     }
@@ -1733,6 +1733,11 @@
     "images": {
       "0": "White-throated Sparrow",
       "1": "Mallard"
+    }
+  },
+  "18099239264230904": {
+    "images": {
+      "4": "Mourning Dove"
     }
   },
   "18100051427087410": {

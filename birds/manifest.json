@@ -354,11 +354,9 @@
       "House Finches (Rea St.), Mourning Dove (Annie L. Sargent School), White-breasted Nuthatch (Abbott St.) \u00b7 Jun 6, 2026"
     ],
     "caption": "House Finches (Parent and Juveniles) - Rea St.\nMourning Dove - Annie L. Sargent School\nWhite-breasted Nuthatch - Abbott St.\n\n6-6-26",
-    "species": "House Finches",
+    "species": "Mourning Dove",
     "species_list": [
-      "House Finches",
-      "Mourning Dove",
-      "White-breasted Nuthatch"
+      "Mourning Dove"
     ],
     "location": "Rea St.",
     "locations": [
@@ -370,7 +368,7 @@
     "permalink": "https://www.instagram.com/p/DaI81GDmj_k/",
     "timestamp": "2026-06-28T18:36:28+0000",
     "weight": 0.303,
-    "ambiguous": true,
+    "ambiguous": false,
     "image_areas": [
       "local",
       "local",
@@ -417,6 +415,22 @@
         640,
         427
       ],
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ],
+    "image_species": [
+      null,
+      null,
+      null,
+      null,
+      "Mourning Dove",
+      null
+    ],
+    "image_locations": [
       null,
       null,
       null,
@@ -11380,7 +11394,7 @@
       "Black-capped Chickadee",
       "White-throated Sparrow",
       "White-throated Sparrow",
-      "Pileated Woodpecker",
+      "Cooper's Hawk",
       "Cooper's Hawk",
       "Blue Jay"
     ],
@@ -19168,7 +19182,7 @@
       "Eastern Bluebird",
       "Cooper's Hawk",
       "Cooper's Hawk",
-      "Cooper's Hawk",
+      "Red-bellied Woodpecker",
       "Cooper's Hawk",
       "Red-bellied Woodpecker",
       "Northern Flicker",
