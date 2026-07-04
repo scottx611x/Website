@@ -887,32 +887,50 @@ def _load_local_manifest():
         return None
 
 
-# The manifest only changes on the daily sync, but a warm Lambda serves many
-# requests — cache the raw S3 payload in-process for a few minutes so each page
-# render is a local json.loads (~10 ms) instead of a 1+ MB S3 round-trip.
-_MANIFEST_TTL = 300
-_manifest_cache = {"at": 0.0, "raw": None}
+# The manifest only changes on a sync, but a warm Lambda serves many requests.
+# We cache the parsed payload in-process AND bust it the instant S3 changes:
+# each read is a *conditional* GET (If-None-Match on the cached ETag), so an
+# unchanged manifest comes back as a tiny 304 (no 1 MB download, no re-parse)
+# while a fresh sync is picked up immediately. `data_version` exposes the ETag
+# so pages can bust their own caches on the same signal.
+_manifest_cache = {"etag": None, "shots": None}
+
+
+def data_version():
+    """Short token identifying the current backing data — the manifest ETag on
+    S3, else a hash of the local manifest's mtime+size for dev. Feeds page
+    ETags so stats/map/etc. bust the moment a sync lands."""
+    if _manifest_cache["etag"]:
+        return _manifest_cache["etag"].strip('"')[:16]
+    try:
+        st = os.stat(LOCAL_MANIFEST)
+        return "local-%x-%x" % (int(st.st_mtime), st.st_size)
+    except OSError:
+        return "none"
 
 
 def _load_manifest_from_s3():
     if not os.environ.get("BIRDS_USE_S3"):
         return None
-    import time
-
-    if _manifest_cache["raw"] is not None and time.time() - _manifest_cache["at"] < _MANIFEST_TTL:
-        return json.loads(_manifest_cache["raw"])
     try:
         import boto3
+        from botocore.exceptions import ClientError
 
-        obj = boto3.client("s3").get_object(
-            Bucket=S3_BUCKET, Key="{}/manifest.json".format(S3_PREFIX)
-        )
-        raw = obj["Body"].read()
-        shots = json.loads(raw)  # parse BEFORE caching so bad payloads never stick
-        _manifest_cache.update(at=time.time(), raw=raw)
+        params = dict(Bucket=S3_BUCKET, Key="{}/manifest.json".format(S3_PREFIX))
+        if _manifest_cache["etag"]:
+            params["IfNoneMatch"] = _manifest_cache["etag"]
+        try:
+            obj = boto3.client("s3").get_object(**params)
+        except ClientError as exc:
+            # 304 Not Modified -> the cached parse is still current.
+            if exc.response.get("ResponseMetadata", {}).get("HTTPStatusCode") == 304:
+                return _manifest_cache["shots"]
+            raise
+        shots = json.loads(obj["Body"].read())  # parse before caching
+        _manifest_cache.update(etag=obj.get("ETag"), shots=shots)
         return shots
     except Exception:  # noqa: BLE001 - any S3/parse error => fall back to repo copy
-        return None
+        return _manifest_cache["shots"]
 
 
 # ---------------------------------------------------------------------------

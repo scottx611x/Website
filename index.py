@@ -65,12 +65,16 @@ def sitemap():
 
 @app.after_request
 def _page_cache(resp):
-    """The stats and map pages recompute from a manifest that changes ~daily;
-    let browsers hold them briefly instead of refetching on every back/forward.
-    Skipped locally so curate-mode toggles never show a stale header."""
+    """Data-derived pages (stats, map) revalidate against the backing data
+    instead of caching for a fixed window: the ETag folds in the manifest
+    version + asset version, and `no-cache` makes the browser check every time.
+    An unchanged page comes back as a tiny 304; the instant a sync changes the
+    manifest, the ETag changes and the page busts. No stale numbers, no lag."""
     if (request.endpoint in ("birds_stats", "birds_map") and resp.status_code == 200
-            and not _is_local()):
-        resp.headers.setdefault("Cache-Control", "public, max-age=300")
+            and not _is_local() and request.method == "GET"):
+        resp.set_etag("{}-{}".format(birds.data_version(), ASSET_V))
+        resp.headers["Cache-Control"] = "no-cache"
+        return resp.make_conditional(request)
     return resp
 
 TITLE = "Scott Ouellette"
