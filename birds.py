@@ -74,6 +74,12 @@ def load_gallery(shuffle=True):
     if shots is None:
         shots = _load_local_manifest()
     shots = list(shots or [])
+    # Whole-post exclusions are baked in at sync time, but a LIVE hide on the
+    # deployed site writes only excluded.json — so drop excluded ids at serve
+    # time too, and the hide shows on the next request rather than the next sync.
+    excluded = load_excluded()
+    if excluded:
+        shots = [s for s in shots if s.get("id") not in excluded]
     apply_overrides(shots)
     shots = [s for s in shots if s.get("images")]  # drop fully image-excluded posts
     if shuffle:
@@ -677,23 +683,19 @@ def _assign_weights(shots):
 # Curation — a persisted set of post ids to hide, respected by every sync.
 # ---------------------------------------------------------------------------
 def load_excluded():
-    try:
-        with open(EXCLUDED_FILE) as fh:
-            return set(json.load(fh))
-    except (OSError, ValueError):
-        return set()
+    return set(_load_curation(EXCLUDED_FILE, list))
 
 
 def add_exclusion(post_id):
     excluded = load_excluded()
     excluded.add(post_id)
-    with open(EXCLUDED_FILE, "w") as fh:
-        json.dump(sorted(excluded), fh, indent=2)
-    # Drop it from the live manifest immediately so the change shows without a
-    # full re-sync (the next scheduled sync will also respect it + backfill).
-    shots = [s for s in (_load_local_manifest() or []) if s.get("id") != post_id]
-    with open(LOCAL_MANIFEST, "w") as fh:
-        json.dump(shots, fh, indent=2)
+    _save_curation(EXCLUDED_FILE, sorted(excluded))
+    # Locally, drop it from the committed manifest right away so the change shows
+    # without a re-sync. In prod the exclusion applies at serve time (load_gallery
+    # filters excluded ids), so no manifest rewrite is needed on read-only Lambda.
+    if not os.environ.get("BIRDS_USE_S3"):
+        shots = [s for s in (_load_local_manifest() or []) if s.get("id") != post_id]
+        _atomic_write_json(LOCAL_MANIFEST, shots)
     return excluded
 
 
@@ -703,16 +705,11 @@ REID_QUEUE_FILE = os.path.join(HERE, "birds", "reid_queue.json")
 
 
 def load_reid_queue():
-    try:
-        with open(REID_QUEUE_FILE) as fh:
-            return json.load(fh)
-    except (OSError, ValueError):
-        return []
+    return _load_curation(REID_QUEUE_FILE, list)
 
 
 def _save_reid_queue(queue):
-    with open(REID_QUEUE_FILE, "w") as fh:
-        json.dump(queue, fh, indent=2)
+    _save_curation(REID_QUEUE_FILE, queue)
 
 
 def toggle_reid(post_id, index, current="", note=""):
@@ -744,8 +741,7 @@ def reid_keys():
 def remove_exclusion(post_id):
     excluded = load_excluded()
     excluded.discard(post_id)
-    with open(EXCLUDED_FILE, "w") as fh:
-        json.dump(sorted(excluded), fh, indent=2)
+    _save_curation(EXCLUDED_FILE, sorted(excluded))
     return excluded
 
 
@@ -754,11 +750,7 @@ def remove_exclusion(post_id):
 # several. `overrides.json` holds hand-typed corrections, keyed by post id, and
 # is applied on every load + sync so it survives re-syncs (like excluded.json).
 def load_overrides():
-    try:
-        with open(OVERRIDES_FILE) as fh:
-            return json.load(fh)
-    except (OSError, ValueError):
-        return {}
+    return _load_curation(OVERRIDES_FILE, dict)
 
 
 def _is_ambiguous(shot):
@@ -902,9 +894,12 @@ def set_override(post_id, fields):
         else:
             entry.pop("image_areas", None)
     overrides[post_id] = entry
-    _atomic_write_json(OVERRIDES_FILE, overrides, sort_keys=True)
+    _save_curation(OVERRIDES_FILE, overrides)
+    # Locally, re-bake the committed manifest so the change shows without a
+    # re-sync. In prod, apply_overrides runs at serve time (load_gallery), so
+    # the edit shows on the next request without touching the read-only fs.
     shots = _load_local_manifest() or []
-    if shots:  # never clobber the manifest with an empty/failed read
+    if shots and not os.environ.get("BIRDS_USE_S3"):
         apply_overrides(shots, overrides, apply_exclusions=False)
         _atomic_write_json(LOCAL_MANIFEST, shots)
     return next((s for s in shots if s.get("id") == post_id), None)
@@ -928,7 +923,7 @@ def toggle_image_exclusion(post_id, index):
     else:
         entry.pop("exclude_images", None)
     overrides[post_id] = entry
-    _atomic_write_json(OVERRIDES_FILE, overrides, sort_keys=True)
+    _save_curation(OVERRIDES_FILE, overrides)
     return excluded
 
 
@@ -941,12 +936,14 @@ def _load_local_manifest():
 
 
 # The manifest only changes on a sync, but a warm Lambda serves many requests.
-# We cache the parsed payload in-process AND bust it the instant S3 changes:
-# each read is a *conditional* GET (If-None-Match on the cached ETag), so an
-# unchanged manifest comes back as a tiny 304 (no 1 MB download, no re-parse)
-# while a fresh sync is picked up immediately. `data_version` exposes the ETag
-# so pages can bust their own caches on the same signal.
-_manifest_cache = {"etag": None, "shots": None}
+# We cache the raw bytes in-process AND bust them the instant S3 changes: each
+# read is a *conditional* GET (If-None-Match on the cached ETag), so an unchanged
+# manifest is a tiny 304 (no 1 MB re-download) while a fresh sync is picked up at
+# once. We return a FRESH json.loads each call (~10 ms) so callers like
+# apply_overrides can mutate the shot dicts without corrupting the cache.
+# `data_version` exposes the ETag so pages can bust their own caches on the same
+# signal.
+_manifest_cache = {"etag": None, "raw": None}
 
 
 def data_version():
@@ -975,15 +972,16 @@ def _load_manifest_from_s3():
         try:
             obj = boto3.client("s3").get_object(**params)
         except ClientError as exc:
-            # 304 Not Modified -> the cached parse is still current.
+            # 304 Not Modified -> the cached raw is still current.
             if exc.response.get("ResponseMetadata", {}).get("HTTPStatusCode") == 304:
-                return _manifest_cache["shots"]
+                return json.loads(_manifest_cache["raw"]) if _manifest_cache["raw"] else None
             raise
-        shots = json.loads(obj["Body"].read())  # parse before caching
-        _manifest_cache.update(etag=obj.get("ETag"), shots=shots)
+        raw = obj["Body"].read()
+        shots = json.loads(raw)  # validate before caching
+        _manifest_cache.update(etag=obj.get("ETag"), raw=raw)
         return shots
     except Exception:  # noqa: BLE001 - any S3/parse error => fall back to repo copy
-        return _manifest_cache["shots"]
+        return json.loads(_manifest_cache["raw"]) if _manifest_cache["raw"] else None
 
 
 # ---------------------------------------------------------------------------
@@ -992,6 +990,118 @@ def _load_manifest_from_s3():
 TOKEN_FILE = os.path.join(HERE, ".ig_token")
 EXCLUDED_FILE = os.path.join(HERE, "birds", "excluded.json")
 OVERRIDES_FILE = os.path.join(HERE, "birds", "overrides.json")
+
+
+# --- Curation storage: repo files locally, S3 objects in production ----------
+# The read-only Lambda filesystem can't persist a live edit, so when BIRDS_USE_S3
+# is set the curation JSON (overrides / excluded / re-ID queue) reads and writes
+# go to S3 instead — cached in-process with a conditional GET and updated
+# write-through, so a live edit shows on the very next request. S3 becomes the
+# source of truth once live curation is on; the committed repo copies are the
+# versioned mirror (refreshed via `pull_curations`).
+_CURATION_S3 = {
+    EXCLUDED_FILE: "{}/excluded.json".format(S3_PREFIX),
+    OVERRIDES_FILE: "{}/overrides.json".format(S3_PREFIX),
+    REID_QUEUE_FILE: "{}/reid_queue.json".format(S3_PREFIX),
+}
+_curation_cache = {}  # path -> {"etag":..., "raw": bytes}
+
+
+def _read_repo_curation(path, default):
+    try:
+        with open(path) as fh:
+            return json.load(fh)
+    except (OSError, ValueError):
+        return default() if callable(default) else default
+
+
+def _load_curation(path, default):
+    """Read a curation JSON. In prod (BIRDS_USE_S3) reads S3, seeding from the
+    deployed repo copy the first time (before any live edit); else the repo file.
+    `default` may be a factory (dict/list/set) for the empty case."""
+    if not (os.environ.get("BIRDS_USE_S3") and path in _CURATION_S3):
+        return _read_repo_curation(path, default)
+    key = _CURATION_S3[path]
+    cached = _curation_cache.get(path)
+    try:
+        import boto3
+        from botocore.exceptions import ClientError
+
+        params = dict(Bucket=S3_BUCKET, Key=key)
+        if cached and cached.get("etag"):
+            params["IfNoneMatch"] = cached["etag"]
+        try:
+            obj = boto3.client("s3").get_object(**params)
+        except ClientError as exc:
+            code = exc.response.get("ResponseMetadata", {}).get("HTTPStatusCode")
+            err = exc.response.get("Error", {}).get("Code")
+            if code == 304 and cached:
+                return json.loads(cached["raw"])
+            if err in ("NoSuchKey", "404"):  # not seeded on S3 yet -> repo copy
+                return _read_repo_curation(path, default)
+            raise
+        raw = obj["Body"].read()
+        json.loads(raw)  # validate before caching
+        _curation_cache[path] = {"etag": obj.get("ETag"), "raw": raw}
+        return json.loads(raw)
+    except Exception:  # noqa: BLE001 - S3 hiccup: last-known cache, else repo copy
+        if cached:
+            return json.loads(cached["raw"])
+        return _read_repo_curation(path, default)
+
+
+def pull_curations():
+    """Download the live (S3) curation files into the repo copies so they can be
+    committed — the versioned mirror of the deployed site's edits. Returns the
+    list of repo-relative paths that changed. No-op without S3 access."""
+    if not os.environ.get("BIRDS_USE_S3"):
+        return []
+    import boto3
+    from botocore.exceptions import ClientError
+
+    s3 = boto3.client("s3")
+    changed = []
+    for path, key in _CURATION_S3.items():
+        try:
+            data = json.loads(s3.get_object(Bucket=S3_BUCKET, Key=key)["Body"].read())
+        except (ClientError, ValueError):
+            continue  # not on S3 yet / unreadable
+        if _read_repo_curation(path, None) != data:
+            _atomic_write_json(path, data, sort_keys=(path == OVERRIDES_FILE))
+            changed.append(os.path.relpath(path, HERE))
+    return changed
+
+
+def push_curations():
+    """Upload the repo curation files to S3 — makes local edits live, and seeds
+    S3 the first time. Returns the repo-relative paths pushed. No-op without S3."""
+    if not os.environ.get("BIRDS_USE_S3"):
+        return []
+    pushed = []
+    for path in _CURATION_S3:
+        data = _read_repo_curation(path, None)
+        if data is None:
+            continue
+        _save_curation(path, data)
+        pushed.append(os.path.relpath(path, HERE))
+    return pushed
+
+
+def _save_curation(path, data):
+    """Persist a curation JSON: to S3 in prod (write-through cache), else repo."""
+    if os.environ.get("BIRDS_USE_S3") and path in _CURATION_S3:
+        try:
+            import boto3
+
+            raw = json.dumps(data, indent=2, sort_keys=(path == OVERRIDES_FILE)).encode()
+            resp = boto3.client("s3").put_object(
+                Bucket=S3_BUCKET, Key=_CURATION_S3[path], Body=raw,
+                ContentType="application/json", CacheControl="no-store")
+            _curation_cache[path] = {"etag": resp.get("ETag"), "raw": raw}
+            return
+        except Exception:  # noqa: BLE001 - fall through to a local write
+            pass
+    _atomic_write_json(path, data, sort_keys=(path == OVERRIDES_FILE))
 
 
 def resolve_token():

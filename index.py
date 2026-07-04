@@ -1,4 +1,6 @@
 import datetime
+import hashlib
+import hmac
 import json
 import os
 import random
@@ -228,13 +230,66 @@ def _is_local():
     return host in ("127.0.0.1", "localhost", "0.0.0.0") or host.endswith(".local")
 
 
-def _curate_on():
-    if not _is_local():
+# Live curation on the deployed site is unlocked by visiting /curate/login?key=
+# with a secret held in SSM (rotatable, no user accounts). The cookie stores an
+# HMAC of the secret — never the secret itself — so a leaked cookie can't be
+# replayed as the login key, and rotating the SSM value invalidates every cookie.
+CURATE_SSM_PARAM = os.environ.get("CURATE_SECRET_SSM_PARAM", "/birds/curate_secret")
+_curate_secret_cache = {}
+
+
+def _curate_secret():
+    if "v" not in _curate_secret_cache:
+        _curate_secret_cache["v"] = birds._ssm_get(CURATE_SSM_PARAM)
+    return _curate_secret_cache["v"]
+
+
+def _curate_cookie_token(secret):
+    return hmac.new(secret.encode(), b"curate-cookie-v1", hashlib.sha256).hexdigest()
+
+
+def _curate_authed():
+    """True if this request carries the valid live-curate unlock cookie."""
+    secret = _curate_secret()
+    if not secret:
         return False
-    cookie = request.cookies.get("curate")
-    if cookie is not None:
-        return cookie == "1"
-    return os.environ.get("BIRDS_CURATE") == "1"
+    token = request.cookies.get("curate_key") or ""
+    return hmac.compare_digest(token, _curate_cookie_token(secret))
+
+
+def _curate_on():
+    # Local dev: the existing cookie / BIRDS_CURATE env toggle.
+    if _is_local():
+        cookie = request.cookies.get("curate")
+        if cookie is not None:
+            return cookie == "1"
+        return os.environ.get("BIRDS_CURATE") == "1"
+    # Production: only an unlocked (secret-cookie) session may curate. Everyone
+    # else gets the normal read-only site, and the edit routes 404.
+    return _curate_authed()
+
+
+@app.route("/curate/login")
+def curate_login():
+    secret = _curate_secret()
+    key = request.args.get("key") or ""
+    if not secret or not hmac.compare_digest(key, secret):
+        abort(404)  # wrong/missing key: reveal nothing
+    nxt = request.args.get("next") or "/birds"
+    if not nxt.startswith("/"):
+        nxt = "/birds"
+    resp = redirect(nxt)
+    resp.set_cookie("curate_key", _curate_cookie_token(secret),
+                    max_age=60 * 60 * 24 * 180, httponly=True,
+                    secure=not _is_local(), samesite="Lax")
+    return resp
+
+
+@app.route("/curate/logout")
+def curate_logout():
+    resp = redirect("/birds")
+    resp.delete_cookie("curate_key")
+    return resp
 
 
 @app.route("/curate/toggle")
