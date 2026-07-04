@@ -101,7 +101,8 @@
             (function () {
                 var nav = performance.getEntriesByType &&
                           performance.getEntriesByType("navigation")[0];
-                if (nav && nav.type === "reload" && window.BIRDS_ACTIVE.seed && !window.BIRDS_ACTIVE.sort) {
+                if (nav && nav.type === "reload" && window.BIRDS_ACTIVE.seed
+                        && !window.BIRDS_ACTIVE.sort && !window.CURATE_MODE) {
                     var p = new URLSearchParams(location.search);
                     p.set("seed", String(Math.floor(Math.random() * 1e9)));
                     location.replace(location.pathname + "?" + p);
@@ -120,10 +121,10 @@
         <ul class="curate-help mono">
             <li><b>Rename:</b> type in a card's species box and press <kbd>Enter</kbd> to save.</li>
             <li><b>Hide:</b> click the red <b>&times;</b> (top-right of a card).</li>
-            <li><b>Per-image:</b> click a photo to rename it, <b>&#8635;</b> flag for re-ID, or hide it.</li>
+            <li><b>Per-image:</b> click a photo to edit its species &amp; location, mark it <b>&#9888;&#65039; out of area</b>, <b>&#8635;</b> flag for re-ID, or hide it.</li>
         </ul>
         {% endif %}
-        {% if curate %}<script>window.CURATE_HIDDEN_VIEW = {{ (active_review == 'hidden')|tojson }};</script>{% endif %}
+        {% if curate %}<script>window.CURATE_MODE = true; window.CURATE_HIDDEN_VIEW = {{ (active_review == 'hidden')|tojson }};</script>{% endif %}
     </header>
 
     {% if shots %}

@@ -261,13 +261,14 @@ def birds_gallery():
     # can be served from cache, which made shuffle look dead on filtered
     # views like ?loc=).
     seed = request.args.get("seed") or ""
-    if not curate:
-        if not seed.isdigit() and not any(request.args.get(k) for k in (
-                "bird", "family", "area", "media", "loc", "on", "posted",
-                "month", "sort", "review", "start")):
-            return redirect("/birds?seed=%d" % random.randrange(1_000_000_000))
-        if seed.isdigit():
-            random.seed(int(seed))
+    # The curate toggle preserves ?seed (via next=), so honoring the seed in
+    # curate too lets the curate view line up with the gallery you were on.
+    if not seed.isdigit() and not curate and not any(request.args.get(k) for k in (
+            "bird", "family", "area", "media", "loc", "on", "posted",
+            "month", "sort", "review", "start")):
+        return redirect("/birds?seed=%d" % random.randrange(1_000_000_000))
+    if seed.isdigit():
+        random.seed(int(seed))
     all_shots = birds.load_gallery(shuffle=not curate)
     groups = birds.species_groups(all_shots)
     out_of_area = birds.out_of_area_species(all_shots)
@@ -340,7 +341,9 @@ def birds_gallery():
         shots = birds.images_filtered(all_shots, bird, family, area, out_of_area,
                                       media=media, month=month or None)
     elif curate:
-        shots = all_shots  # curate default: whole posts (for post-level editing)
+        # Whole posts (for post-level editing), but ordered to match the seeded
+        # gallery you toggled from, so you don't lose your place.
+        shots = birds.posts_by_cover_order(all_shots)
     elif start_tokens:
         shots = birds.start_ordered(all_shots, start_tokens)  # home-preview lead-in
     else:
@@ -479,7 +482,7 @@ def curate_override():
     post_id = (data.get("id") or "").strip()
     if not post_id:
         abort(400)
-    keys = ("species", "location", "date", "images", "image_locations")
+    keys = ("species", "location", "date", "images", "image_locations", "image_areas")
     fields = {k: data[k] for k in keys if k in data}
     shot = birds.set_override(post_id, fields)
     return {"ok": True, "ambiguous": bool(shot and shot.get("ambiguous"))}

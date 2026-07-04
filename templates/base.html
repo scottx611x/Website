@@ -85,6 +85,8 @@
             <div id="lightbox-suggest" class="lightbox-suggest" hidden></div>
             <div class="lightbox-curate">
                 <input type="text" id="lightbox-species" class="lightbox-species" placeholder="species" aria-label="Rename this bird">
+                <input type="text" id="lightbox-location" class="lightbox-species lightbox-location" placeholder="location" aria-label="Edit this photo's location">
+                <button type="button" id="lightbox-area" class="lightbox-area" aria-pressed="false" title="Mark this photo as spotted outside North Andover">&#9888;&#65039; out of area</button>
                 <button type="button" id="lightbox-reid" class="lightbox-reid" hidden></button>
                 <button type="button" id="lightbox-remove" class="lightbox-remove" title="Hide just this photo from the gallery">&times; hide photo</button>
             </div>
@@ -121,6 +123,8 @@
                 cap = document.getElementById("lightbox-cap"),
                 reid = document.getElementById("lightbox-reid"),
                 speciesInput = document.getElementById("lightbox-species"),
+                locationInput = document.getElementById("lightbox-location"),
+                areaBtn = document.getElementById("lightbox-area"),
                 removeBtn = document.getElementById("lightbox-remove"),
                 suggest = document.getElementById("lightbox-suggest"),
                 shareBtn = document.getElementById("lightbox-share"),
@@ -254,6 +258,12 @@
                 renderReid(f);
                 renderSuggest(f);
                 if (speciesInput) { speciesInput.value = f.species || ""; speciesInput.classList.remove("saved", "save-failed"); }
+                if (locationInput) { locationInput.value = f.location || ""; locationInput.classList.remove("saved", "save-failed"); }
+                if (areaBtn) {
+                    areaBtn.classList.toggle("on", !!f.away);
+                    areaBtn.setAttribute("aria-pressed", f.away ? "true" : "false");
+                    areaBtn.innerHTML = f.away ? "⚠️ out of area ✓" : "⚠️ out of area";
+                }
                 if (removeBtn) removeBtn.innerHTML = window.CURATE_HIDDEN_VIEW ? "↩ un-hide" : "× hide photo";
                 box.hidden = false;
                 document.body.style.overflow = "hidden";
@@ -328,6 +338,61 @@
                 speciesInput.addEventListener("click", function (e) { e.stopPropagation(); });
                 speciesInput.addEventListener("change", saveLightboxSpecies);
             }
+            // Keep one entry of a card's parallel data-* array in sync after an edit.
+            function syncCardAttr(f, attr, value) {
+                var card = document.querySelector('[data-id="' + f.postId + '"]');
+                if (!card) return;
+                try {
+                    var arr = JSON.parse(card.getAttribute(attr) || "[]");
+                    while (arr.length <= f.index) arr.push(null);
+                    arr[f.index] = value;
+                    card.setAttribute(attr, JSON.stringify(arr));
+                } catch (_) {}
+            }
+            function saveLightboxLocation() {
+                var f = frames[idx]; if (!f || !locationInput) return;
+                var loc = locationInput.value.trim();
+                locationInput.classList.remove("saved", "save-failed");
+                var locs = {}; locs[f.origIndex] = loc;
+                fetch("/curate/override", {
+                    method: "POST", headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ id: f.postId, image_locations: locs })
+                }).then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+                  .then(function () {
+                    f.location = loc;
+                    locationInput.classList.add("saved");
+                    setTimeout(function () { locationInput.classList.remove("saved"); }, 1500);
+                    renderLabel(f);
+                    syncCardAttr(f, "data-image-locations", loc);
+                  }).catch(function () { locationInput.classList.add("save-failed"); });
+            }
+            if (locationInput) {
+                locationInput.addEventListener("click", function (e) { e.stopPropagation(); });
+                locationInput.addEventListener("change", saveLightboxLocation);
+                locationInput.addEventListener("keydown", function (e) {
+                    if (e.key === "Enter") { e.preventDefault(); saveLightboxLocation(); locationInput.blur(); }
+                });
+            }
+            if (areaBtn) areaBtn.addEventListener("click", function (e) {
+                e.stopPropagation();
+                var f = frames[idx]; if (!f) return;
+                var next = f.away ? "local" : "away";
+                var areas = {}; areas[f.origIndex] = next;
+                areaBtn.disabled = true;
+                fetch("/curate/override", {
+                    method: "POST", headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ id: f.postId, image_areas: areas })
+                }).then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+                  .then(function () {
+                    f.away = (next === "away");
+                    areaBtn.classList.toggle("on", f.away);
+                    areaBtn.setAttribute("aria-pressed", f.away ? "true" : "false");
+                    areaBtn.innerHTML = f.away ? "⚠️ out of area ✓" : "⚠️ out of area";
+                    renderLabel(f);
+                    syncCardAttr(f, "data-image-areas", next);
+                  }).catch(function () {})
+                  .then(function () { areaBtn.disabled = false; });
+            });
             if (removeBtn) removeBtn.addEventListener("click", function (e) {
                 e.stopPropagation();
                 var f = frames[idx]; if (!f) return;

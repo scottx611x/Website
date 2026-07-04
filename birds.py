@@ -240,14 +240,28 @@ def _caption_area_species(caption):
 
 
 def out_of_area_species(shots):
-    """Set of display names that only ever appear out-of-area (⚠️) — i.e. NOT
-    North Andover birds. A species seen cleanly even once counts as local.
+    """Set of display names that only ever appear out-of-area — i.e. NOT North
+    Andover birds. A species seen local even once counts as local.
+
+    Derived from the per-frame ``image_areas`` (caption ⚠️ marker *plus* any
+    manual curate override), so hand-marking a frame out-of-area flows through
+    to the species-level 'spotted elsewhere' set. Falls back to the raw caption
+    marker for shots not yet run through ``apply_overrides``.
     """
     clean, ooa = set(), set()
     for shot in shots:
-        c, o = _caption_area_species(shot.get("caption") or "")
-        clean |= c
-        ooa |= o
+        areas = shot.get("image_areas")
+        if not areas:  # not override-applied yet: use the caption marker directly
+            c, o = _caption_area_species(shot.get("caption") or "")
+            clean |= c
+            ooa |= o
+            continue
+        isp = shot.get("image_species") or []
+        for i in range(len(shot.get("images") or [])):
+            raw = isp[i] if i < len(isp) and isp[i] else shot.get("species")
+            area = areas[i] if i < len(areas) else "local"
+            for name, _ in _canon_species_list(raw):
+                (ooa if area == "away" else clean).add(name)
     return ooa - clean
 
 
@@ -490,6 +504,19 @@ def all_photos_shuffled(shots):
             frames.append(frame)
     random.shuffle(frames)
     return frames
+
+
+def posts_by_cover_order(shots):
+    """Whole posts ordered by where each post's FIRST frame lands in the current
+    (seeded) frame shuffle. Curate shows editable whole-post cards, but ordering
+    them this way means toggling into curate keeps you roughly at the same spot
+    in the gallery you were browsing (given the same ?seed)."""
+    pos = {}
+    for i, frame in enumerate(all_photos_shuffled(shots)):
+        pid = frame.get("post_id")
+        if pid not in pos:
+            pos[pid] = i
+    return sorted(shots, key=lambda s: pos.get(s.get("id"), float("inf")))
 
 
 def sort_frames(frames, order):
@@ -752,19 +779,22 @@ def apply_overrides(shots, overrides=None, apply_exclusions=True):
     for shot in shots:
         override = overrides.get(shot.get("id"))
         if override:
+            n = len(shot.get("images") or [])
             if override.get("images"):
                 per_image = override["images"]
-                per_loc = override.get("image_locations") or {}
-                n = len(shot.get("images") or [])
                 shot["image_species"] = [(per_image.get(str(i)) or None) for i in range(n)]
-                shot["image_locations"] = [(per_loc.get(str(i)) or None) for i in range(n)]
                 assigned = [s for s in shot["image_species"] if s]
                 if assigned:
                     shot["species"] = override.get("species") or assigned[0]
                     shot["species_list"] = list(dict.fromkeys(assigned))
-                    locs = [l for l in shot["image_locations"] if l]
-                    if locs:
-                        shot["location"] = locs[0]
+            # Per-image location override applies on its own, so a location-only
+            # edit works too (not just alongside a species override).
+            if override.get("images") or override.get("image_locations"):
+                per_loc = override.get("image_locations") or {}
+                shot["image_locations"] = [(per_loc.get(str(i)) or None) for i in range(n)]
+                locs = [l for l in shot["image_locations"] if l]
+                if locs:
+                    shot["location"] = locs[0]
             if override.get("species"):
                 shot["species"] = override["species"]
                 if not override.get("images"):
@@ -775,6 +805,12 @@ def apply_overrides(shots, overrides=None, apply_exclusions=True):
                 shot["date"] = override["date"]
         shot["ambiguous"] = (not override) and _is_ambiguous(shot)
         shot["image_areas"] = _image_areas(shot)
+        # Manual out-of-area overrides overlay the caption-derived areas.
+        if override and override.get("image_areas"):
+            per_area = override["image_areas"]
+            for i in range(len(shot["image_areas"])):
+                if str(i) in per_area:
+                    shot["image_areas"][i] = per_area[str(i)]
         shot["caption_species"] = caption_species(shot.get("caption") or "")
         current = []
         for raw in (shot.get("image_species") or shot.get("species_list") or []):
@@ -847,7 +883,24 @@ def set_override(post_id, fields):
         locs = entry.get("image_locations", {})
         for idx, name in fields["image_locations"].items():
             locs[str(idx)] = (name or "").strip()
-        entry["image_locations"] = {k: v for k, v in locs.items() if v}
+        locs = {k: v for k, v in locs.items() if v}
+        if locs:
+            entry["image_locations"] = locs
+        else:
+            entry.pop("image_locations", None)
+    if isinstance(fields.get("image_areas"), dict):
+        # 'away' marks a frame out-of-area; anything else clears the override
+        # back to the caption-derived default.
+        areas = entry.get("image_areas", {})
+        for idx, val in fields["image_areas"].items():
+            if val == "away":
+                areas[str(idx)] = "away"
+            else:
+                areas.pop(str(idx), None)
+        if areas:
+            entry["image_areas"] = areas
+        else:
+            entry.pop("image_areas", None)
     overrides[post_id] = entry
     _atomic_write_json(OVERRIDES_FILE, overrides, sort_keys=True)
     shots = _load_local_manifest() or []
