@@ -1,6 +1,28 @@
 {% extends 'base.html' %}
 {% block body_class %}has-effect home{% endblock %}
 
+{% block meta_description %}Scott Ouellette — software infrastructure engineer and bird photographer in North Andover, Massachusetts. Home of the Birds of North Andover gallery, a sightings map, and side projects.{% endblock %}
+
+{% block structured_data %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Person",
+  "name": "Scott Ouellette",
+  "url": "{{ site_url }}/",
+  "image": "{{ site_url }}{{ url_for('static', filename='img/fall.jpg') }}",
+  "jobTitle": "Software Infrastructure Engineer",
+  "homeLocation": { "@type": "Place", "name": "North Andover, Massachusetts" },
+  "knowsAbout": ["Software Infrastructure", "Terraform", "OpenTofu", "AWS", "Bird Photography"],
+  "sameAs": [
+    "https://github.com/scottx611x",
+    "https://www.instagram.com/birdsofnorthandover/",
+    "https://www.linkedin.com/pub/scott-ouellette/69/2b/209/"
+  ]
+}
+</script>
+{% endblock %}
+
 {% set bg = url_for('static', filename='img/' + background_image) %}
 
 {% block content %}

@@ -13,6 +13,11 @@ app = Flask(__name__)
 app.debug = False
 Compress(app)  # gzip/brotli responses — the gallery page is ~3 MB of HTML otherwise
 
+# The one canonical origin. Every page's <link rel="canonical">, og:url,
+# sitemap, and structured data are built from this (never request.host) so the
+# www/apex split can't create duplicate-content variants in search.
+SITE_URL = "https://www.scott-ouellette.com"
+
 # Static assets get immutable-style caching; templates append ?v=<asset_v> to
 # css/js so a deploy busts the cache (see _asset_version below).
 app.config["SEND_FILE_MAX_AGE_DEFAULT"] = 31536000
@@ -36,7 +41,26 @@ ASSET_V = _asset_version()
 
 @app.context_processor
 def _inject_asset_version():
-    return {"asset_v": ASSET_V}
+    return {"asset_v": ASSET_V, "site_url": SITE_URL}
+
+
+@app.route("/robots.txt")
+def robots():
+    body = "User-agent: *\nAllow: /\nSitemap: {}/sitemap.xml\n".format(SITE_URL)
+    return app.response_class(body, mimetype="text/plain")
+
+
+@app.route("/sitemap.xml")
+def sitemap():
+    paths = ["/", "/projects", "/birds", "/birds/stats", "/birds/map"]
+    if "blog" not in HIDDEN_PAGES:
+        paths.append("/blog")
+        paths += ["/blog/%s" % p["slug"] for p in blog.list_posts()]
+    urls = "".join("<url><loc>{}{}</loc></url>".format(SITE_URL, p) for p in paths)
+    xml = ('<?xml version="1.0" encoding="UTF-8"?>'
+           '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'
+           + urls + "</urlset>")
+    return app.response_class(xml, mimetype="application/xml")
 
 
 @app.after_request

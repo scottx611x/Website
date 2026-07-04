@@ -9,10 +9,13 @@
     <meta property="og:title" content="{{ title }}{% if title != 'Scott Ouellette' %} · Scott Ouellette{% endif %}">
     <meta property="og:description" content="{{ meta_desc|trim }}">
     <meta property="og:type" content="website">
-    <meta property="og:url" content="{{ request.url_root.rstrip('/') }}{{ request.path }}">
-    <meta property="og:image" content="{{ request.url_root.rstrip('/') }}{{ url_for('static', filename='img/fall.jpg') }}">
+    <meta property="og:site_name" content="Scott Ouellette">
+    <meta property="og:url" content="{{ site_url }}{{ request.path }}">
+    <meta property="og:image" content="{{ site_url }}{{ url_for('static', filename='img/fall.jpg') }}">
     <meta name="twitter:card" content="summary_large_image">
+    <link rel="canonical" href="{{ site_url }}{{ request.path }}">
     <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    {% block structured_data %}{% endblock %}
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="preconnect" href="https://birds-scott-ouellette.s3.amazonaws.com">
