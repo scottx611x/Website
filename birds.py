@@ -130,7 +130,7 @@ for _names, _family in [
       "Pileated Woodpecker", "Northern Flicker", "Yellow-bellied Sapsucker"], "Woodpeckers"),
     (["Peregrine Falcon"], "Falcons"),
     (["Loggerhead Shrike"], "Shrikes"),
-    (["Eastern Phoebe", "Eastern Kingbird"], "Tyrant Flycatchers"),
+    (["Eastern Phoebe", "Eastern Kingbird", "Eastern Wood-Pewee"], "Tyrant Flycatchers"),
     (["Blue Jay", "American Crow"], "Crows & Jays"),
     (["Black-capped Chickadee", "Tufted Titmouse"], "Chickadees & Titmice"),
     (["Tree Swallow"], "Swallows"),
@@ -150,7 +150,7 @@ for _names, _family in [
       "Brown-headed Cowbird"], "Blackbirds & Orioles"),
     (["Black-and-white Warbler", "Yellow-rumped Warbler", "Pine Warbler", "Ovenbird",
       "American Redstart", "Common Yellowthroat"], "Wood-Warblers"),
-    (["Northern Cardinal"], "Cardinals & Allies"),
+    (["Northern Cardinal", "Rose-breasted Grosbeak"], "Cardinals & Allies"),
 ]:
     for _n in _names:
         _BIRDS[_n.lower()] = (_n, _family)
@@ -161,6 +161,8 @@ _SPECIES_ALIAS = {
     "a very wet red-tailed hawk": "red-tailed hawk",
     "house wren": "northern house wren",
     "european starling juvenile": "european starling",
+    "eastern wood pewee": "eastern wood-pewee",  # Scott writes it un-hyphenated
+    "red-bellied wookpecker": "red-bellied woodpecker",  # caption typo
     "cooper's hawk barred owl": "barred owl",
     "red-tailed hawk blue jay": "red-tailed hawk",
     "not a north andover bird": None,
