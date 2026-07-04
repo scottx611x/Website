@@ -19,7 +19,11 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="preconnect" href="https://birds-scott-ouellette.s3.amazonaws.com">
-    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,500;9..144,600;9..144,900&family=Space+Grotesk:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    {% set fonts_href = "https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,500;9..144,600;9..144,900&family=Space+Grotesk:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap" %}
+    {# Load the font CSS without blocking first paint: fetch as print media,
+       then flip to all once it arrives. display=swap keeps text visible meanwhile. #}
+    <link rel="stylesheet" href="{{ fonts_href }}" media="print" onload="this.media='all'">
+    <noscript><link rel="stylesheet" href="{{ fonts_href }}"></noscript>
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/site.css', v=asset_v) }}">
     {% block head %}{% endblock %}
 </head>
