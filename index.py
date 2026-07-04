@@ -164,6 +164,15 @@ def not_found(_e):
 
 
 @app.before_request
+def canonical_host_redirect():
+    """Send the bare apex to the canonical www host with a permanent 301, so
+    scott-ouellette.com never serves a duplicate of www.scott-ouellette.com."""
+    host = (request.host or "").split(":")[0]
+    if host == "scott-ouellette.com":
+        return redirect(SITE_URL + request.full_path.rstrip("?"), code=301)
+
+
+@app.before_request
 def serve_birds_subdomain():
     """birds.scott-ouellette.com serves the gallery at its root."""
     host = (request.host or "").split(":")[0]
