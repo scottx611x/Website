@@ -893,7 +893,10 @@ def set_override(post_id, fields):
             entry["image_areas"] = areas
         else:
             entry.pop("image_areas", None)
-    overrides[post_id] = entry
+    if entry:
+        overrides[post_id] = entry
+    else:  # a fully-reverted post leaves no override at all
+        overrides.pop(post_id, None)
     _save_curation(OVERRIDES_FILE, overrides)
     # Locally, re-bake the committed manifest so the change shows without a
     # re-sync. In prod, apply_overrides runs at serve time (load_gallery), so
