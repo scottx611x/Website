@@ -19,7 +19,7 @@
     </p>
     <p><a class="btn btn-inline" style="background:var(--green);color:#fff;border-color:var(--green);" href="https://github.com/{{ github_user }}">View all on GitHub &rarr;</a></p>
 
-    {% if curate %}
+    {% if curate and local %}
     <p class="curate-note mono"><strong>Curate mode.</strong> Edit any field (auto-saves), reorder with &uarr;&darr;, &#9733; feature, hide, or &times; delete.</p>
     <div id="project-list" class="project-edit-list">
         {% for project in projects %}

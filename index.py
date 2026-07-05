@@ -43,7 +43,8 @@ ASSET_V = _asset_version()
 
 @app.context_processor
 def _inject_asset_version():
-    return {"asset_v": ASSET_V, "site_url": SITE_URL}
+    return {"asset_v": ASSET_V, "site_url": SITE_URL,
+            "curate_authed": (not _is_local()) and _curate_authed()}
 
 
 @app.route("/robots.txt")
@@ -264,9 +265,13 @@ def _curate_on():
         if cookie is not None:
             return cookie == "1"
         return os.environ.get("BIRDS_CURATE") == "1"
-    # Production: only an unlocked (secret-cookie) session may curate. Everyone
-    # else gets the normal read-only site, and the edit routes 404.
-    return _curate_authed()
+    # Production: you must be unlocked (the persistent auth cookie). Once you
+    # are, curate stays alive across browsing; the `curate` cookie is a
+    # lightweight view toggle (default on) that pauses/resumes the edit UI
+    # WITHOUT logging you out. Everyone unauthed gets the read-only site.
+    if not _curate_authed():
+        return False
+    return request.cookies.get("curate", "1") == "1"
 
 
 @app.route("/curate/login")
@@ -294,7 +299,8 @@ def curate_logout():
 
 @app.route("/curate/toggle")
 def curate_toggle():
-    if not _is_local():
+    # Local dev, or an unlocked prod session — either can pause/resume the UI.
+    if not (_is_local() or _curate_authed()):
         abort(404)
     # Return to exactly where you were (preserving filters), via an explicit ?next=
     # rather than the flaky Referer header.
@@ -302,7 +308,8 @@ def curate_toggle():
     if not nxt.startswith("/"):  # only ever redirect within the site
         nxt = "/birds"
     resp = redirect(nxt)
-    resp.set_cookie("curate", "0" if _curate_on() else "1", max_age=31536000, samesite="Lax")
+    resp.set_cookie("curate", "0" if _curate_on() else "1", max_age=31536000,
+                    samesite="Lax", secure=not _is_local())
     return resp
 
 
@@ -604,7 +611,7 @@ def load_projects():
 @app.route("/curate/projects", methods=["POST"])
 def curate_projects():
     """Save the reordered/edited project list (local curate only)."""
-    if not _curate_on():
+    if not _is_local():
         abort(404)
     data = request.get_json(silent=True) or {}
     incoming = data.get("projects")
@@ -634,7 +641,7 @@ def curate_projects():
 @app.route("/curate/taglines", methods=["POST"])
 def curate_taglines():
     """Save the reordered/edited hero taglines (local curate only)."""
-    if not _curate_on():
+    if not _is_local():
         abort(404)
     data = request.get_json(silent=True) or {}
     incoming = data.get("taglines")
@@ -648,7 +655,7 @@ def curate_taglines():
 @app.route("/curate/facts", methods=["POST"])
 def curate_facts():
     """Save the reordered/edited footer facts (local curate only)."""
-    if not _curate_on():
+    if not _is_local():
         abort(404)
     data = request.get_json(silent=True) or {}
     incoming = data.get("facts")

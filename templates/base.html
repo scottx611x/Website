@@ -67,11 +67,13 @@
         </script>
     </footer>
 
-    {% if local or curate %}
-    <a class="curate-toggle{% if curate %} on{% endif %}"
-       href="{% if local %}/curate/toggle?next={{ request.full_path|urlencode }}{% else %}/curate/logout{% endif %}"
-       title="Toggle curate mode">{% if curate %}&#10003; Curating &middot; exit{% else %}&#9998; Curate{% endif %}</a>
-    {% endif %}
+    {% if local or curate_authed %}
+    <span class="curate-chip">
+        <a class="curate-toggle{% if curate %} on{% endif %}"
+           href="/curate/toggle?next={{ request.full_path|urlencode }}"
+           title="Pause or resume curate mode (stays logged in)">{% if curate %}&#10003; Curating{% else %}&#9998; Curate{% endif %}</a>
+        {% if curate_authed %}<a class="curate-logout" href="/curate/logout" title="Log out of curate on this device">log&nbsp;out</a>{% endif %}
+    </span>{% endif %}
 
     <div id="lightbox" class="lightbox" hidden>
         <button class="lightbox-close" aria-label="Close">&times;</button>

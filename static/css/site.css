@@ -740,8 +740,11 @@ a.pheno-cell:hover, a.pheno-cell:focus-visible {
 .shot.curating .away-badge { right: 2.9rem; }
 
 /* Local-only floating curate toggle */
-.curate-toggle {
+.curate-chip {
     position: fixed; bottom: 1.1rem; right: 1.1rem; z-index: 60;
+    display: inline-flex; align-items: center; gap: 0.5rem;
+}
+.curate-toggle {
     font-family: var(--mono); font-size: 0.8rem; text-decoration: none; white-space: nowrap;
     padding: 0.55rem 1rem; border-radius: 999px;
     background: var(--ink); color: var(--paper);
@@ -750,6 +753,13 @@ a.pheno-cell:hover, a.pheno-cell:focus-visible {
 }
 .curate-toggle:hover { opacity: 1; transform: translateY(-1px); }
 .curate-toggle.on { background: var(--green); color: #fff; opacity: 0.96; }
+.curate-logout {
+    font-family: var(--mono); font-size: 0.66rem; text-decoration: none; white-space: nowrap;
+    color: var(--paper); opacity: 0.5; padding: 0.35rem 0.6rem; border-radius: 999px;
+    background: rgba(13,18,14,0.55); box-shadow: 0 3px 12px rgba(0,0,0,0.2);
+    transition: opacity 0.15s ease;
+}
+.curate-logout:hover { opacity: 0.95; }
 .curate-note { color: var(--green); margin-top: 1rem; }
 .curate-help {
     list-style: none; padding: 0.8rem 1.1rem; margin: 0.8rem auto 0; max-width: 32rem;
