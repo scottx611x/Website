@@ -161,12 +161,15 @@ class BirdsTestCase(unittest.TestCase):
                      ("Main Ct.", "Main Court")]:
             self.assertEqual(birds._loc_key(a), birds._loc_key(b), (a, b))
 
-    def test_canonical_location_standardizes_display(self):
+    def test_canonical_location_abbreviates_consistently(self):
         for variant in ("Rea Street", "Rea St", "Rea st.", "Rea St."):
             self.assertEqual(birds.canonical_location(variant), "Rea St.")
-        self.assertEqual(birds.canonical_location("Abbot St"), "Abbott St.")  # typo
-        self.assertEqual(birds.canonical_location("Lake Cochichewick"),
-                         "Lake Cochichewick")  # untouched passthrough
+        self.assertEqual(birds.canonical_location("Molly Towne Road"), "Molly Towne Rd.")
+        self.assertEqual(birds.canonical_location("Abbot Street"), "Abbott St.")  # typo + abbr
+        # squares/landmark names stay spelled out; plain names pass through
+        self.assertEqual(birds.canonical_location("Post Office Square, Boston"),
+                         "Post Office Square, Boston")
+        self.assertEqual(birds.canonical_location("Lake Cochichewick"), "Lake Cochichewick")
 
     def test_gallery_stats_shape(self):
         stats = birds.gallery_stats(birds.load_gallery())

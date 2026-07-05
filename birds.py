@@ -1718,29 +1718,54 @@ def _loc_key(loc):
     return re.sub(r"\s+", " ", k)
 
 
-# Canonical display spelling per normalized key — collapses St./Street/St drift
-# (and the Abbot->Abbott typo) to one label everywhere a location is shown,
-# without a bulk override backfill and surviving every re-sync. Keyed by
-# _loc_key(); add a line when a place picks up a new spelling variant.
-_LOC_DISPLAY = {
-    "rea st": "Rea St.",
-    "rea st ext": "Rea St. Extension",
-    "johnson st": "Johnson St.",
-    "abbott st": "Abbott St.",
-    "abbot st": "Abbott St.",            # typo -> Abbott
-    "annie l sargent school": "Annie L. Sargent School",
-    "annie l sargent school access rd": "Annie L. Sargent School Access Rd.",
-    "congress st bridge boston": "Congress St. Bridge, Boston",
-    "harborwalk boston": "Harborwalk, Boston",
+# Canonical display: every street suffix consistently abbreviated with a period
+# ("Rea Street"/"Rea St" -> "Rea St.", "Molly Towne Road" -> "Molly Towne Rd."),
+# so a location reads the same everywhere it's shown — no override backfill, and
+# it survives every re-sync. Both the full word and the bare abbreviation map to
+# the same "Abbr." form.
+# Clear street-type suffixes only. Square / Heights / Point / Trail are left
+# alone — they're usually proper place names (Post Office Square, Harvard
+# Square), not addressable suffixes, and read wrong abbreviated.
+_LOC_ABBR = {
+    "street": "St.", "st": "St.", "avenue": "Ave.", "ave": "Ave.",
+    "road": "Rd.", "rd": "Rd.", "drive": "Dr.", "dr": "Dr.",
+    "lane": "Ln.", "ln": "Ln.", "court": "Ct.", "ct": "Ct.",
+    "boulevard": "Blvd.", "blvd": "Blvd.", "place": "Pl.", "pl": "Pl.",
+    "terrace": "Ter.", "ter": "Ter.", "highway": "Hwy.", "hwy": "Hwy.",
+    "extension": "Ext.", "ext": "Ext.", "circle": "Cir.", "cir": "Cir.",
+    "parkway": "Pkwy.", "pkwy": "Pkwy.",
 }
+_LOC_ABBR_RE = re.compile(
+    r"\b(%s)\b\.?" % "|".join(sorted(_LOC_ABBR, key=len, reverse=True)), re.I)
+# Known spelling typos, fixed before abbreviation (whole word, any case).
+_LOC_TYPO = {"abbot": "Abbott", "waverley": "Waverly"}
+_LOC_TYPO_RE = re.compile(r"\b(%s)\b" % "|".join(_LOC_TYPO), re.I)
+
+
+_pin_display_cache = None
+
+
+def _pin_display(key):
+    """The geocoded pin's canonical name for an EXACT normalized-key match, so a
+    location that IS a mapped place displays as that pin's name (fixing period /
+    separator drift like 'Annie L Sargent School' or 'Harborwalk - Boston').
+    Exact-match only, so a sub-location ('… Access Rd.') is never collapsed in."""
+    global _pin_display_cache
+    if _pin_display_cache is None:
+        _pin_display_cache = {_loc_key(p["name"]): p["name"] for p in load_locations()}
+    return _pin_display_cache.get(key)
 
 
 def canonical_location(loc):
-    """Canonical display spelling for a location — fixes St./Street drift and
-    known typos; passes anything without a known variant straight through."""
+    """Canonical display for a location: fix known typos, abbreviate every street
+    suffix to a consistent 'Abbr.' form, then snap an exact match to its map pin's
+    name. Non-suffix words and unmapped places pass through."""
     if not loc:
         return loc
-    return _LOC_DISPLAY.get(_loc_key(loc), loc)
+    s = " ".join(loc.split())
+    s = _LOC_TYPO_RE.sub(lambda m: _LOC_TYPO[m.group(1).lower()], s)
+    s = _LOC_ABBR_RE.sub(lambda m: _LOC_ABBR[m.group(1).lower()], s)
+    return _pin_display(_loc_key(s)) or s
 
 
 LOCATIONS_FILE = os.path.join(HERE, "static", "locations.json")
