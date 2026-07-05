@@ -324,7 +324,10 @@ def birds_gallery():
         return redirect("/birds?seed=%d" % random.randrange(1_000_000_000))
     if seed.isdigit():
         random.seed(int(seed))
-    all_shots = birds.load_gallery(shuffle=not curate)
+    # Curate now renders the same exploded+shuffled frame view as the public
+    # gallery, so load the posts the same way (shuffle=True) — with the seed
+    # applied above, the curate grid then matches the gallery you toggled from.
+    all_shots = birds.load_gallery(shuffle=True)
     groups = birds.species_groups(all_shots)
     out_of_area = birds.out_of_area_species(all_shots)
     bird = birds.resolve_species(request.args.get("bird") or "", groups)
@@ -396,9 +399,11 @@ def birds_gallery():
         shots = birds.images_filtered(all_shots, bird, family, area, out_of_area,
                                       media=media, month=month or None)
     elif curate:
-        # Whole posts (for post-level editing), but ordered to match the seeded
-        # gallery you toggled from, so you don't lose your place.
-        shots = birds.posts_by_cover_order(all_shots)
+        # Exploded single-image frames, same as the public gallery — so the grid
+        # you edit matches what visitors see, the lightbox carousel cycles the
+        # grid 1:1, and (with ?seed) curate lands exactly where you toggled from.
+        # Every edit is per-frame via the lightbox (species/location/area/hide).
+        shots = birds.all_photos_shuffled(all_shots)
     elif start_tokens:
         shots = birds.start_ordered(all_shots, start_tokens)  # home-preview lead-in
     else:

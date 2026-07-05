@@ -512,19 +512,6 @@ def all_photos_shuffled(shots):
     return frames
 
 
-def posts_by_cover_order(shots):
-    """Whole posts ordered by where each post's FIRST frame lands in the current
-    (seeded) frame shuffle. Curate shows editable whole-post cards, but ordering
-    them this way means toggling into curate keeps you roughly at the same spot
-    in the gallery you were browsing (given the same ?seed)."""
-    pos = {}
-    for i, frame in enumerate(all_photos_shuffled(shots)):
-        pid = frame.get("post_id")
-        if pid not in pos:
-            pos[pid] = i
-    return sorted(shots, key=lambda s: pos.get(s.get("id"), float("inf")))
-
-
 def sort_frames(frames, order):
     """Order a frame list by date. ``order`` is 'recent' / 'oldest' (capture
     date, from the caption) or 'posted' (Instagram post time — photos are often

@@ -111,17 +111,15 @@
         </script>
         {% endif %}
         {% if curate %}
-        {% set flagged = shots|selectattr('ambiguous')|list|length %}
-        <p class="curate-note mono"><strong>Curate mode.</strong> {{ shots|length }} shown · <strong>{{ flagged }}</strong> flagged.</p>
+        <p class="curate-note mono"><strong>Curate mode.</strong> {{ shots|length }} frames · click any photo to edit it.</p>
         <div class="curate-filters">
             <button type="button" class="chip-toggle{% if active_review == 'reclassified' %} on{% endif %}" onclick="birdsGo(null,{review:'{{ '' if active_review == 'reclassified' else 'reclassified' }}',bird:'',family:'',area:'',media:''})">&#128256; Reclassified ({{ review_counts.reclassified }})</button>
             <button type="button" class="chip-toggle{% if active_review == 'reid' %} on{% endif %}" onclick="birdsGo(null,{review:'{{ '' if active_review == 'reid' else 'reid' }}',bird:'',family:'',area:'',media:''})">&#8635; Flagged for re-ID ({{ review_counts.reid }})</button>
             <button type="button" class="chip-toggle{% if active_review == 'hidden' %} on{% endif %}" onclick="birdsGo(null,{review:'{{ '' if active_review == 'hidden' else 'hidden' }}',bird:'',family:'',area:'',media:''})">&#9986; Hidden frames ({{ review_counts.hidden }})</button>
         </div>
         <ul class="curate-help mono">
-            <li><b>Rename:</b> type in a card's species box and press <kbd>Enter</kbd> to save.</li>
-            <li><b>Hide:</b> click the red <b>&times;</b> (top-right of a card).</li>
-            <li><b>Per-image:</b> click a photo to edit its species &amp; location, mark it <b>&#9888;&#65039; out of area</b>, <b>&#8635;</b> flag for re-ID, or hide it.</li>
+            <li><b>Click any photo</b> to open it, then edit its species &amp; location, mark it <b>&#9888;&#65039; out of area</b>, <b>&#8635;</b> flag for re-ID, or <b>&times;</b> hide it.</li>
+            <li>Use the <b>&#8249; &#8250;</b> arrows to move through the gallery in the order shown; every edit saves instantly.</li>
         </ul>
         {% endif %}
         {% if curate %}<script>window.CURATE_MODE = true; window.CURATE_HIDDEN_VIEW = {{ (active_review == 'hidden')|tojson }};</script>{% endif %}
