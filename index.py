@@ -416,8 +416,10 @@ def birds_gallery():
     else:
         shots = birds.all_photos_shuffled(all_shots)  # plain random order
     # Chronological ordering applies to any frame view (default or filtered),
-    # overriding the random/lead-in order; curate whole-post views are left alone.
-    if sort and not curate:
+    # overriding the random/lead-in order. Curate now renders the same exploded
+    # frames as the public gallery, so the sort applies there too (it used to be
+    # skipped for the old whole-post curate view).
+    if sort:
         shots = birds.sort_frames(shots, sort)
     random.seed()  # drop any ?seed determinism before other random consumers
     total = sum(len(sp) for _, sp in groups)
