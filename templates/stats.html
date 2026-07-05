@@ -19,6 +19,15 @@
     {% endif %}
 
     <div class="stat-grid">
+        <!-- The river: streamgraph of photo activity by species over time -->
+        <div class="stat-block stat-span-2">
+            <h2>The river</h2>
+            <p class="stat-sub mono">photos per species, month by month &mdash; the current of the hobby. hover to read a month; click a species to see its shots</p>
+            <div id="river-chart" class="d3-chart"></div>
+            <div id="river-legend" class="river-legend mono"></div>
+            <p class="chart-readout mono" id="river-readout"></p>
+        </div>
+
         <!-- Life list accumulation: scrub the timeline, see each lifer's photo -->
         <div class="stat-block stat-span-2">
             <h2>The life list</h2>
@@ -126,8 +135,15 @@
 <script>
     (function () {
         var S = {{ series|tojson }};
+        var RIVER = {{ river|tojson }};
         var FAM = [{% for fam, count in stats.families %}{ name: {{ fam|tojson }}, n: {{ count }}, spp: {{ stats.family_species[fam] }} }{{ "," if not loop.last }}{% endfor %}];
         var GREEN = "#2f7d4f", NEON = "#38e08a", INK = "#0d120e", MUTED = "#8a9486";
+        // Validated categorical palette (colorblind-safe, fixed order) for the
+        // river's species bands; "Other" is a recessive gray. Assigned by the
+        // species' rank so a band keeps its color.
+        var SERIES_COLORS = ["#2a78d6", "#1baf7a", "#eda100", "#008300",
+                             "#4a3aa7", "#e34948", "#e87ba4", "#eb6834"];
+        var OTHER_COLOR = "#d6d7cd";
         // Sequential green ramp (one hue, light->dark) shared by matrix, calendar,
         // and treemap. Zero stays a faint neutral so "few" never reads as "none".
         var RAMP = ["#a5d5b2", "#79bf8f", "#4fa06c", "#2f7d4f", "#12522f"];
@@ -565,6 +581,107 @@
             readout.textContent = "tap a family to browse its photos";
         }
 
+        // ---- The river: streamgraph of photo activity by species over time ----
+        function renderRiver() {
+            var el = document.getElementById("river-chart");
+            if (!el || !RIVER.months || !RIVER.months.length) return;
+            el.innerHTML = "";
+            var readout = document.getElementById("river-readout");
+            var W = chartWidth(el), narrow = W < 520, H = narrow ? 220 : 300,
+                m = { t: 14, r: 14, b: 26, l: 14 };
+            var months = RIVER.months;
+            // Build one row per month with a column per band (+ Other).
+            var keys = RIVER.series.map(function (s) { return s.name; });
+            var rows = months.map(function (mo, i) {
+                var row = { mo: mo };
+                RIVER.series.forEach(function (s) { row[s.name] = s.values[i]; });
+                row["Other"] = RIVER.other[i];
+                return row;
+            });
+            var allKeys = keys.concat(["Other"]);
+            var color = function (k) {
+                if (k === "Other") return OTHER_COLOR;
+                return SERIES_COLORS[keys.indexOf(k) % SERIES_COLORS.length];
+            };
+            var stack = d3.stack().keys(allKeys)
+                .offset(d3.stackOffsetWiggle).order(d3.stackOrderInsideOut);
+            var layers = stack(rows);
+            var x = d3.scalePoint(d3.range(months.length), [m.l, W - m.r]);
+            var y = d3.scaleLinear(
+                [d3.min(layers, function (l) { return d3.min(l, function (d) { return d[0]; }); }),
+                 d3.max(layers, function (l) { return d3.max(l, function (d) { return d[1]; }); })],
+                [H - m.b, m.t]);
+            var svg = d3.select(el).append("svg").attr("viewBox", "0 0 " + W + " " + H)
+                .style("touch-action", "pan-y");
+            var area = d3.area().curve(d3.curveBasis)
+                .x(function (d, i) { return x(i); })
+                .y0(function (d) { return y(d[0]); })
+                .y1(function (d) { return y(d[1]); });
+            svg.selectAll("path.river-band").data(layers).enter().append("path")
+                .attr("class", "river-band").attr("d", area)
+                .attr("fill", function (l) { return color(l.key); })
+                .attr("opacity", 0.9)
+                .style("cursor", function (l) { return l.key === "Other" ? "default" : "pointer"; })
+                .on("click", function (ev, l) {
+                    if (l.key !== "Other") location.href = birdURL(l.key);
+                });
+            // year ticks along the bottom
+            var lastYear = null;
+            months.forEach(function (mo, i) {
+                var yr = mo.slice(0, 4);
+                if (yr !== lastYear) {
+                    lastYear = yr;
+                    svg.append("text").attr("x", x(i)).attr("y", H - 8)
+                        .attr("text-anchor", "middle").attr("class", "chart-tick").text(yr);
+                }
+            });
+            // crosshair + hover readout (which species were shot that month)
+            var guide = svg.append("line").attr("y1", m.t).attr("y2", H - m.b)
+                .attr("stroke", INK).attr("stroke-opacity", 0.35)
+                .attr("stroke-dasharray", "3 3").attr("opacity", 0);
+            function fmtMonth(mo) {
+                return MONTHS[+mo.slice(5) - 1] + " " + mo.slice(0, 4);
+            }
+            function hover(ev) {
+                var px = d3.pointer(ev, svg.node())[0];
+                var i = Math.max(0, Math.min(months.length - 1,
+                    Math.round((px - m.l) / ((W - m.r - m.l) / (months.length - 1)))));
+                guide.attr("x1", x(i)).attr("x2", x(i)).attr("opacity", 1);
+                var parts = RIVER.series
+                    .map(function (s) { return [s.name, s.values[i]]; })
+                    .filter(function (p) { return p[1]; })
+                    .sort(function (a, b) { return b[1] - a[1]; });
+                if (RIVER.other[i]) parts.push(["Other", RIVER.other[i]]);
+                var tot = parts.reduce(function (a, p) { return a + p[1]; }, 0);
+                readout.innerHTML = "<strong>" + fmtMonth(months[i]) + "</strong> · " +
+                    tot + " photo" + (tot === 1 ? "" : "s") +
+                    (parts.length ? " — " + parts.slice(0, 5).map(function (p) {
+                        return p[0] + " " + p[1];
+                    }).join(", ") : " — none");
+            }
+            svg.on("pointerdown pointermove", hover);
+            svg.on("pointerleave", function () { guide.attr("opacity", 0); });
+            // legend (identity is never color-alone: each swatch names its species)
+            var lg = document.getElementById("river-legend");
+            lg.innerHTML = "";
+            RIVER.series.forEach(function (s, i) {
+                var a = document.createElement("a");
+                a.className = "river-key";
+                a.href = birdURL(s.name);
+                a.innerHTML = '<span class="river-dot" style="background:' +
+                    SERIES_COLORS[i % SERIES_COLORS.length] + '"></span>' + s.name +
+                    ' <em>' + s.total + '</em>';
+                lg.appendChild(a);
+            });
+            var o = document.createElement("span");
+            o.className = "river-key";
+            o.innerHTML = '<span class="river-dot" style="background:' + OTHER_COLOR +
+                '"></span>Other';
+            lg.appendChild(o);
+            readout.innerHTML = "hover the river to read a month";
+        }
+
+        renderRiver();
         renderAccum();
         renderPheno();
         renderCal();
@@ -572,7 +689,7 @@
         var rt;
         addEventListener("resize", function () {
             clearTimeout(rt);
-            rt = setTimeout(function () { renderAccum(); renderFam(); }, 200);
+            rt = setTimeout(function () { renderRiver(); renderAccum(); renderFam(); }, 200);
         });
     })();
 </script>

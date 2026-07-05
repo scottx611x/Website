@@ -2023,6 +2023,47 @@ def stats_series(shots, top_n=15):
     }
 
 
+def activity_river(shots, top_n=8):
+    """Photo activity as a streamgraph 'river': per-species counts binned by
+    calendar month across the full span. The ``top_n`` most-photographed species
+    get their own band (in a fixed order so colors are stable); everything else
+    folds into 'Other'. The month axis is continuous — gap months are zero-filled
+    — so the river flows in real time. Same shape a live BirdNET feed would take,
+    so the viz can swap data sources later."""
+    import collections
+    bins = collections.defaultdict(collections.Counter)
+    sp_total = collections.Counter()
+    sp_fam = {}
+    for shot in shots:
+        d = _capture_date_obj(shot.get("caption") or "", shot.get("timestamp"))
+        if not d:
+            continue
+        ym = "%04d-%02d" % (d.year, d.month)
+        isp = shot.get("image_species") or []
+        for i in range(len(shot.get("images") or [])):
+            raw = isp[i] if i < len(isp) and isp[i] else shot.get("species")
+            for name, family in _canon_species_list(raw):
+                bins[ym][name] += 1
+                sp_total[name] += 1
+                sp_fam[name] = family
+    if not bins:
+        return {"months": [], "series": [], "other": [], "top_species": []}
+    y0, m0 = (int(x) for x in min(bins).split("-"))
+    y1, m1 = (int(x) for x in max(bins).split("-"))
+    months = []
+    while (y0, m0) <= (y1, m1):
+        months.append("%04d-%02d" % (y0, m0))
+        m0 += 1
+        if m0 > 12:
+            m0, y0 = 1, y0 + 1
+    top = [n for n, _ in sp_total.most_common(top_n)]
+    top_set = set(top)
+    series = [{"name": n, "fam": sp_fam.get(n, ""), "total": sp_total[n],
+               "values": [bins[mo].get(n, 0) for mo in months]} for n in top]
+    other = [sum(c for nm, c in bins[mo].items() if nm not in top_set) for mo in months]
+    return {"months": months, "series": series, "other": other, "top_species": top}
+
+
 def images_on_date(shots, day):
     """Every frame captured on ``day`` (ISO date string) — the click-through
     target for the shooting-days calendar (/birds?on=YYYY-MM-DD). Uses the same

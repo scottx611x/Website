@@ -557,6 +557,19 @@ body.home .site-nav { z-index: 0; }
 .chart-readout a { color: var(--green); font-weight: 600; }
 .chart-readout strong { color: var(--green); }
 
+/* The river: streamgraph legend + bands */
+.river-band { transition: opacity 0.15s ease; }
+#river-chart:hover .river-band { opacity: 0.7; }
+#river-chart .river-band:hover { opacity: 1 !important; }
+.river-legend { display: flex; flex-wrap: wrap; gap: 0.35rem 0.9rem; margin-top: 0.7rem; }
+.river-key {
+    display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.72rem;
+    color: var(--ink); text-decoration: none; white-space: nowrap;
+}
+a.river-key:hover { color: var(--green); }
+.river-key em { color: var(--muted); font-style: normal; }
+.river-dot { width: 0.7rem; height: 0.7rem; border-radius: 3px; display: inline-block; }
+
 /* shared floating tooltip (matrix / calendar / treemap) */
 .viz-tip {
     position: absolute; display: none; z-index: 60; pointer-events: none;

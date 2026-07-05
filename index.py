@@ -525,6 +525,7 @@ def birds_stats():
         title="Birds by the numbers",
         stats=stats,
         series=birds.stats_series(shots),
+        river=birds.activity_river(shots),
         loc_place=loc_place,
         span_months=span_months,
         local=_is_local(),
