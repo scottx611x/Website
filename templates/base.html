@@ -239,7 +239,8 @@
                             n: i + 1, of: urls.length, postId: pid, index: i,
                             origIndex: (ixs && ixs[i] != null) ? ixs[i] : i,
                             away: (ars && ars[i]) === "away",
-                            video: (vds && vds[i]) || null, captionSpecies: csp || []
+                            video: (vds && vds[i]) || null, captionSpecies: csp || [],
+                            cardEl: el  // the grid figure this frame came from
                         });
                     });
                 });
@@ -399,33 +400,35 @@
             if (removeBtn) removeBtn.addEventListener("click", function (e) {
                 e.stopPropagation();
                 var f = frames[idx]; if (!f) return;
+                var unhiding = window.CURATE_HIDDEN_VIEW;
                 removeBtn.disabled = true;
+                removeBtn.textContent = unhiding ? "un-hiding…" : "hiding…";
                 fetch("/curate/exclude-image", {
                     method: "POST", headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ id: f.postId, index: f.origIndex })
-                }).then(function (r) { return r.json(); }).then(function () {
-                    // Drop this frame from its card's data (positional index f.index).
-                    var card = document.querySelector('[data-id="' + f.postId + '"]');
+                }).then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+                  .then(function () {
+                    // Curate is an exploded-frame grid, so each frame IS one card:
+                    // fade it out of the grid so the hide is visibly confirmed behind
+                    // the lightbox, flash a confirmation, then advance to the next.
+                    var card = f.cardEl;
                     if (card) {
-                        ["data-images", "data-captions", "data-image-species",
-                         "data-image-locations", "data-image-areas",
-                         "data-image-indices"].forEach(function (attr) {
-                            var arr; try { arr = JSON.parse(card.getAttribute(attr) || "[]"); } catch (_) { arr = []; }
-                            if (f.index < arr.length) { arr.splice(f.index, 1); card.setAttribute(attr, JSON.stringify(arr)); }
-                        });
-                        var left = [];
-                        try { left = JSON.parse(card.getAttribute("data-images") || "[]"); } catch (_) {}
-                        if (!left.length) { card.remove(); }
-                        else {
-                            var ci = card.querySelector("img"); if (ci) ci.src = left[0];
-                            var mb = card.querySelector(".multi-badge");
-                            if (mb) { if (left.length > 1) mb.textContent = "⧉ " + left.length; else mb.remove(); }
-                        }
+                        card.classList.add("frame-hidden");
+                        setTimeout(function () { if (card.parentNode) card.remove(); }, 260);
                     }
-                    build();  // rebuild the flat frame sequence without that frame
-                    if (!frames.length) close();
-                    else show(Math.min(idx, frames.length - 1));
-                }).finally(function () { removeBtn.disabled = false; });
+                    frames.splice(idx, 1);
+                    removeBtn.innerHTML = unhiding ? "✓ un-hidden" : "✓ hidden";
+                    removeBtn.classList.add("did-act");
+                    setTimeout(function () {
+                        removeBtn.classList.remove("did-act");
+                        if (!frames.length) close();          // last one -> close
+                        else show(idx % frames.length);       // else advance (resets label)
+                    }, 550);
+                }).catch(function () {
+                    removeBtn.innerHTML = unhiding ? "↩ un-hide (retry)" : "× hide (retry)";
+                }).finally(function () {
+                    removeBtn.disabled = false;
+                });
             });
             if (reid) reid.addEventListener("click", function (e) {
                 e.stopPropagation();

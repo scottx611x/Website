@@ -390,6 +390,8 @@ body.home .site-nav { z-index: 0; }
     /* Skip layout/paint for offscreen cards — with ~1,200 in the grid this is
        the difference between choppy and smooth scroll. */
     content-visibility: auto; contain-intrinsic-size: auto 340px; }
+/* A frame hidden in curate fades out so the action is visibly confirmed. */
+.masonry .shot.frame-hidden { transition: opacity 0.25s ease, transform 0.25s ease; opacity: 0; transform: scale(0.9); pointer-events: none; }
 /* Scroll-reveal (only once JS marks the grid ready, so no-JS never hides photos) */
 .masonry.reveal-ready .shot { opacity: 0; transform: translateY(14px); transition: opacity 0.5s ease, transform 0.5s ease; }
 .masonry.reveal-ready .shot.seen { opacity: 1; transform: none; }
@@ -924,6 +926,7 @@ a.pheno-cell:hover, a.pheno-cell:focus-visible {
     transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
 }
 .lightbox-remove:hover { background: rgba(180, 30, 30, 0.92); color: #fff; border-color: rgba(180, 30, 30, 0.92); }
+.lightbox-remove.did-act { background: var(--green); color: #fff; border-color: var(--green); }
 .lightbox-close {
     position: absolute; top: 1.2rem; right: 1.4rem;
     background: none; border: none; color: #fff; font-size: 2.4rem; line-height: 1;
