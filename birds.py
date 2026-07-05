@@ -338,7 +338,7 @@ def _pseudo_frame(shot, i):
     raw = isp[i] if i < len(isp) and isp[i] else shot.get("species")
     canons = _canon_species_list(raw)
     display = " & ".join(c[0] for c in canons) or (shot.get("species") or "")
-    loc = iloc[i] if i < len(iloc) and iloc[i] else shot.get("location")
+    loc = canonical_location(iloc[i] if i < len(iloc) and iloc[i] else shot.get("location"))
     dims = shot.get("image_dims") or []
     _sd = _capture_date_obj(shot.get("caption") or "", shot.get("timestamp"))
     return {
@@ -1695,13 +1695,52 @@ def _capture_date(caption, timestamp):
     return dt.strftime("%b %-d, %Y") if dt else None
 
 
+# Street-suffix synonyms folded to one token so "Rea St." / "Rea Street" (and
+# Dr/Drive, Ln/Lane, Ct/Court, …) count as one place. Full word -> abbreviation;
+# the abbreviated forms already collapse to the same token once punctuation is
+# stripped. Applied as whole words only, so it never touches a name mid-string.
+_LOC_SUFFIX = {
+    "street": "st", "avenue": "ave", "road": "rd", "drive": "dr", "lane": "ln",
+    "court": "ct", "boulevard": "blvd", "place": "pl", "terrace": "ter",
+    "highway": "hwy", "extension": "ext", "circle": "cir", "square": "sq",
+    "parkway": "pkwy", "trail": "trl", "heights": "hts", "point": "pt",
+}
+_LOC_SUFFIX_RE = re.compile(
+    r"\b(%s)\b" % "|".join(sorted(_LOC_SUFFIX, key=len, reverse=True)))
+
+
 def _loc_key(loc):
-    """Normalized key so 'Rea St.' and 'Rea Street' count as one place."""
+    """Normalized key so street-suffix variants ('Rea St.' / 'Rea Street',
+    'Sargent Dr' / 'Sargent Drive') count as one place. Lowercases, strips
+    punctuation, folds the suffix synonyms, and collapses whitespace."""
     k = re.sub(r"[^a-z0-9 ]", "", (loc or "").lower()).strip()
-    k = re.sub(r"\bstreet\b", "st", k)
-    k = re.sub(r"\bavenue\b", "ave", k)
-    k = re.sub(r"\broad\b", "rd", k)
+    k = _LOC_SUFFIX_RE.sub(lambda m: _LOC_SUFFIX[m.group(1)], k)
     return re.sub(r"\s+", " ", k)
+
+
+# Canonical display spelling per normalized key — collapses St./Street/St drift
+# (and the Abbot->Abbott typo) to one label everywhere a location is shown,
+# without a bulk override backfill and surviving every re-sync. Keyed by
+# _loc_key(); add a line when a place picks up a new spelling variant.
+_LOC_DISPLAY = {
+    "rea st": "Rea St.",
+    "rea st ext": "Rea St. Extension",
+    "johnson st": "Johnson St.",
+    "abbott st": "Abbott St.",
+    "abbot st": "Abbott St.",            # typo -> Abbott
+    "annie l sargent school": "Annie L. Sargent School",
+    "annie l sargent school access rd": "Annie L. Sargent School Access Rd.",
+    "congress st bridge boston": "Congress St. Bridge, Boston",
+    "harborwalk boston": "Harborwalk, Boston",
+}
+
+
+def canonical_location(loc):
+    """Canonical display spelling for a location — fixes St./Street drift and
+    known typos; passes anything without a known variant straight through."""
+    if not loc:
+        return loc
+    return _LOC_DISPLAY.get(_loc_key(loc), loc)
 
 
 LOCATIONS_FILE = os.path.join(HERE, "static", "locations.json")
@@ -1811,17 +1850,19 @@ def images_posted_on(shots, day):
 
 
 def location_places(shots):
-    """Map each distinct raw location string used by any frame to its geocoded
-    place name (locations.json), so UI labels can link to /birds?loc=. Locations
-    that don't resolve to a pin are simply absent."""
+    """Map each canonical location label used by any frame to its geocoded place
+    name (locations.json), so UI labels can link to /birds?loc=. Keyed by the
+    canonical display (matching the frame's shown location); places that don't
+    resolve to a pin are simply absent."""
     idx = _place_index(load_locations())
     out = {}
     for shot in shots:
         for loc in (shot.get("image_locations") or []) + [shot.get("location")]:
-            if loc and loc not in out:
-                place = _match_place(loc, idx)
+            cloc = canonical_location(loc)
+            if cloc and cloc not in out:
+                place = _match_place(cloc, idx)
                 if place:
-                    out[loc] = place["name"]
+                    out[cloc] = place["name"]
     return out
 
 
@@ -1860,7 +1901,7 @@ def gallery_stats(shots):
                 k = _loc_key(loc)
                 if k:
                     loc_ct[k] += 1
-                    loc_display.setdefault(k, loc)
+                    loc_display.setdefault(k, canonical_location(loc))
             if d:
                 dates.append(d)
                 by_month[d.month - 1] += 1

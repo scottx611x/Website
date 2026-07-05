@@ -155,6 +155,19 @@ class BirdsTestCase(unittest.TestCase):
         self.assertEqual(pts[0]["count"], 2)  # alias prefix folds the Extension in
         self.assertEqual(pts[0]["top"], ["Barred Owl"])
 
+    def test_loc_key_folds_suffix_variants(self):
+        for a, b in [("Rea St.", "Rea Street"), ("Rea St", "Rea Street"),
+                     ("Sargent Dr", "Sargent Drive"), ("Oak Ln", "Oak Lane"),
+                     ("Main Ct.", "Main Court")]:
+            self.assertEqual(birds._loc_key(a), birds._loc_key(b), (a, b))
+
+    def test_canonical_location_standardizes_display(self):
+        for variant in ("Rea Street", "Rea St", "Rea st.", "Rea St."):
+            self.assertEqual(birds.canonical_location(variant), "Rea St.")
+        self.assertEqual(birds.canonical_location("Abbot St"), "Abbott St.")  # typo
+        self.assertEqual(birds.canonical_location("Lake Cochichewick"),
+                         "Lake Cochichewick")  # untouched passthrough
+
     def test_gallery_stats_shape(self):
         stats = birds.gallery_stats(birds.load_gallery())
         for key in ("species", "photos", "videos", "families", "top_species", "by_month"):
