@@ -691,6 +691,34 @@ def add_exclusion(post_id):
 REID_QUEUE_FILE = os.path.join(HERE, "birds", "reid_queue.json")
 
 
+def load_lifers():
+    """Per-species life-list backdrop choices: {species: {"src": thumb_url,
+    "pos": 0..1 vertical framing}}. Lets curation pick which photo of a species
+    fills the life-list 'sky' and how it's cropped, since auto-picking the best
+    shot doesn't always frame the bird well."""
+    return _load_curation(LIFERS_FILE, dict)
+
+
+def set_lifer(species, src=None, pos=None):
+    """Set (or clear) the curated backdrop for one species. Passing neither src
+    nor pos removes the entry, falling back to the auto choice."""
+    species = (species or "").strip()
+    if not species:
+        return {}
+    lifers = load_lifers()
+    if not src and pos is None:
+        lifers.pop(species, None)
+    else:
+        entry = dict(lifers.get(species) or {})
+        if src:
+            entry["src"] = src
+        if pos is not None:
+            entry["pos"] = max(0.0, min(1.0, float(pos)))
+        lifers[species] = entry
+    _save_curation(LIFERS_FILE, lifers)
+    return lifers.get(species, {})
+
+
 def load_reid_queue():
     return _load_curation(REID_QUEUE_FILE, list)
 
@@ -980,6 +1008,7 @@ def _load_manifest_from_s3():
 TOKEN_FILE = os.path.join(HERE, ".ig_token")
 EXCLUDED_FILE = os.path.join(HERE, "birds", "excluded.json")
 OVERRIDES_FILE = os.path.join(HERE, "birds", "overrides.json")
+LIFERS_FILE = os.path.join(HERE, "birds", "lifers.json")
 
 
 # --- Curation storage: repo files locally, S3 objects in production ----------
@@ -993,6 +1022,7 @@ _CURATION_S3 = {
     EXCLUDED_FILE: "{}/excluded.json".format(S3_PREFIX),
     OVERRIDES_FILE: "{}/overrides.json".format(S3_PREFIX),
     REID_QUEUE_FILE: "{}/reid_queue.json".format(S3_PREFIX),
+    LIFERS_FILE: "{}/lifers.json".format(S3_PREFIX),
 }
 _curation_cache = {}  # path -> {"etag":..., "raw": bytes}
 
@@ -1978,6 +2008,7 @@ def stats_series(shots, top_n=15):
     sp_family = {}
     first_seen = {}  # name -> (date, first-sighting image url)
     best_shot = {}   # name -> (post weight, image url) for the avatar
+    sp_imgs = collections.defaultdict(dict)  # name -> {image url: best weight}
     for shot in shots:
         d = _capture_date_obj(shot.get("caption") or "", shot.get("timestamp"))
         if not d:
@@ -2003,14 +2034,31 @@ def stats_series(shots, top_n=15):
                     first_seen[name] = (d, images[i])
                 if name not in best_shot or weight > best_shot[name][0]:
                     best_shot[name] = (weight, images[i])
+                img = images[i]
+                if weight > sp_imgs[name].get(img, -1):
+                    sp_imgs[name][img] = weight
     fam_order = {f: n for n, f in enumerate(_FAMILY_ORDER)}
+    lifers = load_lifers()
+
+    def lifer_cands(name):
+        """Up to 8 candidate backdrops for a species, best shot first — what the
+        curation UI cycles through."""
+        ranked = sorted(sp_imgs[name], key=lambda u: sp_imgs[name][u], reverse=True)
+        return [thumb_url(u) for u in ranked[:8]]
     # Every preview here renders small (tooltips, avatars, the lifer card), so
     # they all ride the grid thumbnails rather than full-resolution copies.
     pheno = [{"name": s, "fam": sp_family[s], "months": sp_month[s], "total": sp_total[s],
               "imgs": [thumb_url(b[1]) if b else None for b in sp_month_best[s]]}
              for s in sorted(sp_total, key=lambda s: (fam_order.get(sp_family[s], 999), s))]
-    accum = [{"d": d.isoformat(), "s": s, "img": thumb_url(img), "fam": sp_family[s],
-              "total": sp_total[s]}
+    def accum_entry(s, d, img):
+        cur = lifers.get(s) or {}
+        cands = lifer_cands(s)
+        # Curated backdrop wins; otherwise the best shot of the species (which
+        # frames the bird better than its very first, often rougher, sighting).
+        src = cur.get("src") or (thumb_url(best_shot[s][1]) if s in best_shot else thumb_url(img))
+        return {"d": d.isoformat(), "s": s, "img": src, "fam": sp_family[s],
+                "total": sp_total[s], "pos": cur.get("pos", 0.5), "cands": cands}
+    accum = [accum_entry(s, d, img)
              for s, (d, img) in sorted(first_seen.items(), key=lambda kv: kv[1][0])]
     top = [{"name": s, "n": n, "fam": sp_family[s], "img": thumb_url(best_shot[s][1])}
            for s, n in sp_total.most_common(top_n)]

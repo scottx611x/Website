@@ -188,13 +188,33 @@ class BirdsTestCase(unittest.TestCase):
             # Hover previews: exactly the months with photos carry an image.
             self.assertEqual([bool(i) for i in row["imgs"]],
                              [bool(n) for n in row["months"]])
-        # Every lifer carries its first-sighting photo for the timeline card.
+        # Every lifer carries a backdrop photo, framing, and photo candidates.
         for entry in series["accum"]:
             self.assertTrue(entry["img"])
             self.assertTrue(entry["fam"])
+            self.assertGreaterEqual(entry["pos"], 0.0)
+            self.assertLessEqual(entry["pos"], 1.0)
+            self.assertIsInstance(entry["cands"], list)
+            self.assertTrue(entry["cands"])  # at least its own photo
+            self.assertLessEqual(len(entry["cands"]), 8)
         for day, val in series["per_day"].items():
             self.assertGreaterEqual(val["n"], len(val["sp"]) and 1)
             self.assertTrue(val["img"])
+
+    def test_lifer_curation_roundtrip(self):
+        shots = birds.load_gallery(shuffle=False)
+        species = birds.stats_series(shots)["accum"][-1]["s"]
+        try:
+            birds.set_lifer(species, src="https://example.com/x.jpg", pos=0.3)
+            entry = next(a for a in birds.stats_series(shots)["accum"] if a["s"] == species)
+            self.assertEqual(entry["img"], "https://example.com/x.jpg")
+            self.assertEqual(entry["pos"], 0.3)
+            # pos clamps to [0, 1]; passing neither field clears the override.
+            birds.set_lifer(species, pos=5)
+            self.assertEqual(birds.load_lifers()[species]["pos"], 1.0)
+        finally:
+            birds.set_lifer(species)  # clear
+        self.assertNotIn(species, birds.load_lifers())
 
     def test_sort_posted_leads_with_newest_instagram_posts(self):
         shots = birds.load_gallery(shuffle=False)

@@ -34,6 +34,17 @@
                     <span class="lifer-meta mono" id="lifer-meta"></span>
                     <span class="lifer-count mono" id="lifer-count"></span>
                 </a>
+                {% if curate %}
+                <div id="lifer-curate" class="lifer-curate mono" hidden>
+                    <button type="button" id="lc-prev" title="previous photo">&#9664;</button>
+                    <span id="lc-photo">photo 1/1</span>
+                    <button type="button" id="lc-next" title="next photo">&#9654;</button>
+                    <span class="lc-sep">&middot;</span>
+                    <span class="lc-hint">drag the backdrop &#8597; to frame</span>
+                    <button type="button" id="lc-reset" title="clear this override">reset</button>
+                    <span id="lc-saved" class="lc-saved"></span>
+                </div>
+                {% endif %}
             </div>
         </div>
 
@@ -138,6 +149,7 @@
     (function () {
         var S = {{ series|tojson }};
         var RIVER = {{ river|tojson }};
+        var CURATE = {{ 'true' if curate else 'false' }};
         var FAM = [{% for fam, count in stats.families %}{ name: {{ fam|tojson }}, n: {{ count }}, spp: {{ stats.family_species[fam] }} }{{ "," if not loop.last }}{% endfor %}];
         var GREEN = "#2f7d4f", NEON = "#38e08a", INK = "#0d120e", MUTED = "#8a9486";
         // Validated categorical palette (colorblind-safe, fixed order) for the
@@ -211,10 +223,21 @@
             var sky = d3.area().curve(d3.curveStepAfter)
                 .x(function (d) { return x(d.d); }).y0(m.t).y1(function (d) { return y(d.n); });
             svg.append("clipPath").attr("id", "accum-sky").append("path").datum(data).attr("d", sky);
+            var boxW = W - m.l - m.r, boxH = H - m.t - m.b;
             var skyImg = svg.append("image").attr("x", m.l).attr("y", m.t)
-                .attr("width", W - m.l - m.r).attr("height", H - m.t - m.b)
+                .attr("width", boxW).attr("height", boxH)
                 .attr("preserveAspectRatio", "xMidYMid slice")
                 .attr("clip-path", "url(#accum-sky)").attr("opacity", 0.5);
+            // The photo covers the box (slice) zoomed a touch, leaving vertical
+            // slack so a chosen framing (pos 0..1, .5 = centre) pans it up/down
+            // to sit the bird in the sky. Curation drags this; readers get the
+            // saved value.
+            var SKY_ZOOM = 1.6, cx = m.l + boxW / 2, cy = m.t + boxH / 2;
+            function skyPos(p) {
+                var dy = (0.5 - Math.max(0, Math.min(1, p))) * (SKY_ZOOM - 1) * boxH;
+                skyImg.attr("transform", "translate(" + cx + "," + (cy + dy) + ") scale(" +
+                    SKY_ZOOM + ") translate(" + (-cx) + "," + (-cy) + ")");
+            }
             svg.append("path").datum(data).attr("d", sky).attr("clip-path", "url(#accum-sky)")
                 .attr("fill", "#f4f1e9").attr("opacity", 0.34).style("pointer-events", "none");
             svg.append("path").datum(data).attr("d", area).attr("fill", NEON).attr("opacity", 0.1);
@@ -254,10 +277,12 @@
             function show(i) {
                 sel = Math.max(0, Math.min(i, data.length - 1));
                 var d = data[sel];
+                if (d.idx == null) d.idx = Math.max(0, (d.cands || []).indexOf(d.img));
                 guide.attr("x1", x(d.d)).attr("x2", x(d.d)).attr("opacity", 0.5);
                 focus.attr("cx", x(d.d)).attr("cy", y(d.n)).attr("opacity", 1)
                     .attr("stroke", pinned ? INK : GREEN);
                 skyImg.attr("href", d.img);
+                skyPos(d.pos == null ? 0.5 : d.pos);
                 card.hidden = false;
                 card.href = birdURL(d.s);
                 cardRank.textContent = "lifer #" + d.n + (pinned ? " · pinned" : "");
@@ -265,6 +290,7 @@
                 cardMeta.textContent = d3.timeFormat("%b %-d, %Y")(d.d) + " · " + d.fam;
                 cardCount.textContent = d.total === 1 ? "1 photo so far →"
                     : d.total + " photos so far →";
+                updateCurate();
             }
             var bisect = d3.bisector(function (d) { return d.d; }).left;
             function idxAt(ev) {
@@ -275,24 +301,78 @@
                 if (Math.abs(x(prev.d) - px) < Math.abs(x(data[i].d) - px)) i = Math.max(0, i - 1);
                 return i;
             }
-            // Hover scrubs; a CLICK (or tap) pins the selection so the pointer
-            // can travel down to the card's links without re-scrubbing en route.
-            // A drag always scrubs, pinned or not (that's the touch gesture).
-            var downAt = null;
+
+            // ---- Curation: pin a lifer, then cycle its photos and drag the
+            // backdrop up/down to frame the bird. Both persist to /curate/lifer.
+            var tb = document.getElementById("lifer-curate");
+            var photoEl = tb && document.getElementById("lc-photo");
+            var savedEl = tb && document.getElementById("lc-saved");
+            var saveTimer = null;
+            function saveLifer(d, clear) {
+                if (!CURATE) return;
+                if (savedEl) savedEl.textContent = "saving…";
+                clearTimeout(saveTimer);
+                var body = clear ? { species: d.s }
+                    : { species: d.s, src: d.img, pos: d.pos == null ? 0.5 : d.pos };
+                saveTimer = setTimeout(function () {
+                    fetch("/curate/lifer", {
+                        method: "POST", headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(body)
+                    }).then(function (r) { return r.json(); })
+                        .then(function () { if (savedEl) savedEl.textContent = "saved ✓"; })
+                        .catch(function () { if (savedEl) savedEl.textContent = "save failed"; });
+                }, 300);
+            }
+            function updateCurate() {
+                if (!tb) return;
+                tb.hidden = !pinned;
+                if (!pinned) return;
+                var d = data[sel], cands = d.cands || [];
+                photoEl.textContent = "photo " + ((d.idx || 0) + 1) + "/" + Math.max(1, cands.length);
+            }
+            function cyclePhoto(dir) {
+                var d = data[sel], cands = d.cands || [];
+                if (cands.length < 2) return;
+                d.idx = (((d.idx || 0) + dir) % cands.length + cands.length) % cands.length;
+                d.img = cands[d.idx];
+                skyImg.attr("href", d.img);
+                updateCurate();
+                saveLifer(d, false);
+            }
+            if (tb) {
+                document.getElementById("lc-prev").addEventListener("click", function () { cyclePhoto(-1); });
+                document.getElementById("lc-next").addEventListener("click", function () { cyclePhoto(1); });
+                document.getElementById("lc-reset").addEventListener("click", function () {
+                    var d = data[sel];
+                    d.idx = 0; d.img = (d.cands || [])[0] || d.img; d.pos = 0.5;
+                    skyImg.attr("href", d.img); skyPos(0.5);
+                    updateCurate(); saveLifer(d, true);
+                    if (savedEl) savedEl.textContent = "reset ✓";
+                });
+            }
+
+            // Hover scrubs; a CLICK (or tap) pins the selection so the pointer can
+            // travel to the card's links without re-scrubbing. In curate mode, once
+            // pinned a vertical DRAG reframes the backdrop instead of scrubbing.
+            var downAt = null, repoFrom = 0, reposing = false;
             svg.on("pointerdown", function (ev) {
                 downAt = [ev.clientX, ev.clientY];
-                show(idxAt(ev));
+                if (CURATE && pinned) { reposing = true; repoFrom = data[sel].pos == null ? 0.5 : data[sel].pos; }
+                else { reposing = false; show(idxAt(ev)); }
             });
             svg.on("pointermove", function (ev) {
-                if (ev.buttons > 0) show(idxAt(ev));
+                if (reposing && ev.buttons > 0) {
+                    var d = data[sel];
+                    d.pos = Math.max(0, Math.min(1, repoFrom + (ev.clientY - downAt[1]) / boxH));
+                    skyPos(d.pos);
+                } else if (ev.buttons > 0) show(idxAt(ev));
                 else if (!pinned) show(idxAt(ev));
             });
             svg.on("pointerup", function (ev) {
-                if (downAt && Math.hypot(ev.clientX - downAt[0], ev.clientY - downAt[1]) < 8) {
-                    pinned = !pinned;
-                    show(sel);
-                }
-                downAt = null;
+                var moved = downAt && Math.hypot(ev.clientX - downAt[0], ev.clientY - downAt[1]) >= 8;
+                if (!moved) { pinned = !pinned; show(sel); }
+                else if (reposing) saveLifer(data[sel], false);
+                downAt = null; reposing = false;
             });
             el.addEventListener("keydown", function (ev) {
                 if (ev.key === "ArrowRight") { show(sel + 1); ev.preventDefault(); }

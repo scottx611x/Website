@@ -568,6 +568,19 @@ def curate_override():
     return {"ok": True, "ambiguous": bool(shot and shot.get("ambiguous"))}
 
 
+@app.route("/curate/lifer", methods=["POST"])
+def curate_lifer():
+    if not _curate_on():
+        abort(404)
+    data = request.get_json(silent=True) or {}
+    species = (data.get("species") or "").strip()
+    if not species:
+        abort(400)
+    pos = data.get("pos")
+    entry = birds.set_lifer(species, src=data.get("src"), pos=pos)
+    return {"ok": True, "entry": entry}
+
+
 @app.route("/curate/reid", methods=["POST"])
 def curate_reid():
     if not _curate_on():
