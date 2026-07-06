@@ -923,32 +923,61 @@
             }
 
             // Selection rides the RENDERED band shapes (native hit-testing), so a
-            // touch always resolves to the bird actually under the pointer — no more
-            // month-snapping mismatch. A fat transparent stroke fattens the hit area
-            // so even hair-thin currents respond.
-            function onEnter(ev, l) {
+            // touch resolves to the bird actually under the pointer. A fat
+            // transparent stroke fattens the hit area so even hair-thin currents
+            // respond. INTERACTION: on a mouse, hover reveals and a click goes.
+            // On TOUCH there's no hover, so the first tap reveals the bird + its
+            // readout (which must PERSIST — touch fires pointerleave right after,
+            // which we ignore); a second tap on the same current, or tapping the
+            // readout's "see them →", navigates. So a tap explores, it never yanks
+            // you straight to the bird.
+            var pendingNav = -1, tappedBand = -1, lastType = "mouse";
+            function selectBand(li, cx, cy) { activate(li, cx, cy); tellReadout(li); }
+            function faceAt(ev, li) {
                 var p = d3.pointer(ev, svg.node());
                 var i = Math.max(0, Math.min(N - 1, Math.round(x.invert(p[0]))));
-                activate(l._i, p[0], faceCenter(l._i, i));
-                tellReadout(l._i);
+                return { cx: p[0], cy: faceCenter(li, i) };
+            }
+            function hoverBand(ev, li, cx, cy) {
+                if (ev.pointerType === "touch") return;   // touch reveals on tap, not on move
+                selectBand(li, cx, cy);
+            }
+            function downBand(ev, li, cx, cy) {
+                lastType = ev.pointerType;
+                selectBand(li, cx, cy);
+                if (ev.pointerType === "touch") {
+                    pendingNav = (tappedBand === li) ? li : -1;   // 2nd tap on the same = go
+                    tappedBand = li;
+                } else {
+                    pendingNav = li;                              // mouse: hover already revealed
+                }
+            }
+            function clickBand(li) {
+                var go = pendingNav === li; pendingNav = -1;
+                if (go) location.href = birdURL(S2[li].name);
             }
             svg.selectAll("path.river-hit").data(layers).enter().append("path")
                 .attr("class", "river-hit").attr("d", area)
                 .attr("fill", "transparent").attr("stroke", "transparent")
-                .attr("stroke-width", narrow ? 16 : 12).attr("stroke-linejoin", "round")
+                .attr("stroke-width", narrow ? 20 : 12).attr("stroke-linejoin", "round")
                 .style("cursor", "pointer")
-                .on("pointerenter pointermove pointerdown", onEnter)
-                .on("click", function (ev, l) { location.href = birdURL(S2[l._i].name); });
-            // A face rides slightly off its band (decluttered along x), so it owns
-            // its own hover/click — otherwise the hit path underneath could resolve
-            // to a neighbour. Raised above the hit layer for that reason.
+                .on("pointerenter pointermove", function (ev, l) { var f = faceAt(ev, l._i); hoverBand(ev, l._i, f.cx, f.cy); })
+                .on("pointerdown", function (ev, l) { var f = faceAt(ev, l._i); downBand(ev, l._i, f.cx, f.cy); })
+                .on("click", function (ev, l) { clickBand(l._i); });
+            // Faces ride slightly off their band (decluttered), so they own their
+            // own input — otherwise the hit path underneath could resolve to a
+            // neighbour. Raised above the hit layer for that reason.
             avatars.forEach(function (a) {
                 a.g.raise().style("cursor", "pointer")
-                    .on("pointerenter pointermove", function (ev) {
-                        activate(a.li, a.cx, a.cy); tellReadout(a.li);
-                    });
+                    .on("pointerenter pointermove", function (ev) { hoverBand(ev, a.li, a.cx, a.cy); })
+                    .on("pointerdown", function (ev) { downBand(ev, a.li, a.cx, a.cy); })
+                    .on("click", function () { clickBand(a.li); });
             });
-            svg.on("pointerleave", function () { activate(-1); tellReadout(-1); });
+            // Mouse hover-out clears; a touch selection persists until the next tap.
+            svg.on("pointerleave", function () {
+                if (lastType === "touch") return;
+                activate(-1); tellReadout(-1);
+            });
         }
 
         renderRiver();
