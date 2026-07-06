@@ -540,6 +540,8 @@ body.home .site-nav { z-index: 0; }
     animation: bar-grow 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) both; transform-origin: left; }
 .bar-fill.alt { background: linear-gradient(90deg, var(--green), var(--neon)); }
 .bar-fill.warm { background: #d9863b; }
+/* Locations read as home/neutral green — reserve the amber for "away". */
+.bar-fill.loc { background: #6ba368; }
 .bar-val { font-size: 0.8rem; color: var(--muted); text-align: right; }
 @keyframes bar-grow { from { transform: scaleX(0); } to { transform: scaleX(1); } }
 
@@ -557,55 +559,45 @@ body.home .site-nav { z-index: 0; }
 .chart-readout a { color: var(--green); font-weight: 600; }
 .chart-readout strong { color: var(--green); }
 
-/* The river: scrubbable streamgraph + month card */
-.lab-tag {
-    font-size: 0.6rem; letter-spacing: 0.08em; text-transform: uppercase;
-    color: var(--amber); border: 1px solid rgba(232, 176, 75, 0.5);
-    border-radius: 999px; padding: 0.1rem 0.45rem; vertical-align: middle; margin-left: 0.4rem;
+/* The river: touch a species' current, a photo card blooms in the top-left.
+   Translucent + blurred so it reads over any band behind it (a streamgraph has
+   no guaranteed empty region, unlike the monotonic life list). */
+.river-stage { position: relative; margin-top: 0.6rem; }
+.river-stage #river-chart { width: 100%; }
+.river-band { transition: opacity 0.14s ease; }
+.river-card {
+    position: absolute; top: 0.6rem; left: 0.6rem; z-index: 3; max-width: 17rem;
+    display: flex; gap: 0.85rem; align-items: center;
+    text-decoration: none; color: var(--ink); padding: 0.65rem 0.8rem 0.65rem 0.65rem;
+    border-radius: 14px; background: rgba(244, 241, 233, 0.82); backdrop-filter: blur(4px);
+    border-left: 4px solid var(--accent, var(--green));
+    box-shadow: 0 3px 16px -6px rgba(13, 18, 14, 0.32);
 }
-.river-band { transition: opacity 0.12s ease; }
-#river-chart .river-band:hover { opacity: 0.85; }
-/* the scrubber — a big, native, touch-friendly slider */
-.river-scrub {
-    -webkit-appearance: none; appearance: none; width: 100%; height: 1.6rem;
-    margin: 0.3rem 0 0.2rem; background: transparent; cursor: pointer;
+.river-thumb {
+    flex: none; width: 5.2rem; height: 5.2rem; border-radius: 10px; overflow: hidden;
+    background: var(--paper-2);
 }
-.river-scrub::-webkit-slider-runnable-track { height: 4px; border-radius: 999px; background: rgba(13,18,14,0.15); }
-.river-scrub::-moz-range-track { height: 4px; border-radius: 999px; background: rgba(13,18,14,0.15); }
-.river-scrub::-webkit-slider-thumb {
-    -webkit-appearance: none; appearance: none; width: 1.4rem; height: 1.4rem; margin-top: -0.55rem;
-    border-radius: 50%; background: var(--green); border: 3px solid var(--paper);
-    box-shadow: 0 1px 5px rgba(13,18,14,0.35);
+.river-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.river-thumb.no-img { display: none; }
+.river-info { display: flex; flex-direction: column; min-width: 0; }
+.river-name { font-family: var(--display); font-size: 1.15rem; font-weight: 600; line-height: 1.15; }
+.river-fam { font-size: 0.66rem; color: var(--muted); margin-top: 0.1rem; }
+.river-stats { font-size: 0.72rem; color: var(--muted); margin-top: 0.4rem; }
+.river-stats b { color: var(--green); font-weight: 700; }
+.river-cta { font-size: 0.72rem; color: var(--accent, var(--green)); font-weight: 700; margin-top: 0.45rem; }
+.river-card:hover .river-cta { text-decoration: underline; }
+.river-card.bloom { animation: river-bloom 0.34s cubic-bezier(0.2, 0.7, 0.2, 1); }
+@keyframes river-bloom {
+    from { opacity: 0.3; transform: translateY(5px) scale(0.98); }
+    to { opacity: 1; transform: none; }
 }
-.river-scrub::-moz-range-thumb {
-    width: 1.4rem; height: 1.4rem; border-radius: 50%; background: var(--green);
-    border: 3px solid var(--paper); box-shadow: 0 1px 5px rgba(13,18,14,0.35);
+@media (max-width: 640px) {
+    .river-card { top: 0.4rem; left: 0.4rem; right: 0.4rem; max-width: none;
+        padding: 0.5rem 0.6rem; }
+    .river-thumb { width: 4rem; height: 4rem; }
+    .river-name { font-size: 1rem; }
 }
-.river-scrub:focus-visible { outline: none; }
-.river-scrub:focus-visible::-webkit-slider-thumb { box-shadow: 0 0 0 3px rgba(47,125,79,0.4); }
-/* the month card the scrubber drives */
-.river-card { margin-top: 0.3rem; }
-.river-cardhead { display: flex; align-items: baseline; gap: 0.6rem; flex-wrap: wrap; }
-.river-cardhead strong { font-family: var(--display); font-size: 1.3rem; color: var(--ink); }
-.river-tot { font-family: var(--mono); font-size: 0.75rem; color: var(--muted); }
-.river-chips { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.55rem; }
-.river-chip {
-    display: inline-flex; align-items: center; gap: 0.35rem; text-decoration: none;
-    font-size: 0.78rem; color: var(--ink); background: rgba(13,18,14,0.05);
-    border-radius: 999px; padding: 0.28rem 0.65rem; transition: background 0.12s ease;
-}
-.river-chip:hover { background: rgba(47,125,79,0.14); }
-.river-chip em { color: var(--muted); font-style: normal; font-family: var(--mono); font-size: 0.72rem; }
-.river-more { font-size: 0.72rem; color: var(--muted); align-self: center; padding: 0.28rem 0.2rem; }
-.river-legend { display: flex; flex-wrap: wrap; gap: 0.3rem 0.8rem; margin-top: 0.9rem;
-    padding-top: 0.7rem; border-top: 1px solid rgba(13,18,14,0.08); }
-.river-key {
-    display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.7rem;
-    color: var(--muted); text-decoration: none; white-space: nowrap;
-}
-a.river-key:hover { color: var(--green); }
-.river-key em { color: var(--muted); font-style: normal; }
-.river-dot { width: 0.6rem; height: 0.6rem; border-radius: 3px; display: inline-block; flex: none; }
+@media (prefers-reduced-motion: reduce) { .river-card.bloom { animation: none; } }
 
 /* shared floating tooltip (matrix / calendar / treemap) */
 .viz-tip {
@@ -621,21 +613,28 @@ a.river-key:hover { color: var(--green); }
 }
 
 /* the lifer card under the life-list timeline */
+/* Lifer card floats in the chart's empty upper-left (a cumulative curve is
+   monotonic, so that region is always clear — no wasted box below). */
+.accum-stage { position: relative; }
 .lifer-card {
-    display: grid; grid-template-columns: 96px 1fr; gap: 0.9rem; align-items: center;
-    margin-top: 0.7rem; padding: 0.6rem; border-radius: 10px;
-    background: rgba(47, 125, 79, 0.07);
+    position: absolute; top: 2.6rem; left: 2.6rem; z-index: 3; max-width: 22rem;
+    display: grid; grid-template-columns: 84px 1fr; gap: 0.8rem; align-items: center;
+    padding: 0.55rem; border-radius: 12px; text-decoration: none;
+    background: rgba(244, 241, 233, 0.78); backdrop-filter: blur(3px);
+    box-shadow: 0 2px 14px -6px rgba(13, 18, 14, 0.3);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
+.lifer-card:hover { transform: translateY(-1px); box-shadow: 0 8px 22px -8px rgba(13, 18, 14, 0.3); }
 .lifer-card img {
-    width: 96px; height: 96px; object-fit: cover; border-radius: 8px; display: block;
+    width: 84px; height: 84px; object-fit: cover; border-radius: 8px; display: block;
     background: var(--paper-2);
 }
 .lifer-card.no-img { grid-template-columns: 1fr; }
 .lifer-card.no-img img { display: none; }
 .lifer-text { display: flex; flex-direction: column; gap: 0.1rem; min-width: 0; }
-.lifer-rank { font-size: 0.68rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
-.lifer-name { font-family: var(--display); font-size: 1.15rem; font-weight: 600; color: var(--ink); }
-.lifer-name:hover { color: var(--green); }
+.lifer-rank { font-size: 0.66rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.lifer-name { font-family: var(--display); font-size: 1.2rem; font-weight: 600; color: var(--ink); }
+.lifer-card:hover .lifer-name { color: var(--green); }
 .lifer-meta { font-size: 0.72rem; color: var(--muted); }
 .lifer-count { font-size: 0.75rem; color: var(--green); font-weight: 700; margin-top: 0.15rem; }
 
@@ -714,8 +713,10 @@ a.pheno-cell:hover, a.pheno-cell:focus-visible {
     .pheno-row { grid-template-columns: 7.5rem repeat(12, 1fr); gap: 1.5px; }
     .pheno-name { font-size: 0.7rem; }
     .pheno-cell { height: 13px; }
-    .lifer-card { grid-template-columns: 72px 1fr; }
-    .lifer-card img { width: 72px; height: 72px; }
+    .lifer-card { top: 2.2rem; left: 1rem; right: 1rem; max-width: none;
+        grid-template-columns: 60px 1fr; gap: 0.6rem; padding: 0.45rem; }
+    .lifer-card img { width: 60px; height: 60px; }
+    .lifer-name { font-size: 1rem; }
 }
 
 /* Projects curate editor */

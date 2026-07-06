@@ -2024,30 +2024,33 @@ def stats_series(shots, top_n=15):
 
 
 def activity_river(shots, top_n=8):
-    """Photo activity as a streamgraph 'river': per-species counts binned by
-    calendar month across the full span. The ``top_n`` most-photographed species
-    get their own band (in a fixed order so colors are stable); everything else
-    folds into 'Other'. The month axis is continuous — gap months are zero-filled
-    — so the river flows in real time. Same shape a live BirdNET feed would take,
-    so the viz can swap data sources later."""
+    """Photo activity as a streamgraph 'river' — one flowing band per top species,
+    counts binned by calendar month. Each band carries its best photo (thumbnail),
+    total, family, and busiest month, so touching a current can bloom a card with
+    that bird. Fixed species order keeps band colors stable; the month axis is
+    continuous and trimmed to the active window so the river fills the frame."""
     import collections
     bins = collections.defaultdict(collections.Counter)
     sp_total = collections.Counter()
-    sp_fam = {}
+    sp_fam, sp_best = {}, {}
     for shot in shots:
         d = _capture_date_obj(shot.get("caption") or "", shot.get("timestamp"))
         if not d:
             continue
         ym = "%04d-%02d" % (d.year, d.month)
         isp = shot.get("image_species") or []
-        for i in range(len(shot.get("images") or [])):
+        images = shot.get("images") or []
+        weight = shot.get("weight") or 0
+        for i in range(len(images)):
             raw = isp[i] if i < len(isp) and isp[i] else shot.get("species")
             for name, family in _canon_species_list(raw):
                 bins[ym][name] += 1
                 sp_total[name] += 1
                 sp_fam[name] = family
+                if name not in sp_best or weight > sp_best[name][0]:
+                    sp_best[name] = (weight, images[i])
     if not bins:
-        return {"months": [], "series": [], "other": [], "top_species": []}
+        return {"months": [], "series": []}
     y0, m0 = (int(x) for x in min(bins).split("-"))
     y1, m1 = (int(x) for x in max(bins).split("-"))
     months = []
@@ -2056,21 +2059,25 @@ def activity_river(shots, top_n=8):
         m0 += 1
         if m0 > 12:
             m0, y0 = 1, y0 + 1
-    # Trim the long sparse ramp-up: start at the first month the hobby really
-    # gets going (>= 5 photos) so the river fills the frame instead of trickling
-    # across a mostly-empty axis. The early origin is told by the life list.
     start = next((i for i, mo in enumerate(months)
                   if sum(bins[mo].values()) >= 5), 0)
     months = months[start:]
-    top = [n for n, _ in sp_total.most_common(top_n)]
-    top_set = set(top)
-    series = [{"name": n, "fam": sp_fam.get(n, ""), "total": sp_total[n],
-               "values": [bins[mo].get(n, 0) for mo in months]} for n in top]
-    other = [sum(c for nm, c in bins[mo].items() if nm not in top_set) for mo in months]
-    # Per-month breakdown (species -> count, biggest first) for the scrub card.
-    per_month = [sorted(bins[mo].items(), key=lambda kv: -kv[1]) for mo in months]
-    return {"months": months, "series": series, "other": other,
-            "top_species": top, "per_month": per_month}
+
+    def busiest(name):
+        ym = max(bins, key=lambda k: bins[k][name])
+        return ym, bins[ym][name]
+
+    series = []
+    for n in sp_total.most_common(top_n):
+        name = n[0]
+        b_ym, b_n = busiest(name)
+        series.append({
+            "name": name, "fam": sp_fam.get(name, ""), "total": sp_total[name],
+            "img": thumb_url(sp_best[name][1]),
+            "values": [bins[mo].get(name, 0) for mo in months],
+            "busiest": b_ym, "busiest_n": b_n,
+        })
+    return {"months": months, "series": series}
 
 
 def images_on_date(shots, day):
