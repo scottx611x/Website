@@ -685,6 +685,9 @@
                 svg.append("text").attr("x", 0).attr("y", top + (1 + i * 2) * (cell + gap) + 10)
                     .attr("class", "chart-tick").text(lbl[0]);
             });
+            // Favour the latest days: start the scroll at the right edge (today),
+            // where the recent shoots are, rather than a year ago.
+            el.scrollLeft = el.scrollWidth;
         }
 
         // ---- By family: treemap — area = photos, depth of green = species ----
