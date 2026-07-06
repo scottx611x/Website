@@ -198,7 +198,8 @@ class BirdsTestCase(unittest.TestCase):
             self.assertLessEqual(entry["posx"], 1.0)
             self.assertIsInstance(entry["cands"], list)
             self.assertTrue(entry["cands"])  # at least its own photo
-            self.assertLessEqual(len(entry["cands"]), 8)
+            # cands are distinct shots, so never more than the species' photo count
+            self.assertLessEqual(len(entry["cands"]), entry["total"])
         for day, val in series["per_day"].items():
             self.assertGreaterEqual(val["n"], len(val["sp"]) and 1)
             self.assertTrue(val["img"])

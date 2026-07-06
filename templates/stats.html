@@ -147,6 +147,8 @@
             <div class="river-stage">
                 <div id="river-chart" class="d3-chart"></div>
             </div>
+            <a id="river-readout" class="river-readout mono" href="#" hidden></a>
+            <p id="river-hint" class="river-readout river-hint mono">hover or tap a current &mdash; the bird blooms, its story appears here</p>
         </div>
     </div>
 </section>
@@ -723,15 +725,18 @@
             if (!el || !RIVER.series || !RIVER.series.length) return;
             el.innerHTML = "";
             var S2 = RIVER.series, months = RIVER.months, N = months.length;
-            var W = chartWidth(el), narrow = W < 520, H = narrow ? 340 : 440,
-                m = { t: 16, r: 8, b: 24, l: 8 };
+            var W = chartWidth(el), narrow = W < 520, H = narrow ? 360 : 460,
+                m = { t: 30, r: 8, b: 40, l: 8 };
             var rows = months.map(function (mo, i) {
                 var row = {}; S2.forEach(function (s) { row[s.name] = s.values[i]; }); return row;
             });
             var layers = d3.stack().keys(S2.map(function (s) { return s.name; }))
                 .offset(d3.stackOffsetWiggle).order(d3.stackOrderInsideOut)(rows);
+            // d3.stack overwrites each series' .index with its STACKING rank, not
+            // its position in S2 — so tag the true array index for lookups.
+            layers.forEach(function (l, i) { l._i = i; });
             var color = function (li) { return SERIES_COLORS[li % SERIES_COLORS.length]; };
-            var x = d3.scaleLinear([0, N - 1], [m.l, W - m.r]);
+            var x = d3.scaleLinear([0, Math.max(1, N - 1)], [m.l, W - m.r]);
             var y = d3.scaleLinear(
                 [d3.min(layers, function (l) { return d3.min(l, function (d) { return d[0]; }); }),
                  d3.max(layers, function (l) { return d3.max(l, function (d) { return d[1]; }); })],
@@ -739,6 +744,47 @@
             var svg = d3.select(el).append("svg").attr("viewBox", "0 0 " + W + " " + H)
                 .style("touch-action", "pan-y");
             var defs = svg.append("defs");
+            function fmtMonth(ym) { return MONTHS[+ym.slice(5) - 1] + " " + ym.slice(0, 4); }
+
+            // ---- Season + month scaffolding, so the time axis is legible ----
+            // Meteorological seasons; a faint tint fills each run and a label sits
+            // over it, month initials march along the bottom, years beneath.
+            var SEASONS = ["Winter", "Spring", "Summer", "Fall"];
+            var SEASON_FILL = ["#4a83c2", "#3f9d54", "#d7a521", "#cf7a33"];
+            function seasonOf(mo) { var mm = +mo.slice(5); return mm === 12 || mm <= 2 ? 0 : mm <= 5 ? 1 : mm <= 8 ? 2 : 3; }
+            var step = N > 1 ? (x(1) - x(0)) : (W - m.l - m.r);
+            function bandX(i) { return { a: Math.max(m.l, x(i) - step / 2), b: Math.min(W - m.r, x(i) + step / 2) }; }
+            var seaG = svg.append("g").attr("class", "river-seasons");
+            var run = null;
+            months.forEach(function (mo, i) {
+                var s = seasonOf(mo), bx = bandX(i);
+                if (run && run.s === s) { run.b = bx.b; }
+                else { if (run) flushRun(run); run = { s: s, a: bx.a, b: bx.b }; }
+            });
+            if (run) flushRun(run);
+            function flushRun(r) {
+                seaG.append("rect").attr("x", r.a).attr("y", m.t).attr("width", Math.max(0, r.b - r.a))
+                    .attr("height", H - m.t - m.b).attr("fill", SEASON_FILL[r.s]).attr("opacity", 0.06);
+                if (r.b - r.a > (narrow ? 26 : 40)) {
+                    svg.append("text").attr("x", (r.a + r.b) / 2).attr("y", m.t - 12)
+                        .attr("text-anchor", "middle").attr("class", "river-season-lab")
+                        .attr("fill", SEASON_FILL[r.s]).text(SEASONS[r.s]);
+                }
+            }
+            // month initials + year labels along the bottom
+            var lastYear = null;
+            months.forEach(function (mo, i) {
+                svg.append("text").attr("x", x(i)).attr("y", H - m.b + 15)
+                    .attr("text-anchor", "middle").attr("class", "river-mo")
+                    .text(MONTHS[+mo.slice(5) - 1][0]);
+                if (mo.slice(0, 4) !== lastYear) {
+                    lastYear = mo.slice(0, 4);
+                    svg.append("text").attr("x", x(i)).attr("y", H - 6)
+                        .attr("text-anchor", i === 0 ? "start" : "middle")
+                        .attr("class", "chart-tick").text(lastYear);
+                }
+            });
+
             var area = d3.area().curve(d3.curveBasis)
                 .x(function (d, i) { return x(i); })
                 .y0(function (d) { return y(d[0]); })
@@ -747,17 +793,7 @@
                 .attr("class", "river-band").attr("d", area)
                 .attr("fill", function (l, li) { return color(li); })
                 .attr("stroke", "#f4f1e9").attr("stroke-width", 1)
-                .style("cursor", "pointer")
-                .on("click", function (ev, l) { location.href = birdURL(l.key); });
-            var lastYear = null;
-            months.forEach(function (mo, i) {
-                if (mo.slice(0, 4) !== lastYear) {
-                    lastYear = mo.slice(0, 4);
-                    svg.append("text").attr("x", x(i)).attr("y", H - 6)
-                        .attr("text-anchor", "middle").attr("class", "chart-tick").text(lastYear);
-                }
-            });
-            function fmtMonth(ym) { return MONTHS[+ym.slice(5) - 1] + " " + ym.slice(0, 4); }
+                .style("pointer-events", "none");
 
             // Every species is a current. A circular bird-face rides the biggest
             // ones (seeded at each band's thickest month, then decluttered along x
@@ -841,24 +877,49 @@
                 });
                 if (li >= 0) showFocus(li, cx, cy); else hideFocus();
             }
-            function hit(ev) {
+            // The story shows in a fixed readout below the chart — never a floating
+            // card over the birds' faces.
+            var readout = document.getElementById("river-readout");
+            var hint = document.getElementById("river-hint");
+            function tellReadout(li) {
+                if (!readout) return;
+                if (li < 0) { readout.hidden = true; if (hint) hint.hidden = false; return; }
+                var s = S2[li];
+                readout.hidden = false; if (hint) hint.hidden = true;
+                readout.href = birdURL(s.name);
+                readout.style.setProperty("--riv-accent", color(li));
+                readout.innerHTML = '<b>' + s.name + '</b> &middot; ' + s.total + ' photos &middot; '
+                    + s.fam + ' &middot; busiest ' + fmtMonth(s.busiest) + ' (' + s.busiest_n + ') '
+                    + '<span class="riv-go">see them &rarr;</span>';
+            }
+
+            // Selection rides the RENDERED band shapes (native hit-testing), so a
+            // touch always resolves to the bird actually under the pointer — no more
+            // month-snapping mismatch. A fat transparent stroke fattens the hit area
+            // so even hair-thin currents respond.
+            function onEnter(ev, l) {
                 var p = d3.pointer(ev, svg.node());
                 var i = Math.max(0, Math.min(N - 1, Math.round(x.invert(p[0]))));
-                var h = -1;
-                layers.forEach(function (l, li) {
-                    var a = y(l[i][0]), b = y(l[i][1]);
-                    if (p[1] >= Math.min(a, b) - 1 && p[1] <= Math.max(a, b) + 1) h = li;
-                });
-                if (h >= 0) {
-                    activate(h, p[0], faceCenter(h, i));
-                    var s = S2[h];
-                    tipShow(ev, [s.name, s.total + " photos · " + s.fam,
-                                 "busiest " + fmtMonth(s.busiest) + " · " + s.busiest_n,
-                                 "tap to see them →"]);
-                }
+                activate(l._i, p[0], faceCenter(l._i, i));
+                tellReadout(l._i);
             }
-            svg.on("pointermove pointerdown", hit);
-            svg.on("pointerleave", function () { activate(-1); tipHide(); });
+            svg.selectAll("path.river-hit").data(layers).enter().append("path")
+                .attr("class", "river-hit").attr("d", area)
+                .attr("fill", "transparent").attr("stroke", "transparent")
+                .attr("stroke-width", narrow ? 16 : 12).attr("stroke-linejoin", "round")
+                .style("cursor", "pointer")
+                .on("pointerenter pointermove pointerdown", onEnter)
+                .on("click", function (ev, l) { location.href = birdURL(S2[l._i].name); });
+            // A face rides slightly off its band (decluttered along x), so it owns
+            // its own hover/click — otherwise the hit path underneath could resolve
+            // to a neighbour. Raised above the hit layer for that reason.
+            avatars.forEach(function (a) {
+                a.g.raise().style("cursor", "pointer")
+                    .on("pointerenter pointermove", function (ev) {
+                        activate(a.li, a.cx, a.cy); tellReadout(a.li);
+                    });
+            });
+            svg.on("pointerleave", function () { activate(-1); tellReadout(-1); });
         }
 
         renderRiver();

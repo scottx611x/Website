@@ -565,6 +565,18 @@ body.home .site-nav { z-index: 0; }
 .river-stage { position: relative; margin-top: 0.6rem; }
 .river-stage #river-chart { width: 100%; }
 .river-band { transition: opacity 0.14s ease; }
+.river-season-lab { font-family: var(--mono); font-size: 10px; letter-spacing: 0.14em;
+    text-transform: uppercase; opacity: 0.62; }
+.river-mo { font-family: var(--mono); font-size: 9px; fill: var(--muted); opacity: 0.7; }
+.river-readout {
+    display: block; margin: 0.7rem 0 0; padding-left: 0.7rem; font-size: 0.82rem;
+    line-height: 1.5; color: var(--ink); text-decoration: none;
+    border-left: 3px solid var(--riv-accent, var(--green)); }
+a.river-readout:hover { color: var(--green); }
+a.river-readout:hover .riv-go { text-decoration: underline; }
+.river-readout b { font-weight: 700; }
+.river-readout .riv-go { color: var(--green); font-weight: 700; white-space: nowrap; }
+.river-hint { color: var(--muted); border-left-color: transparent; }
 .river-card {
     position: absolute; top: 0.6rem; left: 0.6rem; z-index: 3; max-width: 17rem;
     display: flex; gap: 0.85rem; align-items: center;

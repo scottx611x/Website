@@ -2047,10 +2047,10 @@ def stats_series(shots, top_n=15):
     lifers = load_lifers()
 
     def lifer_cands(name):
-        """Up to 8 candidate backdrops for a species, best shot first — what the
-        curation UI cycles through."""
+        """Every distinct shot of a species, best first — what the curation UI
+        cycles through when choosing a life-list backdrop."""
         ranked = sorted(sp_imgs[name], key=lambda u: sp_imgs[name][u], reverse=True)
-        return [thumb_url(u) for u in ranked[:8]]
+        return [thumb_url(u) for u in ranked]
     # Every preview here renders small (tooltips, avatars, the lifer card), so
     # they all ride the grid thumbnails rather than full-resolution copies.
     pheno = [{"name": s, "fam": sp_family[s], "months": sp_month[s], "total": sp_total[s],
