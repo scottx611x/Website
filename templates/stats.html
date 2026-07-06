@@ -36,11 +36,17 @@
                 </a>
                 {% if curate %}
                 <div id="lifer-curate" class="lifer-curate mono" hidden>
+                    <button type="button" id="lc-prev-bird" title="previous lifer">&#8676; bird</button>
+                    <button type="button" id="lc-next-bird" title="next lifer">bird &#8677;</button>
+                    <span class="lc-sep">&middot;</span>
                     <button type="button" id="lc-prev" title="previous photo">&#9664;</button>
                     <span id="lc-photo">photo 1/1</span>
                     <button type="button" id="lc-next" title="next photo">&#9654;</button>
                     <span class="lc-sep">&middot;</span>
-                    <span class="lc-hint">drag the backdrop &#8597; to frame</span>
+                    <span class="lc-lab">zoom</span>
+                    <button type="button" id="lc-zoom-out" title="zoom out">&minus;</button>
+                    <button type="button" id="lc-zoom-in" title="zoom in">+</button>
+                    <span class="lc-sep">&middot;</span>
                     <button type="button" id="lc-reset" title="clear this override">reset</button>
                     <span id="lc-saved" class="lc-saved"></span>
                 </div>
@@ -207,7 +213,10 @@
                 m = { t: 20, r: narrow ? 16 : 24, b: 26, l: narrow ? 28 : 34 };
             var data = S.accum.map(function (a, i) {
                 return { d: new Date(a.d + "T12:00:00"), s: a.s, img: a.img,
-                         fam: a.fam, total: a.total, n: i + 1 };
+                         fam: a.fam, total: a.total, n: i + 1,
+                         cands: a.cands || [], pos: a.pos == null ? 0.5 : a.pos,
+                         posx: a.posx == null ? 0.5 : a.posx,
+                         zoom: a.zoom == null ? null : a.zoom };
             });
             var x = d3.scaleTime(d3.extent(data, function (d) { return d.d; }), [m.l, W - m.r]);
             var y = d3.scaleLinear([0, data.length], [H - m.b, m.t]);
@@ -223,20 +232,38 @@
             var sky = d3.area().curve(d3.curveStepAfter)
                 .x(function (d) { return x(d.d); }).y0(m.t).y1(function (d) { return y(d.n); });
             svg.append("clipPath").attr("id", "accum-sky").append("path").datum(data).attr("d", sky);
-            var boxW = W - m.l - m.r, boxH = H - m.t - m.b;
-            var skyImg = svg.append("image").attr("x", m.l).attr("y", m.t)
-                .attr("width", boxW).attr("height", boxH)
-                .attr("preserveAspectRatio", "xMidYMid slice")
+            var boxW = W - m.l - m.r, boxH = H - m.t - m.b, cx = m.l + boxW / 2;
+            var skyImg = svg.append("image").attr("preserveAspectRatio", "none")
                 .attr("clip-path", "url(#accum-sky)").attr("opacity", 0.5);
-            // The photo covers the box (slice) zoomed a touch, leaving vertical
-            // slack so a chosen framing (pos 0..1, .5 = centre) pans it up/down
-            // to sit the bird in the sky. Curation drags this; readers get the
-            // saved value.
-            var SKY_ZOOM = 1.6, cx = m.l + boxW / 2, cy = m.t + boxH / 2;
-            function skyPos(p) {
-                var dy = (0.5 - Math.max(0, Math.min(1, p))) * (SKY_ZOOM - 1) * boxH;
-                skyImg.attr("transform", "translate(" + cx + "," + (cy + dy) + ") scale(" +
-                    SKY_ZOOM + ") translate(" + (-cx) + "," + (-cy) + ")");
+            // The photo is sized to COVER the box at its true aspect, so the full
+            // height (and, once zoomed, width) is available to pan through: framing
+            // pos/posx (0..1) slide it vertically/horizontally; zoom tightens the
+            // crop. Sized from the image's real aspect (cached; a 3:2 guess until it
+            // loads) so a head cropped off an edge can always be recovered — the old
+            // slice-crop made that impossible. All values are curated per species.
+            var DEFAULT_ZOOM = 1.0, aspectCache = {};
+            function zoomOf(d) { return d.zoom == null ? DEFAULT_ZOOM : d.zoom; }
+            function skyView(d) {
+                var src = d.img, asp = aspectCache[src];
+                if (asp == null) {
+                    asp = 0.667;  // provisional 3:2 until the real ratio loads in
+                    var im = new Image();
+                    im.onload = function () {
+                        if (im.naturalWidth) {
+                            aspectCache[src] = im.naturalHeight / im.naturalWidth;
+                            if (data[sel] && data[sel].img === src) skyView(data[sel]);
+                        }
+                    };
+                    im.src = src;
+                }
+                var z = zoomOf(d);
+                var p = Math.max(0, Math.min(1, d.pos == null ? 0.5 : d.pos));
+                var px = Math.max(0, Math.min(1, d.posx == null ? 0.5 : d.posx));
+                var base = Math.max(boxW, boxH / asp) * z, DW = base, DH = asp * base;
+                d._ov = Math.max(0, DH - boxH);    // vertical overflow to pan through
+                d._ovx = Math.max(0, DW - boxW);   // horizontal overflow to pan through
+                skyImg.attr("x", m.l - d._ovx * px).attr("y", m.t - d._ov * p)
+                    .attr("width", DW).attr("height", DH);
             }
             svg.append("path").datum(data).attr("d", sky).attr("clip-path", "url(#accum-sky)")
                 .attr("fill", "#f4f1e9").attr("opacity", 0.34).style("pointer-events", "none");
@@ -282,7 +309,7 @@
                 focus.attr("cx", x(d.d)).attr("cy", y(d.n)).attr("opacity", 1)
                     .attr("stroke", pinned ? INK : GREEN);
                 skyImg.attr("href", d.img);
-                skyPos(d.pos == null ? 0.5 : d.pos);
+                skyView(d);
                 card.hidden = false;
                 card.href = birdURL(d.s);
                 cardRank.textContent = "lifer #" + d.n + (pinned ? " · pinned" : "");
@@ -313,7 +340,8 @@
                 if (savedEl) savedEl.textContent = "saving…";
                 clearTimeout(saveTimer);
                 var body = clear ? { species: d.s }
-                    : { species: d.s, src: d.img, pos: d.pos == null ? 0.5 : d.pos };
+                    : { species: d.s, src: d.img, pos: d.pos == null ? 0.5 : d.pos,
+                        posx: d.posx == null ? 0.5 : d.posx, zoom: zoomOf(d) };
                 saveTimer = setTimeout(function () {
                     fetch("/curate/lifer", {
                         method: "POST", headers: { "Content-Type": "application/json" },
@@ -328,7 +356,8 @@
                 tb.hidden = !pinned;
                 if (!pinned) return;
                 var d = data[sel], cands = d.cands || [];
-                photoEl.textContent = "photo " + ((d.idx || 0) + 1) + "/" + Math.max(1, cands.length);
+                photoEl.textContent = "photo " + ((d.idx || 0) + 1) + "/" + Math.max(1, cands.length)
+                    + "  ·  " + Math.round(zoomOf(d) * 100) + "%";
             }
             function cyclePhoto(dir) {
                 var d = data[sel], cands = d.cands || [];
@@ -339,13 +368,23 @@
                 updateCurate();
                 saveLifer(d, false);
             }
+            function bumpZoom(step) {
+                var d = data[sel];
+                d.zoom = Math.max(1, Math.min(3, +(zoomOf(d) + step).toFixed(2)));
+                skyView(d); updateCurate(); saveLifer(d, false);
+            }
             if (tb) {
+                document.getElementById("lc-prev-bird").addEventListener("click", function () { show(sel - 1); });
+                document.getElementById("lc-next-bird").addEventListener("click", function () { show(sel + 1); });
                 document.getElementById("lc-prev").addEventListener("click", function () { cyclePhoto(-1); });
                 document.getElementById("lc-next").addEventListener("click", function () { cyclePhoto(1); });
+                document.getElementById("lc-zoom-out").addEventListener("click", function () { bumpZoom(-0.1); });
+                document.getElementById("lc-zoom-in").addEventListener("click", function () { bumpZoom(0.1); });
                 document.getElementById("lc-reset").addEventListener("click", function () {
                     var d = data[sel];
-                    d.idx = 0; d.img = (d.cands || [])[0] || d.img; d.pos = 0.5;
-                    skyImg.attr("href", d.img); skyPos(0.5);
+                    d.idx = 0; d.img = (d.cands || [])[0] || d.img;
+                    d.pos = 0.35; d.posx = 0.5; d.zoom = null;
+                    skyImg.attr("href", d.img); skyView(d);
                     updateCurate(); saveLifer(d, true);
                     if (savedEl) savedEl.textContent = "reset ✓";
                 });
@@ -353,18 +392,24 @@
 
             // Hover scrubs; a CLICK (or tap) pins the selection so the pointer can
             // travel to the card's links without re-scrubbing. In curate mode, once
-            // pinned a vertical DRAG reframes the backdrop instead of scrubbing.
-            var downAt = null, repoFrom = 0, reposing = false;
+            // pinned a DRAG reframes the backdrop (both axes) instead of scrubbing.
+            var downAt = null, repoFrom = 0, repoFromX = 0, reposing = false;
             svg.on("pointerdown", function (ev) {
                 downAt = [ev.clientX, ev.clientY];
-                if (CURATE && pinned) { reposing = true; repoFrom = data[sel].pos == null ? 0.5 : data[sel].pos; }
-                else { reposing = false; show(idxAt(ev)); }
+                if (CURATE && pinned) {
+                    reposing = true;
+                    repoFrom = data[sel].pos == null ? 0.5 : data[sel].pos;
+                    repoFromX = data[sel].posx == null ? 0.5 : data[sel].posx;
+                } else { reposing = false; show(idxAt(ev)); }
             });
             svg.on("pointermove", function (ev) {
                 if (reposing && ev.buttons > 0) {
                     var d = data[sel];
-                    d.pos = Math.max(0, Math.min(1, repoFrom + (ev.clientY - downAt[1]) / boxH));
-                    skyPos(d.pos);
+                    // grab-and-pull: drag down/right reveals the top/left of the photo,
+                    // each across its real overflow so it tracks the pointer 1:1.
+                    d.pos = Math.max(0, Math.min(1, repoFrom - (ev.clientY - downAt[1]) / Math.max(1, d._ov)));
+                    d.posx = Math.max(0, Math.min(1, repoFromX - (ev.clientX - downAt[0]) / Math.max(1, d._ovx)));
+                    skyView(d);
                 } else if (ev.buttons > 0) show(idxAt(ev));
                 else if (!pinned) show(idxAt(ev));
             });

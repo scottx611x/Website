@@ -699,14 +699,16 @@ def load_lifers():
     return _load_curation(LIFERS_FILE, dict)
 
 
-def set_lifer(species, src=None, pos=None):
-    """Set (or clear) the curated backdrop for one species. Passing neither src
-    nor pos removes the entry, falling back to the auto choice."""
+def set_lifer(species, src=None, pos=None, posx=None, zoom=None):
+    """Set (or clear) the curated backdrop for one species: which photo (src),
+    its framing (pos / posx 0..1, vertical / horizontal) and how tight it's
+    cropped (zoom). Passing none of them removes the entry, falling back to the
+    auto choice."""
     species = (species or "").strip()
     if not species:
         return {}
     lifers = load_lifers()
-    if not src and pos is None:
+    if not src and pos is None and posx is None and zoom is None:
         lifers.pop(species, None)
     else:
         entry = dict(lifers.get(species) or {})
@@ -714,6 +716,10 @@ def set_lifer(species, src=None, pos=None):
             entry["src"] = src
         if pos is not None:
             entry["pos"] = max(0.0, min(1.0, float(pos)))
+        if posx is not None:
+            entry["posx"] = max(0.0, min(1.0, float(posx)))
+        if zoom is not None:
+            entry["zoom"] = max(1.0, min(3.0, float(zoom)))
         lifers[species] = entry
     _save_curation(LIFERS_FILE, lifers)
     return lifers.get(species, {})
@@ -2057,7 +2063,8 @@ def stats_series(shots, top_n=15):
         # frames the bird better than its very first, often rougher, sighting).
         src = cur.get("src") or (thumb_url(best_shot[s][1]) if s in best_shot else thumb_url(img))
         return {"d": d.isoformat(), "s": s, "img": src, "fam": sp_family[s],
-                "total": sp_total[s], "pos": cur.get("pos", 0.5), "cands": cands}
+                "total": sp_total[s], "pos": cur.get("pos", 0.35),  # bias toward heads
+                "posx": cur.get("posx", 0.5), "zoom": cur.get("zoom"), "cands": cands}
     accum = [accum_entry(s, d, img)
              for s, (d, img) in sorted(first_seen.items(), key=lambda kv: kv[1][0])]
     top = [{"name": s, "n": n, "fam": sp_family[s], "img": thumb_url(best_shot[s][1])}

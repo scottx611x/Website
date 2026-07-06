@@ -1,1 +1,106 @@
-{}
+{
+  "Northern House Wren": {
+    "src": "https://birds-scott-ouellette.s3.amazonaws.com/birds/thumbs/18114114691915102-1.jpg",
+    "pos": 0.4794315840514829,
+    "zoom": 1.0
+  },
+  "Downy Woodpecker": {
+    "src": "https://birds-scott-ouellette.s3.amazonaws.com/birds/thumbs/18446713774106955-7.jpg",
+    "pos": 0.03999812874251496
+  },
+  "Ovenbird": {
+    "src": "https://birds-scott-ouellette.s3.amazonaws.com/birds/thumbs/18102945683003676-1.jpg",
+    "pos": 0.4564144736842105,
+    "zoom": 1.0
+  },
+  "Mute Swan": {
+    "src": "https://birds-scott-ouellette.s3.amazonaws.com/birds/thumbs/18097368877823488-0.jpg",
+    "pos": 0.0,
+    "zoom": 1.2
+  },
+  "Surf Scoter": {
+    "src": "https://birds-scott-ouellette.s3.amazonaws.com/birds/thumbs/18002274308894650-1.jpg",
+    "pos": 0.006338884730538896,
+    "zoom": 1.2
+  },
+  "Rose-breasted Grosbeak": {
+    "src": "https://birds-scott-ouellette.s3.amazonaws.com/birds/thumbs/18099360580897758-0.jpg",
+    "pos": 0.6600544724753815,
+    "zoom": 1.5
+  },
+  "Eastern Wood-Pewee": {
+    "src": "https://birds-scott-ouellette.s3.amazonaws.com/birds/thumbs/18177314338410774-0.jpg",
+    "pos": 0.46568579317646475,
+    "zoom": 1.0
+  },
+  "Great Egret": {
+    "src": "https://birds-scott-ouellette.s3.amazonaws.com/birds/thumbs/18113380397501607-0.jpg",
+    "pos": 0.219928773021645,
+    "zoom": 1.0
+  },
+  "Pine Warbler": {
+    "src": "https://birds-scott-ouellette.s3.amazonaws.com/birds/thumbs/18112617607894088-0.jpg",
+    "pos": 0.1944501778876185,
+    "zoom": 1.0
+  },
+  "Eastern Kingbird": {
+    "src": "https://birds-scott-ouellette.s3.amazonaws.com/birds/thumbs/18596231053029856-0.jpg",
+    "pos": 0.6661013189936901,
+    "zoom": 1.0
+  },
+  "American Redstart": {
+    "src": "https://birds-scott-ouellette.s3.amazonaws.com/birds/thumbs/17929141929336049-0.jpg",
+    "pos": 0.5071570863882762,
+    "zoom": 1.0
+  },
+  "Broad-winged Hawk": {
+    "src": "https://birds-scott-ouellette.s3.amazonaws.com/birds/thumbs/18584709802033645-0.jpg",
+    "pos": 0.4015285555739817,
+    "zoom": 1.0
+  },
+  "Wood Duck": {
+    "src": "https://birds-scott-ouellette.s3.amazonaws.com/birds/thumbs/18151780150485922-0.jpg",
+    "pos": 0.553562859605395,
+    "zoom": 1.0
+  },
+  "Common Yellowthroat": {
+    "src": "https://birds-scott-ouellette.s3.amazonaws.com/birds/thumbs/18459867088129339-0.jpg",
+    "pos": 0.48030541849415204,
+    "zoom": 1.0
+  },
+  "Black-and-white Warbler": {
+    "src": "https://birds-scott-ouellette.s3.amazonaws.com/birds/thumbs/18404583661157562-0.jpg",
+    "pos": 0.6372507554685105,
+    "zoom": 1.0
+  },
+  "Ruby-throated Hummingbird": {
+    "src": "https://birds-scott-ouellette.s3.amazonaws.com/birds/thumbs/18100051427087410-6.jpg",
+    "pos": 0.6105480171783625,
+    "zoom": 1.0
+  },
+  "Double-crested Cormorant": {
+    "src": "https://birds-scott-ouellette.s3.amazonaws.com/birds/thumbs/18087968660611542-0.jpg",
+    "pos": 0.19422562061313026,
+    "zoom": 1.0
+  },
+  "Yellow-rumped Warbler": {
+    "src": "https://birds-scott-ouellette.s3.amazonaws.com/birds/thumbs/18078963029168026-7.jpg",
+    "pos": 0.5112927174707602,
+    "zoom": 1.2
+  },
+  "Gray Catbird": {
+    "src": "https://birds-scott-ouellette.s3.amazonaws.com/birds/thumbs/17988454790972249-1.jpg",
+    "pos": 0.4595090145973036,
+    "zoom": 1.0
+  },
+  "Barred Owl": {
+    "src": "https://birds-scott-ouellette.s3.amazonaws.com/birds/thumbs/18038714363570354-0.jpg",
+    "pos": 0.30077147533592924,
+    "zoom": 1.3
+  },
+  "Killdeer": {
+    "src": "https://birds-scott-ouellette.s3.amazonaws.com/birds/thumbs/18066304874450816-2.jpg",
+    "pos": 0.5935814612654772,
+    "zoom": 1.0
+  }
+}

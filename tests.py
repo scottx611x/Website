@@ -194,6 +194,8 @@ class BirdsTestCase(unittest.TestCase):
             self.assertTrue(entry["fam"])
             self.assertGreaterEqual(entry["pos"], 0.0)
             self.assertLessEqual(entry["pos"], 1.0)
+            self.assertGreaterEqual(entry["posx"], 0.0)
+            self.assertLessEqual(entry["posx"], 1.0)
             self.assertIsInstance(entry["cands"], list)
             self.assertTrue(entry["cands"])  # at least its own photo
             self.assertLessEqual(len(entry["cands"]), 8)
@@ -204,17 +206,24 @@ class BirdsTestCase(unittest.TestCase):
     def test_lifer_curation_roundtrip(self):
         shots = birds.load_gallery(shuffle=False)
         species = birds.stats_series(shots)["accum"][-1]["s"]
+        prior = birds.load_lifers().get(species)  # never clobber real curation
         try:
-            birds.set_lifer(species, src="https://example.com/x.jpg", pos=0.3)
+            birds.set_lifer(species, src="https://example.com/x.jpg", pos=0.3, posx=0.7, zoom=1.7)
             entry = next(a for a in birds.stats_series(shots)["accum"] if a["s"] == species)
             self.assertEqual(entry["img"], "https://example.com/x.jpg")
             self.assertEqual(entry["pos"], 0.3)
-            # pos clamps to [0, 1]; passing neither field clears the override.
-            birds.set_lifer(species, pos=5)
+            self.assertEqual(entry["posx"], 0.7)
+            self.assertEqual(entry["zoom"], 1.7)
+            # pos and zoom clamp; passing no fields clears the override.
+            birds.set_lifer(species, pos=5, zoom=9)
             self.assertEqual(birds.load_lifers()[species]["pos"], 1.0)
+            self.assertEqual(birds.load_lifers()[species]["zoom"], 3.0)
+            birds.set_lifer(species)
+            self.assertNotIn(species, birds.load_lifers())
         finally:
-            birds.set_lifer(species)  # clear
-        self.assertNotIn(species, birds.load_lifers())
+            if prior is not None:
+                birds.set_lifer(species, src=prior.get("src"), pos=prior.get("pos"),
+                                posx=prior.get("posx"), zoom=prior.get("zoom"))
 
     def test_sort_posted_leads_with_newest_instagram_posts(self):
         shots = birds.load_gallery(shuffle=False)

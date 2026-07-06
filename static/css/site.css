@@ -642,6 +642,7 @@ body.home .site-nav { z-index: 0; }
 .lifer-curate button:hover { background: rgba(56, 224, 138, 0.35); }
 .lifer-curate #lc-reset { text-transform: lowercase; letter-spacing: 0.03em; }
 .lifer-curate .lc-sep { opacity: 0.4; }
+.lifer-curate .lc-lab { opacity: 0.7; }
 .lifer-curate .lc-hint { opacity: 0.7; }
 .lifer-curate .lc-saved { color: var(--neon); min-width: 3.5rem; }
 @media (max-width: 640px) { .lifer-curate .lc-hint { display: none; } }

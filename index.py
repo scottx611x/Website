@@ -576,8 +576,8 @@ def curate_lifer():
     species = (data.get("species") or "").strip()
     if not species:
         abort(400)
-    pos = data.get("pos")
-    entry = birds.set_lifer(species, src=data.get("src"), pos=pos)
+    entry = birds.set_lifer(species, src=data.get("src"), pos=data.get("pos"),
+                            posx=data.get("posx"), zoom=data.get("zoom"))
     return {"ok": True, "entry": entry}
 
 
