@@ -323,12 +323,20 @@ def birds_gallery():
     # can be served from cache, which made shuffle look dead on filtered
     # views like ?loc=).
     seed = request.args.get("seed") or ""
-    # The curate toggle preserves ?seed (via next=), so honoring the seed in
-    # curate too lets the curate view line up with the gallery you were on.
-    if not seed.isdigit() and not curate and not any(request.args.get(k) for k in (
-            "bird", "family", "area", "media", "loc", "on", "posted",
-            "month", "sort", "review", "start")):
-        return redirect("/birds?seed=%d" % random.randrange(1_000_000_000))
+    unscoped = not any(request.args.get(k) for k in (
+        "bird", "family", "area", "media", "loc", "on", "posted",
+        "month", "sort", "review", "start"))
+    if not seed.isdigit() and unscoped:
+        # Public: a fresh seed each visit (feels fresh), pinned per URL so
+        # reloads/back are stable. Curate: a STABLE seed derived from the data
+        # version, so the order never shifts under an edit and only re-pins when
+        # the manifest changes. Either way the toggle carries ?seed via next=,
+        # so flipping in/out of curate keeps the exact arrangement.
+        if curate:
+            n = int(hashlib.sha1(birds.data_version().encode()).hexdigest()[:8], 16)
+        else:
+            n = random.randrange(1_000_000_000)
+        return redirect("/birds?seed=%d" % n)
     if seed.isdigit():
         random.seed(int(seed))
     # Curate now renders the same exploded+shuffled frame view as the public
