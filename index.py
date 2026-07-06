@@ -514,7 +514,7 @@ def birds_stats():
     # so caption spelling variants ("Harborwalk, Boston" / "... Boston MA")
     # collapse into a single clickable row under the pin's canonical name.
     place_index = birds._place_index(birds.load_locations())
-    loc_place, merged, by_name = {}, [], {}
+    loc_place, loc_area, merged, by_name = {}, {}, [], {}
     for loc, count in stats["top_locations"]:
         place = birds._match_place(loc, place_index)
         name = place["name"] if place else loc
@@ -526,12 +526,14 @@ def birds_stats():
             merged.append(row)
             if place:
                 loc_place[name] = place["name"]
+                loc_area[name] = place.get("area", "local")
     merged.sort(key=lambda r: -r[1])
     stats["top_locations"] = [tuple(r) for r in merged]
     return render_template(
         "stats.html",
         title="Birds by the numbers",
         stats=stats,
+        loc_area=loc_area,
         series=birds.stats_series(shots),
         river=birds.activity_river(shots),
         loc_place=loc_place,

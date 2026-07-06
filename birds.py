@@ -2023,11 +2023,12 @@ def stats_series(shots, top_n=15):
     }
 
 
-def activity_river(shots, top_n=8):
-    """Photo activity as a streamgraph 'river' — one flowing band per top species,
-    counts binned by calendar month. Each band carries its best photo (thumbnail),
-    total, family, and busiest month, so touching a current can bloom a card with
-    that bird. Fixed species order keeps band colors stable; the month axis is
+def activity_river(shots, top_n=None):
+    """Photo activity as a streamgraph 'river' — one flowing band per species that
+    was active in the window (``top_n`` = None means every one), counts binned by
+    calendar month. Each band carries its best photo (thumbnail), total, family,
+    and busiest month, so touching a current can bloom that bird. Bands are in
+    rank order (biggest first) so colors + faces are stable; the month axis is
     continuous and trimmed to the active window so the river fills the frame."""
     import collections
     bins = collections.defaultdict(collections.Counter)
@@ -2070,11 +2071,14 @@ def activity_river(shots, top_n=8):
     series = []
     for n in sp_total.most_common(top_n):
         name = n[0]
+        vals = [bins[mo].get(name, 0) for mo in months]
+        if not any(vals):
+            continue  # never appears in the trimmed window — no current to draw
         b_ym, b_n = busiest(name)
         series.append({
             "name": name, "fam": sp_fam.get(name, ""), "total": sp_total[name],
             "img": thumb_url(sp_best[name][1]),
-            "values": [bins[mo].get(name, 0) for mo in months],
+            "values": vals,
             "busiest": b_ym, "busiest_n": b_n,
         })
     return {"months": months, "series": series}

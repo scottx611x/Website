@@ -613,30 +613,24 @@ body.home .site-nav { z-index: 0; }
 }
 
 /* the lifer card under the life-list timeline */
-/* Lifer card floats in the chart's empty upper-left (a cumulative curve is
-   monotonic, so that region is always clear — no wasted box below). */
+/* The lifer photo fills the chart's empty upper-left as a soft backdrop (drawn
+   in the SVG); this label rides over it — a cumulative curve is monotonic, so
+   that region is always clear. */
 .accum-stage { position: relative; }
 .lifer-card {
-    position: absolute; top: 2.6rem; left: 2.6rem; z-index: 3; max-width: 22rem;
-    display: grid; grid-template-columns: 84px 1fr; gap: 0.8rem; align-items: center;
-    padding: 0.55rem; border-radius: 12px; text-decoration: none;
-    background: rgba(244, 241, 233, 0.78); backdrop-filter: blur(3px);
-    box-shadow: 0 2px 14px -6px rgba(13, 18, 14, 0.3);
-    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    position: absolute; top: 2.5rem; left: 2.9rem; z-index: 3; max-width: 20rem;
+    display: flex; flex-direction: column; gap: 0.06rem; text-decoration: none;
+    pointer-events: auto;
 }
-.lifer-card:hover { transform: translateY(-1px); box-shadow: 0 8px 22px -8px rgba(13, 18, 14, 0.3); }
-.lifer-card img {
-    width: 84px; height: 84px; object-fit: cover; border-radius: 8px; display: block;
-    background: var(--paper-2);
-}
-.lifer-card.no-img { grid-template-columns: 1fr; }
-.lifer-card.no-img img { display: none; }
-.lifer-text { display: flex; flex-direction: column; gap: 0.1rem; min-width: 0; }
-.lifer-rank { font-size: 0.66rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
-.lifer-name { font-family: var(--display); font-size: 1.2rem; font-weight: 600; color: var(--ink); }
+.lifer-rank { font-size: 0.66rem; letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--muted); }
+.lifer-name { font-family: var(--display); font-size: 1.5rem; font-weight: 600; color: var(--ink);
+    line-height: 1.1; text-shadow: 0 1px 8px rgba(244, 241, 233, 0.9); }
 .lifer-card:hover .lifer-name { color: var(--green); }
-.lifer-meta { font-size: 0.72rem; color: var(--muted); }
-.lifer-count { font-size: 0.75rem; color: var(--green); font-weight: 700; margin-top: 0.15rem; }
+.lifer-meta { font-size: 0.72rem; color: var(--ink); margin-top: 0.15rem;
+    text-shadow: 0 1px 6px rgba(244, 241, 233, 0.9); }
+.lifer-count { font-size: 0.78rem; color: var(--green); font-weight: 700; margin-top: 0.25rem;
+    text-shadow: 0 1px 6px rgba(244, 241, 233, 0.9); }
 
 /* phenology matrix */
 .pheno-controls { display: flex; flex-wrap: wrap; gap: 0.6rem; align-items: center; margin-bottom: 0.8rem; }
@@ -713,10 +707,8 @@ a.pheno-cell:hover, a.pheno-cell:focus-visible {
     .pheno-row { grid-template-columns: 7.5rem repeat(12, 1fr); gap: 1.5px; }
     .pheno-name { font-size: 0.7rem; }
     .pheno-cell { height: 13px; }
-    .lifer-card { top: 2.2rem; left: 1rem; right: 1rem; max-width: none;
-        grid-template-columns: 60px 1fr; gap: 0.6rem; padding: 0.45rem; }
-    .lifer-card img { width: 60px; height: 60px; }
-    .lifer-name { font-size: 1rem; }
+    .lifer-card { top: 2.2rem; left: 2.4rem; right: 1rem; max-width: none; }
+    .lifer-name { font-size: 1.15rem; }
 }
 
 /* Projects curate editor */

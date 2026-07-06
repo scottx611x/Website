@@ -29,13 +29,10 @@
                 <div id="accum-chart" class="d3-chart" tabindex="0" role="application"
                      aria-label="Life list timeline. Use left and right arrow keys to step through species."></div>
                 <a id="accum-card" class="lifer-card" href="/birds" hidden>
-                    <img id="lifer-img" alt="" loading="lazy">
-                    <span class="lifer-text">
-                        <span class="lifer-rank mono" id="lifer-rank"></span>
-                        <span id="lifer-name" class="lifer-name"></span>
-                        <span class="lifer-meta mono" id="lifer-meta"></span>
-                        <span class="lifer-count mono" id="lifer-count"></span>
-                    </span>
+                    <span class="lifer-rank mono" id="lifer-rank"></span>
+                    <span id="lifer-name" class="lifer-name"></span>
+                    <span class="lifer-meta mono" id="lifer-meta"></span>
+                    <span class="lifer-count mono" id="lifer-count"></span>
                 </a>
             </div>
         </div>
@@ -93,16 +90,17 @@
             <p class="stat-sub mono">top locations by frame &mdash; mapped spots click through</p>
             {% set lmax = stats.top_locations[0][1] %}
             {% for loc, count in stats.top_locations %}
+            {% set away = loc_area.get(loc) == 'away' %}
             {% if loc_place.get(loc) %}
             <a class="bar-row" href="/birds?loc={{ loc_place[loc]|urlencode }}">
-                <span class="bar-label">&#128205; {{ loc }}</span>
-                <span class="bar-track"><span class="bar-fill loc" style="width: {{ (count / lmax * 100)|round(1) }}%"></span></span>
+                <span class="bar-label">&#128205; {{ loc }}{% if away %} &#9888;&#65039;{% endif %}</span>
+                <span class="bar-track"><span class="bar-fill {{ 'warm' if away else 'loc' }}" style="width: {{ (count / lmax * 100)|round(1) }}%"></span></span>
                 <span class="bar-val mono">{{ count }}</span>
             </a>
             {% else %}
             <div class="bar-row static">
                 <span class="bar-label">{{ loc }}</span>
-                <span class="bar-track"><span class="bar-fill loc" style="width: {{ (count / lmax * 100)|round(1) }}%"></span></span>
+                <span class="bar-track"><span class="bar-fill {{ 'warm' if away else 'loc' }}" style="width: {{ (count / lmax * 100)|round(1) }}%"></span></span>
                 <span class="bar-val mono">{{ count }}</span>
             </div>
             {% endif %}
@@ -128,10 +126,9 @@
         <!-- The river: touch a species' current, meet the bird -->
         <div class="stat-block stat-span-2 river-block">
             <h2>The river</h2>
-            <p class="stat-sub mono">your most-photographed birds, flowing through the seasons &mdash; touch a current to meet the bird</p>
+            <p class="stat-sub mono">every species you&rsquo;ve shot, each a current swelling through its season &mdash; touch any one to meet the bird</p>
             <div class="river-stage">
                 <div id="river-chart" class="d3-chart"></div>
-                <a id="river-card" class="river-card" href="/birds"></a>
             </div>
         </div>
     </div>
@@ -147,7 +144,8 @@
         // river's species bands; "Other" is a recessive gray. Assigned by the
         // species' rank so a band keeps its color.
         var SERIES_COLORS = ["#2a78d6", "#1baf7a", "#eda100", "#008300",
-                             "#4a3aa7", "#e34948", "#e87ba4", "#eb6834"];
+                             "#4a3aa7", "#e34948", "#e87ba4", "#eb6834",
+                             "#14868c", "#9d4edd", "#b5651d", "#5a8f2b"];
         var OTHER_COLOR = "#d6d7cd";
         // Sequential green ramp (one hue, light->dark) shared by matrix, calendar,
         // and treemap. Zero stays a faint neutral so "few" never reads as "none".
@@ -193,7 +191,7 @@
         function renderAccum() {
             var el = document.getElementById("accum-chart");
             el.innerHTML = "";
-            var W = chartWidth(el), narrow = W < 520, H = narrow ? 220 : 280,
+            var W = chartWidth(el), narrow = W < 520, H = narrow ? 300 : 380,
                 m = { t: 20, r: narrow ? 16 : 24, b: 26, l: narrow ? 28 : 34 };
             var data = S.accum.map(function (a, i) {
                 return { d: new Date(a.d + "T12:00:00"), s: a.s, img: a.img,
@@ -207,6 +205,18 @@
                 .x(function (d) { return x(d.d); }).y(function (d) { return y(d.n); });
             var area = d3.area().curve(d3.curveStepAfter)
                 .x(function (d) { return x(d.d); }).y0(y(0)).y1(function (d) { return y(d.n); });
+            // The current lifer's photo softly fills the empty region ABOVE the
+            // curve — a cumulative curve is monotonic, so that "sky" is always
+            // clear. It changes as you scrub, so the backdrop IS the bird.
+            var sky = d3.area().curve(d3.curveStepAfter)
+                .x(function (d) { return x(d.d); }).y0(m.t).y1(function (d) { return y(d.n); });
+            svg.append("clipPath").attr("id", "accum-sky").append("path").datum(data).attr("d", sky);
+            var skyImg = svg.append("image").attr("x", m.l).attr("y", m.t)
+                .attr("width", W - m.l - m.r).attr("height", H - m.t - m.b)
+                .attr("preserveAspectRatio", "xMidYMid slice")
+                .attr("clip-path", "url(#accum-sky)").attr("opacity", 0.5);
+            svg.append("path").datum(data).attr("d", sky).attr("clip-path", "url(#accum-sky)")
+                .attr("fill", "#f4f1e9").attr("opacity", 0.34).style("pointer-events", "none");
             svg.append("path").datum(data).attr("d", area).attr("fill", NEON).attr("opacity", 0.1);
             svg.append("path").datum(data).attr("d", line)
                 .attr("fill", "none").attr("stroke", GREEN).attr("stroke-width", 2)
@@ -234,15 +244,12 @@
             var focus = svg.append("circle").attr("r", 6)
                 .attr("fill", NEON).attr("stroke", GREEN).attr("stroke-width", 2).attr("opacity", 0);
 
-            // The lifer card: the photo I took the day each species joined the list.
+            // The lifer label rides over the photo backdrop (upper-left).
             var card = document.getElementById("accum-card");
-            var cardImg = document.getElementById("lifer-img");
             var cardRank = document.getElementById("lifer-rank");
             var cardName = document.getElementById("lifer-name");
             var cardMeta = document.getElementById("lifer-meta");
             var cardCount = document.getElementById("lifer-count");
-            cardImg.addEventListener("error", function () { card.classList.add("no-img"); });
-            cardImg.addEventListener("load", function () { card.classList.remove("no-img"); });
             var sel = data.length - 1, pinned = false;
             function show(i) {
                 sel = Math.max(0, Math.min(i, data.length - 1));
@@ -250,12 +257,10 @@
                 guide.attr("x1", x(d.d)).attr("x2", x(d.d)).attr("opacity", 0.5);
                 focus.attr("cx", x(d.d)).attr("cy", y(d.n)).attr("opacity", 1)
                     .attr("stroke", pinned ? INK : GREEN);
+                skyImg.attr("href", d.img);
                 card.hidden = false;
                 card.href = birdURL(d.s);
-                if (cardImg.getAttribute("src") !== d.img) cardImg.src = d.img;
-                cardImg.alt = d.s;
-                cardRank.textContent = "lifer #" + d.n +
-                    (pinned ? " · pinned" : "");
+                cardRank.textContent = "lifer #" + d.n + (pinned ? " · pinned" : "");
                 cardName.textContent = d.s;
                 cardMeta.textContent = d3.timeFormat("%b %-d, %Y")(d.d) + " · " + d.fam;
                 cardCount.textContent = d.total === 1 ? "1 photo so far →"
@@ -310,12 +315,14 @@
                 for (var i = 1; i < 12; i++) if (r.months[i] > r.months[best]) best = i;
                 return best;
             }
-            // Per-row shading: sqrt of the share of that bird's peak month, so
-            // shoulder-season sightings stay visible next to a big peak.
+            // Per-row shading: darkness = this bird's share of activity that month
+            // relative to its own peak, linearly — so the peak reads darkest and a
+            // half-as-busy month reads visibly lighter. Any real sighting keeps a
+            // floor step so "present" never disappears into "absent".
             function shade(v, peak) {
                 if (!v) return ZERO;
-                var k = Math.sqrt(v / peak);
-                return RAMP[Math.min(RAMP.length - 1, Math.floor(k * RAMP.length))];
+                var k = v / peak;
+                return RAMP[Math.max(1, Math.min(RAMP.length - 1, Math.ceil(k * (RAMP.length - 1))))];
             }
 
             // Build every row once; sorting and filtering just reorder/hide them.
@@ -585,19 +592,16 @@
             readout.textContent = "tap a family to browse its photos";
         }
 
-        // ---- The river: touch a species' current, meet the bird ----
+        // ---- The river: a bird-face rides each current; touch one to meet it ----
         function renderRiver() {
             var el = document.getElementById("river-chart");
             if (!el || !RIVER.series || !RIVER.series.length) return;
             el.innerHTML = "";
-            var card = document.getElementById("river-card");
             var S2 = RIVER.series, months = RIVER.months, N = months.length;
-            var W = chartWidth(el), narrow = W < 520, H = narrow ? 210 : 250,
-                m = { t: 16, r: 8, b: 22, l: 8 };
+            var W = chartWidth(el), narrow = W < 520, H = narrow ? 340 : 440,
+                m = { t: 16, r: 8, b: 24, l: 8 };
             var rows = months.map(function (mo, i) {
-                var row = {};
-                S2.forEach(function (s) { row[s.name] = s.values[i]; });
-                return row;
+                var row = {}; S2.forEach(function (s) { row[s.name] = s.values[i]; }); return row;
             });
             var layers = d3.stack().keys(S2.map(function (s) { return s.name; }))
                 .offset(d3.stackOffsetWiggle).order(d3.stackOrderInsideOut)(rows);
@@ -609,10 +613,7 @@
                 [H - m.b, m.t]);
             var svg = d3.select(el).append("svg").attr("viewBox", "0 0 " + W + " " + H)
                 .style("touch-action", "pan-y");
-            // soft drop shadow so bands feel like they float
             var defs = svg.append("defs");
-            defs.append("filter").attr("id", "river-shadow")
-                .html('<feDropShadow dx="0" dy="1.5" stdDeviation="2" flood-color="#0d120e" flood-opacity="0.18"/>');
             var area = d3.area().curve(d3.curveBasis)
                 .x(function (d, i) { return x(i); })
                 .y0(function (d) { return y(d[0]); })
@@ -620,7 +621,7 @@
             var bands = svg.selectAll("path.river-band").data(layers).enter().append("path")
                 .attr("class", "river-band").attr("d", area)
                 .attr("fill", function (l, li) { return color(li); })
-                .attr("stroke", "#f4f1e9").attr("stroke-width", 1.5)
+                .attr("stroke", "#f4f1e9").attr("stroke-width", 1)
                 .style("cursor", "pointer")
                 .on("click", function (ev, l) { location.href = birdURL(l.key); });
             var lastYear = null;
@@ -631,45 +632,108 @@
                         .attr("text-anchor", "middle").attr("class", "chart-tick").text(lastYear);
                 }
             });
-
             function fmtMonth(ym) { return MONTHS[+ym.slice(5) - 1] + " " + ym.slice(0, 4); }
-            var active = -1;
-            function activate(li, lock) {
-                if (li === active && !lock) return;
-                active = li;
-                bands.transition().duration(140)
-                    .attr("opacity", function (l, j) { return j === li ? 1 : 0.22; })
-                    .attr("filter", function (l, j) { return j === li ? "url(#river-shadow)" : null; });
-                var s = S2[li], c = color(li);
-                card.href = birdURL(s.name);
-                card.style.setProperty("--accent", c);
-                card.innerHTML =
-                    '<span class="river-thumb"><img src="' + s.img + '" alt="" loading="lazy" ' +
-                    'onerror="this.parentNode.classList.add(\'no-img\')"></span>' +
-                    '<span class="river-info">' +
-                      '<span class="river-name">' + s.name + '</span>' +
-                      '<span class="river-fam mono">' + s.fam + '</span>' +
-                      '<span class="river-stats mono"><b>' + s.total + '</b> photos · busiest ' +
-                        fmtMonth(s.busiest) + ' <b>' + s.busiest_n + '</b></span>' +
-                      '<span class="river-cta mono">see all ' + s.name + ' &rarr;</span>' +
-                    '</span>';
-                card.classList.remove("bloom");
-                void card.offsetWidth;      // restart the bloom animation
-                card.classList.add("bloom");
+
+            // Every species is a current. A circular bird-face rides the biggest
+            // ones (seeded at each band's thickest month, then decluttered along x
+            // so none pile up). A clean white ring — no coloured halo. The rest
+            // flow faceless until you touch them: hovering ANY current, thick or
+            // hair-thin, blooms a big face for that exact bird.
+            function faceCenter(li, i) {
+                var l = layers[li]; return (y(l[i][0]) + y(l[i][1])) / 2;
             }
-            // hit-test the band under the pointer (works for mouse AND touch drag)
-            svg.on("pointermove pointerdown", function (ev) {
+            var plot = (W - m.r) - m.l, minGap = narrow ? 34 : 46;
+            var maxFaces = Math.max(4, Math.floor(plot / minGap));
+            var seeds = layers.map(function (l, li) {
+                var pk = 0, pth = 0;
+                for (var i = 0; i < N; i++) {
+                    var t = Math.abs(y(l[i][0]) - y(l[i][1]));
+                    if (t > pth) { pth = t; pk = i; }
+                }
+                return { li: li, pk: pk, xx: x(pk), total: S2[li].total };
+            });
+            seeds.sort(function (a, b) { return b.total - a.total; });   // biggest keep faces
+            seeds = seeds.slice(0, maxFaces).sort(function (a, b) { return a.xx - b.xx; });
+            var prevX = -1e9;
+            seeds.forEach(function (s) {
+                if (s.xx - prevX < minGap) s.xx = prevX + minGap;
+                s.xx = Math.min(s.xx, W - m.r - (narrow ? 15 : 20));
+                prevX = s.xx;
+                s.ii = Math.max(0, Math.min(N - 1, Math.round(x.invert(s.xx))));
+            });
+            var avatars = [], avByLi = {};
+            var baseR = narrow ? 14 : 18;
+            var bigR = Math.min(narrow ? 62 : 84, (H - m.t - m.b) * 0.42);
+            seeds.forEach(function (s) {
+                var li = s.li, cx = s.xx, cy = faceCenter(li, s.ii), cid = "riv-av-" + li;
+                var clip = defs.append("clipPath").attr("id", cid).append("circle")
+                    .attr("cx", cx).attr("cy", cy).attr("r", baseR);
+                var g = svg.append("g").attr("class", "river-av").style("cursor", "pointer")
+                    .on("click", function () { location.href = birdURL(S2[li].name); });
+                var img = g.append("image").attr("href", S2[li].img)
+                    .attr("x", cx - baseR).attr("y", cy - baseR).attr("width", 2 * baseR).attr("height", 2 * baseR)
+                    .attr("preserveAspectRatio", "xMidYMin slice").attr("clip-path", "url(#" + cid + ")");
+                var ringW = g.append("circle").attr("cx", cx).attr("cy", cy).attr("r", baseR + 1)
+                    .attr("fill", "none").attr("stroke", "#f4f1e9").attr("stroke-width", 2.5);
+                avatars.push({ g: g, li: li, cx: cx, cy: cy }); avByLi[li] = avatars[avatars.length - 1];
+            });
+
+            // One reusable "focus" face that blooms at whatever current you touch —
+            // this is what makes it work for ALL birds, not just the faced few.
+            var fClip = defs.append("clipPath").attr("id", "riv-focus").append("circle");
+            var fG = svg.append("g").attr("class", "river-focus")
+                .style("opacity", 0).style("pointer-events", "none");
+            var fImg = fG.append("image").attr("clip-path", "url(#riv-focus)")
+                .attr("preserveAspectRatio", "xMidYMin slice");
+            var fRingC = fG.append("circle").attr("fill", "none").attr("stroke-width", 3.5);
+            var fRingW = fG.append("circle").attr("fill", "none")
+                .attr("stroke", "#f4f1e9").attr("stroke-width", 2);
+            function showFocus(li, cx, cy) {
+                var r = bigR, cyy = Math.max(m.t + r, Math.min(H - m.b - r, cy));
+                var cxx = Math.max(m.l + r, Math.min(W - m.r - r, cx));
+                fClip.attr("cx", cxx).attr("cy", cyy).attr("r", r);
+                fImg.attr("href", S2[li].img)
+                    .attr("x", cxx - r).attr("y", cyy - r).attr("width", 2 * r).attr("height", 2 * r);
+                fRingC.attr("cx", cxx).attr("cy", cyy).attr("r", r + 1.5).attr("stroke", color(li));
+                fRingW.attr("cx", cxx).attr("cy", cyy).attr("r", r + 1.5);
+                fG.raise().interrupt().transition().duration(120).style("opacity", 1);
+            }
+            function hideFocus() { fG.interrupt().transition().duration(140).style("opacity", 0); }
+
+            var active = -1;
+            function activate(li, cx, cy) {
+                if (li === active) {
+                    if (li >= 0) showFocus(li, cx, cy);
+                    return;
+                }
+                active = li;
+                bands.transition().duration(160)
+                    .attr("opacity", function (l, j) { return li < 0 || j === li ? 1 : 0.12; });
+                avatars.forEach(function (a) {
+                    // hide the touched band's own small face (the big one replaces it)
+                    a.g.transition().duration(140)
+                        .attr("opacity", li < 0 ? 1 : (a.li === li ? 0 : 0.28));
+                });
+                if (li >= 0) showFocus(li, cx, cy); else hideFocus();
+            }
+            function hit(ev) {
                 var p = d3.pointer(ev, svg.node());
                 var i = Math.max(0, Math.min(N - 1, Math.round(x.invert(p[0]))));
-                var hit = -1;
+                var h = -1;
                 layers.forEach(function (l, li) {
                     var a = y(l[i][0]), b = y(l[i][1]);
-                    if (p[1] >= Math.min(a, b) - 1 && p[1] <= Math.max(a, b) + 1) hit = li;
+                    if (p[1] >= Math.min(a, b) - 1 && p[1] <= Math.max(a, b) + 1) h = li;
                 });
-                if (hit >= 0) activate(hit);
-            });
-            // biggest species leads by default so the card is never empty
-            activate(0, true);
+                if (h >= 0) {
+                    activate(h, p[0], faceCenter(h, i));
+                    var s = S2[h];
+                    tipShow(ev, [s.name, s.total + " photos · " + s.fam,
+                                 "busiest " + fmtMonth(s.busiest) + " · " + s.busiest_n,
+                                 "tap to see them →"]);
+                }
+            }
+            svg.on("pointermove pointerdown", hit);
+            svg.on("pointerleave", function () { activate(-1); tipHide(); });
         }
 
         renderRiver();
