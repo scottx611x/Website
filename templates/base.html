@@ -57,7 +57,11 @@
                 <a href="https://www.linkedin.com/pub/scott-ouellette/69/2b/209/">LinkedIn</a>
             </div>
         </div>
-        <small class="mono">&copy; <span id="year">2026</span><span id="footer-fact"></span></small>
+        <small class="mono">&copy; <span id="year">2026</span><span id="footer-fact"></span>
+            {% if app_version and app_version != 'dev' %}
+            &middot; <a class="footer-ver" href="https://github.com/scottx611x/Website/commit/{{ app_version }}"
+                        rel="noopener" title="deployed commit">{{ app_version }}</a>
+            {% endif %}</small>
         <script>
             (function () {
                 var facts = {{ facts|tojson }};

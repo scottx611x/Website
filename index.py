@@ -38,12 +38,36 @@ def _asset_version():
     return format(int(newest), "x")
 
 
-ASSET_V = _asset_version()
+def _app_version():
+    """The deployed commit's short SHA. Deploy writes version.txt (git isn't on
+    Lambda); locally we read live git. Used in the footer AND folded into the
+    cache key, so every deploy busts caches even when only inline template code
+    changed (mtime/manifest alone don't always move)."""
+    try:
+        with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "version.txt")) as fh:
+            v = fh.read().strip()
+            if v:
+                return v
+    except OSError:
+        pass
+    try:
+        import subprocess
+        return subprocess.check_output(
+            ["git", "rev-parse", "--short", "HEAD"],
+            cwd=os.path.dirname(os.path.abspath(__file__)),
+            stderr=subprocess.DEVNULL).decode().strip() or "dev"
+    except Exception:  # noqa: BLE001
+        return "dev"
+
+
+APP_VERSION = _app_version()
+# Fold the commit into the asset version so a code-only deploy still busts.
+ASSET_V = "{}-{}".format(_asset_version(), APP_VERSION)
 
 
 @app.context_processor
 def _inject_asset_version():
-    return {"asset_v": ASSET_V, "site_url": SITE_URL,
+    return {"asset_v": ASSET_V, "app_version": APP_VERSION, "site_url": SITE_URL,
             "curate_authed": (not _is_local()) and _curate_authed()}
 
 

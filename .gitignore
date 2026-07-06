@@ -9,3 +9,4 @@ birds/reid_queue.json
 # Zappa build artifacts
 website-production-*.zip
 *.zip
+version.txt

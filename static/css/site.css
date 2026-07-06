@@ -1063,6 +1063,8 @@ a.pheno-cell:hover, a.pheno-cell:focus-visible {
 .site-footer .social a { font-size: 0.9rem; border-bottom: 1px solid transparent; padding-bottom: 2px; }
 .site-footer .social a:hover { border-color: var(--neon); }
 .site-footer small { display: block; max-width: 1100px; margin: 3rem auto 0; color: var(--muted); font-size: 0.78rem; }
+.footer-ver { color: var(--muted); text-decoration: none; border-bottom: 1px dotted rgba(244,241,233,0.3); }
+.footer-ver:hover { color: var(--neon); border-color: var(--neon); }
 
 /* ====================== RESPONSIVE ====================== */
 @media (max-width: 820px) {
