@@ -1835,10 +1835,12 @@ def _match_place(loc, alias_index):
     return None
 
 
-def map_points(shots, places=None):
+def map_points(shots, places=None, species_filter=None):
     """Aggregate every frame onto its geocoded place: count, species set, and
     top species per pin. Frames whose location isn't in locations.json are
-    skipped (they still show in the gallery, just not on the map)."""
+    skipped (they still show in the gallery, just not on the map). Pass
+    ``species_filter`` to keep only frames of one species — the map then shows
+    exactly where that bird turns up."""
     import collections
     places = places if places is not None else load_locations()
     idx = _place_index(places)
@@ -1857,12 +1859,15 @@ def map_points(shots, places=None):
             place = _match_place(loc, idx)
             if not place:
                 continue
+            raw = isp[i] if i < len(isp) and isp[i] else shot.get("species")
+            names = [c[0] for c in _canon_species_list(raw)]
+            if species_filter and species_filter not in names:
+                continue
             counts[place["name"]] += 1
             if ym:
                 monthly[place["name"]][ym] += 1
-            raw = isp[i] if i < len(isp) and isp[i] else shot.get("species")
-            for c in _canon_species_list(raw):
-                species[place["name"]][c[0]] += 1
+            for nm in names:
+                species[place["name"]][nm] += 1
     out = []
     for p in places:
         n = counts.get(p["name"], 0)
@@ -1879,18 +1884,24 @@ def map_points(shots, places=None):
     return out
 
 
-def images_at_place(shots, place):
+def images_at_place(shots, place, species=None):
     """Every frame taken at ``place`` (a locations.json entry), for /birds?loc=.
     Interleaved one-frame-per-post like the other filters, so a single long
-    shoot doesn't sit in the grid as one solid block."""
+    shoot doesn't sit in the grid as one solid block. Pass ``species`` to also
+    require that bird (the combined ?bird=&loc= filter deep-linked from a
+    species map pin)."""
     idx = _place_index([place])
+    species_l = (species or "").strip().lower()
     buckets = []
     for shot in shots:
         bucket = []
         for i in range(len(shot.get("images") or [])):
-            frame, _ = _pseudo_frame(shot, i)
-            if frame.get("location") and _match_place(frame["location"], idx):
-                bucket.append(frame)
+            frame, canons = _pseudo_frame(shot, i)
+            if not (frame.get("location") and _match_place(frame["location"], idx)):
+                continue
+            if species_l and species_l not in [c[0].lower() for c in canons]:
+                continue
+            bucket.append(frame)
         if bucket:
             buckets.append(bucket)
     return _interleave_buckets(buckets)

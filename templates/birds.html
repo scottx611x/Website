@@ -62,7 +62,9 @@
                 {% if active_bird %}<button type="button" class="chip" onclick="birdsGo(null,{bird:''})">{{ active_bird }}{% if active_bird in out_of_area %} &#9888;&#65039;{% endif %} <span>&times;</span></button>{% endif %}
             </div>
             <p class="bird-active-meta">
-                {% if active_bird %}{{ bird_family }} &middot; {% endif %}{% set noun = 'video' if active_media == 'video' else 'photo' %}{{ shots|length }} {{ noun }}{{ 's' if shots|length != 1 }} &middot; <a href="/birds">clear all</a>
+                {% if active_bird %}{{ bird_family }} &middot; {% endif %}{% set noun = 'video' if active_media == 'video' else 'photo' %}{{ shots|length }} {{ noun }}{{ 's' if shots|length != 1 }}
+                {% if active_bird %} &middot; <a href="/birds/map?bird={{ active_bird|urlencode }}">&#128205; where I find it &rarr;</a>{% endif %}
+                &middot; <a href="/birds">clear all</a>
             </p>
         </div>
         {% endif %}

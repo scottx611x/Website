@@ -8,10 +8,20 @@
 {% block content %}
 <section class="page wide">
     <header class="gallery-header">
+        {% if active_bird %}
+        <h1>Where I find {{ active_bird }}</h1>
+        <p class="empty" style="color:var(--ink);max-width:40rem;margin:0 auto;">
+            {{ "{:,}".format(mapped) }} photo{{ "" if mapped == 1 else "s" }} across
+            {{ points|length }} place{{ "" if points|length == 1 else "s" }} &mdash; click a pin.
+            <br><a href="/birds?bird={{ active_bird|urlencode }}">&larr; back to the {{ active_bird }} gallery</a>
+            &nbsp;&middot;&nbsp; <a href="/birds/map">see every place &rarr;</a>
+        </p>
+        {% else %}
         <h1>Where the birds are</h1>
         <p class="empty" style="color:var(--ink);max-width:40rem;margin:0 auto;">
             {{ "{:,}".format(mapped) }} photos across {{ points|length }} places &mdash; click a pin.
         </p>
+        {% endif %}
         {% set subnav_active = 'map' %}{% include '_birds_nav.html' %}
     </header>
 
@@ -38,6 +48,7 @@
 <script>
     (function () {
         var points = {{ points|tojson }};
+        var activeBird = {{ active_bird|tojson }};
         var map = L.map("sightings-map", { scrollWheelZoom: false });
         L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png", {
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
@@ -54,11 +65,21 @@
                 fillColor: away ? "#d9863b" : "#2f7d4f", fillOpacity: 0.82
             }).addTo(map);
             var noun = p.count === 1 ? "photo" : "photos";
+            var href, body;
+            if (activeBird) {
+                // Species map: each pin is that bird here, linking to the combined
+                // species + place gallery filter.
+                href = "/birds?bird=" + encodeURIComponent(activeBird) + "&loc=" + encodeURIComponent(p.name);
+                body = p.count + ' ' + activeBird + ' ' + noun + ' here';
+            } else {
+                href = "/birds?loc=" + encodeURIComponent(p.name);
+                body = p.count + ' ' + noun + ' · ' + p.species + ' species<br>' +
+                    '<span class="pop-top">' + p.top.join(", ") + '</span>';
+            }
             m.bindPopup(
                 '<strong>' + (away ? "⚠️ " : "") + p.name + '</strong><br>' +
-                p.count + ' ' + noun + ' · ' + p.species + ' species<br>' +
-                '<span class="pop-top">' + p.top.join(", ") + '</span><br>' +
-                '<a href="/birds?loc=' + encodeURIComponent(p.name) + '">see the shots &rarr;</a>'
+                body + '<br>' +
+                '<a href="' + href + '">see the shots &rarr;</a>'
             );
             m.bindTooltip(p.name + " (" + p.count + ")", { direction: "top", offset: [0, -6] });
             allGroup.push(m);

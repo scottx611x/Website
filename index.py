@@ -405,7 +405,9 @@ def birds_gallery():
         birds.apply_overrides(raw, apply_exclusions=False)
         shots = birds.images_hidden(raw)
     elif place:
-        shots = birds.images_at_place(all_shots, place)
+        # ?loc= alone shows the place; ?bird=&loc= (from a species map pin) also
+        # requires that species.
+        shots = birds.images_at_place(all_shots, place, species=bird or None)
     elif on:
         shots = birds.images_on_date(all_shots, on)
     elif posted:
@@ -491,12 +493,17 @@ def birds_gallery():
 @app.route("/birds/map", methods=["GET"])
 def birds_map():
     shots = birds.load_gallery(shuffle=False)
-    points = birds.map_points(shots)
+    # ?bird= focuses the map on where one species turns up (deep-linked from a
+    # species/gallery view); it resolves against the same species index.
+    groups = birds.species_groups(shots)
+    bird = birds.resolve_species(request.args.get("bird") or "", groups)
+    points = birds.map_points(shots, species_filter=bird or None)
     return render_template(
         "map.html",
         title="Bird sightings map",
         points=points,
         mapped=sum(p["count"] for p in points),
+        active_bird=bird,
         local=_is_local(),
         curate=_curate_on(),
     )

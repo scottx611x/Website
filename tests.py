@@ -155,6 +155,16 @@ class BirdsTestCase(unittest.TestCase):
         self.assertEqual(pts[0]["count"], 2)  # alias prefix folds the Extension in
         self.assertEqual(pts[0]["top"], ["Barred Owl"])
 
+    def test_map_points_species_filter(self):
+        places = [{"name": "Rea St.", "lat": 42.67, "lng": -71.1, "area": "local",
+                   "match": ["rea st"]}]
+        shots = [{"id": "a", "images": ["u1", "u2"], "species": "Barred Owl",
+                  "image_species": ["Barred Owl", "Osprey"],
+                  "image_locations": ["Rea St.", "Rea St."]}]
+        owl = birds.map_points(shots, places, species_filter="Barred Owl")
+        self.assertEqual(owl[0]["count"], 1)   # only the Barred Owl frame
+        self.assertEqual(birds.map_points(shots, places, species_filter="Cardinal"), [])
+
     def test_loc_key_folds_suffix_variants(self):
         for a, b in [("Rea St.", "Rea Street"), ("Rea St", "Rea Street"),
                      ("Sargent Dr", "Sargent Drive"), ("Oak Ln", "Oak Lane"),
