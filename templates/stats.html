@@ -773,11 +773,12 @@
                  d3.max(layers, function (l) { return d3.max(l, function (d) { return d[1]; }); })],
                 [H - m.b, m.t]);
             var svg = d3.select(el).append("svg").attr("viewBox", "0 0 " + W + " " + H)
-                // pan-y: a VERTICAL drag still scrolls the page (so the river is
-                // never a scroll trap), while a horizontal drag is ours to scrub
-                // and two fingers are ours to pinch-zoom. No text selection / tap
-                // flash on touch either.
-                .style("touch-action", "pan-y").style("-webkit-user-select", "none")
+                // touch-action:none — the river owns its touches so you can drag
+                // freely across currents (birds are stacked vertically, so a
+                // vertical drag has to select, not scroll) and pinch to zoom,
+                // without the page scroll stealing the gesture. Scroll the page
+                // from above/below the chart. No text selection / tap flash either.
+                .style("touch-action", "none").style("-webkit-user-select", "none")
                 .style("user-select", "none").style("-webkit-tap-highlight-color", "transparent");
             var VB = [0, 0, W, H], curK = 1;   // live viewBox for pinch-zoom
             function applyVB() { svg.attr("viewBox", VB.join(" ")); }
@@ -931,7 +932,7 @@
             var readout = document.getElementById("river-readout");
             var hint = document.getElementById("river-hint");
             if (narrow && hint) hint.textContent = (capped ? "your 30 most-photographed — " : "")
-                + "drag sideways to explore · pinch to zoom · tap for the photos";
+                + "drag across the currents to explore · pinch to zoom · tap for the photos";
             function tellReadout(li) {
                 if (!readout) return;
                 if (li < 0) { readout.hidden = true; if (hint) hint.hidden = false; return; }
@@ -995,25 +996,44 @@
                 .on("pointerenter pointermove", function (ev, l) { bandMove(ev, l._i); })
                 .on("pointerdown", function (ev, l) { bandDown(ev, l._i); })
                 .on("click", function (ev, l) { bandClick(l._i); });
-            avatars.forEach(function (a) {
-                a.g.raise().attr("data-li", a.li).style("cursor", "pointer")
-                    .on("pointerenter pointermove", function (ev) { bandMove(ev, a.li); })
-                    .on("pointerdown", function (ev) { bandDown(ev, a.li); })
-                    .on("click", function () { bandClick(a.li); });
-            });
+            // Faces are decorative and DON'T catch input — otherwise, riding
+            // slightly off their own band (decluttered), they'd shadow the current
+            // beneath them and make thick bands feel un-touchable. All selection
+            // goes through the hit paths + the stack-aware hit-test below.
+            avatars.forEach(function (a) { a.g.raise().style("pointer-events", "none"); });
+            // The band under a point, seen THROUGH the faces: faces are raised above
+            // the hit paths (and decluttered off their own band), so a plain
+            // elementFromPoint would grab a face and skip the current beneath it —
+            // exactly why thick currents felt un-touchable. Walk the whole stack and
+            // take the first hit path.
+            function liAtPoint(cx, cy) {
+                var els = document.elementsFromPoint(cx, cy);
+                for (var i = 0; i < els.length; i++) {
+                    if (els[i].classList && els[i].classList.contains("river-hit")) {
+                        return +els[i].getAttribute("data-li");
+                    }
+                }
+                return -1;
+            }
             // Touch scrub: as the finger slides, hit-test the current under it at the
             // svg level (implicit pointer capture would otherwise stick the drag to
-            // the band it started on). Runs only for a 1-finger drag; 2 = pinch.
+            // the band it started on). Free 2-D drag; 2 fingers = pinch.
             svg.on("pointermove.scrub", function (ev) {
                 if (ev.pointerType !== "touch" || !downXY || pointers.size >= 2) return;
-                var li = liOf(document.elementFromPoint(ev.clientX, ev.clientY));
+                var li = liAtPoint(ev.clientX, ev.clientY);
                 if (li < 0) return;
                 var p = d3.pointer(ev, svg.node());
                 var i = Math.max(0, Math.min(N - 1, Math.round(x.invert(p[0]))));
                 activate(li, p[0], faceCenter(li, i)); tellReadout(li);
                 if (Math.hypot(ev.clientX - downXY[0], ev.clientY - downXY[1]) > 10) { moved = true; pendingNav = -1; }
             });
-            svg.on("pointerup.band pointercancel.band", function () { downXY = null; });
+            svg.on("pointerup.band", function () { downXY = null; });
+            // Scroll took the gesture over — drop the stray highlight so no bloom
+            // is left stranded, and let the next tap start clean.
+            svg.on("pointercancel.band", function () {
+                downXY = null;
+                if (lastType === "touch") { activate(-1); tellReadout(-1); tappedBand = -1; }
+            });
             svg.on("pointerleave", function () {
                 if (lastType === "touch") return;                       // touch selection persists
                 activate(-1); tellReadout(-1);
