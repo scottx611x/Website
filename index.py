@@ -666,22 +666,16 @@ def projects():
     )
 
 
-PROJECTS_FILE = os.path.join(app.static_folder, "projects.json")
-
-
 def load_projects():
-    """Curated things I've built, from a static manifest. (See projects.json.)"""
-    try:
-        with open(PROJECTS_FILE) as fh:
-            return json.load(fh)
-    except (OSError, ValueError):
-        return []
+    """Curated things I've built (static/projects.json), S3-backed so the live
+    curated site can edit it too — same store as the bird curation files."""
+    return birds._load_curation(birds.PROJECTS_FILE, list)
 
 
 @app.route("/curate/projects", methods=["POST"])
 def curate_projects():
-    """Save the reordered/edited project list (local curate only)."""
-    if not _is_local():
+    """Save the reordered/edited project list (curate mode, local or live)."""
+    if not _curate_on():
         abort(404)
     data = request.get_json(silent=True) or {}
     incoming = data.get("projects")
@@ -704,7 +698,7 @@ def curate_projects():
         if p.get("hidden"):
             entry["hidden"] = True
         clean.append(entry)
-    birds._atomic_write_json(PROJECTS_FILE, clean)
+    birds._save_curation(birds.PROJECTS_FILE, clean)
     return {"ok": True, "count": len(clean)}
 
 

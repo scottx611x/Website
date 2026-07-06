@@ -1016,6 +1016,7 @@ EXCLUDED_FILE = os.path.join(HERE, "birds", "excluded.json")
 OVERRIDES_FILE = os.path.join(HERE, "birds", "overrides.json")
 LIFERS_FILE = os.path.join(HERE, "birds", "lifers.json")
 LOC_OVERRIDES_FILE = os.path.join(HERE, "birds", "location_overrides.json")
+PROJECTS_FILE = os.path.join(HERE, "static", "projects.json")
 
 
 # --- Curation storage: repo files locally, S3 objects in production ----------
@@ -1031,6 +1032,7 @@ _CURATION_S3 = {
     REID_QUEUE_FILE: "{}/reid_queue.json".format(S3_PREFIX),
     LIFERS_FILE: "{}/lifers.json".format(S3_PREFIX),
     LOC_OVERRIDES_FILE: "{}/location_overrides.json".format(S3_PREFIX),
+    PROJECTS_FILE: "{}/projects.json".format(S3_PREFIX),
 }
 _curation_cache = {}  # path -> {"etag":..., "raw": bytes}
 
