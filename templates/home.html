@@ -102,10 +102,22 @@
     <script>
         // Reusable inline list editor (taglines, facts): edit/add/reorder/delete,
         // auto-saving the whole list to `endpoint` under `key`.
-        function initListEditor(listId, addId, savedId, endpoint, key) {
+        function initListEditor(listId, addId, savedId, endpoint, key, prefix, placeholder) {
             var list = document.getElementById(listId);
             if (!list) return;
             var saved = document.getElementById(savedId), t;
+            function makeRow() {
+                var div = document.createElement("div");
+                div.className = "tagline-edit";
+                div.innerHTML = '<span class="te-prefix mono"></span>'
+                    + '<input class="te-field">'
+                    + '<button type="button" class="pe-btn te-up" title="Move up">↑</button>'
+                    + '<button type="button" class="pe-btn te-down" title="Move down">↓</button>'
+                    + '<button type="button" class="pe-btn te-del" title="Delete">×</button>';
+                div.querySelector(".te-prefix").textContent = prefix;
+                div.querySelector(".te-field").placeholder = placeholder;
+                return div;
+            }
             function collect() {
                 return Array.prototype.map.call(list.querySelectorAll(".te-field"), function (f) { return f.value.trim(); }).filter(Boolean);
             }
@@ -120,7 +132,8 @@
                 }, 450);
             }
             function addRow() {
-                var blank = list.querySelector(".tagline-edit").cloneNode(true);
+                var existing = list.querySelector(".tagline-edit");
+                var blank = existing ? existing.cloneNode(true) : makeRow();  // empty list → build one
                 blank.querySelector(".te-field").value = "";
                 list.appendChild(blank);
                 blank.querySelector(".te-field").focus();
@@ -136,8 +149,10 @@
             var addBtn = document.getElementById(addId);
             if (addBtn) addBtn.addEventListener("click", addRow);
         }
-        initListEditor("tagline-list", "tagline-add", "tagline-saved", "/curate/taglines", "taglines");
-        initListEditor("fact-list", "fact-add", "fact-saved", "/curate/facts", "facts");
+        initListEditor("tagline-list", "tagline-add", "tagline-saved", "/curate/taglines", "taglines",
+            "that…", "got way too into photographing birds");
+        initListEditor("fact-list", "fact-add", "fact-saved", "/curate/facts", "facts",
+            "Scott…", "photographs birds around North Andover, MA");
     </script>
     {% endif %}
 
