@@ -883,8 +883,11 @@
             var fRingW = fG.append("circle").attr("fill", "none")
                 .attr("stroke", "#f4f1e9").attr("stroke-width", 2);
             function showFocus(li, cx, cy) {
-                var r = bigR, cyy = Math.max(m.t + r, Math.min(H - m.b - r, cy));
-                var cxx = Math.max(m.l + r, Math.min(W - m.r - r, cx));
+                // Counter-scale to the zoom so the bloom stays a sensible size (not
+                // ballooning when you pinch in) and clamp to the VISIBLE region.
+                var r = bigR / Math.max(1, curK);
+                var cyy = Math.max(VB[1] + r, Math.min(VB[1] + VB[3] - r, cy));
+                var cxx = Math.max(VB[0] + r, Math.min(VB[0] + VB[2] - r, cx));
                 fClip.attr("cx", cxx).attr("cy", cyy).attr("r", r);
                 fImg.attr("href", S2[li].img)
                     .attr("x", cxx - r).attr("y", cyy - r).attr("width", 2 * r).attr("height", 2 * r);
@@ -945,26 +948,34 @@
                 curFace = { cx: p[0], cy: faceCenter(li, i) };
             }
             function bandMove(ev, li) {
-                if (pointers.size >= 2) return;                         // pinch, not scrub
-                if (ev.pointerType === "touch" && !downXY) return;      // touch: only while dragging
+                if (ev.pointerType === "touch") return;   // touch scrub handled at svg level
+                if (pointers.size >= 2) return;
                 aim(ev, li); activate(li, curFace.cx, curFace.cy); tellReadout(li);
-                if (downXY && Math.hypot(ev.clientX - downXY[0], ev.clientY - downXY[1]) > 10) {
-                    moved = true; pendingNav = -1;                      // a drag is a scrub, not a go
-                }
             }
             function bandDown(ev, li) {
                 if (pointers.size >= 2) return;
+                // Touch implicitly captures the pointer to this element, which would
+                // pin the drag to this one band — release it so the finger can slide
+                // across currents (we then hit-test at the svg level as it moves).
+                if (ev.pointerType === "touch") {
+                    try { ev.target.releasePointerCapture(ev.pointerId); } catch (e) { /* not captured */ }
+                }
                 lastType = ev.pointerType; downXY = [ev.clientX, ev.clientY]; moved = false;
                 aim(ev, li); activate(li, curFace.cx, curFace.cy); tellReadout(li);
                 if (ev.pointerType === "touch") { pendingNav = (tappedBand === li) ? li : -1; tappedBand = li; }
                 else pendingNav = li;
+            }
+            // Map a hit-tested element (hit path or a face) back to its band.
+            function liOf(node) {
+                var n = node && node.closest ? node.closest("[data-li]") : null;
+                return n ? +n.getAttribute("data-li") : -1;
             }
             function bandClick(li) {
                 var go = pendingNav === li && !moved; pendingNav = -1;
                 if (go) location.href = birdURL(S2[li].name);
             }
             svg.selectAll("path.river-hit").data(layers).enter().append("path")
-                .attr("class", "river-hit").attr("d", area)
+                .attr("class", "river-hit").attr("d", area).attr("data-li", function (l) { return l._i; })
                 .attr("fill", "transparent").attr("stroke", "transparent")
                 .attr("stroke-width", narrow ? 22 : 12).attr("stroke-linejoin", "round")
                 .style("cursor", "pointer")
@@ -972,10 +983,22 @@
                 .on("pointerdown", function (ev, l) { bandDown(ev, l._i); })
                 .on("click", function (ev, l) { bandClick(l._i); });
             avatars.forEach(function (a) {
-                a.g.raise().style("cursor", "pointer")
+                a.g.raise().attr("data-li", a.li).style("cursor", "pointer")
                     .on("pointerenter pointermove", function (ev) { bandMove(ev, a.li); })
                     .on("pointerdown", function (ev) { bandDown(ev, a.li); })
                     .on("click", function () { bandClick(a.li); });
+            });
+            // Touch scrub: as the finger slides, hit-test the current under it at the
+            // svg level (implicit pointer capture would otherwise stick the drag to
+            // the band it started on). Runs only for a 1-finger drag; 2 = pinch.
+            svg.on("pointermove.scrub", function (ev) {
+                if (ev.pointerType !== "touch" || !downXY || pointers.size >= 2) return;
+                var li = liOf(document.elementFromPoint(ev.clientX, ev.clientY));
+                if (li < 0) return;
+                var p = d3.pointer(ev, svg.node());
+                var i = Math.max(0, Math.min(N - 1, Math.round(x.invert(p[0]))));
+                activate(li, p[0], faceCenter(li, i)); tellReadout(li);
+                if (Math.hypot(ev.clientX - downXY[0], ev.clientY - downXY[1]) > 10) { moved = true; pendingNav = -1; }
             });
             svg.on("pointerup.band pointercancel.band", function () { downXY = null; });
             svg.on("pointerleave", function () {
@@ -1007,6 +1030,18 @@
                 VB[0] = Math.max(0, Math.min(W - nw, VB[0]));
                 VB[1] = Math.max(0, Math.min(H - nh, VB[1]));
                 applyVB();
+                counterScale();
+            }
+            // The viewBox scales everything up, so the face circles would balloon.
+            // Counter-scale each by 1/k about its centre to hold a sensible size.
+            function counterScale() {
+                var k = curK;
+                avatars.forEach(function (a) {
+                    a.g.attr("transform", k > 1.02
+                        ? "translate(" + a.cx + "," + a.cy + ") scale(" + (1 / k) +
+                          ") translate(" + (-a.cx) + "," + (-a.cy) + ")" : null);
+                });
+                if (active >= 0) showFocus(active, curFace.cx, curFace.cy);  // re-fit the bloom
             }
             svg.on("pointerdown.zoom", function (ev) {
                 if (ev.pointerType !== "touch") return;
