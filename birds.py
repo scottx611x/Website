@@ -2056,12 +2056,21 @@ def activity_river(shots, top_n=8):
         m0 += 1
         if m0 > 12:
             m0, y0 = 1, y0 + 1
+    # Trim the long sparse ramp-up: start at the first month the hobby really
+    # gets going (>= 5 photos) so the river fills the frame instead of trickling
+    # across a mostly-empty axis. The early origin is told by the life list.
+    start = next((i for i, mo in enumerate(months)
+                  if sum(bins[mo].values()) >= 5), 0)
+    months = months[start:]
     top = [n for n, _ in sp_total.most_common(top_n)]
     top_set = set(top)
     series = [{"name": n, "fam": sp_fam.get(n, ""), "total": sp_total[n],
                "values": [bins[mo].get(n, 0) for mo in months]} for n in top]
     other = [sum(c for nm, c in bins[mo].items() if nm not in top_set) for mo in months]
-    return {"months": months, "series": series, "other": other, "top_species": top}
+    # Per-month breakdown (species -> count, biggest first) for the scrub card.
+    per_month = [sorted(bins[mo].items(), key=lambda kv: -kv[1]) for mo in months]
+    return {"months": months, "series": series, "other": other,
+            "top_species": top, "per_month": per_month}
 
 
 def images_on_date(shots, day):

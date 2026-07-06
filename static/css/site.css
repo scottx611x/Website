@@ -557,18 +557,55 @@ body.home .site-nav { z-index: 0; }
 .chart-readout a { color: var(--green); font-weight: 600; }
 .chart-readout strong { color: var(--green); }
 
-/* The river: streamgraph legend + bands */
-.river-band { transition: opacity 0.15s ease; }
-#river-chart:hover .river-band { opacity: 0.7; }
-#river-chart .river-band:hover { opacity: 1 !important; }
-.river-legend { display: flex; flex-wrap: wrap; gap: 0.35rem 0.9rem; margin-top: 0.7rem; }
+/* The river: scrubbable streamgraph + month card */
+.lab-tag {
+    font-size: 0.6rem; letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--amber); border: 1px solid rgba(232, 176, 75, 0.5);
+    border-radius: 999px; padding: 0.1rem 0.45rem; vertical-align: middle; margin-left: 0.4rem;
+}
+.river-band { transition: opacity 0.12s ease; }
+#river-chart .river-band:hover { opacity: 0.85; }
+/* the scrubber — a big, native, touch-friendly slider */
+.river-scrub {
+    -webkit-appearance: none; appearance: none; width: 100%; height: 1.6rem;
+    margin: 0.3rem 0 0.2rem; background: transparent; cursor: pointer;
+}
+.river-scrub::-webkit-slider-runnable-track { height: 4px; border-radius: 999px; background: rgba(13,18,14,0.15); }
+.river-scrub::-moz-range-track { height: 4px; border-radius: 999px; background: rgba(13,18,14,0.15); }
+.river-scrub::-webkit-slider-thumb {
+    -webkit-appearance: none; appearance: none; width: 1.4rem; height: 1.4rem; margin-top: -0.55rem;
+    border-radius: 50%; background: var(--green); border: 3px solid var(--paper);
+    box-shadow: 0 1px 5px rgba(13,18,14,0.35);
+}
+.river-scrub::-moz-range-thumb {
+    width: 1.4rem; height: 1.4rem; border-radius: 50%; background: var(--green);
+    border: 3px solid var(--paper); box-shadow: 0 1px 5px rgba(13,18,14,0.35);
+}
+.river-scrub:focus-visible { outline: none; }
+.river-scrub:focus-visible::-webkit-slider-thumb { box-shadow: 0 0 0 3px rgba(47,125,79,0.4); }
+/* the month card the scrubber drives */
+.river-card { margin-top: 0.3rem; }
+.river-cardhead { display: flex; align-items: baseline; gap: 0.6rem; flex-wrap: wrap; }
+.river-cardhead strong { font-family: var(--display); font-size: 1.3rem; color: var(--ink); }
+.river-tot { font-family: var(--mono); font-size: 0.75rem; color: var(--muted); }
+.river-chips { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.55rem; }
+.river-chip {
+    display: inline-flex; align-items: center; gap: 0.35rem; text-decoration: none;
+    font-size: 0.78rem; color: var(--ink); background: rgba(13,18,14,0.05);
+    border-radius: 999px; padding: 0.28rem 0.65rem; transition: background 0.12s ease;
+}
+.river-chip:hover { background: rgba(47,125,79,0.14); }
+.river-chip em { color: var(--muted); font-style: normal; font-family: var(--mono); font-size: 0.72rem; }
+.river-more { font-size: 0.72rem; color: var(--muted); align-self: center; padding: 0.28rem 0.2rem; }
+.river-legend { display: flex; flex-wrap: wrap; gap: 0.3rem 0.8rem; margin-top: 0.9rem;
+    padding-top: 0.7rem; border-top: 1px solid rgba(13,18,14,0.08); }
 .river-key {
-    display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.72rem;
-    color: var(--ink); text-decoration: none; white-space: nowrap;
+    display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.7rem;
+    color: var(--muted); text-decoration: none; white-space: nowrap;
 }
 a.river-key:hover { color: var(--green); }
 .river-key em { color: var(--muted); font-style: normal; }
-.river-dot { width: 0.7rem; height: 0.7rem; border-radius: 3px; display: inline-block; }
+.river-dot { width: 0.6rem; height: 0.6rem; border-radius: 3px; display: inline-block; flex: none; }
 
 /* shared floating tooltip (matrix / calendar / treemap) */
 .viz-tip {

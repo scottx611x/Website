@@ -19,15 +19,6 @@
     {% endif %}
 
     <div class="stat-grid">
-        <!-- The river: streamgraph of photo activity by species over time -->
-        <div class="stat-block stat-span-2">
-            <h2>The river</h2>
-            <p class="stat-sub mono">photos per species, month by month &mdash; the current of the hobby. hover to read a month; click a species to see its shots</p>
-            <div id="river-chart" class="d3-chart"></div>
-            <div id="river-legend" class="river-legend mono"></div>
-            <p class="chart-readout mono" id="river-readout"></p>
-        </div>
-
         <!-- Life list accumulation: scrub the timeline, see each lifer's photo -->
         <div class="stat-block stat-span-2">
             <h2>The life list</h2>
@@ -128,6 +119,15 @@
                 &nbsp;&nbsp;
                 <a href="/birds?area=elsewhere"><span class="dot dot-away"></span>{{ stats.away }} away &#9888;&#65039;</a>
             </p>
+        </div>
+
+        <!-- The river (experimental): drag through time, tap a species -->
+        <div class="stat-block stat-span-2 river-block">
+            <h2>The river <span class="lab-tag mono">experimental</span></h2>
+            <p class="stat-sub mono">photos by species over the seasons &mdash; drag across the current to scrub through the months, tap a species for its shots</p>
+            <div id="river-chart" class="d3-chart"></div>
+            <div id="river-card" class="river-card"></div>
+            <div id="river-legend" class="river-legend mono"></div>
         </div>
     </div>
 </section>
@@ -581,104 +581,96 @@
             readout.textContent = "tap a family to browse its photos";
         }
 
-        // ---- The river: streamgraph of photo activity by species over time ----
+        // ---- The river: scrub a playhead through the months, tap a species ----
+        function speciesColor(name) {
+            var i = RIVER.top_species.indexOf(name);
+            return i >= 0 ? SERIES_COLORS[i % SERIES_COLORS.length] : OTHER_COLOR;
+        }
         function renderRiver() {
             var el = document.getElementById("river-chart");
             if (!el || !RIVER.months || !RIVER.months.length) return;
             el.innerHTML = "";
-            var readout = document.getElementById("river-readout");
-            var W = chartWidth(el), narrow = W < 520, H = narrow ? 220 : 300,
-                m = { t: 14, r: 14, b: 26, l: 14 };
-            var months = RIVER.months;
-            // Build one row per month with a column per band (+ Other).
+            var card = document.getElementById("river-card");
+            var months = RIVER.months, N = months.length;
+            var W = chartWidth(el), narrow = W < 520, H = narrow ? 190 : 230,
+                m = { t: 12, r: 10, b: 20, l: 10 };
             var keys = RIVER.series.map(function (s) { return s.name; });
             var rows = months.map(function (mo, i) {
-                var row = { mo: mo };
+                var row = {};
                 RIVER.series.forEach(function (s) { row[s.name] = s.values[i]; });
                 row["Other"] = RIVER.other[i];
                 return row;
             });
-            var allKeys = keys.concat(["Other"]);
-            var color = function (k) {
-                if (k === "Other") return OTHER_COLOR;
-                return SERIES_COLORS[keys.indexOf(k) % SERIES_COLORS.length];
-            };
-            var stack = d3.stack().keys(allKeys)
-                .offset(d3.stackOffsetWiggle).order(d3.stackOrderInsideOut);
-            var layers = stack(rows);
-            var x = d3.scalePoint(d3.range(months.length), [m.l, W - m.r]);
+            var layers = d3.stack().keys(keys.concat(["Other"]))
+                .offset(d3.stackOffsetWiggle).order(d3.stackOrderInsideOut)(rows);
+            var x = d3.scaleLinear([0, N - 1], [m.l, W - m.r]);
             var y = d3.scaleLinear(
                 [d3.min(layers, function (l) { return d3.min(l, function (d) { return d[0]; }); }),
                  d3.max(layers, function (l) { return d3.max(l, function (d) { return d[1]; }); })],
                 [H - m.b, m.t]);
-            var svg = d3.select(el).append("svg").attr("viewBox", "0 0 " + W + " " + H)
-                .style("touch-action", "pan-y");
+            var svg = d3.select(el).append("svg").attr("viewBox", "0 0 " + W + " " + H);
             var area = d3.area().curve(d3.curveBasis)
                 .x(function (d, i) { return x(i); })
                 .y0(function (d) { return y(d[0]); })
                 .y1(function (d) { return y(d[1]); });
             svg.selectAll("path.river-band").data(layers).enter().append("path")
                 .attr("class", "river-band").attr("d", area)
-                .attr("fill", function (l) { return color(l.key); })
-                .attr("opacity", 0.9)
+                .attr("fill", function (l) { return l.key === "Other" ? OTHER_COLOR : speciesColor(l.key); })
                 .style("cursor", function (l) { return l.key === "Other" ? "default" : "pointer"; })
-                .on("click", function (ev, l) {
-                    if (l.key !== "Other") location.href = birdURL(l.key);
-                });
-            // year ticks along the bottom
+                .on("click", function (ev, l) { if (l.key !== "Other") location.href = birdURL(l.key); });
             var lastYear = null;
             months.forEach(function (mo, i) {
-                var yr = mo.slice(0, 4);
-                if (yr !== lastYear) {
-                    lastYear = yr;
-                    svg.append("text").attr("x", x(i)).attr("y", H - 8)
-                        .attr("text-anchor", "middle").attr("class", "chart-tick").text(yr);
+                if (mo.slice(0, 4) !== lastYear) {
+                    lastYear = mo.slice(0, 4);
+                    svg.append("text").attr("x", x(i)).attr("y", H - 6)
+                        .attr("text-anchor", "middle").attr("class", "chart-tick").text(lastYear);
                 }
             });
-            // crosshair + hover readout (which species were shot that month)
-            var guide = svg.append("line").attr("y1", m.t).attr("y2", H - m.b)
-                .attr("stroke", INK).attr("stroke-opacity", 0.35)
-                .attr("stroke-dasharray", "3 3").attr("opacity", 0);
-            function fmtMonth(mo) {
-                return MONTHS[+mo.slice(5) - 1] + " " + mo.slice(0, 4);
-            }
-            function hover(ev) {
-                var px = d3.pointer(ev, svg.node())[0];
-                var i = Math.max(0, Math.min(months.length - 1,
-                    Math.round((px - m.l) / ((W - m.r - m.l) / (months.length - 1)))));
-                guide.attr("x1", x(i)).attr("x2", x(i)).attr("opacity", 1);
-                var parts = RIVER.series
-                    .map(function (s) { return [s.name, s.values[i]]; })
-                    .filter(function (p) { return p[1]; })
-                    .sort(function (a, b) { return b[1] - a[1]; });
-                if (RIVER.other[i]) parts.push(["Other", RIVER.other[i]]);
+            var head = svg.append("line").attr("y1", m.t).attr("y2", H - m.b)
+                .attr("stroke", INK).attr("stroke-width", 2).attr("stroke-opacity", 0.55);
+
+            // Native range slider = the primary, touch-friendly scrubber.
+            var scrub = document.createElement("input");
+            scrub.type = "range"; scrub.min = 0; scrub.max = N - 1; scrub.step = 1;
+            scrub.className = "river-scrub"; scrub.setAttribute("aria-label", "Scrub through the months");
+            el.insertAdjacentElement("afterend", scrub);
+
+            function fmtMonth(mo) { return MONTHS[+mo.slice(5) - 1] + " " + mo.slice(0, 4); }
+            function setMonth(i) {
+                i = Math.max(0, Math.min(N - 1, i));
+                scrub.value = i;
+                head.attr("x1", x(i)).attr("x2", x(i));
+                var parts = RIVER.per_month[i];   // [ [species, n], ... ] biggest first
                 var tot = parts.reduce(function (a, p) { return a + p[1]; }, 0);
-                readout.innerHTML = "<strong>" + fmtMonth(months[i]) + "</strong> · " +
-                    tot + " photo" + (tot === 1 ? "" : "s") +
-                    (parts.length ? " — " + parts.slice(0, 5).map(function (p) {
-                        return p[0] + " " + p[1];
-                    }).join(", ") : " — none");
+                var chips = parts.slice(0, 8).map(function (p) {
+                    return '<a class="river-chip" href="' + birdURL(p[0]) + '">' +
+                        '<span class="river-dot" style="background:' + speciesColor(p[0]) + '"></span>' +
+                        p[0] + ' <em>' + p[1] + '</em></a>';
+                }).join("");
+                var more = parts.length > 8 ? '<span class="river-more">+' + (parts.length - 8) + ' more</span>' : "";
+                card.innerHTML =
+                    '<div class="river-cardhead"><strong>' + fmtMonth(months[i]) + '</strong>' +
+                    '<span class="river-tot">' + tot + ' photo' + (tot === 1 ? '' : 's') +
+                    ' · ' + parts.length + ' species</span></div>' +
+                    '<div class="river-chips">' + (chips || '<span class="river-more">no photos</span>') + more + '</div>';
             }
-            svg.on("pointerdown pointermove", hover);
-            svg.on("pointerleave", function () { guide.attr("opacity", 0); });
-            // legend (identity is never color-alone: each swatch names its species)
+            scrub.addEventListener("input", function () { setMonth(+scrub.value); });
+            // Tapping/dragging on the river itself also moves the playhead.
+            svg.style("touch-action", "pan-y").on("pointerdown pointermove", function (ev) {
+                if (ev.type === "pointermove" && !ev.buttons && ev.pointerType === "mouse") return;
+                setMonth(Math.round(x.invert(d3.pointer(ev, svg.node())[0])));
+            });
+
             var lg = document.getElementById("river-legend");
             lg.innerHTML = "";
-            RIVER.series.forEach(function (s, i) {
+            RIVER.series.forEach(function (s) {
                 var a = document.createElement("a");
-                a.className = "river-key";
-                a.href = birdURL(s.name);
-                a.innerHTML = '<span class="river-dot" style="background:' +
-                    SERIES_COLORS[i % SERIES_COLORS.length] + '"></span>' + s.name +
-                    ' <em>' + s.total + '</em>';
+                a.className = "river-key"; a.href = birdURL(s.name);
+                a.innerHTML = '<span class="river-dot" style="background:' + speciesColor(s.name) +
+                    '"></span>' + s.name + ' <em>' + s.total + '</em>';
                 lg.appendChild(a);
             });
-            var o = document.createElement("span");
-            o.className = "river-key";
-            o.innerHTML = '<span class="river-dot" style="background:' + OTHER_COLOR +
-                '"></span>Other';
-            lg.appendChild(o);
-            readout.innerHTML = "hover the river to read a month";
+            setMonth(N - 1);   // start on the most recent month
         }
 
         renderRiver();
