@@ -891,8 +891,16 @@
                 // Counter-scale to the zoom so the bloom stays a sensible size (not
                 // ballooning when you pinch in) and clamp to the VISIBLE region.
                 var r = bigR / Math.max(1, curK);
-                var cyy = Math.max(VB[1] + r, Math.min(VB[1] + VB[3] - r, cy));
                 var cxx = Math.max(VB[0] + r, Math.min(VB[0] + VB[2] - r, cx));
+                // Sit the bloom ABOVE the finger/cursor so it never hides under your
+                // thumb. On touch always keep it above (your hand is below, so a
+                // flip-below would tuck it under your palm) and just clamp to the top;
+                // on mouse, flip below when there's no room up.
+                var gap = r + (lastType === "touch" ? 64 : 22) / Math.max(1, curK);
+                var cyy = (lastType === "touch")
+                    ? cy - gap
+                    : (cy - gap - r >= VB[1] ? cy - gap : cy + gap);
+                cyy = Math.max(VB[1] + r, Math.min(VB[1] + VB[3] - r, cyy));
                 fClip.attr("cx", cxx).attr("cy", cyy).attr("r", r);
                 fImg.attr("href", S2[li].img)
                     .attr("x", cxx - r).attr("y", cyy - r).attr("width", 2 * r).attr("height", 2 * r);
