@@ -142,7 +142,8 @@
             <h2>The river</h2>
             <p class="stat-sub mono">every species you&rsquo;ve shot, each a current swelling through its season &mdash; touch any one to meet the bird</p>
             <div class="river-stage">
-                <div id="river-chart" class="d3-chart"></div>
+                <div id="river-chart" class="d3-chart" tabindex="0" role="application"
+                     aria-label="River of every species by season. Left and right arrow keys step through the species; Enter opens the selected bird."></div>
             </div>
             <a id="river-readout" class="river-readout mono" href="#" hidden></a>
             <p id="river-hint" class="river-readout river-hint mono">hover or tap a current &mdash; the bird blooms, its story appears here</p>
@@ -772,10 +773,11 @@
                  d3.max(layers, function (l) { return d3.max(l, function (d) { return d[1]; }); })],
                 [H - m.b, m.t]);
             var svg = d3.select(el).append("svg").attr("viewBox", "0 0 " + W + " " + H)
-                // The river is a touch surface: capture drags (scrub) and pinches
-                // (zoom) instead of letting them scroll/select. No blue text
-                // selection or tap flash on touch.
-                .style("touch-action", "none").style("-webkit-user-select", "none")
+                // pan-y: a VERTICAL drag still scrolls the page (so the river is
+                // never a scroll trap), while a horizontal drag is ours to scrub
+                // and two fingers are ours to pinch-zoom. No text selection / tap
+                // flash on touch either.
+                .style("touch-action", "pan-y").style("-webkit-user-select", "none")
                 .style("user-select", "none").style("-webkit-tap-highlight-color", "transparent");
             var VB = [0, 0, W, H], curK = 1;   // live viewBox for pinch-zoom
             function applyVB() { svg.attr("viewBox", VB.join(" ")); }
@@ -921,7 +923,7 @@
             var readout = document.getElementById("river-readout");
             var hint = document.getElementById("river-hint");
             if (narrow && hint) hint.textContent = (capped ? "your 30 most-photographed — " : "")
-                + "drag across the currents to explore · pinch to zoom · tap → for the photos";
+                + "drag sideways to explore · pinch to zoom · tap for the photos";
             function tellReadout(li) {
                 if (!readout) return;
                 if (li < 0) { readout.hidden = true; if (hint) hint.hidden = false; return; }
@@ -1060,6 +1062,31 @@
                 pointers.delete(ev.pointerId);
                 if (pointers.size < 2) pinch = null;
             });
+
+            // Keyboard: the river-chart is focusable; arrows step through the
+            // species (biggest first), Enter opens the selected one. A screen
+            // reader gets the same name/count/season via the readout text.
+            function peakMonthOf(li) {
+                var l = layers[li], pk = 0, pth = -1;
+                for (var i = 0; i < N; i++) {
+                    var t = Math.abs(y(l[i][0]) - y(l[i][1]));
+                    if (t > pth) { pth = t; pk = i; }
+                }
+                return pk;
+            }
+            var kbSel = -1;
+            el.addEventListener("keydown", function (ev) {
+                if (ev.key === "ArrowRight" || ev.key === "ArrowLeft") {
+                    kbSel = ev.key === "ArrowRight"
+                        ? Math.min(S2.length - 1, kbSel + 1) : Math.max(0, kbSel < 0 ? 0 : kbSel - 1);
+                    var pk = peakMonthOf(kbSel);
+                    activate(kbSel, x(pk), faceCenter(kbSel, pk)); tellReadout(kbSel);
+                    ev.preventDefault();
+                } else if ((ev.key === "Enter" || ev.key === " ") && kbSel >= 0) {
+                    location.href = birdURL(S2[kbSel].name); ev.preventDefault();
+                }
+            });
+            el.addEventListener("blur", function () { if (lastType !== "touch") { activate(-1); tellReadout(-1); } });
         }
 
         renderRiver();

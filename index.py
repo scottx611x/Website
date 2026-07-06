@@ -102,6 +102,14 @@ def _page_cache(resp):
         resp.set_etag("{}-{}".format(birds.data_version(), ASSET_V))
         resp.headers["Cache-Control"] = "no-cache"
         return resp.make_conditional(request)
+    if (request.endpoint == "projects" and resp.status_code == 200
+            and not _is_local() and request.method == "GET"):
+        # A live curate edit rewrites the project list, so revalidate against a
+        # hash of the rendered body — an unchanged page is a 304, an edited one
+        # busts on the next load instead of serving a stale cached copy.
+        resp.set_etag(hashlib.md5(resp.get_data()).hexdigest())
+        resp.headers["Cache-Control"] = "no-cache"
+        return resp.make_conditional(request)
     return resp
 
 TITLE = "Scott Ouellette"
@@ -127,17 +135,11 @@ def load_backgrounds():
     return DEFAULT_BACKGROUNDS
 
 
-FACTS_FILE = os.path.join(app.static_folder, "facts.json")
-
-
 def load_facts():
-    """Rotating footer facts about me (curate them in static/facts.json or the
-    local curate UI on the home page). An empty list means no fact line."""
-    try:
-        with open(FACTS_FILE) as fh:
-            return json.load(fh)
-    except (OSError, ValueError):
-        return []
+    """Rotating footer facts about me — S3-backed curation (static/facts.json is
+    the repo mirror), editable from the home-page curate UI, local or live. An
+    empty list means no fact line."""
+    return birds._load_curation(birds.FACTS_FILE, list)
 
 
 @app.context_processor
@@ -147,20 +149,11 @@ def _inject_facts():
     return {"facts": load_facts()}
 
 
-TAGLINES_FILE = os.path.join(app.static_folder, "taglines.json")
-
-
 def load_taglines():
     """Rotating hero taglines that complete 'Software Infrastructure Engineer that …'
-    (curate them in static/taglines.json or the local curate UI on the home page)."""
-    try:
-        with open(TAGLINES_FILE) as fh:
-            lines = json.load(fh)
-        if lines:
-            return lines
-    except (OSError, ValueError):
-        pass
-    return ["builds things"]
+    — S3-backed curation (static/taglines.json is the repo mirror), editable from
+    the home-page curate UI, local or live."""
+    return birds._load_curation(birds.TAGLINES_FILE, list) or ["builds things"]
 
 
 # Pages temporarily hidden everywhere (nav, home page, direct URL). To bring one
@@ -704,29 +697,29 @@ def curate_projects():
 
 @app.route("/curate/taglines", methods=["POST"])
 def curate_taglines():
-    """Save the reordered/edited hero taglines (local curate only)."""
-    if not _is_local():
+    """Save the reordered/edited hero taglines (curate mode, local or live)."""
+    if not _curate_on():
         abort(404)
     data = request.get_json(silent=True) or {}
     incoming = data.get("taglines")
     if not isinstance(incoming, list):
         abort(400)
     clean = [s.strip() for s in incoming if isinstance(s, str) and s.strip()]
-    birds._atomic_write_json(TAGLINES_FILE, clean)
+    birds._save_curation(birds.TAGLINES_FILE, clean)
     return {"ok": True, "count": len(clean)}
 
 
 @app.route("/curate/facts", methods=["POST"])
 def curate_facts():
-    """Save the reordered/edited footer facts (local curate only)."""
-    if not _is_local():
+    """Save the reordered/edited footer facts (curate mode, local or live)."""
+    if not _curate_on():
         abort(404)
     data = request.get_json(silent=True) or {}
     incoming = data.get("facts")
     if not isinstance(incoming, list):
         abort(400)
     clean = [s.strip() for s in incoming if isinstance(s, str) and s.strip()]
-    birds._atomic_write_json(FACTS_FILE, clean)
+    birds._save_curation(birds.FACTS_FILE, clean)
     return {"ok": True, "count": len(clean)}
 
 

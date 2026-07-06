@@ -1017,6 +1017,8 @@ OVERRIDES_FILE = os.path.join(HERE, "birds", "overrides.json")
 LIFERS_FILE = os.path.join(HERE, "birds", "lifers.json")
 LOC_OVERRIDES_FILE = os.path.join(HERE, "birds", "location_overrides.json")
 PROJECTS_FILE = os.path.join(HERE, "static", "projects.json")
+TAGLINES_FILE = os.path.join(HERE, "static", "taglines.json")
+FACTS_FILE = os.path.join(HERE, "static", "facts.json")
 
 
 # --- Curation storage: repo files locally, S3 objects in production ----------
@@ -1033,6 +1035,8 @@ _CURATION_S3 = {
     LIFERS_FILE: "{}/lifers.json".format(S3_PREFIX),
     LOC_OVERRIDES_FILE: "{}/location_overrides.json".format(S3_PREFIX),
     PROJECTS_FILE: "{}/projects.json".format(S3_PREFIX),
+    TAGLINES_FILE: "{}/taglines.json".format(S3_PREFIX),
+    FACTS_FILE: "{}/facts.json".format(S3_PREFIX),
 }
 _curation_cache = {}  # path -> {"etag":..., "raw": bytes}
 
