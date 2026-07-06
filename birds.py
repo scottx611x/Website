@@ -1015,6 +1015,7 @@ TOKEN_FILE = os.path.join(HERE, ".ig_token")
 EXCLUDED_FILE = os.path.join(HERE, "birds", "excluded.json")
 OVERRIDES_FILE = os.path.join(HERE, "birds", "overrides.json")
 LIFERS_FILE = os.path.join(HERE, "birds", "lifers.json")
+LOC_OVERRIDES_FILE = os.path.join(HERE, "birds", "location_overrides.json")
 
 
 # --- Curation storage: repo files locally, S3 objects in production ----------
@@ -1029,6 +1030,7 @@ _CURATION_S3 = {
     OVERRIDES_FILE: "{}/overrides.json".format(S3_PREFIX),
     REID_QUEUE_FILE: "{}/reid_queue.json".format(S3_PREFIX),
     LIFERS_FILE: "{}/lifers.json".format(S3_PREFIX),
+    LOC_OVERRIDES_FILE: "{}/location_overrides.json".format(S3_PREFIX),
 }
 _curation_cache = {}  # path -> {"etag":..., "raw": bytes}
 
@@ -1810,12 +1812,39 @@ LOCATIONS_FILE = os.path.join(HERE, "static", "locations.json")
 def load_locations():
     """Geocoded shooting spots for the sightings map (static/locations.json).
     Each place: name, lat, lng, area, and `match` — normalized _loc_key aliases;
-    a frame belongs to the place when its key equals or extends an alias."""
+    a frame belongs to the place when its key equals or extends an alias. Live
+    curation of a spot's local/away status is overlaid from an S3-backed store."""
     try:
         with open(LOCATIONS_FILE) as fh:
-            return json.load(fh)
+            places = json.load(fh)
     except (OSError, ValueError):
         return []
+    overrides = load_location_overrides()
+    if overrides:
+        for p in places:
+            ov = overrides.get(p["name"])
+            if ov and ov.get("area") in ("local", "away"):
+                p["area"] = ov["area"]
+    return places
+
+
+def load_location_overrides():
+    """Curated per-spot corrections: {place name: {"area": "local"|"away"}}."""
+    return _load_curation(LOC_OVERRIDES_FILE, dict)
+
+
+def set_location_override(name, area):
+    """Set (or clear) a spot's local/away override. area=None removes it."""
+    name = (name or "").strip()
+    if not name:
+        return {}
+    ovs = load_location_overrides()
+    if area in ("local", "away"):
+        ovs[name] = {"area": area}
+    else:
+        ovs.pop(name, None)
+    _save_curation(LOC_OVERRIDES_FILE, ovs)
+    return ovs.get(name, {})
 
 
 def _place_index(places):

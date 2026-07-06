@@ -588,6 +588,19 @@ def curate_lifer():
     return {"ok": True, "entry": entry}
 
 
+@app.route("/curate/location", methods=["POST"])
+def curate_location():
+    if not _curate_on():
+        abort(404)
+    data = request.get_json(silent=True) or {}
+    name = (data.get("name") or "").strip()
+    area = (data.get("area") or "").strip()
+    if not name or area not in ("local", "away"):
+        abort(400)
+    entry = birds.set_location_override(name, area)
+    return {"ok": True, "entry": entry}
+
+
 @app.route("/curate/reid", methods=["POST"])
 def curate_reid():
     if not _curate_on():

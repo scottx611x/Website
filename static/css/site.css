@@ -577,6 +577,8 @@ a.river-readout:hover .riv-go { text-decoration: underline; }
 .river-readout b { font-weight: 700; }
 .river-readout .riv-go { color: var(--green); font-weight: 700; white-space: nowrap; }
 .river-hint { color: var(--muted); border-left-color: transparent; }
+/* A class-level `display` beats the UA [hidden] rule, so restore it explicitly. */
+.river-readout[hidden], .lifer-curate[hidden] { display: none; }
 .river-card {
     position: absolute; top: 0.6rem; left: 0.6rem; z-index: 3; max-width: 17rem;
     display: flex; gap: 0.85rem; align-items: center;
@@ -684,6 +686,11 @@ a.pheno-name:hover { color: var(--green); text-decoration: underline; }
 a.pheno-cell:hover, a.pheno-cell:focus-visible {
     outline: 1.5px solid var(--ink); outline-offset: -1px;
 }
+.pheno-more {
+    display: block; width: 100%; margin: 0.6rem 0 0; padding: 0.5rem;
+    background: rgba(47, 125, 79, 0.08); color: var(--green); border: 0;
+    border-radius: 8px; cursor: pointer; font-size: 0.8rem; }
+.pheno-more:hover { background: rgba(47, 125, 79, 0.16); }
 .pheno-head { position: sticky; top: 3.1rem; z-index: 5; background: var(--paper); padding: 0.25rem 0; }
 .pheno-mo {
     font-family: var(--mono); font-size: 0.68rem; color: var(--muted); text-align: center;
@@ -727,8 +734,16 @@ a.pheno-cell:hover, a.pheno-cell:focus-visible {
 .dot { display: inline-block; width: 0.7rem; height: 0.7rem; border-radius: 50%; margin-right: 0.35rem; vertical-align: middle; }
 .dot-local { background: var(--green); }
 .dot-away { background: #d9863b; }
+/* Combined "where I find them": location bars in two columns on wide screens. */
+.places-list { display: grid; grid-template-columns: 1fr 1fr; gap: 0 1.8rem; }
+.places-list .bar-row { position: relative; }
+.loc-area-btn { cursor: pointer; color: var(--muted); font-size: 0.9rem; padding: 0 0.2rem;
+    border-radius: 4px; user-select: none; }
+.loc-area-btn:hover { color: var(--green); background: rgba(47, 125, 79, 0.12); }
+.loc-area-btn.flash { color: var(--green); background: rgba(56, 224, 138, 0.3); }
 @media (max-width: 720px) {
     .stat-grid { grid-template-columns: 1fr; }
+    .places-list { grid-template-columns: 1fr; }
     .bar-row { grid-template-columns: 8rem 1fr 2.2rem; }
     .bar-row.rich { grid-template-columns: 2.3rem minmax(5.5rem, 8rem) 1fr 2.4rem; }
     .pheno-row { grid-template-columns: 7.5rem repeat(12, 1fr); gap: 1.5px; }

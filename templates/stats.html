@@ -57,7 +57,7 @@
         <!-- Phenology matrix: every species x every month -->
         <div class="stat-block stat-span-2">
             <h2>The year, in birds</h2>
-            <p class="stat-sub mono">all {{ series.pheno|length }} species, month by month &mdash; each row shaded to its own rhythm, darkest = that bird&rsquo;s peak. tap a month letter to spotlight it, tap any cell for that bird&rsquo;s photos from that month</p>
+            <p class="stat-sub mono">all {{ series.pheno|length }} species, month by month &mdash; darker = more photos that month (comparable across the whole board). tap a month letter to spotlight it, tap any cell for that bird&rsquo;s photos from that month</p>
             <div class="pheno-controls">
                 <input id="pheno-search" class="pheno-search mono" type="search"
                        placeholder="Filter species or family&hellip;" autocomplete="off">
@@ -101,33 +101,10 @@
             <p class="chart-readout mono" id="fam-readout"></p>
         </div>
 
-        <!-- Top spots -->
-        <div class="stat-block">
+        <!-- Where I find them — led by the home-turf vs. away summary -->
+        <div class="stat-block stat-span-2" id="places-block">
             <h2>Where I find them</h2>
-            <p class="stat-sub mono">top locations by frame &mdash; mapped spots click through</p>
-            {% set lmax = stats.top_locations[0][1] %}
-            {% for loc, count in stats.top_locations %}
-            {% set away = loc_area.get(loc) == 'away' %}
-            {% if loc_place.get(loc) %}
-            <a class="bar-row" href="/birds?loc={{ loc_place[loc]|urlencode }}">
-                <span class="bar-label">&#128205; {{ loc }}{% if away %} &#9888;&#65039;{% endif %}</span>
-                <span class="bar-track"><span class="bar-fill {{ 'warm' if away else 'loc' }}" style="width: {{ (count / lmax * 100)|round(1) }}%"></span></span>
-                <span class="bar-val mono">{{ count }}</span>
-            </a>
-            {% else %}
-            <div class="bar-row static">
-                <span class="bar-label">{{ loc }}</span>
-                <span class="bar-track"><span class="bar-fill {{ 'warm' if away else 'loc' }}" style="width: {{ (count / lmax * 100)|round(1) }}%"></span></span>
-                <span class="bar-val mono">{{ count }}</span>
-            </div>
-            {% endif %}
-            {% endfor %}
-        </div>
-
-        <!-- Local vs away -->
-        <div class="stat-block">
-            <h2>Home turf vs. away</h2>
-            <p class="stat-sub mono">frames in North Andover vs. elsewhere</p>
+            <p class="stat-sub mono">North Andover vs. away, then every spot &mdash; mapped ones click through</p>
             {% set tot = stats.local + stats.away %}
             <div class="split-bar">
                 <span class="split-local" style="width: {{ (stats.local / tot * 100)|round(1) if tot else 100 }}%"></span>
@@ -138,6 +115,26 @@
                 &nbsp;&nbsp;
                 <a href="/birds?area=elsewhere"><span class="dot dot-away"></span>{{ stats.away }} away &#9888;&#65039;</a>
             </p>
+            <div class="places-list">
+            {% set lmax = stats.top_locations[0][1] %}
+            {% for loc, count in stats.top_locations %}
+            {% set away = loc_area.get(loc) == 'away' %}
+            {% if loc_place.get(loc) %}
+            <a class="bar-row" href="/birds?loc={{ loc_place[loc]|urlencode }}">
+                <span class="bar-label">&#128205; {{ loc }}<span class="loc-warn">{% if away %} &#9888;&#65039;{% endif %}</span></span>
+                <span class="bar-track"><span class="bar-fill {{ 'warm' if away else 'loc' }}" style="width: {{ (count / lmax * 100)|round(1) }}%"></span></span>
+                <span class="bar-val mono">{{ count }}</span>
+                {% if curate %}<span class="loc-area-btn mono" role="button" tabindex="0" data-loc="{{ loc_place[loc] }}" data-area="{{ 'away' if away else 'local' }}" title="flip local / away">&#8646;</span>{% endif %}
+            </a>
+            {% else %}
+            <div class="bar-row static">
+                <span class="bar-label">{{ loc }}</span>
+                <span class="bar-track"><span class="bar-fill {{ 'warm' if away else 'loc' }}" style="width: {{ (count / lmax * 100)|round(1) }}%"></span></span>
+                <span class="bar-val mono">{{ count }}</span>
+            </div>
+            {% endif %}
+            {% endfor %}
+            </div>
         </div>
 
         <!-- The river: touch a species' current, meet the bird -->
@@ -169,7 +166,7 @@
         var OTHER_COLOR = "#d6d7cd";
         // Sequential green ramp (one hue, light->dark) shared by matrix, calendar,
         // and treemap. Zero stays a faint neutral so "few" never reads as "none".
-        var RAMP = ["#a5d5b2", "#79bf8f", "#4fa06c", "#2f7d4f", "#12522f"];
+        var RAMP = ["#d8ead0", "#a9d6a0", "#74c07a", "#3f9d63", "#2c7a4a", "#155232", "#0a3520"];
         var ZERO = "rgba(13,18,14,0.05)";
         var MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
         if (typeof d3 === "undefined") return;   // CDN blocked? page still works
@@ -436,20 +433,24 @@
             var sortBtns = document.querySelectorAll(".pheno-sorts button");
             var nowMonth = new Date().getMonth();
             var sortMode = "season", spotlight = -1, query = "";
+            var LIMIT = 16, expanded = false;
 
             function peakMonth(r) {
                 var best = 0;
                 for (var i = 1; i < 12; i++) if (r.months[i] > r.months[best]) best = i;
                 return best;
             }
-            // Per-row shading: darkness = this bird's share of activity that month
-            // relative to its own peak, linearly — so the peak reads darkest and a
-            // half-as-busy month reads visibly lighter. Any real sighting keeps a
-            // floor step so "present" never disappears into "absent".
-            function shade(v, peak) {
+            // Absolute shading on a GLOBAL log scale: darkness = how many photos
+            // that month, comparable across the whole board (per-row normalizing
+            // made a 3-photo peak look as strong as a 180-photo one — no value).
+            // Log so the long tail of rare birds still reads; any sighting keeps a
+            // floor step so "present" never vanishes into "absent".
+            var gmax = d3.max(S.pheno, function (r) { return d3.max(r.months); }) || 1;
+            var glog = Math.log(1 + gmax);
+            function shade(v) {
                 if (!v) return ZERO;
-                var k = v / peak;
-                return RAMP[Math.max(1, Math.min(RAMP.length - 1, Math.ceil(k * (RAMP.length - 1))))];
+                var k = Math.log(1 + v) / glog;
+                return RAMP[Math.max(1, Math.min(RAMP.length - 1, Math.round(k * (RAMP.length - 1))))];
             }
 
             // Build every row once; sorting and filtering just reorder/hide them.
@@ -486,7 +487,7 @@
                     // Cells with photos are real links to that bird × month view.
                     var c = document.createElement(v ? "a" : "span");
                     c.className = "pheno-cell";
-                    c.style.background = shade(v, peak);
+                    c.style.background = shade(v);
                     c.dataset.m = mi;
                     if (v) {
                         c.href = birdURL(r.name) + "&month=" + (mi + 1);
@@ -545,11 +546,18 @@
                     h.classList.toggle("lit", i === spotlight);
                 });
                 host.classList.toggle("spotlit", spotlight >= 0);
-                var shown = 0, lastFam = null;
-                sorted.forEach(function (w) {
+                var lastFam = null;
+                var visible = sorted.filter(function (w) {
                     if (query && w.el.dataset.name.indexOf(query) === -1 &&
-                        w.el.dataset.fam.indexOf(query) === -1) return;
-                    if (spotlight >= 0 && !w.r.months[spotlight]) return;
+                        w.el.dataset.fam.indexOf(query) === -1) return false;
+                    if (spotlight >= 0 && !w.r.months[spotlight]) return false;
+                    return true;
+                });
+                // Collapse the long list by default — the full 86 rows is a wall,
+                // especially on mobile. Search / spotlight always show everything.
+                var capped = !expanded && !query && spotlight < 0;
+                var cap = capped ? Math.min(LIMIT, visible.length) : visible.length;
+                visible.slice(0, cap).forEach(function (w) {
                     if (sortMode === "fam" && spotlight < 0 && w.r.fam !== lastFam) {
                         host.appendChild(famHeader(w.r.fam));
                         lastFam = w.r.fam;
@@ -558,12 +566,27 @@
                         c.classList.toggle("dim", spotlight >= 0 && i !== spotlight);
                     });
                     host.appendChild(w.el);
-                    shown++;
                 });
+                if (capped && visible.length > LIMIT) {
+                    var more = document.createElement("button");
+                    more.className = "pheno-more mono";
+                    more.textContent = "show all " + visible.length + " species ↓";
+                    more.addEventListener("click", function () { expanded = true; order(); });
+                    host.appendChild(more);
+                } else if (expanded && !query && spotlight < 0 && visible.length > LIMIT) {
+                    var less = document.createElement("button");
+                    less.className = "pheno-more mono";
+                    less.textContent = "show fewer ↑";
+                    less.addEventListener("click", function () {
+                        expanded = false; order();
+                        host.scrollIntoView({ block: "nearest" });
+                    });
+                    host.appendChild(less);
+                }
                 readout.textContent = spotlight >= 0
-                    ? shown + " species on the board in " + MONTHS[spotlight] +
+                    ? visible.length + " species on the board in " + MONTHS[spotlight] +
                       " — tap " + MONTHS[spotlight][0] + " again to clear"
-                    : (query ? shown + " of " + rows.length + " species"
+                    : (query ? visible.length + " of " + rows.length + " species"
                              : rows.length + " species — it's " + MONTHS[nowMonth] +
                                " (marked ●): tap it to see who's around now");
             }
@@ -724,9 +747,13 @@
             var el = document.getElementById("river-chart");
             if (!el || !RIVER.series || !RIVER.series.length) return;
             el.innerHTML = "";
-            var S2 = RIVER.series, months = RIVER.months, N = months.length;
-            var W = chartWidth(el), narrow = W < 520, H = narrow ? 360 : 460,
-                m = { t: 30, r: 8, b: 40, l: 8 };
+            var W = chartWidth(el), narrow = W < 520;
+            // On a phone, 86 hair-thin currents are unusable — show the top ones
+            // (RIVER.series is sorted by total) so each is thick enough to touch.
+            var S2 = narrow ? RIVER.series.slice(0, 30) : RIVER.series;
+            var capped = narrow && RIVER.series.length > S2.length;
+            var months = RIVER.months, N = months.length;
+            var H = narrow ? 440 : 460, m = { t: 30, r: 8, b: 40, l: 8 };
             var rows = months.map(function (mo, i) {
                 var row = {}; S2.forEach(function (s) { row[s.name] = s.values[i]; }); return row;
             });
@@ -803,7 +830,7 @@
             function faceCenter(li, i) {
                 var l = layers[li]; return (y(l[i][0]) + y(l[i][1])) / 2;
             }
-            var plot = (W - m.r) - m.l, minGap = narrow ? 34 : 46;
+            var plot = (W - m.r) - m.l, minGap = narrow ? 54 : 46;
             var maxFaces = Math.max(4, Math.floor(plot / minGap));
             var seeds = layers.map(function (l, li) {
                 var pk = 0, pth = 0;
@@ -881,6 +908,8 @@
             // card over the birds' faces.
             var readout = document.getElementById("river-readout");
             var hint = document.getElementById("river-hint");
+            if (capped && hint) hint.textContent =
+                "your 30 most-photographed here — tap a current to meet the bird";
             function tellReadout(li) {
                 if (!readout) return;
                 if (li < 0) { readout.hidden = true; if (hint) hint.hidden = false; return; }
@@ -931,6 +960,32 @@
         addEventListener("resize", function () {
             clearTimeout(rt);
             rt = setTimeout(function () { renderRiver(); renderAccum(); renderFam(); }, 200);
+        });
+
+        // Curate: flip a spot's local/away status right where you spot the error.
+        document.querySelectorAll(".loc-area-btn").forEach(function (btn) {
+            function flip(ev) {
+                ev.preventDefault(); ev.stopPropagation();
+                var next = btn.dataset.area === "away" ? "local" : "away";
+                fetch("/curate/location", {
+                    method: "POST", headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ name: btn.dataset.loc, area: next })
+                }).then(function (r) { return r.json(); }).then(function () {
+                    btn.dataset.area = next;
+                    var row = btn.closest(".bar-row");
+                    var fill = row.querySelector(".bar-fill");
+                    fill.classList.toggle("warm", next === "away");
+                    fill.classList.toggle("loc", next !== "away");
+                    var warn = row.querySelector(".loc-warn");
+                    if (warn) warn.innerHTML = next === "away" ? " ⚠️" : "";
+                    btn.classList.add("flash");
+                    setTimeout(function () { btn.classList.remove("flash"); }, 600);
+                });
+            }
+            btn.addEventListener("click", flip);
+            btn.addEventListener("keydown", function (ev) {
+                if (ev.key === "Enter" || ev.key === " ") flip(ev);
+            });
         });
     })();
 </script>

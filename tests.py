@@ -214,6 +214,19 @@ class BirdsTestCase(unittest.TestCase):
             self.assertGreaterEqual(val["n"], len(val["sp"]) and 1)
             self.assertTrue(val["img"])
 
+    def test_location_area_override(self):
+        name = next(p["name"] for p in birds.load_locations() if p["area"] == "local")
+        prior = birds.load_location_overrides().get(name)
+        try:
+            birds.set_location_override(name, "away")
+            self.assertEqual(next(p["area"] for p in birds.load_locations()
+                                  if p["name"] == name), "away")
+            birds.set_location_override(name, None)  # clear
+            self.assertNotIn(name, birds.load_location_overrides())
+        finally:
+            if prior:
+                birds.set_location_override(name, prior.get("area"))
+
     def test_lifer_curation_roundtrip(self):
         shots = birds.load_gallery(shuffle=False)
         species = birds.stats_series(shots)["accum"][-1]["s"]
