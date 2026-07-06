@@ -562,8 +562,10 @@ body.home .site-nav { z-index: 0; }
 /* The river: touch a species' current, a photo card blooms in the top-left.
    Translucent + blurred so it reads over any band behind it (a streamgraph has
    no guaranteed empty region, unlike the monotonic life list). */
-.river-stage { position: relative; margin-top: 0.6rem; }
+.river-stage { position: relative; margin-top: 0.6rem;
+    -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent; }
 .river-stage #river-chart { width: 100%; }
+.river-readout, .river-hint { -webkit-tap-highlight-color: transparent; }
 .river-band { transition: opacity 0.14s ease; }
 .river-season-lab { font-family: var(--mono); font-size: 10px; letter-spacing: 0.14em;
     text-transform: uppercase; opacity: 0.62; }

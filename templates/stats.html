@@ -753,7 +753,7 @@
             var S2 = narrow ? RIVER.series.slice(0, 30) : RIVER.series;
             var capped = narrow && RIVER.series.length > S2.length;
             var months = RIVER.months, N = months.length;
-            var H = narrow ? 440 : 460, m = { t: 30, r: 8, b: 40, l: 8 };
+            var H = narrow ? 360 : 460, m = { t: 30, r: 8, b: 40, l: 8 };
             var rows = months.map(function (mo, i) {
                 var row = {}; S2.forEach(function (s) { row[s.name] = s.values[i]; }); return row;
             });
@@ -769,7 +769,13 @@
                  d3.max(layers, function (l) { return d3.max(l, function (d) { return d[1]; }); })],
                 [H - m.b, m.t]);
             var svg = d3.select(el).append("svg").attr("viewBox", "0 0 " + W + " " + H)
-                .style("touch-action", "pan-y");
+                // The river is a touch surface: capture drags (scrub) and pinches
+                // (zoom) instead of letting them scroll/select. No blue text
+                // selection or tap flash on touch.
+                .style("touch-action", "none").style("-webkit-user-select", "none")
+                .style("user-select", "none").style("-webkit-tap-highlight-color", "transparent");
+            var VB = [0, 0, W, H], curK = 1;   // live viewBox for pinch-zoom
+            function applyVB() { svg.attr("viewBox", VB.join(" ")); }
             var defs = svg.append("defs");
             function fmtMonth(ym) { return MONTHS[+ym.slice(5) - 1] + " " + ym.slice(0, 4); }
 
@@ -908,8 +914,8 @@
             // card over the birds' faces.
             var readout = document.getElementById("river-readout");
             var hint = document.getElementById("river-hint");
-            if (capped && hint) hint.textContent =
-                "your 30 most-photographed here — tap a current to meet the bird";
+            if (narrow && hint) hint.textContent = (capped ? "your 30 most-photographed — " : "")
+                + "drag across the currents to explore · pinch to zoom · tap → for the photos";
             function tellReadout(li) {
                 if (!readout) return;
                 if (li < 0) { readout.hidden = true; if (hint) hint.hidden = false; return; }
@@ -922,61 +928,99 @@
                     + '<span class="riv-go">see them &rarr;</span>';
             }
 
-            // Selection rides the RENDERED band shapes (native hit-testing), so a
-            // touch resolves to the bird actually under the pointer. A fat
-            // transparent stroke fattens the hit area so even hair-thin currents
-            // respond. INTERACTION: on a mouse, hover reveals and a click goes.
-            // On TOUCH there's no hover, so the first tap reveals the bird + its
-            // readout (which must PERSIST — touch fires pointerleave right after,
-            // which we ignore); a second tap on the same current, or tapping the
-            // readout's "see them →", navigates. So a tap explores, it never yanks
-            // you straight to the bird.
-            var pendingNav = -1, tappedBand = -1, lastType = "mouse";
-            function selectBand(li, cx, cy) { activate(li, cx, cy); tellReadout(li); }
-            function faceAt(ev, li) {
+            // Selection rides the RENDERED band shapes (native hit-testing). On a
+            // mouse, hover reveals and a click goes. On TOUCH there's no hover, so
+            // the river is a touch surface: DRAG your finger and the current under
+            // it highlights live (a hover you scrub); lift and it stays. A tap then
+            // the readout's "see them →" (or a second tap on the same current)
+            // navigates — a tap explores, it never yanks you to the bird. Two
+            // fingers pinch to zoom (and pan). touch-action:none keeps the browser
+            // from stealing any of it for scroll/select.
+            var pointers = new Map(), pinch = null;
+            var pendingNav = -1, tappedBand = -1, lastType = "mouse", downXY = null, moved = false;
+            var curFace = { cx: 0, cy: 0 };
+            function aim(ev, li) {
                 var p = d3.pointer(ev, svg.node());
                 var i = Math.max(0, Math.min(N - 1, Math.round(x.invert(p[0]))));
-                return { cx: p[0], cy: faceCenter(li, i) };
+                curFace = { cx: p[0], cy: faceCenter(li, i) };
             }
-            function hoverBand(ev, li, cx, cy) {
-                if (ev.pointerType === "touch") return;   // touch reveals on tap, not on move
-                selectBand(li, cx, cy);
-            }
-            function downBand(ev, li, cx, cy) {
-                lastType = ev.pointerType;
-                selectBand(li, cx, cy);
-                if (ev.pointerType === "touch") {
-                    pendingNav = (tappedBand === li) ? li : -1;   // 2nd tap on the same = go
-                    tappedBand = li;
-                } else {
-                    pendingNav = li;                              // mouse: hover already revealed
+            function bandMove(ev, li) {
+                if (pointers.size >= 2) return;                         // pinch, not scrub
+                if (ev.pointerType === "touch" && !downXY) return;      // touch: only while dragging
+                aim(ev, li); activate(li, curFace.cx, curFace.cy); tellReadout(li);
+                if (downXY && Math.hypot(ev.clientX - downXY[0], ev.clientY - downXY[1]) > 10) {
+                    moved = true; pendingNav = -1;                      // a drag is a scrub, not a go
                 }
             }
-            function clickBand(li) {
-                var go = pendingNav === li; pendingNav = -1;
+            function bandDown(ev, li) {
+                if (pointers.size >= 2) return;
+                lastType = ev.pointerType; downXY = [ev.clientX, ev.clientY]; moved = false;
+                aim(ev, li); activate(li, curFace.cx, curFace.cy); tellReadout(li);
+                if (ev.pointerType === "touch") { pendingNav = (tappedBand === li) ? li : -1; tappedBand = li; }
+                else pendingNav = li;
+            }
+            function bandClick(li) {
+                var go = pendingNav === li && !moved; pendingNav = -1;
                 if (go) location.href = birdURL(S2[li].name);
             }
             svg.selectAll("path.river-hit").data(layers).enter().append("path")
                 .attr("class", "river-hit").attr("d", area)
                 .attr("fill", "transparent").attr("stroke", "transparent")
-                .attr("stroke-width", narrow ? 20 : 12).attr("stroke-linejoin", "round")
+                .attr("stroke-width", narrow ? 22 : 12).attr("stroke-linejoin", "round")
                 .style("cursor", "pointer")
-                .on("pointerenter pointermove", function (ev, l) { var f = faceAt(ev, l._i); hoverBand(ev, l._i, f.cx, f.cy); })
-                .on("pointerdown", function (ev, l) { var f = faceAt(ev, l._i); downBand(ev, l._i, f.cx, f.cy); })
-                .on("click", function (ev, l) { clickBand(l._i); });
-            // Faces ride slightly off their band (decluttered), so they own their
-            // own input — otherwise the hit path underneath could resolve to a
-            // neighbour. Raised above the hit layer for that reason.
+                .on("pointerenter pointermove", function (ev, l) { bandMove(ev, l._i); })
+                .on("pointerdown", function (ev, l) { bandDown(ev, l._i); })
+                .on("click", function (ev, l) { bandClick(l._i); });
             avatars.forEach(function (a) {
                 a.g.raise().style("cursor", "pointer")
-                    .on("pointerenter pointermove", function (ev) { hoverBand(ev, a.li, a.cx, a.cy); })
-                    .on("pointerdown", function (ev) { downBand(ev, a.li, a.cx, a.cy); })
-                    .on("click", function () { clickBand(a.li); });
+                    .on("pointerenter pointermove", function (ev) { bandMove(ev, a.li); })
+                    .on("pointerdown", function (ev) { bandDown(ev, a.li); })
+                    .on("click", function () { bandClick(a.li); });
             });
-            // Mouse hover-out clears; a touch selection persists until the next tap.
+            svg.on("pointerup.band pointercancel.band", function () { downXY = null; });
             svg.on("pointerleave", function () {
-                if (lastType === "touch") return;
+                if (lastType === "touch") return;                       // touch selection persists
                 activate(-1); tellReadout(-1);
+            });
+
+            // ---- Pinch to zoom (touch): drive the viewBox, so hit-testing and the
+            // focus bloom stay correct with no transform bookkeeping. Two fingers
+            // moving together also pan; pinch back down to reset. ----
+            function toVB(cx, cy) {
+                var pt = svg.node().createSVGPoint(); pt.x = cx; pt.y = cy;
+                var p = pt.matrixTransform(svg.node().getScreenCTM().inverse());
+                return [p.x, p.y];
+            }
+            function startPinch() {
+                var a = [...pointers.values()];
+                var mx = (a[0][0] + a[1][0]) / 2, my = (a[0][1] + a[1][1]) / 2;
+                pinch = { dist: Math.hypot(a[0][0] - a[1][0], a[0][1] - a[1][1]), k: curK, vbMid: toVB(mx, my) };
+            }
+            function doPinch() {
+                var a = [...pointers.values()];
+                var d = Math.hypot(a[0][0] - a[1][0], a[0][1] - a[1][1]);
+                var mx = (a[0][0] + a[1][0]) / 2, my = (a[0][1] + a[1][1]) / 2;
+                curK = Math.max(1, Math.min(3.5, pinch.k * (d / (pinch.dist || 1))));
+                var nw = W / curK, nh = H / curK, rect = svg.node().getBoundingClientRect();
+                var fx = (mx - rect.left) / rect.width, fy = (my - rect.top) / rect.height;
+                VB = [pinch.vbMid[0] - fx * nw, pinch.vbMid[1] - fy * nh, nw, nh];
+                VB[0] = Math.max(0, Math.min(W - nw, VB[0]));
+                VB[1] = Math.max(0, Math.min(H - nh, VB[1]));
+                applyVB();
+            }
+            svg.on("pointerdown.zoom", function (ev) {
+                if (ev.pointerType !== "touch") return;
+                pointers.set(ev.pointerId, [ev.clientX, ev.clientY]);
+                if (pointers.size === 2) { downXY = null; activate(-1); tellReadout(-1); startPinch(); }
+            });
+            svg.on("pointermove.zoom", function (ev) {
+                if (!pointers.has(ev.pointerId)) return;
+                pointers.set(ev.pointerId, [ev.clientX, ev.clientY]);
+                if (pointers.size >= 2 && pinch) doPinch();
+            });
+            svg.on("pointerup.zoom pointercancel.zoom", function (ev) {
+                pointers.delete(ev.pointerId);
+                if (pointers.size < 2) pinch = null;
             });
         }
 
