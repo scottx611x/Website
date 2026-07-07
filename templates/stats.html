@@ -410,8 +410,14 @@
                     d.pos = Math.max(0, Math.min(1, repoFrom - (ev.clientY - downAt[1]) / Math.max(1, d._ov)));
                     d.posx = Math.max(0, Math.min(1, repoFromX - (ev.clientX - downAt[0]) / Math.max(1, d._ovx)));
                     skyView(d);
-                } else if (ev.buttons > 0) show(idxAt(ev));
-                else if (!pinned) show(idxAt(ev));
+                } else if (ev.buttons > 0) {
+                    // The timeline runs left-to-right, so scrub only on a horizontal
+                    // drag; a vertical drag is meant to scroll the page (touch-action
+                    // pan-y), so don't hijack it.
+                    if (ev.pointerType === "touch" && downAt &&
+                        Math.abs(ev.clientY - downAt[1]) > Math.abs(ev.clientX - downAt[0])) return;
+                    show(idxAt(ev));
+                } else if (!pinned) show(idxAt(ev));
             });
             svg.on("pointerup", function (ev) {
                 var moved = downAt && Math.hypot(ev.clientX - downAt[0], ev.clientY - downAt[1]) >= 8;
@@ -752,12 +758,12 @@
             if (!el || !RIVER.series || !RIVER.series.length) return;
             el.innerHTML = "";
             var W = chartWidth(el), narrow = W < 520;
-            // On a phone, 86 hair-thin currents are unusable — show the top ones
-            // (RIVER.series is sorted by total) so each is thick enough to touch.
-            var S2 = narrow ? RIVER.series.slice(0, 30) : RIVER.series;
-            var capped = narrow && RIVER.series.length > S2.length;
+            // Every species flows — even the hair-thin ones. Selection is by exact
+            // fill hit-test (isPointInFill), so the thinnest slice is still
+            // catchable, and the chosen current is outlined to make it pop.
+            var S2 = RIVER.series;
             var months = RIVER.months, N = months.length;
-            var H = narrow ? 360 : 460, m = { t: 30, r: 8, b: 40, l: 8 };
+            var H = narrow ? 400 : 460, m = { t: 30, r: 8, b: 40, l: 8 };
             var rows = months.map(function (mo, i) {
                 var row = {}; S2.forEach(function (s) { row[s.name] = s.values[i]; }); return row;
             });
@@ -833,6 +839,24 @@
                 .attr("fill", function (l, li) { return color(li); })
                 .attr("stroke", "#f4f1e9").attr("stroke-width", 1)
                 .style("pointer-events", "none");
+            // Exact hit-test: which band's FILL contains the point — pixel-accurate
+            // to the rendered curve, so even a 1px slice resolves to the right bird
+            // (no fat-stroke ambiguity, works for every one of the 86 currents).
+            var bandNodes = bands.nodes();
+            var bandBBox = bandNodes.map(function (n) { return n.getBBox(); });
+            function bandAt(px, py) {
+                var pt = svg.node().createSVGPoint(); pt.x = px; pt.y = py;
+                for (var i = 0; i < bandNodes.length; i++) {
+                    var b = bandBBox[i];   // cheap reject before the exact fill test
+                    if (px < b.x || px > b.x + b.width || py < b.y || py > b.y + b.height) continue;
+                    if (bandNodes[i].isPointInFill(pt)) return i;
+                }
+                return -1;
+            }
+            // A bright outline of the chosen current, so even a hair-thin slice pops.
+            var hiPath = svg.append("path").attr("class", "river-hi").attr("fill", "none")
+                .attr("stroke", "#fff").attr("stroke-width", 2).attr("stroke-linejoin", "round")
+                .attr("pointer-events", "none").style("opacity", 0);
 
             // Every species is a current. A circular bird-face rides the biggest
             // ones (seeded at each band's thickest month, then decluttered along x
@@ -918,21 +942,25 @@
                     return;
                 }
                 active = li;
-                bands.transition().duration(160)
-                    .attr("opacity", function (l, j) { return li < 0 || j === li ? 1 : 0.12; });
+                // Instant (no transitions) so scrubbing across 86 currents stays snappy.
+                bands.attr("opacity", function (l, j) { return li < 0 || j === li ? 1 : 0.1; });
                 avatars.forEach(function (a) {
-                    // hide the touched band's own small face (the big one replaces it)
-                    a.g.transition().duration(140)
-                        .attr("opacity", li < 0 ? 1 : (a.li === li ? 0 : 0.28));
+                    a.g.attr("opacity", li < 0 ? 1 : (a.li === li ? 0 : 0.22));
                 });
-                if (li >= 0) showFocus(li, cx, cy); else hideFocus();
+                if (li >= 0) {
+                    hiPath.attr("d", area(layers[li])).raise().style("opacity", 0.95);
+                    showFocus(li, cx, cy);
+                } else {
+                    hiPath.style("opacity", 0);
+                    hideFocus();
+                }
             }
             // The story shows in a fixed readout below the chart — never a floating
             // card over the birds' faces.
             var readout = document.getElementById("river-readout");
             var hint = document.getElementById("river-hint");
-            if (narrow && hint) hint.textContent = (capped ? "my 30 most-photographed · " : "")
-                + "drag across the currents to explore · pinch to zoom · tap for the photos";
+            if (narrow && hint) hint.textContent =
+                "drag across the currents to explore · pinch to zoom · tap for the photos";
             function tellReadout(li) {
                 if (!readout) return;
                 if (li < 0) { readout.hidden = true; if (hint) hint.hidden = false; return; }
@@ -955,76 +983,57 @@
             // from stealing any of it for scroll/select.
             var pointers = new Map(), pinch = null;
             var pendingNav = -1, tappedBand = -1, lastType = "mouse", downXY = null, moved = false;
-            var curFace = { cx: 0, cy: 0 };
-            function aim(ev, li) {
+            var curFace = { cx: 0, cy: 0 }, lastDownLi = -1;
+            function selectAt(ev) {
+                // Exact fill hit-test → the current under the pointer, thin or not.
                 var p = d3.pointer(ev, svg.node());
+                var li = bandAt(p[0], p[1]);
+                if (li < 0) return -1;
                 var i = Math.max(0, Math.min(N - 1, Math.round(x.invert(p[0]))));
                 curFace = { cx: p[0], cy: faceCenter(li, i) };
+                activate(li, curFace.cx, curFace.cy); tellReadout(li);
+                return li;
             }
-            function bandMove(ev, li) {
+            function bandMove(ev) {
                 if (ev.pointerType === "touch") return;   // touch scrub handled at svg level
                 if (pointers.size >= 2) return;
-                aim(ev, li); activate(li, curFace.cx, curFace.cy); tellReadout(li);
+                selectAt(ev);
             }
-            function bandDown(ev, li) {
+            function bandDown(ev) {
                 if (pointers.size >= 2) return;
-                // Touch implicitly captures the pointer to this element, which would
-                // pin the drag to this one band — release it so the finger can slide
-                // across currents (we then hit-test at the svg level as it moves).
+                // Touch implicitly captures the pointer to the target element, which
+                // would pin the drag to one band — release it so the finger can slide.
                 if (ev.pointerType === "touch") {
                     try { ev.target.releasePointerCapture(ev.pointerId); } catch (e) { /* not captured */ }
                 }
                 lastType = ev.pointerType; downXY = [ev.clientX, ev.clientY]; moved = false;
-                aim(ev, li); activate(li, curFace.cx, curFace.cy); tellReadout(li);
+                var li = selectAt(ev); lastDownLi = li;
+                if (li < 0) { pendingNav = -1; return; }
                 if (ev.pointerType === "touch") { pendingNav = (tappedBand === li) ? li : -1; tappedBand = li; }
                 else pendingNav = li;
             }
-            // Map a hit-tested element (hit path or a face) back to its band.
-            function liOf(node) {
-                var n = node && node.closest ? node.closest("[data-li]") : null;
-                return n ? +n.getAttribute("data-li") : -1;
-            }
-            function bandClick(li) {
-                var go = pendingNav === li && !moved; pendingNav = -1;
+            function bandClick() {
+                var li = lastDownLi;
+                var go = li >= 0 && pendingNav === li && !moved; pendingNav = -1;
                 if (go) location.href = birdURL(S2[li].name);
             }
+            // Transparent catchers over the band areas funnel pointer events into the
+            // exact isPointInFill hit-test. Faces are decorative (pointer-events:none)
+            // so they never shadow the current beneath them.
             svg.selectAll("path.river-hit").data(layers).enter().append("path")
-                .attr("class", "river-hit").attr("d", area).attr("data-li", function (l) { return l._i; })
+                .attr("class", "river-hit").attr("d", area)
                 .attr("fill", "transparent").attr("stroke", "transparent")
                 .attr("stroke-width", narrow ? 22 : 12).attr("stroke-linejoin", "round")
                 .style("cursor", "pointer")
-                .on("pointerenter pointermove", function (ev, l) { bandMove(ev, l._i); })
-                .on("pointerdown", function (ev, l) { bandDown(ev, l._i); })
-                .on("click", function (ev, l) { bandClick(l._i); });
-            // Faces are decorative and DON'T catch input — otherwise, riding
-            // slightly off their own band (decluttered), they'd shadow the current
-            // beneath them and make thick bands feel un-touchable. All selection
-            // goes through the hit paths + the stack-aware hit-test below.
+                .on("pointerenter pointermove", bandMove)
+                .on("pointerdown", bandDown)
+                .on("click", bandClick);
             avatars.forEach(function (a) { a.g.raise().style("pointer-events", "none"); });
-            // The band under a point, seen THROUGH the faces: faces are raised above
-            // the hit paths (and decluttered off their own band), so a plain
-            // elementFromPoint would grab a face and skip the current beneath it —
-            // exactly why thick currents felt un-touchable. Walk the whole stack and
-            // take the first hit path.
-            function liAtPoint(cx, cy) {
-                var els = document.elementsFromPoint(cx, cy);
-                for (var i = 0; i < els.length; i++) {
-                    if (els[i].classList && els[i].classList.contains("river-hit")) {
-                        return +els[i].getAttribute("data-li");
-                    }
-                }
-                return -1;
-            }
-            // Touch scrub: as the finger slides, hit-test the current under it at the
-            // svg level (implicit pointer capture would otherwise stick the drag to
-            // the band it started on). Free 2-D drag; 2 fingers = pinch.
+            // Touch scrub: as the finger slides, re-hit-test at the svg level (implicit
+            // capture would otherwise stick the drag to the band it started on).
             svg.on("pointermove.scrub", function (ev) {
                 if (ev.pointerType !== "touch" || !downXY || pointers.size >= 2) return;
-                var li = liAtPoint(ev.clientX, ev.clientY);
-                if (li < 0) return;
-                var p = d3.pointer(ev, svg.node());
-                var i = Math.max(0, Math.min(N - 1, Math.round(x.invert(p[0]))));
-                activate(li, p[0], faceCenter(li, i)); tellReadout(li);
+                selectAt(ev);
                 if (Math.hypot(ev.clientX - downXY[0], ev.clientY - downXY[1]) > 10) { moved = true; pendingNav = -1; }
             });
             svg.on("pointerup.band", function () { downXY = null; });
