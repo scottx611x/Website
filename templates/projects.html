@@ -14,8 +14,7 @@
     <p class="kicker">~/scottx611x</p>
     <h1>Projects</h1>
     <p class="empty" style="color:var(--ink);max-width:40rem;">
-        Things I'm building. The full, always-current list lives on GitHub —
-        everything here is a hand-picked highlight.
+        Things I'm building. The full list lives on GitHub. Everything here is hand-picked.
     </p>
     <p><a class="btn btn-inline" style="background:var(--green);color:#fff;border-color:var(--green);" href="https://github.com/{{ github_user }}">View all on GitHub &rarr;</a></p>
 
@@ -122,11 +121,11 @@
     {% endif %}
 
     {% if not visible %}
-    <p class="empty mono">// highlights coming soon — browse the latest at
+    <p class="empty mono">// highlights coming soon. browse the latest at
         <a href="https://github.com/{{ github_user }}" style="color:var(--green);">github.com/{{ github_user }}</a>.
     </p>
     {% endif %}
-    <p id="projectEmpty" class="empty mono" hidden>// no projects match that — try another term.</p>
+    <p id="projectEmpty" class="empty mono" hidden>// no projects match that. try another term.</p>
     <script>
         (function () {
             var box = document.getElementById("projectSearch");

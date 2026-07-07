@@ -12,14 +12,14 @@
         <h1>Where I find {{ active_bird }}</h1>
         <p class="empty" style="color:var(--ink);max-width:40rem;margin:0 auto;">
             {{ "{:,}".format(mapped) }} photo{{ "" if mapped == 1 else "s" }} across
-            {{ points|length }} place{{ "" if points|length == 1 else "s" }} &mdash; click a pin.
+            {{ points|length }} place{{ "" if points|length == 1 else "s" }}. Tap a pin.
             <br><a href="/birds?bird={{ active_bird|urlencode }}">&larr; back to the {{ active_bird }} gallery</a>
             &nbsp;&middot;&nbsp; <a href="/birds/map">see every place &rarr;</a>
         </p>
         {% else %}
         <h1>Where the birds are</h1>
         <p class="empty" style="color:var(--ink);max-width:40rem;margin:0 auto;">
-            {{ "{:,}".format(mapped) }} photos across {{ points|length }} places &mdash; click a pin.
+            {{ "{:,}".format(mapped) }} photos across {{ points|length }} places. Tap a pin.
         </p>
         {% endif %}
         {% set subnav_active = 'map' %}{% include '_birds_nav.html' %}

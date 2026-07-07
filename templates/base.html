@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{{ title }}{% if title != "Scott Ouellette" %} &middot; Scott Ouellette{% endif %}</title>
-    {% set meta_desc %}{% block meta_description %}Software infrastructure engineer &amp; bird photographer in North Andover, MA — a bird gallery, sightings map, and side projects.{% endblock %}{% endset %}
+    {% set meta_desc %}{% block meta_description %}Software infrastructure engineer and bird photographer in North Andover, MA. A bird gallery, sightings map, and side projects.{% endblock %}{% endset %}
     <meta name="description" content="{{ meta_desc|trim }}">
     <meta property="og:title" content="{{ title }}{% if title != 'Scott Ouellette' %} · Scott Ouellette{% endif %}">
     <meta property="og:description" content="{{ meta_desc|trim }}">
@@ -637,7 +637,7 @@
             }).catch(function () {
                 input.classList.remove("saving");
                 input.classList.add("save-failed");
-                input.title = "Save failed — is curate mode still on?";
+                input.title = "Save failed. Is curate mode still on?";
             });
         }
         var _saveTimer;

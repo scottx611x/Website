@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% block meta_description %}{{ species_count }} bird species photographed around North Andover, MA — hawks, owls, warblers, and more, with photos and videos.{% endblock %}
+{% block meta_description %}{{ species_count }} bird species photographed around North Andover, MA. Hawks, owls, warblers, and more, with photos and videos.{% endblock %}
 
 {% block content %}
 <script>
@@ -152,9 +152,9 @@
                  alt="{{ shot.species or shot.caption[:80] }}">
             {% if shot.image_videos and shot.image_videos[0] %}<span class="play-badge" aria-hidden="true">▶</span>{% endif %}
             {% if shot.images|length > 1 %}<span class="multi-badge">⧉ {{ shot.images|length }}</span>{% endif %}
-            {% if shot.image_areas and shot.image_areas[0] == 'away' %}<span class="away-badge" tabindex="0" data-note="Spotted outside North Andover{% set acover = (shot.image_locations[0] if shot.image_locations else None) or shot.location %}{% if acover %} — {{ acover }}{% endif %}"><span class="away-badge-mark">⚠️</span></span>{% endif %}
-            {% if curate and not shot.post_id and shot.reclassified %}<span class="reclassified-badge" tabindex="0" data-note="AI re-classified — current labels differ from the Instagram caption ({{ shot.caption_species|join(', ') }})"><span class="reclassified-mark">🔀</span></span>{% endif %}
-            {% if curate and not shot.post_id and shot.ambiguous %}<span class="flag-badge" title="{{ shot.species_list|join(', ') }} — set the primary species">⚠ {{ shot.species_list|length }}</span>{% endif %}
+            {% if shot.image_areas and shot.image_areas[0] == 'away' %}<span class="away-badge" tabindex="0" data-note="Spotted outside North Andover{% set acover = (shot.image_locations[0] if shot.image_locations else None) or shot.location %}{% if acover %} · {{ acover }}{% endif %}"><span class="away-badge-mark">⚠️</span></span>{% endif %}
+            {% if curate and not shot.post_id and shot.reclassified %}<span class="reclassified-badge" tabindex="0" data-note="AI re-classified. Current labels differ from the Instagram caption ({{ shot.caption_species|join(', ') }})"><span class="reclassified-mark">🔀</span></span>{% endif %}
+            {% if curate and not shot.post_id and shot.ambiguous %}<span class="flag-badge" title="{{ shot.species_list|join(', ') }}: set the primary species">⚠ {{ shot.species_list|length }}</span>{% endif %}
             {% if curate and not shot.post_id %}<button class="curate-x" data-exclude-id="{{ shot.id }}" aria-label="Hide this photo">&times;</button>{% endif %}
             {% if curate and not shot.post_id %}
             <figcaption>
@@ -174,7 +174,7 @@
         {% endfor %}
     </div>
     {% else %}
-    <p class="empty mono" style="text-align:center;">// gallery warming up — check back soon.</p>
+    <p class="empty mono" style="text-align:center;">// gallery warming up. check back soon.</p>
     {% endif %}
 </section>
 {% endblock %}
