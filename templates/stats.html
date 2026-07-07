@@ -1095,10 +1095,19 @@
                 pointers.set(ev.pointerId, [ev.clientX, ev.clientY]);
                 if (pointers.size >= 2 && pinch) doPinch();
             });
-            svg.on("pointerup.zoom pointercancel.zoom", function (ev) {
-                pointers.delete(ev.pointerId);
-                if (pointers.size < 2) pinch = null;
-            });
+            // Because we release pointer capture for scrubbing, a finger lifted OFF
+            // the chart won't fire pointerup on the svg — leaving a stale pointer
+            // that makes the next single finger look like a 2-finger pinch. Catch
+            // the release at the window level so the map can never go stale.
+            if (window.__riverDropPointer) {
+                window.removeEventListener("pointerup", window.__riverDropPointer);
+                window.removeEventListener("pointercancel", window.__riverDropPointer);
+            }
+            window.__riverDropPointer = function (ev) {
+                if (pointers.delete(ev.pointerId) && pointers.size < 2) pinch = null;
+            };
+            window.addEventListener("pointerup", window.__riverDropPointer);
+            window.addEventListener("pointercancel", window.__riverDropPointer);
 
             // Keyboard: the river-chart is focusable; arrows step through the
             // species (biggest first), Enter opens the selected one. A screen
