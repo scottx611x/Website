@@ -161,6 +161,10 @@ for _names, _family in [
     for _n in _names:
         _BIRDS[_n.lower()] = (_n, _family)
 
+# Hyphen/space-insensitive index onto the canonical keys, so "White Throated
+# Sparrow" finds "white-throated sparrow" (Scott isn't consistent with hyphens).
+_BIRDS_FLAT = {k.replace("-", " "): k for k in _BIRDS}
+
 # Caption junk / merged-line / casing quirks -> canonical key in _BIRDS (or None to drop).
 _SPECIES_ALIAS = {
     "a very wet barred owl": "barred owl",
@@ -171,12 +175,21 @@ _SPECIES_ALIAS = {
     "red-bellied wookpecker": "red-bellied woodpecker",  # caption typo
     "cooper's hawk barred owl": "barred owl",
     "red-tailed hawk blue jay": "red-tailed hawk",
+    "canadian goose": "canada goose",  # colloquial name for Canada Goose
     "not a north andover bird": None,
 }
 
+# Irregular plurals normalize_species can't get by stripping a trailing "s".
+_IRREGULAR_PLURALS = {"geese": "goose"}
+
 
 def _canon_species(name):
-    """(display name, family) for a raw species label, or None if not a real bird."""
+    """(display name, family) for a raw species label, or None if not a real bird.
+
+    Tolerant of how Scott actually types captions: an explicit alias wins, then an
+    exact match, then a hyphen/space-insensitive match ("White Throated Sparrow"),
+    then a tightly-guarded fuzzy match for one-off typos ("Northen Flicker"). A
+    label that still doesn't land on a known bird returns None (dropped)."""
     base = normalize_species(name)
     if not base:
         return None
@@ -186,7 +199,32 @@ def _canon_species(name):
         if alias is None:
             return None
         key = alias
-    return _BIRDS.get(key)
+    if key in _BIRDS:
+        return _BIRDS[key]
+    flat = key.replace("-", " ")
+    if flat in _BIRDS_FLAT:
+        return _BIRDS[_BIRDS_FLAT[flat]]
+    fuzzy = _fuzzy_species_key(flat)
+    return _BIRDS[fuzzy] if fuzzy else None
+
+
+def _fuzzy_species_key(flat):
+    """Canonical _BIRDS key for a hyphen-flattened label that's a near-miss of a
+    real species — catches caption typos like "Northen Flicker" without inventing
+    matches. Guarded hard: only same-word-count candidates, high similarity cutoff,
+    and the runner-up must be clearly worse, so genuinely different species (Cooper's
+    vs Sharp-shinned Hawk) never collapse together."""
+    n_words = len(flat.split())
+    candidates = [k for k in _BIRDS_FLAT if len(k.split()) == n_words]
+    close = difflib.get_close_matches(flat, candidates, n=2, cutoff=0.86)
+    if not close:
+        return None
+    best = difflib.SequenceMatcher(None, flat, close[0]).ratio()
+    if len(close) > 1:
+        runner = difflib.SequenceMatcher(None, flat, close[1]).ratio()
+        if best - runner < 0.06:  # ambiguous near-tie -> don't guess
+            return None
+    return _BIRDS_FLAT[close[0]] if best >= 0.86 else None
 
 
 # A single frame can hold more than one species (e.g. a Cooper's Hawk mobbing a
@@ -1715,6 +1753,21 @@ _SPECIES_QUALIFIERS = {
 }
 
 
+def _singularize(word):
+    """Best-effort singular of a species' last word, preserving case: irregulars
+    first ("Geese"->"Goose"), then "-es" plurals ("Finches"->"Finch", not the
+    naive "Finche"), then a plain trailing "s" ("Owls"->"Owl")."""
+    low = word.lower()
+    if low in _IRREGULAR_PLURALS:
+        repl = _IRREGULAR_PLURALS[low]
+        return repl.capitalize() if word[:1].isupper() else repl
+    if len(low) > 4 and low.endswith(("ches", "shes", "sses", "xes", "zes")):
+        return word[:-2]  # "-es" plural: drop "es"
+    if len(low) > 3 and low.endswith("s") and not low.endswith("ss"):
+        return word[:-1]
+    return word
+
+
 def normalize_species(name):
     """Canonical species name for grouping (e.g. the ticker).
 
@@ -1728,9 +1781,7 @@ def normalize_species(name):
     words = [w for w in cleaned.split() if w.lower() not in _SPECIES_QUALIFIERS]
     if not words:
         return None
-    last = words[-1]
-    if len(last) > 3 and last.lower().endswith("s") and not last.lower().endswith("ss"):
-        words[-1] = last[:-1]
+    words[-1] = _singularize(words[-1])
     return " ".join(words)
 
 

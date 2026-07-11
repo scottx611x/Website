@@ -120,6 +120,36 @@ class BirdsTestCase(unittest.TestCase):
         self.assertEqual(birds.normalize_species("⚠️ Common Loon"), "Common Loon")
         self.assertEqual(birds.normalize_species("Ruby-throated Hummingbird"), "Ruby-throated Hummingbird")
 
+    def test_normalize_handles_es_and_irregular_plurals(self):
+        # "-es" plurals mustn't leave a dangling "e"; irregulars have a lookup.
+        self.assertEqual(birds.normalize_species("House Finches"), "House Finch")
+        self.assertEqual(birds.normalize_species("Thrushes"), "Thrush")
+        self.assertEqual(birds.normalize_species("Canadian Geese"), "Canadian Goose")
+
+    def test_canon_species_tolerates_hyphens_plurals_and_typos(self):
+        # The caption formats Scott actually types should all land on the right bird.
+        cases = {
+            "House Finches": "House Finch",            # -es plural
+            "Canadian Geese": "Canada Goose",          # colloquial + irregular plural
+            "White Throated Sparrow": "White-throated Sparrow",  # missing hyphens
+            "Northen Flicker": "Northern Flicker",     # typo
+            "Morning Dove": "Mourning Dove",           # typo
+        }
+        for raw, want in cases.items():
+            canon = birds._canon_species(raw)
+            self.assertIsNotNone(canon, raw)
+            self.assertEqual(canon[0], want, raw)
+
+    def test_canon_species_does_not_invent_matches(self):
+        # Descriptive captions and near-but-distinct species must NOT fuzzy-collapse.
+        for junk in ["Heron Rookery", "Blue Jay eating a Goldfish", "a frog", "Rookery"]:
+            self.assertIsNone(birds._canon_species(junk), junk)
+        # Similar real species keep their own identity (no false positives).
+        self.assertEqual(birds._canon_species("Cooper's Hawk")[0], "Cooper's Hawk")
+        self.assertEqual(birds._canon_species("Sharp-shinned Hawk")[0], "Sharp-shinned Hawk")
+        self.assertEqual(birds._canon_species("Little Blue Heron")[0], "Little Blue Heron")
+        self.assertEqual(birds._canon_species("Great Blue Heron")[0], "Great Blue Heron")
+
     def test_caption_area_marks_multi_species_line_out_of_area(self):
         # A "A & B" line must not be mistaken for a location line (which would
         # flush the block early as local); the shared ⚠️ tags the whole block.
