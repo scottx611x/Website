@@ -185,7 +185,7 @@
       "2": "Red-bellied Woodpecker",
       "3": "Tricolored Heron",
       "4": "Sanderling",
-      "5": "Cooper's Hawk"
+      "5": "Red-shouldered Hawk"
     },
     "ratings": {
       "0": 4
@@ -383,7 +383,7 @@
       "1": "Blue Jay",
       "2": "Mallard",
       "3": "Mallard",
-      "4": "Mallard",
+      "4": "Red-tailed Hawk",
       "5": "Mallard"
     }
   },
@@ -1333,7 +1333,7 @@
       "4": "White-throated Sparrow",
       "5": "Cooper's Hawk",
       "6": "Blue Jay",
-      "7": "Blue Jay"
+      "7": "Tufted Titmouse"
     }
   },
   "18078963029168026": {
@@ -1373,7 +1373,7 @@
     },
     "images": {
       "0": "Yellow-bellied Sapsucker",
-      "1": "Eastern Phoebe",
+      "1": "Red-bellied Woodpecker",
       "2": "Red-bellied Woodpecker",
       "3": "White-breasted Nuthatch",
       "4": "Chipping Sparrow",
@@ -2757,6 +2757,13 @@
     "images": {
       "0": "Eastern Kingbird",
       "1": "Red-tailed Hawk"
+    }
+  },
+  "17931379037999794": {
+    "images": {
+      "0": "Sharp-shinned Hawk",
+      "1": "Sharp-shinned Hawk",
+      "2": "Sharp-shinned Hawk"
     }
   }
 }
