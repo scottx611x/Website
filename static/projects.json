@@ -4,7 +4,7 @@
     "repo": "https://github.com/scottx611x/hcl-playground",
     "site": "https://hcl-playground.com",
     "tech": "Terraform \u00b7 OpenTofu \u00b7 Web",
-    "description": "Evaluate HCL expressions in the browser with Terraform or OpenTofu \u2014 version-aware autocomplete and docs, any version on demand, no install or init/console loop.",
+    "description": "Evaluate HCL expressions in the browser with Terraform or OpenTofu. Version-aware autocomplete and docs, any version on demand, no install or init/console loop.",
     "year": "2026",
     "featured": true
   },

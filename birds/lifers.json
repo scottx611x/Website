@@ -15,13 +15,15 @@
   },
   "Mute Swan": {
     "src": "https://birds-scott-ouellette.s3.amazonaws.com/birds/thumbs/18097368877823488-0.jpg",
-    "pos": 0.0,
-    "zoom": 1.2
+    "pos": 0.4043558472284814,
+    "zoom": 1.2,
+    "posx": 0.4627217890471513
   },
   "Surf Scoter": {
-    "src": "https://birds-scott-ouellette.s3.amazonaws.com/birds/thumbs/18002274308894650-1.jpg",
-    "pos": 0.006338884730538896,
-    "zoom": 1.2
+    "src": "https://birds-scott-ouellette.s3.amazonaws.com/birds/thumbs/18002274308894650-5.jpg",
+    "pos": 0.47498564858665,
+    "zoom": 1.0,
+    "posx": 1.0
   },
   "Rose-breasted Grosbeak": {
     "src": "https://birds-scott-ouellette.s3.amazonaws.com/birds/thumbs/18099360580897758-0.jpg",
@@ -96,6 +98,150 @@
   "Barred Owl": {
     "src": "https://birds-scott-ouellette.s3.amazonaws.com/birds/thumbs/18038714363570354-0.jpg",
     "pos": 0.30077147533592924,
+    "zoom": 1.3
+  },
+  "Ruby-crowned Kinglet": {
+    "src": "https://birds-scott-ouellette.s3.amazonaws.com/birds/thumbs/17962425693067540-5.jpg",
+    "pos": 0.612352658991228,
+    "posx": 0.0,
+    "zoom": 1.0
+  },
+  "Eastern Phoebe": {
+    "src": "https://birds-scott-ouellette.s3.amazonaws.com/birds/thumbs/17886317103393874-0.jpg",
+    "pos": 0.489574167928458,
+    "posx": 1.0,
+    "zoom": 1.0
+  },
+  "Brown-headed Cowbird": {
+    "src": "https://birds-scott-ouellette.s3.amazonaws.com/birds/thumbs/17962425693067540-3.jpg",
+    "pos": 0.4566337719298247,
+    "posx": 1.0,
+    "zoom": 1.0
+  },
+  "Golden-crowned Kinglet": {
+    "src": "https://birds-scott-ouellette.s3.amazonaws.com/birds/thumbs/18117171706734244-6.jpg",
+    "pos": 0.5209726790935673,
+    "posx": 0.0,
+    "zoom": 1.1
+  },
+  "Fox Sparrow": {
+    "src": "https://birds-scott-ouellette.s3.amazonaws.com/birds/thumbs/18002248943911802-0.jpg",
+    "pos": 0.4763420595760234,
+    "posx": 1.0,
+    "zoom": 1.0
+  },
+  "Common Grackle": {
+    "src": "https://birds-scott-ouellette.s3.amazonaws.com/birds/thumbs/18104333038766011-1.jpg",
+    "pos": 0.3737500919364145,
+    "posx": 0.0,
+    "zoom": 1.0
+  },
+  "Common Eider": {
+    "src": "https://birds-scott-ouellette.s3.amazonaws.com/birds/thumbs/18572825836049750-8.jpg",
+    "pos": 0.4868566183397079,
+    "posx": 0.839500961853307,
+    "zoom": 1.3
+  },
+  "Cedar Waxwing": {
+    "src": "https://birds-scott-ouellette.s3.amazonaws.com/birds/thumbs/17948085624156938-0.jpg",
+    "pos": 0.19310466922514616,
+    "posx": 0.67578125,
+    "zoom": 1.0
+  },
+  "American Black Duck": {
+    "src": "https://birds-scott-ouellette.s3.amazonaws.com/birds/thumbs/18110006128754375-8.jpg",
+    "pos": 0.26723204495614034,
+    "posx": 0.5,
+    "zoom": 1.0
+  },
+  "Common Loon": {
+    "src": "https://birds-scott-ouellette.s3.amazonaws.com/birds/thumbs/17974158843029007-4.jpg",
+    "pos": 0.37313221288017784,
+    "posx": 1.0,
+    "zoom": 1.2
+  },
+  "Rock Pigeon": {
+    "src": "https://birds-scott-ouellette.s3.amazonaws.com/birds/thumbs/18058549532697845-5.jpg",
+    "pos": 0.418127405434863,
+    "posx": 1.0,
+    "zoom": 1.3
+  },
+  "Sanderling": {
+    "src": "https://birds-scott-ouellette.s3.amazonaws.com/birds/thumbs/18348907453226855-0.jpg",
+    "pos": 0.5052177193731897,
+    "posx": 1.0,
+    "zoom": 1.0
+  },
+  "Tricolored Heron": {
+    "src": "https://birds-scott-ouellette.s3.amazonaws.com/birds/thumbs/17893702770263381-3.jpg",
+    "pos": 0.5105475951900843,
+    "posx": 1.0,
+    "zoom": 1.6
+  },
+  "Loggerhead Shrike": {
+    "src": "https://birds-scott-ouellette.s3.amazonaws.com/birds/thumbs/18089359418079845-11.jpg",
+    "pos": 0.4255641090732021,
+    "posx": 1.0,
+    "zoom": 1.1
+  },
+  "Little Blue Heron": {
+    "src": "https://birds-scott-ouellette.s3.amazonaws.com/birds/thumbs/18089359418079845-7.jpg",
+    "pos": 0.6467265168128654,
+    "posx": 0.0,
+    "zoom": 1.0
+  },
+  "Brown Pelican": {
+    "src": "https://birds-scott-ouellette.s3.amazonaws.com/birds/thumbs/18089359418079845-6.jpg",
+    "pos": 0.3737002010233918,
+    "posx": 0.0,
+    "zoom": 1.0
+  },
+  "American Tree Sparrow": {
+    "src": "https://birds-scott-ouellette.s3.amazonaws.com/birds/thumbs/18068893877543258-0.jpg",
+    "pos": 0.0,
+    "posx": 1.0,
+    "zoom": 1.0
+  },
+  "Turkey Vulture": {
+    "src": "https://birds-scott-ouellette.s3.amazonaws.com/birds/thumbs/17945942501979450-0.jpg",
+    "pos": 0.7454107273391812,
+    "posx": 0.0,
+    "zoom": 1.0
+  },
+  "Northern Harrier": {
+    "src": "https://birds-scott-ouellette.s3.amazonaws.com/birds/thumbs/18083909105464068-6.jpg",
+    "pos": 1.0,
+    "posx": 1.0,
+    "zoom": 1.0
+  },
+  "Mourning Dove": {
+    "src": "https://birds-scott-ouellette.s3.amazonaws.com/birds/thumbs/18005279543907673-2.jpg",
+    "pos": 0.41716008771929824,
+    "posx": 1.0,
+    "zoom": 1.0
+  },
+  "Wild Turkey": {
+    "src": "https://birds-scott-ouellette.s3.amazonaws.com/birds/thumbs/17868293955538025-4.jpg",
+    "pos": 0.46497498461968356,
+    "posx": 1.0,
+    "zoom": 1.1
+  },
+  "Red-breasted Merganser": {
+    "src": "https://birds-scott-ouellette.s3.amazonaws.com/birds/thumbs/18563549941033601-2.jpg",
+    "pos": 0.5917659769512834,
+    "posx": 0.75390625,
+    "zoom": 1.0
+  },
+  "Brown Creeper": {
+    "src": "https://birds-scott-ouellette.s3.amazonaws.com/birds/thumbs/18044656358751390-0.jpg",
+    "pos": 0.32661732456140347,
+    "posx": 0.671875,
+    "zoom": 1.0
+  },
+  "Hairy Woodpecker": {
+    "src": "https://birds-scott-ouellette.s3.amazonaws.com/birds/thumbs/17942741640092666-5.jpg",
+    "pos": 0.5150899410394923,
+    "posx": 1.0,
     "zoom": 1.3
   },
   "Killdeer": {

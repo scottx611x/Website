@@ -1,6 +1,8 @@
 {
   "17843272989672425": {
-    "image_locations": {},
+    "image_locations": {
+      "0": "Rea St."
+    },
     "images": {
       "0": "Dark-eyed Junco",
       "1": "Carolina Wren",
@@ -238,6 +240,13 @@
       "2": 5,
       "3": 4,
       "5": 4
+    }
+  },
+  "17909494311439462": {
+    "images": {
+      "2": "Gray Catbird",
+      "3": "Red-tailed Hawk",
+      "4": "Red-tailed Hawk"
     }
   },
   "17915419443231727": {
@@ -542,6 +551,9 @@
     }
   },
   "17960879040092068": {
+    "exclude_images": [
+      9
+    ],
     "image_locations": {
       "0": "Johnson St.",
       "1": "Johnson St.",
@@ -730,6 +742,9 @@
     }
   },
   "18002274308894650": {
+    "exclude_images": [
+      9
+    ],
     "image_locations": {
       "0": "Congress St. Bridge, Boston",
       "1": "Congress St. Bridge, Boston",
@@ -1079,6 +1094,9 @@
     }
   },
   "18067337609607323": {
+    "exclude_images": [
+      9
+    ],
     "image_locations": {
       "0": "Rea Street",
       "1": "Rea Street",
@@ -1146,6 +1164,14 @@
       "0": "Dark-eyed Junco",
       "1": "Carolina Wren",
       "2": "American Robin"
+    }
+  },
+  "18068717327427822": {
+    "images": {
+      "0": "Wild Turkey",
+      "1": "Mallard",
+      "2": "Eastern Wood-Pewee",
+      "3": "Eastern Wood-Pewee"
     }
   },
   "18068893877543258": {
@@ -1295,8 +1321,8 @@
       "2": "Rea St.",
       "3": "Rea St.",
       "4": "Rea St.",
-      "5": "Rea St.",
-      "6": "High St. Captured by sara.e.ouellette",
+      "5": "High St.",
+      "6": "Annie L. Sargent School",
       "7": "Rea St."
     },
     "images": {
@@ -1306,7 +1332,7 @@
       "3": "White-throated Sparrow",
       "4": "White-throated Sparrow",
       "5": "Cooper's Hawk",
-      "6": "Cooper's Hawk",
+      "6": "Blue Jay",
       "7": "Blue Jay"
     }
   },
@@ -1489,7 +1515,7 @@
       "10": "Blue Jay",
       "11": "Loggerhead Shrike",
       "2": "Osprey",
-      "3": "Red-bellied Woodpecker",
+      "3": "Osprey",
       "4": "Brown Pelican",
       "5": "Brown Pelican",
       "6": "Brown Pelican",
@@ -1532,6 +1558,9 @@
     }
   },
   "18089933347947663": {
+    "exclude_images": [
+      6
+    ],
     "image_locations": {
       "0": "Rea Street",
       "1": "Rea Street",
@@ -1737,7 +1766,18 @@
   },
   "18099239264230904": {
     "images": {
-      "4": "Mourning Dove"
+      "0": "House Finch",
+      "1": "House Finch",
+      "2": "House Finch",
+      "3": "House Finch",
+      "4": "Mourning Dove",
+      "5": "White-breasted Nuthatch"
+    }
+  },
+  "18099360580897758": {
+    "images": {
+      "0": "Rose-breasted Grosbeak",
+      "1": "Red-bellied Woodpecker"
     }
   },
   "18100051427087410": {
@@ -2039,6 +2079,11 @@
       "3": "Black-capped Chickadee",
       "4": "American Goldfinch",
       "5": "Red-breasted Merganser"
+    }
+  },
+  "18126994204643464": {
+    "images": {
+      "3": "Northern Cardinal"
     }
   },
   "18129018211595432": {
@@ -2444,7 +2489,7 @@
       "1": "Annie L. Sargent School Access Road",
       "2": "Rea Street Ext.",
       "3": "Annie L. Sargent School Access Road/Rea Street Ext.",
-      "4": "Annie L. Sargent School Access Road/Rea Street Ext.",
+      "4": "Rea St.",
       "5": "Annie L. Sargent School Access Road"
     },
     "images": {
@@ -2470,6 +2515,11 @@
       "2": "Black-and-white Warbler",
       "3": "Gray Catbird",
       "4": "American Goldfinch"
+    }
+  },
+  "18414549124122601": {
+    "image_locations": {
+      "0": "Weir Hill"
     }
   },
   "18416658070123663": {
