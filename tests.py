@@ -145,6 +145,29 @@ class BirdsTestCase(unittest.TestCase):
         shots = [{"species": s} for s in ["Barred Owls", "Baby Barred Owl", "Osprey"]]
         self.assertEqual(birds.ticker_species(shots), ["Barred Owl", "Osprey"])
 
+    def test_per_image_override_does_not_bleed_onto_other_frames(self):
+        # Editing one frame of a single-species multi-image post must relabel ONLY
+        # that frame — the others keep the caption species, not the edited value.
+        shot = {"id": "P", "images": ["0", "1", "2", "3"],
+                "caption": "Cooper's Hawk - Rea St.\n\n1-2-26",
+                "species": "Cooper's Hawk", "species_list": ["Cooper's Hawk"]}
+        overrides = {"P": {"images": {"2": "Sharp-shinned Hawk"}}}
+        birds.apply_overrides([shot], overrides, apply_exclusions=False)
+        self.assertEqual(
+            shot["image_species"],
+            ["Cooper's Hawk", "Cooper's Hawk", "Sharp-shinned Hawk", "Cooper's Hawk"],
+        )
+
+    def test_per_image_override_pins_caption_1to1_for_unedited_frames(self):
+        # A caption that pins one species per frame keeps each un-edited frame on its
+        # own species when a single frame is overridden.
+        shot = {"id": "Q", "images": ["0", "1"],
+                "caption": "Blue Jay - Rea St.\nTufted Titmouse - Rea St.\n\n3-4-26",
+                "species": "Blue Jay", "species_list": ["Blue Jay", "Tufted Titmouse"]}
+        overrides = {"Q": {"images": {"0": "Northern Cardinal"}}}
+        birds.apply_overrides([shot], overrides, apply_exclusions=False)
+        self.assertEqual(shot["image_species"], ["Northern Cardinal", "Tufted Titmouse"])
+
     def test_map_points_matches_aliases(self):
         places = [{"name": "Rea St.", "lat": 42.67, "lng": -71.1, "area": "local",
                    "match": ["rea st"]}]

@@ -780,6 +780,27 @@ def _is_ambiguous(shot):
     return len(names) != 1
 
 
+def _caption_image_species(caption, n):
+    """The per-frame species implied by the caption, for a post's ``n`` frames.
+
+    When the caption pins one species per frame (line count matches the image
+    count) each frame gets its own; otherwise every frame gets the caption's
+    primary species (a single-species post, or a multi-species post we can't pin
+    1:1 — matching how the cover species was chosen). Frames a caption says nothing
+    about come back None.
+
+    This is the base a partial per-image override overlays onto, so editing one
+    frame's species never bleeds onto the post's other frames: the un-edited frames
+    keep their own caption species instead of collapsing to the edited value.
+    """
+    pairs = _species_pairs(caption)
+    if not pairs:
+        return [None] * n
+    if len(pairs) == n:
+        return [p[0] for p in pairs]
+    return [pairs[0][0]] * n
+
+
 def apply_overrides(shots, overrides=None, apply_exclusions=True):
     """Apply hand-typed corrections and (re)compute the review flag in place.
 
@@ -795,7 +816,14 @@ def apply_overrides(shots, overrides=None, apply_exclusions=True):
             n = len(shot.get("images") or [])
             if override.get("images"):
                 per_image = override["images"]
-                shot["image_species"] = [(per_image.get(str(i)) or None) for i in range(n)]
+                # Overlay the explicit per-image edits onto the caption-derived
+                # species so an un-edited frame keeps its own species rather than
+                # falling back to the (now-edited) cover species — otherwise
+                # editing one frame silently relabels every other frame in the post.
+                base = _caption_image_species(shot.get("caption") or "", n)
+                shot["image_species"] = [
+                    (per_image.get(str(i)) or base[i]) for i in range(n)
+                ]
                 assigned = [s for s in shot["image_species"] if s]
                 if assigned:
                     shot["species"] = override.get("species") or assigned[0]
