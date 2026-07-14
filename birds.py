@@ -146,14 +146,14 @@ for _names, _family in [
     (["Carolina Wren", "Northern House Wren"], "Wrens"),
     (["European Starling"], "Starlings"),
     (["Northern Mockingbird", "Gray Catbird"], "Mockingbirds & Thrashers"),
-    (["American Robin", "Eastern Bluebird"], "Thrushes"),
+    (["American Robin", "Eastern Bluebird", "Wood Thrush"], "Thrushes"),
     (["Cedar Waxwing"], "Waxwings"),
     (["House Sparrow"], "Old World Sparrows"),
     (["House Finch", "American Goldfinch", "Evening Grosbeak"], "Finches"),
     (["White-throated Sparrow", "Song Sparrow", "Chipping Sparrow", "American Tree Sparrow",
       "Fox Sparrow", "Savannah Sparrow", "Dark-eyed Junco"], "New World Sparrows"),
     (["Red-winged Blackbird", "Common Grackle", "Boat-tailed Grackle",
-      "Brown-headed Cowbird"], "Blackbirds & Orioles"),
+      "Brown-headed Cowbird", "Baltimore Oriole"], "Blackbirds & Orioles"),
     (["Black-and-white Warbler", "Yellow-rumped Warbler", "Pine Warbler", "Ovenbird",
       "American Redstart", "Common Yellowthroat"], "Wood-Warblers"),
     (["Northern Cardinal", "Rose-breasted Grosbeak"], "Cardinals & Allies"),
@@ -1626,6 +1626,7 @@ def _split_loc_date(text):
 _LOC_HINT = re.compile(
     r"\b(st|ave|rd|road|street|blvd|dr|drive|ln|lane|ct|way|bridge|beach|park|"
     r"square|wharf|harborwalk|harbor|dock|docks|refuge|sanctuary|wildlife|"
+    r"hill|pond|lake|forest|woodlot|reservoir|reservation|"
     r"memorial|school|sargent|cochichewick|shawsheen|ma|me|nh|fl|maine|florida|"
     r"boston|andover|ipswich|concord|lincoln|westborough|lewiston|litchfield|"
     r"york|cambridge|gloucester|dorchester|seaport|congress)\b\.?",

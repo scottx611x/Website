@@ -140,6 +140,19 @@ class BirdsTestCase(unittest.TestCase):
             self.assertIsNotNone(canon, raw)
             self.assertEqual(canon[0], want, raw)
 
+    def test_block_format_species_with_separate_location_parses(self):
+        # Regression: a bare species line + a separate location line (Scott's block
+        # format) must yield the species AND its location — a new lifer like Wood
+        # Thrush at Weir Hill was dropping to nothing.
+        pairs = birds._species_pairs("Wood Thrush\n\nWeir Hill\n\n6-21-26")
+        self.assertEqual(pairs, [("Wood Thrush", "Weir Hill", None)])
+        self.assertEqual(birds._canon_species("Wood Thrush")[0], "Wood Thrush")
+
+    def test_geographic_words_classify_as_locations(self):
+        for loc in ["Weir Hill", "Stevens Pond", "Lake Cochichewick",
+                    "Harold Parker State Forest", "Glennie Woodlot"]:
+            self.assertTrue(birds._is_location_line(loc), loc)
+
     def test_canon_species_does_not_invent_matches(self):
         # Descriptive captions and near-but-distinct species must NOT fuzzy-collapse.
         for junk in ["Heron Rookery", "Blue Jay eating a Goldfish", "a frog", "Rookery"]:
