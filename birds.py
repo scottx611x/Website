@@ -94,70 +94,139 @@ def load_gallery(shuffle=True):
 
 
 # Bird taxonomy for Merlin-style family grouping. Keyed by the lower-cased
-# normalize_species() name -> (display name, family group). Family order below
-# roughly follows eBird taxonomy.
-_FAMILY_ORDER = [
-    "Ducks, Geese & Swans", "Turkeys & Grouse", "Pigeons & Doves", "Hummingbirds",
-    "Plovers", "Sandpipers", "Gulls & Terns", "Loons", "Cormorants", "Pelicans",
-    "Herons & Egrets", "New World Vultures", "Ospreys", "Hawks & Eagles", "Owls",
-    "Woodpeckers", "Falcons", "Shrikes", "Tyrant Flycatchers", "Crows & Jays",
-    "Chickadees & Titmice", "Swallows", "Kinglets", "Nuthatches", "Creepers",
-    "Wrens", "Starlings", "Mockingbirds & Thrashers", "Thrushes", "Waxwings",
-    "Old World Sparrows", "Finches", "New World Sparrows", "Blackbirds & Orioles",
-    "Wood-Warblers", "Cardinals & Allies",
+# normalize_species() name -> (display name, family group). Broad coverage of the
+# birds regularly occurring in the continental US so Scott never has to have a new
+# species hand-added; anything still unrecognized falls into _OTHER_FAMILY (see
+# _canon_species_list) rather than being dropped. Family order follows eBird
+# taxonomy. Display names match how Scott writes them in captions (e.g. "American
+# Herring Gull", "Northern House Wren") so existing overrides keep resolving.
+_OTHER_FAMILY = "Other birds"
+
+_TAXONOMY = [
+    ("Ducks, Geese & Swans", [
+        "Snow Goose", "Ross's Goose", "Greater White-fronted Goose", "Brant", "Cackling Goose",
+        "Canada Goose", "Mute Swan", "Trumpeter Swan", "Tundra Swan", "Wood Duck",
+        "Blue-winged Teal", "Cinnamon Teal", "Northern Shoveler", "Gadwall", "American Wigeon",
+        "Eurasian Wigeon", "Mallard", "American Black Duck", "Mottled Duck", "Northern Pintail",
+        "Green-winged Teal", "Canvasback", "Redhead", "Ring-necked Duck", "Greater Scaup",
+        "Lesser Scaup", "King Eider", "Common Eider", "Harlequin Duck", "Surf Scoter",
+        "White-winged Scoter", "Black Scoter", "Long-tailed Duck", "Bufflehead", "Common Goldeneye",
+        "Barrow's Goldeneye", "Hooded Merganser", "Common Merganser", "Red-breasted Merganser",
+        "Ruddy Duck"]),
+    ("Turkeys & Grouse", [
+        "Wild Turkey", "Ruffed Grouse", "Spruce Grouse", "Northern Bobwhite", "Ring-necked Pheasant"]),
+    ("Grebes", [
+        "Pied-billed Grebe", "Horned Grebe", "Red-necked Grebe", "Eared Grebe", "Western Grebe"]),
+    ("Pigeons & Doves", [
+        "Rock Pigeon", "Band-tailed Pigeon", "Eurasian Collared-Dove", "Common Ground Dove",
+        "White-winged Dove", "Mourning Dove"]),
+    ("Cuckoos", ["Yellow-billed Cuckoo", "Black-billed Cuckoo"]),
+    ("Nightjars", ["Common Nighthawk", "Eastern Whip-poor-will", "Chuck-will's-widow"]),
+    ("Swifts", ["Chimney Swift"]),
+    ("Hummingbirds", [
+        "Ruby-throated Hummingbird", "Rufous Hummingbird", "Anna's Hummingbird",
+        "Black-chinned Hummingbird"]),
+    ("Rails, Gallinules & Coots", [
+        "Clapper Rail", "Virginia Rail", "Sora", "Common Gallinule", "American Coot"]),
+    ("Cranes", ["Sandhill Crane"]),
+    ("Stilts & Avocets", ["Black-necked Stilt", "American Avocet"]),
+    ("Oystercatchers", ["American Oystercatcher"]),
+    ("Plovers", [
+        "Black-bellied Plover", "American Golden-Plover", "Killdeer", "Semipalmated Plover",
+        "Piping Plover", "Wilson's Plover"]),
+    ("Sandpipers", [
+        "Upland Sandpiper", "Whimbrel", "Marbled Godwit", "Ruddy Turnstone", "Red Knot",
+        "Sanderling", "Dunlin", "Purple Sandpiper", "Least Sandpiper", "White-rumped Sandpiper",
+        "Semipalmated Sandpiper", "Western Sandpiper", "Short-billed Dowitcher", "Long-billed Dowitcher",
+        "American Woodcock", "Wilson's Snipe", "Spotted Sandpiper", "Solitary Sandpiper",
+        "Greater Yellowlegs", "Willet", "Lesser Yellowlegs", "Pectoral Sandpiper"]),
+    ("Gulls & Terns", [
+        "Bonaparte's Gull", "Laughing Gull", "Ring-billed Gull", "American Herring Gull",
+        "Great Black-backed Gull", "Lesser Black-backed Gull", "Iceland Gull", "Glaucous Gull",
+        "Least Tern", "Caspian Tern", "Black Tern", "Common Tern", "Forster's Tern", "Royal Tern",
+        "Black Skimmer"]),
+    ("Loons", ["Red-throated Loon", "Common Loon"]),
+    ("Cormorants", ["Double-crested Cormorant", "Great Cormorant"]),
+    ("Anhingas", ["Anhinga"]),
+    ("Pelicans", ["American White Pelican", "Brown Pelican"]),
+    ("Herons & Egrets", [
+        "American Bittern", "Least Bittern", "Great Blue Heron", "Great Egret", "Snowy Egret",
+        "Little Blue Heron", "Tricolored Heron", "Reddish Egret", "Cattle Egret", "Green Heron",
+        "Black-crowned Night Heron", "Yellow-crowned Night Heron"]),
+    ("Ibises & Spoonbills", ["White Ibis", "Glossy Ibis", "Roseate Spoonbill"]),
+    ("New World Vultures", ["Black Vulture", "Turkey Vulture"]),
+    ("Ospreys", ["Osprey"]),
+    ("Hawks & Eagles", [
+        "Golden Eagle", "Northern Harrier", "Sharp-shinned Hawk", "Cooper's Hawk", "Northern Goshawk",
+        "Bald Eagle", "Mississippi Kite", "Swallow-tailed Kite", "Red-shouldered Hawk",
+        "Broad-winged Hawk", "Red-tailed Hawk", "Rough-legged Hawk", "Swainson's Hawk"]),
+    ("Owls", [
+        "Barn Owl", "Eastern Screech-Owl", "Great Horned Owl", "Snowy Owl", "Barred Owl",
+        "Long-eared Owl", "Short-eared Owl", "Northern Saw-whet Owl"]),
+    ("Kingfishers", ["Belted Kingfisher"]),
+    ("Woodpeckers", [
+        "Red-headed Woodpecker", "Red-bellied Woodpecker", "Yellow-bellied Sapsucker",
+        "Downy Woodpecker", "Hairy Woodpecker", "Northern Flicker", "Pileated Woodpecker"]),
+    ("Falcons", ["American Kestrel", "Merlin", "Peregrine Falcon"]),
+    ("Tyrant Flycatchers", [
+        "Eastern Wood-Pewee", "Acadian Flycatcher", "Alder Flycatcher", "Willow Flycatcher",
+        "Least Flycatcher", "Eastern Phoebe", "Great Crested Flycatcher", "Eastern Kingbird"]),
+    ("Shrikes", ["Loggerhead Shrike", "Northern Shrike"]),
+    ("Vireos", [
+        "White-eyed Vireo", "Yellow-throated Vireo", "Blue-headed Vireo", "Warbling Vireo",
+        "Philadelphia Vireo", "Red-eyed Vireo"]),
+    ("Crows & Jays", ["Blue Jay", "American Crow", "Fish Crow", "Common Raven"]),
+    ("Larks", ["Horned Lark"]),
+    ("Chickadees & Titmice", ["Black-capped Chickadee", "Carolina Chickadee", "Tufted Titmouse"]),
+    ("Swallows", [
+        "Northern Rough-winged Swallow", "Purple Martin", "Tree Swallow", "Bank Swallow",
+        "Barn Swallow", "Cliff Swallow"]),
+    ("Kinglets", ["Golden-crowned Kinglet", "Ruby-crowned Kinglet"]),
+    ("Nuthatches", ["Red-breasted Nuthatch", "White-breasted Nuthatch", "Brown-headed Nuthatch"]),
+    ("Creepers", ["Brown Creeper"]),
+    ("Gnatcatchers", ["Blue-gray Gnatcatcher"]),
+    ("Wrens", [
+        "Carolina Wren", "Northern House Wren", "Winter Wren", "Sedge Wren", "Marsh Wren"]),
+    ("Starlings", ["European Starling"]),
+    ("Mockingbirds & Thrashers", ["Gray Catbird", "Brown Thrasher", "Northern Mockingbird"]),
+    ("Thrushes", [
+        "Eastern Bluebird", "Veery", "Gray-cheeked Thrush", "Swainson's Thrush", "Hermit Thrush",
+        "Wood Thrush", "American Robin"]),
+    ("Waxwings", ["Cedar Waxwing", "Bohemian Waxwing"]),
+    ("Old World Sparrows", ["House Sparrow"]),
+    ("Pipits", ["American Pipit"]),
+    ("Finches", [
+        "Evening Grosbeak", "Pine Grosbeak", "House Finch", "Purple Finch", "Common Redpoll",
+        "Red Crossbill", "White-winged Crossbill", "Pine Siskin", "American Goldfinch"]),
+    ("Longspurs", ["Lapland Longspur", "Snow Bunting"]),
+    ("New World Sparrows", [
+        "Eastern Towhee", "American Tree Sparrow", "Chipping Sparrow", "Field Sparrow",
+        "Vesper Sparrow", "Savannah Sparrow", "Grasshopper Sparrow", "Fox Sparrow", "Song Sparrow",
+        "Lincoln's Sparrow", "Swamp Sparrow", "White-throated Sparrow", "White-crowned Sparrow",
+        "Dark-eyed Junco", "Saltmarsh Sparrow", "Nelson's Sparrow", "Seaside Sparrow"]),
+    ("Blackbirds & Orioles", [
+        "Bobolink", "Red-winged Blackbird", "Eastern Meadowlark", "Orchard Oriole", "Baltimore Oriole",
+        "Brown-headed Cowbird", "Rusty Blackbird", "Common Grackle", "Boat-tailed Grackle",
+        "Great-tailed Grackle"]),
+    ("Wood-Warblers", [
+        "Ovenbird", "Worm-eating Warbler", "Louisiana Waterthrush", "Northern Waterthrush",
+        "Blue-winged Warbler", "Golden-winged Warbler", "Black-and-white Warbler", "Prothonotary Warbler",
+        "Tennessee Warbler", "Nashville Warbler", "Common Yellowthroat", "American Redstart",
+        "Cape May Warbler", "Northern Parula", "Magnolia Warbler", "Bay-breasted Warbler",
+        "Blackburnian Warbler", "Yellow Warbler", "Chestnut-sided Warbler", "Blackpoll Warbler",
+        "Black-throated Blue Warbler", "Palm Warbler", "Pine Warbler", "Yellow-rumped Warbler",
+        "Yellow-throated Warbler", "Prairie Warbler", "Black-throated Green Warbler", "Canada Warbler",
+        "Wilson's Warbler", "Hooded Warbler"]),
+    ("Cardinals & Allies", [
+        "Summer Tanager", "Scarlet Tanager", "Northern Cardinal", "Rose-breasted Grosbeak",
+        "Blue Grosbeak", "Indigo Bunting", "Dickcissel"]),
 ]
 
-
-def _fam(names, family):
-    return {n: (n.title() if n.islower() else n, family) for n in names}
-
+# Colloquial / merged-name -> canonical key handled by _SPECIES_ALIAS below.
+_FAMILY_ORDER = [fam for fam, _ in _TAXONOMY] + [_OTHER_FAMILY]
 
 _BIRDS = {}
-for _names, _family in [
-    (["Mallard", "American Black Duck", "Wood Duck", "Ring-necked Duck", "Bufflehead",
-      "Hooded Merganser", "Red-breasted Merganser", "Common Eider", "Surf Scoter",
-      "Canada Goose", "Mute Swan"], "Ducks, Geese & Swans"),
-    (["Wild Turkey"], "Turkeys & Grouse"),
-    (["Mourning Dove", "Rock Pigeon"], "Pigeons & Doves"),
-    (["Ruby-throated Hummingbird"], "Hummingbirds"),
-    (["Killdeer"], "Plovers"),
-    (["Sanderling"], "Sandpipers"),
-    (["American Herring Gull", "Ring-billed Gull"], "Gulls & Terns"),
-    (["Common Loon"], "Loons"),
-    (["Double-crested Cormorant"], "Cormorants"),
-    (["Brown Pelican"], "Pelicans"),
-    (["Great Blue Heron", "Great Egret", "Little Blue Heron", "Tricolored Heron"], "Herons & Egrets"),
-    (["Turkey Vulture"], "New World Vultures"),
-    (["Osprey"], "Ospreys"),
-    (["Red-tailed Hawk", "Cooper's Hawk", "Sharp-shinned Hawk", "Red-shouldered Hawk",
-      "Broad-winged Hawk", "Northern Harrier", "Bald Eagle"], "Hawks & Eagles"),
-    (["Barred Owl"], "Owls"),
-    (["Downy Woodpecker", "Hairy Woodpecker", "Red-bellied Woodpecker",
-      "Pileated Woodpecker", "Northern Flicker", "Yellow-bellied Sapsucker"], "Woodpeckers"),
-    (["Peregrine Falcon"], "Falcons"),
-    (["Loggerhead Shrike"], "Shrikes"),
-    (["Eastern Phoebe", "Eastern Kingbird", "Eastern Wood-Pewee"], "Tyrant Flycatchers"),
-    (["Blue Jay", "American Crow"], "Crows & Jays"),
-    (["Black-capped Chickadee", "Tufted Titmouse"], "Chickadees & Titmice"),
-    (["Tree Swallow"], "Swallows"),
-    (["Ruby-crowned Kinglet", "Golden-crowned Kinglet"], "Kinglets"),
-    (["White-breasted Nuthatch"], "Nuthatches"),
-    (["Brown Creeper"], "Creepers"),
-    (["Carolina Wren", "Northern House Wren"], "Wrens"),
-    (["European Starling"], "Starlings"),
-    (["Northern Mockingbird", "Gray Catbird"], "Mockingbirds & Thrashers"),
-    (["American Robin", "Eastern Bluebird", "Wood Thrush"], "Thrushes"),
-    (["Cedar Waxwing"], "Waxwings"),
-    (["House Sparrow"], "Old World Sparrows"),
-    (["House Finch", "American Goldfinch", "Evening Grosbeak"], "Finches"),
-    (["White-throated Sparrow", "Song Sparrow", "Chipping Sparrow", "American Tree Sparrow",
-      "Fox Sparrow", "Savannah Sparrow", "Dark-eyed Junco"], "New World Sparrows"),
-    (["Red-winged Blackbird", "Common Grackle", "Boat-tailed Grackle",
-      "Brown-headed Cowbird", "Baltimore Oriole"], "Blackbirds & Orioles"),
-    (["Black-and-white Warbler", "Yellow-rumped Warbler", "Pine Warbler", "Ovenbird",
-      "American Redstart", "Common Yellowthroat"], "Wood-Warblers"),
-    (["Northern Cardinal", "Rose-breasted Grosbeak"], "Cardinals & Allies"),
-]:
+for _family, _names in _TAXONOMY:
     for _n in _names:
         _BIRDS[_n.lower()] = (_n, _family)
 
@@ -232,11 +301,59 @@ def _fuzzy_species_key(flat):
 _SPECIES_SPLIT_RE = re.compile(r"\s*[&+/]\s*")
 
 
+# Connective/attribution words that never appear standalone in a bird's common
+# name — their mere presence marks a caption line as a note, not a species.
+_NOTE_MARKERS = {
+    "and", "with", "of", "the", "a", "an", "by", "captured", "help", "eating",
+    "nest", "nesting", "rookery", "not",
+}
+# Words that describe an individual, not the species; a line made only of these
+# (e.g. "Parents") is a note. Real qualified birds ("Juvenile Barred Owl") resolve
+# via _canon_species first, so these never wrongly reject a known bird.
+_NOTE_WORDS = _NOTE_MARKERS | {
+    "pair", "parent", "parents", "juvenile", "juveniles", "juv", "immature",
+    "adult", "baby", "babies", "fledgling", "fledglings", "male", "female",
+    "young", "north", "andover", "bird",
+}
+
+
+def _looks_like_bird(text):
+    """Heuristic: does ``text`` read like a bird's name we just don't know yet?
+
+    Keeps genuinely-new species (proper-case, 1-4 alphabetic words, not a place or
+    date) so they're never silently dropped, while rejecting caption notes/junk
+    ("and parent", "Heron Rookery", "Captured by ...", street names). Real, mapped
+    birds go through _canon_species first; this only catches the unmapped tail."""
+    name = _clean_species(text)
+    if not name:
+        return False
+    words = [w.lower() for w in name.split()]
+    if not (1 <= len(words) <= 4):
+        return False
+    if not name[0].isupper() or any(ch.isdigit() for ch in name):
+        return False
+    if _is_location_line(name):
+        return False
+    # A lone possessive ("Taki's") is a place/person, never a bird — real
+    # possessive bird names carry the group word too ("Cooper's Hawk").
+    if len(words) == 1 and words[0].endswith("'s"):
+        return False
+    if any(w in _NOTE_MARKERS for w in words):
+        return False
+    return not all(w in _NOTE_WORDS for w in words)
+
+
 def _canon_species_list(raw):
-    """All distinct (display, family) species named in one per-image label."""
+    """All distinct (display, family) species named in one per-image label.
+
+    An unrecognized but bird-like label is kept under ``_OTHER_FAMILY`` rather than
+    dropped, so a species not yet in the taxonomy still shows, counts, and can be a
+    lifer — it just lands in "Other birds" until it's slotted into a family."""
     out = []
     for part in _SPECIES_SPLIT_RE.split(raw or ""):
         canon = _canon_species(part)
+        if not canon and _looks_like_bird(part):
+            canon = (_clean_species(part), _OTHER_FAMILY)
         if canon and canon not in out:
             out.append(canon)
     return out
@@ -1700,6 +1817,8 @@ def _species_pairs(caption):
             elif _is_location_line(s):
                 location, date = _split_loc_date(s)  # shared location / bare date
                 flush(location, date)
+            elif _looks_like_bird(s):
+                pending.append(_clean_species(s))    # unmapped-but-plausible bird
             # else: a note line -> ignore
     flush(None, None)
     return [(sp, loc, dt) for sp, loc, dt in triples if sp]

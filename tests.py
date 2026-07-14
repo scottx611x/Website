@@ -148,6 +148,25 @@ class BirdsTestCase(unittest.TestCase):
         self.assertEqual(pairs, [("Wood Thrush", "Weir Hill", None)])
         self.assertEqual(birds._canon_species("Wood Thrush")[0], "Wood Thrush")
 
+    def test_unknown_bird_is_kept_not_dropped(self):
+        # A species not yet in the taxonomy must still parse (block format) and be
+        # grouped under "Other birds" so it shows / counts / can be a lifer.
+        pairs = birds._species_pairs("Painted Bunting\n\nWeir Hill\n\n6-1-26")
+        self.assertEqual(pairs, [("Painted Bunting", "Weir Hill", None)])
+        self.assertEqual(birds._canon_species_list("Painted Bunting"),
+                         [("Painted Bunting", birds._OTHER_FAMILY)])
+
+    def test_caption_notes_not_treated_as_birds(self):
+        for junk in ["Heron Rookery", "Captured by sara", "and parent", "Parents",
+                     "Blue Jay eating a Goldfish", "Not a North Andover bird"]:
+            self.assertFalse(birds._looks_like_bird(junk), junk)
+            self.assertEqual(birds._canon_species_list(junk), [], junk)
+
+    def test_taxonomy_covers_common_new_england_birds(self):
+        for sp in ["Wood Thrush", "Baltimore Oriole", "Belted Kingfisher",
+                   "American Kestrel", "Scarlet Tanager", "Veery", "Eastern Towhee"]:
+            self.assertIsNotNone(birds._canon_species(sp), sp)
+
     def test_geographic_words_classify_as_locations(self):
         for loc in ["Weir Hill", "Stevens Pond", "Lake Cochichewick",
                     "Harold Parker State Forest", "Glennie Woodlot"]:
