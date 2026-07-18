@@ -11,10 +11,14 @@
   .lv-dot{width:9px;height:9px;border-radius:50%;background:var(--neon);box-shadow:0 0 0 0 rgba(56,224,138,.55);animation:lvPulse 2.4s infinite}
   @keyframes lvPulse{70%{box-shadow:0 0 0 9px rgba(56,224,138,0)}100%{box-shadow:0 0 0 0 rgba(56,224,138,0)}}
 
-  .lv-now{display:grid; grid-template-columns:1.45fr 1fr; gap:1.2rem; align-items:start}
-  @media(max-width:860px){.lv-now{grid-template-columns:1fr}}
+  /* minmax(0,…): grid items default to min-width:auto, and the feed's nowrap
+     timestamps were silently stretching the whole page past the viewport. */
+  .lv-now{display:grid; grid-template-columns:minmax(0,1.45fr) minmax(0,1fr); gap:1.2rem; align-items:start}
+  .lv-now > *{min-width:0}
+  @media(max-width:860px){.lv-now{grid-template-columns:minmax(0,1fr)}}
   .lv-portrait{position:relative; aspect-ratio:3/2; border-radius:16px; overflow:hidden; border:1px solid rgba(13,18,14,.12); background-size:cover; background-position:center; box-shadow:0 10px 30px -18px rgba(13,18,14,.45)}
-  .lv-portrait::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 40%,rgba(6,10,7,.5) 68%,rgba(6,10,7,.92))}
+  .lv-portrait::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 30%,rgba(6,10,7,.55) 62%,rgba(6,10,7,.94))}
+  .lv-portrait .lv-body{text-shadow:0 1px 10px rgba(6,10,7,.65)}
   .lv-ghostcard{position:relative; aspect-ratio:3/2; border-radius:16px; border:1.5px dashed rgba(176,125,36,.55); background:var(--paper-2); display:flex; align-items:flex-end}
   .lv-ghostcard .feather{position:absolute;inset:0;background:no-repeat center 38%/30%;opacity:.2}
   .lv-body{position:absolute; z-index:2; left:0; right:0; bottom:0; padding:1rem 1.2rem}
@@ -72,7 +76,12 @@
   .lv-rowwrap.playing .lv-needle{opacity:1}
 
   .lv-trio{display:grid; grid-template-columns:repeat(3,1fr); gap:.8rem; margin-bottom:1.2rem}
-  @media(max-width:560px){.lv-trio{grid-template-columns:1fr}}
+  @media(max-width:560px){
+    .lv-trio{gap:.5rem}
+    .lv-stat{padding:.7rem .6rem; text-align:center}
+    .lv-stat .big{font-size:1.5rem}
+    .lv-stat .l{font-size:.62rem}
+  }
   .lv-stat{border:1px solid rgba(13,18,14,.12); border-radius:12px; padding:.9rem 1.1rem; background:#fbf9f3}
   .lv-stat .big{font-family:var(--display); font-size:2.1rem; line-height:1; letter-spacing:-.03em; font-weight:600}
   .lv-stat.accent .big{color:var(--green)} .lv-stat.amber .big{color:#a9761f}
@@ -114,6 +123,14 @@
   .lv-hoursax{display:flex; justify-content:space-between; max-width:34rem; font-family:var(--mono); font-size:.64rem; color:var(--muted)}
 
   .lv-foot{color:var(--muted); font-size:.74rem; margin-top:3rem}
+  @media(max-width:560px){
+    .livewire section{margin-top:2.2rem}
+    .lv-rowspec{margin-left:0}
+    .lv-toprow .tn{flex:0 0 42%}
+    .lv-status{text-align:center}
+    .lv-when{font-size:.62rem}
+    .lv-wall{grid-template-columns:repeat(auto-fill,minmax(78px,1fr)); gap:.4rem}
+  }
   .lv-empty{padding:3rem 0 1rem; text-align:center}
   .lv-empty h2{font-family:var(--display); font-weight:500; font-size:1.6rem; margin-bottom:.5rem}
   .lv-empty p{color:var(--muted); max-width:32rem; margin:.4rem auto}
@@ -269,13 +286,15 @@
     return Math.floor(s / 86400) + "d ago";
   }
   function stampTimes() {
+    // Phones don't have room for "4:38 PM · 1h ago" next to a bird name.
+    var narrow = matchMedia("(max-width:560px)").matches;
     root.querySelectorAll("[data-t]").forEach(function (el) {
       var t = el.getAttribute("data-t"); if (!t) return;
       if (el.classList.contains("lv-when")) {
         var lead = el.getAttribute("data-lead") || el.textContent.trim();
         el.setAttribute("data-lead", lead);
         el.textContent = clock(t) + " · " + rel(t) + " · " + lead;
-      } else { el.textContent = clock(t) + " · " + rel(t); }
+      } else { el.textContent = narrow ? rel(t) : clock(t) + " · " + rel(t); }
     });
     var upd = document.getElementById("lv-upd");
     if (upd && LIVE.generated) upd.textContent = "listening · North Andover, MA · updated " + rel(LIVE.generated);
