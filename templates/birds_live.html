@@ -51,7 +51,9 @@
   .no-media .lv-rowplay{display:none}
 
   .lv-feed{margin-top:.9rem}
-  .lv-row{display:flex; align-items:center; gap:.65rem; padding:.48rem 0; border-top:1px solid rgba(13,18,14,.09)}
+  .lv-rowwrap{border-top:1px solid rgba(13,18,14,.09)}
+  .lv-rowwrap:first-child{border-top:none}
+  .lv-row{display:flex; align-items:center; gap:.65rem; padding:.48rem 0}
   .lv-row.flash{animation:lvIn .9s ease}
   @keyframes lvIn{from{background:rgba(56,224,138,.25)}to{background:transparent}}
   .lv-av{width:34px;height:34px;border-radius:50%;flex:0 0 auto;background-size:cover;background-position:center;border:1.5px solid rgba(13,18,14,.15)}
@@ -63,6 +65,11 @@
   .lv-rowplay{flex:0 0 auto; width:26px;height:26px;border-radius:50%;border:1px solid rgba(13,18,14,.2);background:transparent;color:var(--ink);font-size:.6rem;cursor:pointer;display:flex;align-items:center;justify-content:center}
   .lv-rowplay:hover{background:var(--ink);color:var(--neon);border-color:var(--ink)}
   .lv-rowplay.on{background:var(--ink);color:var(--neon);border-color:var(--ink)}
+  /* Each row keeps its own picture of its sound: an inline strip, not a hijacked shared view. */
+  .lv-rowspec{display:none; position:relative; margin:.1rem 0 .55rem 2.55rem; border-radius:8px; overflow:hidden; background:var(--ink); cursor:pointer}
+  .lv-rowspec img{display:block; width:100%; height:60px; object-fit:cover; object-position:center; filter:saturate(.9)}
+  .lv-rowwrap.open .lv-rowspec{display:block}
+  .lv-rowwrap.playing .lv-needle{opacity:1}
 
   .lv-trio{display:grid; grid-template-columns:repeat(3,1fr); gap:.8rem; margin-bottom:1.2rem}
   @media(max-width:560px){.lv-trio{grid-template-columns:1fr}}
@@ -84,7 +91,12 @@
   .lv-chart{display:flex; align-items:flex-end; gap:2px; height:96px; margin-bottom:.3rem}
   .lv-bar{flex:1; min-width:2px; background:linear-gradient(180deg,var(--green),rgba(47,125,79,.25)); border-radius:2px 2px 0 0; position:relative; cursor:default}
   .lv-bar.zero{background:rgba(13,18,14,.07); height:3px !important}
+  .lv-bar{cursor:pointer}
   .lv-bar:hover{background:var(--neon)}
+  .lv-bar.sel{background:var(--amber); box-shadow:0 0 0 1.5px rgba(13,18,14,.5)}
+  .lv-bar:focus-visible{outline:2px solid var(--green); outline-offset:2px}
+  .lv-clear{font-family:var(--mono); font-size:.62rem; letter-spacing:.06em; text-transform:uppercase; margin-left:.5rem; padding:.14rem .5rem; border-radius:999px; border:1px solid rgba(13,18,14,.25); background:transparent; color:var(--muted); cursor:pointer; vertical-align:middle}
+  .lv-clear:hover{background:var(--ink); color:var(--paper); border-color:var(--ink)}
   .lv-axis{display:flex; justify-content:space-between; font-family:var(--mono); font-size:.64rem; color:var(--muted); margin-bottom:1rem}
   .lv-sum{display:flex; gap:1.6rem; flex-wrap:wrap; font-size:.78rem; color:var(--muted); margin-bottom:1.1rem}
   .lv-sum b{display:block; color:var(--ink); font-family:var(--display); font-size:1.45rem; font-weight:600; letter-spacing:-.02em; line-height:1.1}
@@ -269,57 +281,93 @@
     if (upd && LIVE.generated) upd.textContent = "listening · North Andover, MA · updated " + rel(LIVE.generated);
   }
 
-  /* ---- the sound itself: one shared player, spectrogram as scrubber ---- */
-  var audio = new Audio(), current = null;
-  var player = document.getElementById("lv-player");
+  /* ---- the sound itself: one audio pipe, but every call keeps its own view.
+     The hero player belongs to the just-heard call; each feed row expands its
+     OWN spectrogram strip inline, so playing a second call never masks the
+     first one's picture. ---- */
+  var audio = new Audio(), current = null; // {audio, needle, isHero}
+  var player = document.getElementById("lv-player"), heroClip = null;
   function playable(list) { return (list || []).filter(function (r) { return r.audio; }); }
-  function loadClip(r, autoplay) {
+  function findRec(name) {
+    return (LIVE.recent || []).filter(function (x) { return x.audio === name; })[0];
+  }
+  function loadHero(r) {
     if (!player || !r || !r.audio) return;
-    current = r;
+    heroClip = r;
     player.hidden = false;
     document.getElementById("lv-pname").textContent = r.display;
     document.getElementById("lv-psub").textContent = clock(r.t) + " · " + Math.round(r.conf * 100) + "% · what the mic actually heard";
     var img = document.getElementById("lv-specimg");
     if (r.spec) { img.src = MEDIA + r.spec; img.parentElement.style.display = ""; }
     else { img.removeAttribute("src"); img.parentElement.style.display = "none"; }
-    audio.src = MEDIA + r.audio;
-    if (autoplay) audio.play().catch(function () {});
-    syncRowButtons();
   }
-  function syncRowButtons() {
+  function playClip(r, ctx, fraction) {
+    var changing = !current || current.audio !== r.audio;
+    if (changing) audio.src = MEDIA + r.audio;
+    current = { audio: r.audio, needle: ctx.needle, isHero: !!ctx.isHero };
+    if (fraction != null) {
+      var seek = function () { if (audio.duration) audio.currentTime = fraction * audio.duration; };
+      if (!changing && audio.duration) seek();
+      else audio.addEventListener("loadedmetadata", seek, { once: true });
+    }
+    audio.play().catch(function () {});
+    syncViews();
+  }
+  function syncViews() {
+    var playing = !audio.paused;
     root.querySelectorAll(".lv-rowplay").forEach(function (b) {
-      var on = current && b.getAttribute("data-audio") === current.audio && !audio.paused;
+      var on = current && b.getAttribute("data-audio") === current.audio && playing;
       b.classList.toggle("on", !!on);
       b.innerHTML = on ? "&#10074;&#10074;" : "&#9654;";
     });
+    root.querySelectorAll(".lv-rowwrap").forEach(function (w) {
+      w.classList.toggle("playing",
+        playing && current && !current.isHero && w.getAttribute("data-audio") === current.audio);
+    });
     var pb = document.getElementById("lv-playbtn");
-    if (pb) pb.innerHTML = audio.paused ? "&#9654;" : "&#10074;&#10074;";
-    if (player) player.classList.toggle("playing", !audio.paused);
+    if (pb) pb.innerHTML = (playing && current && current.isHero) ? "&#10074;&#10074;" : "&#9654;";
+    if (player) player.classList.toggle("playing", playing && current && current.isHero);
   }
   function fmtT(s) { s = Math.floor(s || 0); return Math.floor(s / 60) + ":" + ("0" + (s % 60)).slice(-2); }
   if (player) {
     document.getElementById("lv-playbtn").addEventListener("click", function () {
-      if (audio.paused) audio.play().catch(function () {}); else audio.pause();
+      if (current && current.isHero) { if (audio.paused) audio.play().catch(function(){}); else audio.pause(); }
+      else if (heroClip) playClip(heroClip, { needle: document.getElementById("lv-needle"), isHero: true });
     });
     document.getElementById("lv-spec").addEventListener("click", function (e) {
-      if (!audio.duration) return;
-      var r = this.getBoundingClientRect();
-      audio.currentTime = ((e.clientX - r.left) / r.width) * audio.duration;
-      if (audio.paused) audio.play().catch(function () {});
+      var box = this.getBoundingClientRect(), frac = (e.clientX - box.left) / box.width;
+      if (heroClip) playClip(heroClip, { needle: document.getElementById("lv-needle"), isHero: true }, frac);
     });
     audio.addEventListener("timeupdate", function () {
-      document.getElementById("lv-ptime").textContent = fmtT(audio.currentTime) + (audio.duration ? " / " + fmtT(audio.duration) : "");
-      if (audio.duration) document.getElementById("lv-needle").style.left = (audio.currentTime / audio.duration * 100) + "%";
+      if (current && current.isHero) {
+        document.getElementById("lv-ptime").textContent = fmtT(audio.currentTime) + (audio.duration ? " / " + fmtT(audio.duration) : "");
+      }
+      if (current && current.needle && audio.duration) {
+        current.needle.style.left = (audio.currentTime / audio.duration * 100) + "%";
+      }
     });
-    ["play", "pause", "ended"].forEach(function (ev) { audio.addEventListener(ev, syncRowButtons); });
+    ["play", "pause", "ended"].forEach(function (ev) { audio.addEventListener(ev, syncViews); });
     // Clips not public yet (or expired): pull the whole affordance, no broken UI.
     audio.addEventListener("error", function () { root.classList.add("no-media"); });
   }
   document.addEventListener("click", function (e) {
+    var strip = e.target.closest(".lv-rowspec");
+    if (strip) {
+      var w1 = strip.closest(".lv-rowwrap"), r1 = findRec(w1.getAttribute("data-audio"));
+      if (!r1) return;
+      var box = strip.getBoundingClientRect(), frac = (e.clientX - box.left) / box.width;
+      playClip(r1, { needle: strip.querySelector(".lv-needle") }, frac);
+      return;
+    }
     var b = e.target.closest(".lv-rowplay"); if (!b) return;
-    var r = (LIVE.recent || []).filter(function (x) { return x.audio === b.getAttribute("data-audio"); })[0];
-    if (current && r && current.audio === r.audio) { if (audio.paused) audio.play().catch(function(){}); else audio.pause(); }
-    else loadClip(r, true);
+    var wrap = b.closest(".lv-rowwrap"), r = findRec(b.getAttribute("data-audio"));
+    if (!r) return;
+    if (current && current.audio === r.audio) {
+      if (audio.paused) audio.play().catch(function(){}); else audio.pause();
+      return;
+    }
+    if (wrap && r.spec) wrap.classList.add("open"); // its own view, alongside the others
+    playClip(r, { needle: wrap ? wrap.querySelector(".lv-needle") : null });
   });
 
   /* ---- renderers (poll updates re-use these) ---- */
@@ -350,16 +398,31 @@
     }
   }
   function renderFeed(list, flashTop) {
-    document.getElementById("lv-feed").innerHTML = list.slice(1, 9).map(function (r, i) {
-      return '<div class="lv-row' + (flashTop && i === 0 ? ' flash' : '') + '">' +
+    var feed = document.getElementById("lv-feed");
+    // A re-render must not close the spectrograms someone opened.
+    var open = {}, needleAt = null;
+    feed.querySelectorAll(".lv-rowwrap.open").forEach(function (w) { open[w.getAttribute("data-audio")] = true; });
+    if (current && !current.isHero && current.needle) needleAt = current.needle.style.left;
+    feed.innerHTML = list.slice(1, 9).map(function (r, i) {
+      var isOpen = r.audio && open[r.audio];
+      return '<div class="lv-rowwrap' + (isOpen ? ' open' : '') + '"' + (r.audio ? ' data-audio="' + esc(r.audio) + '"' : '') + '>' +
+        '<div class="lv-row' + (flashTop && i === 0 ? ' flash' : '') + '">' +
         '<span class="lv-av ' + (r.photo ? '' : 'miss') + '"' + (r.photo ? ' style="background-image:url(\'' + r.photo + '\')"' : '') + '></span>' +
         '<span class="rn"><a href="' + birdHref(r.display) + '">' + esc(r.display) + '</a></span>' +
         '<span class="rt" data-t="' + esc(r.t) + '"></span>' +
         '<span class="rc">' + Math.round(r.conf * 100) + '%</span>' +
         (r.audio ? '<button class="lv-rowplay" data-audio="' + esc(r.audio) + '" aria-label="play this call">&#9654;</button>' : '') +
+        '</div>' +
+        (r.spec ? '<div class="lv-rowspec" title="this call — click to seek"><img src="' + MEDIA + esc(r.spec) + '" alt="spectrogram of the ' + esc(r.display) + ' call" loading="lazy"><div class="lv-needle"></div></div>' : '') +
         '</div>';
     }).join("");
-    syncRowButtons();
+    // Re-point the live needle at the rebuilt strip for whatever's playing.
+    if (current && !current.isHero) {
+      var w = feed.querySelector('.lv-rowwrap[data-audio="' + current.audio + '"]');
+      current.needle = w ? w.querySelector(".lv-needle") : null;
+      if (current.needle && needleAt) current.needle.style.left = needleAt;
+    }
+    syncViews();
   }
 
   /* ---- history: one daily strip, four lenses ---- */
@@ -391,31 +454,39 @@
     return { unit: size === 7 ? "week" : "month", rows: rows };
   }
   function fmtDay(k) { return new Date(k + "T12:00:00").toLocaleDateString([], { month: "short", day: "numeric" }); }
+  var picked = -1; // clicked bar -> every number below scopes to that slice
   function renderHistory() {
     var sec = document.getElementById("lv-history");
     if (!(LIVE.daily || []).length) { sec.hidden = true; return; }
     sec.hidden = false;
     var days = historyDays(), b = bucket(days), mx = 1, i;
+    if (picked >= b.rows.length) picked = -1;
     for (i = 0; i < b.rows.length; i++) mx = Math.max(mx, b.rows[i].n);
-    document.getElementById("lv-chart").innerHTML = b.rows.map(function (r) {
-      return '<div class="lv-bar' + (r.n ? '' : ' zero') + '" style="height:' + Math.max(4, Math.round(r.n / mx * 100)) + '%" title="' +
-        fmtDay(r.d) + (b.unit !== "day" ? " +" : "") + ' · ' + r.n + ' calls"></div>';
+    document.getElementById("lv-chart").innerHTML = b.rows.map(function (r, j) {
+      return '<div class="lv-bar' + (r.n ? '' : ' zero') + (j === picked ? ' sel' : '') +
+        '" data-i="' + j + '" role="button" tabindex="0" style="height:' + Math.max(4, Math.round(r.n / mx * 100)) + '%" title="' +
+        fmtDay(r.d) + (b.unit !== "day" ? " +" : "") + ' · ' + r.n + ' calls — click for the breakdown"></div>';
     }).join("");
     document.getElementById("lv-axis").innerHTML =
-      '<span>' + fmtDay(b.rows[0].d) + '</span><span>' + (b.unit === "day" ? 'calls per day' : 'calls per ' + b.unit) + '</span><span>today</span>';
+      '<span>' + fmtDay(b.rows[0].d) + '</span><span>' + (b.unit === "day" ? 'calls per day' : 'calls per ' + b.unit) + ' · click a bar</span><span>today</span>';
 
+    // A clicked bar narrows every number below to that slice of time.
+    var scope = picked >= 0 ? [b.rows[picked]] : days;
     var sp = {}, calls = 0, busiest = null;
-    days.forEach(function (d) {
+    scope.forEach(function (d) {
       calls += d.n;
       if (!busiest || d.n > busiest.n) busiest = d;
       for (var k in (d.sp || {})) sp[k] = (sp[k] || 0) + d.sp[k];
     });
     var names = Object.keys(sp);
+    var pickedTag = picked >= 0
+      ? '<span><b>' + fmtDay(b.rows[picked].d) + (b.unit !== "day" ? ' +' : '') + '</b><button type="button" class="lv-clear mono" id="lv-clear">&times; whole range</button></span>'
+      : '<span><b>' + fmtDay((LIVE.daily[0] || {}).d) + '</b>listening since</span>';
     document.getElementById("lv-sum").innerHTML =
       '<span><b>' + calls.toLocaleString() + '</b>calls</span>' +
       '<span><b>' + names.length + '</b>species</span>' +
-      (busiest && busiest.n ? '<span><b>' + fmtDay(busiest.d) + '</b>busiest day (' + busiest.n + ')</span>' : '') +
-      '<span><b>' + fmtDay((LIVE.daily[0] || {}).d) + '</b>listening since</span>';
+      (picked < 0 && busiest && busiest.n ? '<span><b>' + fmtDay(busiest.d) + '</b>busiest day (' + busiest.n + ')</span>' : '') +
+      pickedTag;
 
     names.sort(function (a, b2) { return sp[b2] - sp[a]; });
     var topMax = sp[names[0]] || 1;
@@ -436,10 +507,24 @@
     }
   }
   document.addEventListener("click", function (e) {
+    if (e.target.closest("#lv-clear")) { picked = -1; renderHistory(); return; }
+    var bar = e.target.closest(".lv-bar");
+    if (bar) {
+      var j = +bar.getAttribute("data-i");
+      picked = (picked === j) ? -1 : j;
+      renderHistory();
+      return;
+    }
     var b = e.target.closest(".lv-range"); if (!b) return;
     range = +b.getAttribute("data-range");
+    picked = -1;
     root.querySelectorAll(".lv-range").forEach(function (x) { x.classList.toggle("on", x === b); });
     renderHistory();
+  });
+  document.addEventListener("keydown", function (e) {
+    if (e.key !== "Enter" && e.key !== " ") return;
+    var bar = e.target.closest && e.target.closest(".lv-bar");
+    if (bar) { e.preventDefault(); bar.click(); }
   });
 
   /* ---- live: poll and update in place ---- */
@@ -453,10 +538,10 @@
     renderFeed(data.recent, newTop);
     renderHistory();
     stampTimes();
-    if (isFirst || newTop) {
-      var top = playable(data.recent)[0];
-      if (top && (!current || newTop)) loadClip(top, false);
-    }
+    // The hero player always belongs to the newest playable call; row plays
+    // never touch it. Don't steal focus mid-listen: keep whatever's playing.
+    var top = playable(data.recent)[0];
+    if (top && (isFirst || newTop)) loadHero(top);
   }
   function poll() {
     fetch("/birds/live.json").then(function (r) { return r.json(); }).then(function (d) {
