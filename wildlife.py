@@ -88,9 +88,10 @@ def process(src_dir):
     added = skipped = 0
 
     for root, _dirs, files in os.walk(src_dir):
-        category = os.path.basename(root)
-        if os.path.abspath(root) == os.path.abspath(src_dir):
-            category = "Wildlife"  # files dropped loose at the top get a default
+        top = os.path.abspath(root) == os.path.abspath(src_dir)
+        # A subfolder name seeds a starting tag (e.g. Mammals/ -> "mammals");
+        # loose files at the top start untagged. Refine tags in the curate editor.
+        tags = [] if top else [os.path.basename(root).lower()]
         for name in sorted(files):
             if os.path.splitext(name)[1].lower() not in EXTS:
                 continue
@@ -122,17 +123,18 @@ def process(src_dir):
                 "image": "%s/images/%s.jpg" % (base, img_id),
                 "thumb": "%s/thumbs/%s.jpg" % (base, img_id),
                 "title": _title_from_filename(name),
-                "category": category,
+                "species": "",   # optional — set in the curate editor
+                "location": "",  # optional — set in the curate editor
                 "date": date,
+                "tags": tags,
                 "w": dims[0], "h": dims[1],
             }
             manifest.append(entry)
             by_id[img_id] = entry
             added += 1
-            print("  + %-24s %s" % (category, entry["title"]))
+            print("  + %s%s" % (entry["title"], (" [%s]" % ",".join(tags)) if tags else ""))
 
-    # Newest first within each category (the page groups by category).
-    manifest.sort(key=lambda e: (e.get("category", ""), e.get("date", "")), reverse=True)
+    manifest.sort(key=lambda e: e.get("date", ""), reverse=True)  # newest first
     with open(MANIFEST, "w") as fh:
         json.dump(manifest, fh, indent=2)
     print("\n%d added, %d already published. Manifest: %s"

@@ -1213,6 +1213,7 @@ LOC_OVERRIDES_FILE = os.path.join(HERE, "birds", "location_overrides.json")
 PROJECTS_FILE = os.path.join(HERE, "static", "projects.json")
 TAGLINES_FILE = os.path.join(HERE, "static", "taglines.json")
 FACTS_FILE = os.path.join(HERE, "static", "facts.json")
+PHOTOS_FILE = os.path.join(HERE, "static", "img", "photography", "manifest.json")
 
 
 # --- Curation storage: repo files locally, S3 objects in production ----------
@@ -1231,6 +1232,7 @@ _CURATION_S3 = {
     PROJECTS_FILE: "{}/projects.json".format(S3_PREFIX),
     TAGLINES_FILE: "{}/taglines.json".format(S3_PREFIX),
     FACTS_FILE: "{}/facts.json".format(S3_PREFIX),
+    PHOTOS_FILE: "{}/photos.json".format(S3_PREFIX),
 }
 _curation_cache = {}  # path -> {"etag":..., "raw": bytes}
 
@@ -1313,6 +1315,47 @@ def push_curations():
         _save_curation(path, data)
         pushed.append(os.path.relpath(path, HERE))
     return pushed
+
+
+# --- Photography gallery (non-bird, published from raw files) ----------------
+_PHOTO_FIELDS = ("title", "species", "location", "date", "tags")
+
+
+def load_photos():
+    """The /photography gallery entries (S3-backed curation store in prod)."""
+    return _load_curation(PHOTOS_FILE, list)
+
+
+def set_photo(photo_id, fields):
+    """Update one photo's editable metadata (title/species/location/date/tags)
+    from the curate editor. Returns the updated entry, or None if unknown."""
+    photos = load_photos()
+    for p in photos:
+        if p.get("id") == photo_id:
+            for k in _PHOTO_FIELDS:
+                if k in fields:
+                    if k == "tags":
+                        seen, tags = set(), []
+                        for t in fields[k] or []:
+                            t = (t or "").strip()
+                            if t and t.lower() not in seen:
+                                seen.add(t.lower())
+                                tags.append(t)
+                        p["tags"] = tags
+                    else:
+                        p[k] = (fields[k] or "").strip()
+            _save_curation(PHOTOS_FILE, photos)
+            return p
+    return None
+
+
+def photo_tags(photos):
+    """Distinct tags across all photos, most-used first (the filter chips)."""
+    counts = {}
+    for p in photos:
+        for t in p.get("tags") or []:
+            counts[t] = counts.get(t, 0) + 1
+    return [t for t, _ in sorted(counts.items(), key=lambda kv: (-kv[1], kv[0].lower()))]
 
 
 def _save_curation(path, data):

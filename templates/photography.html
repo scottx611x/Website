@@ -1,35 +1,96 @@
 {% extends 'base.html' %}
 
 {% block content %}
+<style>
+    .tag-row { display:flex; flex-wrap:wrap; gap:.4rem; justify-content:center; margin:.6rem auto 0; }
+    .tag-chip { font-size:.85rem; padding:.15rem .7rem; border-radius:999px; border:1px solid var(--rule,#cfcabc);
+                color:var(--ink); text-decoration:none; opacity:.75; }
+    .tag-chip.on, .tag-chip:hover { opacity:1; border-color:var(--accent,#3f6b46); }
+    .tag-chip.on { background:var(--accent,#3f6b46); color:#fff; border-color:var(--accent,#3f6b46); }
+    figcaption .meta { display:block; opacity:.7; font-size:.82rem; margin-top:.1rem; }
+    .photo-edit { display:flex; flex-direction:column; gap:.3rem; padding:.5rem; }
+    .photo-edit .pe-field { width:100%; font:inherit; font-size:.82rem; padding:.28rem .45rem;
+                border:1px solid var(--rule,#cfcabc); border-radius:.35rem; background:var(--paper,#fbf9f2); color:var(--ink); }
+    .photo-edit .pe-field.saved { border-color:#3f9b52; }
+    .photo-edit .pe-field.save-failed { border-color:#c0473b; }
+</style>
 <section class="page wide">
     <header class="gallery-header">
         <p class="kicker">beyond the birds</p>
         <h1>Photography</h1>
-        <p class="empty" style="color:var(--ink);max-width:38rem;margin:0 auto;">
-            A wider collection: landscapes, macro, and whatever else caught my eye.
-        </p>
-    </header>
-
-    {% if galleries %}
-        {% for category, items in galleries.items() %}
-        <h2 class="gallery-category">{{ category }}</h2>
-        <div class="masonry">
-            {% for item in items %}
-            {% set cap = item.title or '' %}
-            {% if item.date %}{% set cap = (cap ~ '  ·  ' ~ item.date) if cap else item.date %}{% endif %}
-            <figure class="shot" data-images='{{ [item.image]|tojson }}' data-captions='{{ [cap]|tojson }}'
-                    tabindex="0" role="button" aria-label="View {{ item.title or 'photo' }} larger">
-                <img loading="lazy" decoding="async"
-                     src="{{ item.thumb or item.image }}"
-                     {% if item.w and item.h %}width="{{ item.w }}" height="{{ item.h }}"{% endif %}
-                     alt="{{ item.title or item.category }}">
-                {% if item.title %}<figcaption><span class="species">{{ item.title }}</span></figcaption>{% endif %}
-            </figure>
+        {% if photo_count %}
+        <p class="bird-stat"><strong>{{ photo_count }}</strong> photo{{ 's' if photo_count != 1 }}</p>
+        {% if all_tags %}
+        <div class="tag-row">
+            <a href="/photography" class="tag-chip{% if not active_tag %} on{% endif %}">all</a>
+            {% for t in all_tags %}
+            <a href="/photography?tag={{ t|urlencode }}" class="tag-chip{% if t == active_tag %} on{% endif %}">{{ t }}</a>
             {% endfor %}
         </div>
+        {% endif %}
+        {% else %}
+        <p class="empty" style="color:var(--ink);max-width:38rem;margin:0 auto;">
+            A wider collection: wildlife, landscapes, macro, and whatever else caught my eye.
+        </p>
+        {% endif %}
+    </header>
+
+    {% if photos %}
+    <div class="masonry">
+        {% for p in photos %}
+        {% set meta = [] %}
+        {% if p.species %}{% set _ = meta.append(p.species) %}{% endif %}
+        {% if p.location %}{% set _ = meta.append(p.location) %}{% endif %}
+        {% if p.date %}{% set _ = meta.append(p.date) %}{% endif %}
+        {% set cap = ([p.title] if p.title else []) + meta %}
+        <figure class="shot" data-images='{{ [p.image]|tojson }}' data-captions='{{ [cap|join("  ·  ")]|tojson }}'
+                tabindex="0" role="button" aria-label="View {{ p.title or 'photo' }} larger">
+            <img loading="lazy" decoding="async" src="{{ p.thumb or p.image }}"
+                 {% if p.w and p.h %}width="{{ p.w }}" height="{{ p.h }}"{% endif %}
+                 alt="{{ p.title or p.species or 'photo' }}">
+            <figcaption>
+                {% if p.title %}<span class="species">{{ p.title }}</span>{% endif %}
+                {% if meta %}<span class="meta mono">{{ meta|join('  ·  ') }}</span>{% endif %}
+            </figcaption>
+            {% if curate %}
+            <div class="photo-edit" onclick="event.stopPropagation()">
+                <input class="pe-field" value="{{ p.title or '' }}" placeholder="title"
+                       aria-label="Title" onchange="photoSave('{{ p.id }}', {title:this.value}, this)">
+                <input class="pe-field" value="{{ p.species or '' }}" placeholder="species (optional)"
+                       aria-label="Species" onchange="photoSave('{{ p.id }}', {species:this.value}, this)">
+                <input class="pe-field" value="{{ p.location or '' }}" placeholder="location"
+                       aria-label="Location" onchange="photoSave('{{ p.id }}', {location:this.value}, this)">
+                <input class="pe-field" type="date" value="{{ p.date or '' }}"
+                       aria-label="Date" onchange="photoSave('{{ p.id }}', {date:this.value}, this)">
+                <input class="pe-field" value="{{ (p.tags or [])|join(', ') }}" list="photoTagList"
+                       placeholder="tags, comma-separated" aria-label="Tags"
+                       onchange="photoSave('{{ p.id }}', {tags:this.value.split(',')}, this)">
+            </div>
+            {% endif %}
+        </figure>
         {% endfor %}
+    </div>
+    {% if curate %}<datalist id="photoTagList">{% for t in all_tags %}<option value="{{ t }}">{% endfor %}</datalist>{% endif %}
+    {% elif active_tag %}
+    <p class="empty mono" style="text-align:center;">// nothing tagged &ldquo;{{ active_tag }}&rdquo; yet.</p>
     {% else %}
-    <p class="empty mono" style="text-align:center;">// galleries coming soon.</p>
+    <p class="empty mono" style="text-align:center;">// coming soon.</p>
     {% endif %}
 </section>
+
+{% if curate %}
+<script>
+    function photoSave(id, patch, el) {
+        if (el) el.classList.remove("saved", "save-failed");
+        fetch("/photography/edit", {
+            method: "POST", headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(Object.assign({ id: id }, patch))
+        }).then(function (r) { if (!r.ok) throw 0; return r.json(); })
+          .then(function (res) {
+            if (!res.ok) throw 0;
+            if (el) { el.classList.add("saved"); setTimeout(function () { el.classList.remove("saved"); }, 1200); }
+          }).catch(function () { if (el) el.classList.add("save-failed"); });
+    }
+</script>
+{% endif %}
 {% endblock %}

@@ -233,9 +233,29 @@ def blog_post(slug):
 def photography():
     if "photography" in HIDDEN_PAGES:
         abort(404)
+    photos = birds.load_photos()
+    tag = (request.args.get("tag") or "").strip()
+    shown = [p for p in photos if not tag or tag in (p.get("tags") or [])]
+    shown.sort(key=lambda p: p.get("date") or "", reverse=True)  # newest first
     return render_template(
-        "photography.html", title="Photography", galleries=load_photography()
+        "photography.html", title="Photography", photos=shown,
+        all_tags=birds.photo_tags(photos), active_tag=tag, photo_count=len(photos),
+        curate=_curate_on(), local=_is_local(),
     )
+
+
+@app.route("/photography/edit", methods=["POST"])
+def photography_edit():
+    if not _curate_on():
+        abort(404)
+    data = request.get_json(silent=True) or {}
+    pid = (data.get("id") or "").strip()
+    if not pid:
+        abort(400)
+    fields = {k: data[k] for k in ("title", "species", "location", "date", "tags")
+              if k in data}
+    photo = birds.set_photo(pid, fields)
+    return {"ok": bool(photo), "photo": photo}
 
 
 # Curation mode (click-to-hide X buttons, editable species, ratings, re-ID flags)
@@ -723,20 +743,6 @@ def curate_facts():
     clean = [s.strip() for s in incoming if isinstance(s, str) and s.strip()]
     birds._save_curation(birds.FACTS_FILE, clean)
     return {"ok": True, "count": len(clean)}
-
-
-def load_photography():
-    """Curated, non-bird galleries grouped by category from a static manifest."""
-    manifest = os.path.join(app.static_folder, "img", "photography", "manifest.json")
-    try:
-        with open(manifest) as fh:
-            items = json.load(fh)
-    except (OSError, ValueError):
-        return []
-    galleries = {}
-    for item in items:
-        galleries.setdefault(item.get("category", "Other"), []).append(item)
-    return galleries
 
 
 # ---------------------------------------------------------------------------

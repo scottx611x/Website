@@ -42,20 +42,46 @@ class RoutesTestCase(GenericTestBase):
         self.assertEqual(self.test_client.get("/blog/nope").status_code, 404)
 
     def test_photography_route_live(self):
-        # The wildlife gallery is switched on (not in HIDDEN_PAGES).
+        # The photography gallery is switched on (not in HIDDEN_PAGES).
         self.assertEqual(self.test_client.get("/photography").status_code, 200)
 
-    def test_photography_groups_by_category(self):
-        items = [
-            {"id": "a", "image": "u1", "thumb": "t1", "title": "Red Fox", "category": "Mammals"},
-            {"id": "b", "image": "u2", "thumb": "t2", "title": "Garter Snake", "category": "Reptiles"},
-            {"id": "c", "image": "u3", "thumb": "t3", "title": "Coyote", "category": "Mammals"},
+    def test_photography_renders_photos_and_tags(self):
+        photos = [{"id": "a", "image": "u", "thumb": "t", "title": "Red Fox",
+                   "species": "Red Fox", "location": "Weir Hill", "date": "2026-06-01",
+                   "tags": ["wildlife", "mammal"]}]
+        with mock.patch.object(birds, "load_photos", return_value=photos):
+            r = self.test_client.get("/photography")
+        self.assertEqual(r.status_code, 200)
+        self.assertIn(b"Red Fox", r.data)
+        self.assertIn(b"tag=wildlife", r.data)  # a tag filter chip
+
+    def test_photography_tag_filter_narrows(self):
+        photos = [
+            {"id": "a", "image": "u", "thumb": "t", "title": "Fox", "tags": ["wildlife"]},
+            {"id": "b", "image": "v", "thumb": "s", "title": "Franconia Ridge", "tags": ["landscape"]},
         ]
-        with mock.patch("json.load", return_value=items), \
-             mock.patch("builtins.open", mock.mock_open(read_data="[]")):
-            galleries = index.load_photography()
-        self.assertEqual(set(galleries), {"Mammals", "Reptiles"})
-        self.assertEqual(len(galleries["Mammals"]), 2)
+        with mock.patch.object(birds, "load_photos", return_value=photos):
+            r = self.test_client.get("/photography?tag=landscape")
+        self.assertIn(b"Franconia Ridge", r.data)
+        self.assertNotIn(b'alt="Fox"', r.data)
+
+    def test_photo_tags_orders_by_frequency(self):
+        photos = [{"tags": ["wildlife", "mammal"]}, {"tags": ["wildlife"]}, {"tags": ["macro"]}]
+        self.assertEqual(birds.photo_tags(photos), ["wildlife", "macro", "mammal"])
+
+    def test_set_photo_trims_and_dedupes_tags(self):
+        photos = [{"id": "x", "title": "", "tags": []}]
+        with mock.patch.object(birds, "load_photos", return_value=photos), \
+             mock.patch.object(birds, "_save_curation") as save:
+            p = birds.set_photo("x", {"title": " Red Fox ", "species": "Red Fox",
+                                      "tags": ["wildlife", " Wildlife ", "mammal", ""]})
+        self.assertEqual((p["title"], p["species"]), ("Red Fox", "Red Fox"))
+        self.assertEqual(p["tags"], ["wildlife", "mammal"])
+        save.assert_called_once()
+
+    def test_set_photo_unknown_id_is_none(self):
+        with mock.patch.object(birds, "load_photos", return_value=[]):
+            self.assertIsNone(birds.set_photo("nope", {"title": "x"}))
 
 
     def test_projects_route(self):
