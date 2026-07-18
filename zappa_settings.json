@@ -1,6 +1,7 @@
 {
     "production": {
         "app_function": "index.app",
+        "exclude": ["wildlife_incoming", "wildlife_incoming/*", "*.NEF", "*.zip"],
         "timeout_seconds": 300,
         "memory_size": 1024,
         "aws_region": "us-east-1",
