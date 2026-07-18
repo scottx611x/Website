@@ -45,6 +45,25 @@ class RoutesTestCase(GenericTestBase):
         # The photography gallery is switched on (not in HIDDEN_PAGES).
         self.assertEqual(self.test_client.get("/photography").status_code, 200)
 
+    def test_birds_live_route(self):
+        response = self.test_client.get("/birds/live")
+        self.assertEqual(response.status_code, 200)
+        # Light mode: it shares the gallery-header idiom, not a dark band.
+        self.assertIn(b"gallery-header", response.data)
+
+    def test_birds_live_json_route(self):
+        response = self.test_client.get("/birds/live.json")
+        self.assertEqual(response.status_code, 200)
+        view = response.get_json()
+        for key in ("recent", "species", "counts", "daily", "hours", "generated"):
+            self.assertIn(key, view)
+
+    def test_birds_live_json_empty_when_no_sound_data(self):
+        with mock.patch.object(birds, "load_sounds", return_value=None):
+            view = self.test_client.get("/birds/live.json").get_json()
+        self.assertEqual(view["recent"], [])
+        self.assertIsNone(view["generated"])
+
     def test_photography_renders_photos_and_tags(self):
         photos = [{"id": "a", "image": "u", "thumb": "t", "title": "Red Fox",
                    "species": "Red Fox", "location": "Weir Hill", "date": "2026-06-01",
