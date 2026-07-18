@@ -43,6 +43,12 @@
   .lv-spec{position:relative; cursor:pointer; background:var(--ink); min-height:74px}
   .lv-spec img{display:block; width:100%; height:110px; object-fit:cover; object-position:center}
   .lv-needle{position:absolute; top:0; bottom:0; left:0; width:2px; background:var(--neon); box-shadow:0 0 8px rgba(56,224,138,.9); opacity:0; pointer-events:none}
+  .lv-expand{position:absolute; top:.35rem; right:.35rem; z-index:2; width:26px; height:26px; border-radius:50%; border:none; background:rgba(6,10,7,.65); color:var(--neon); font-size:.72rem; cursor:pointer; display:flex; align-items:center; justify-content:center}
+  .lv-expand:hover{background:rgba(6,10,7,.9)}
+  .lv-zoom{position:fixed; inset:0; z-index:1000; background:rgba(6,10,7,.96); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:.9rem; padding:1.2rem; cursor:zoom-out}
+  .lv-zoom img{max-width:min(96vw,1100px); max-height:70vh; width:100%; object-fit:contain; border-radius:10px}
+  .lv-zoom figcaption{font-family:var(--mono); font-size:.74rem; color:var(--paper); letter-spacing:.06em}
+  .lv-zoom figcaption b{color:var(--neon); font-weight:600}
   .lv-player.playing .lv-needle{opacity:1}
   .lv-pctl{display:flex; align-items:center; gap:.7rem; padding:.55rem .8rem}
   .lv-playbtn{flex:0 0 auto; width:38px;height:38px;border-radius:50%;border:none;background:var(--ink);color:var(--neon);font-size:.9rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:transform .12s}
@@ -198,6 +204,7 @@
             <div class="lv-spec" id="lv-spec" title="the call, as a spectrogram — click to seek">
               <img id="lv-specimg" alt="spectrogram of the call">
               <div class="lv-needle" id="lv-needle"></div>
+              <button type="button" class="lv-expand" data-zoom="hero" aria-label="enlarge spectrogram">&#8599;</button>
             </div>
             <div class="lv-pctl">
               <button class="lv-playbtn" id="lv-playbtn" aria-label="play the call">&#9654;</button>
@@ -354,6 +361,7 @@
       else if (heroClip) playClip(heroClip, { needle: document.getElementById("lv-needle"), isHero: true });
     });
     document.getElementById("lv-spec").addEventListener("click", function (e) {
+      if (e.target.closest(".lv-expand")) return; // enlarge, don't seek
       var box = this.getBoundingClientRect(), frac = (e.clientX - box.left) / box.width;
       if (heroClip) playClip(heroClip, { needle: document.getElementById("lv-needle"), isHero: true }, frac);
     });
@@ -369,7 +377,28 @@
     // Clips not public yet (or expired): pull the whole affordance, no broken UI.
     audio.addEventListener("error", function () { root.classList.add("no-media"); });
   }
+  /* ---- tap to enlarge: full-screen look at the call's picture ---- */
+  var zoom = null;
+  function openZoom(r) {
+    if (!r || !r.spec) return;
+    closeZoom();
+    zoom = document.createElement("figure");
+    zoom.className = "lv-zoom";
+    zoom.innerHTML = '<img src="' + MEDIA + esc(r.spec) + '" alt="spectrogram of the ' + esc(r.display) + ' call">' +
+      '<figcaption><b>' + esc(r.display) + '</b> · ' + clock(r.t) + ' · ' + Math.round(r.conf * 100) + '%</figcaption>';
+    zoom.addEventListener("click", closeZoom);
+    document.body.appendChild(zoom);
+  }
+  function closeZoom() { if (zoom) { zoom.remove(); zoom = null; } }
+  document.addEventListener("keydown", function (e) { if (e.key === "Escape") closeZoom(); });
+
   document.addEventListener("click", function (e) {
+    var ex = e.target.closest(".lv-expand");
+    if (ex) {
+      e.stopPropagation();
+      openZoom(ex.getAttribute("data-zoom") === "hero" ? heroClip : findRec(ex.getAttribute("data-audio")));
+      return;
+    }
     var strip = e.target.closest(".lv-rowspec");
     if (strip) {
       var w1 = strip.closest(".lv-rowwrap"), r1 = findRec(w1.getAttribute("data-audio"));
@@ -432,7 +461,7 @@
         '<span class="rc">' + Math.round(r.conf * 100) + '%</span>' +
         (r.audio ? '<button class="lv-rowplay" data-audio="' + esc(r.audio) + '" aria-label="play this call">&#9654;</button>' : '') +
         '</div>' +
-        (r.spec ? '<div class="lv-rowspec" title="this call — click to seek"><img src="' + MEDIA + esc(r.spec) + '" alt="spectrogram of the ' + esc(r.display) + ' call" loading="lazy"><div class="lv-needle"></div></div>' : '') +
+        (r.spec ? '<div class="lv-rowspec" title="this call — click to seek"><img src="' + MEDIA + esc(r.spec) + '" alt="spectrogram of the ' + esc(r.display) + ' call" loading="lazy"><div class="lv-needle"></div><button type="button" class="lv-expand" data-audio="' + esc(r.audio || '') + '" aria-label="enlarge spectrogram">&#8599;</button></div>' : '') +
         '</div>';
     }).join("");
     // Re-point the live needle at the rebuilt strip for whatever's playing.
