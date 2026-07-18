@@ -1358,6 +1358,43 @@ def photo_tags(photos):
     return [t for t, _ in sorted(counts.items(), key=lambda kv: (-kv[1], kv[0].lower()))]
 
 
+# --- Sound station: read the BirdNET-Go detection rollup the exporter writes ---
+def load_sounds():
+    """The live bird-sound rollup (birds/sounds/recent.json) the listening station
+    exports to S3. None when it hasn't run yet (the /birds/live page then shows a
+    'coming online' state)."""
+    key = "{}/sounds/recent.json".format(S3_PREFIX)
+    if os.environ.get("BIRDS_USE_S3"):
+        try:
+            import boto3
+
+            body = boto3.client("s3").get_object(Bucket=S3_BUCKET, Key=key)["Body"].read()
+            return json.loads(body)
+        except Exception:  # noqa: BLE001 - not published yet / unreachable
+            return None
+    try:  # local dev mirror written by sound_export.py
+        with open(os.path.join(HERE, "birds", "sounds_recent.json")) as fh:
+            return json.load(fh)
+    except (OSError, ValueError):
+        return None
+
+
+def species_covers(shots):
+    """Best (highest-weight) grid thumbnail per canonical species — the photo the
+    /birds/live viewer shows when it hears a species you've also photographed."""
+    best = {}
+    for s in shots:
+        isp = s.get("image_species") or []
+        imgs = s.get("images") or []
+        w = s.get("weight") or 0
+        for i in range(len(imgs)):
+            raw = isp[i] if i < len(isp) and isp[i] else s.get("species")
+            for name, _ in _canon_species_list(raw):
+                if name not in best or w > best[name][0]:
+                    best[name] = (w, thumb_url(imgs[i]))
+    return {name: url for name, (w, url) in best.items()}
+
+
 def _save_curation(path, data):
     """Persist a curation JSON: to S3 in prod (write-through cache), else repo."""
     if os.environ.get("BIRDS_USE_S3") and path in _CURATION_S3:

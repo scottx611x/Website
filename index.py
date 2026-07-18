@@ -562,6 +562,45 @@ def birds_map():
     )
 
 
+@app.route("/birds/live", methods=["GET"])
+def birds_live():
+    """What the porch mic is hearing, cross-linked to the photo gallery."""
+    data = birds.load_sounds()
+    shots = birds.load_gallery(shuffle=False)
+    groups = birds.species_groups(shots)
+    photographed = {n for _, sp in groups for n, _ in sp}
+    covers = birds.species_covers(shots)
+
+    def enrich(entry):
+        common = entry.get("common") if isinstance(entry, dict) else entry
+        canon = birds._canon_species(common or "")
+        disp = canon[0] if canon else (common or "")
+        out = {"common": common, "display": disp,
+               "fam": canon[1] if canon else "Other birds",
+               "photo": covers.get(disp), "shot": disp in photographed}
+        if isinstance(entry, dict):
+            out.update({k: entry[k] for k in
+                        ("t", "conf", "new", "count", "first", "last", "maxConf") if k in entry})
+        return out
+
+    view = {"station": {}, "recent": [], "species": [], "counts": {}, "daily": [], "missing": []}
+    if data:
+        view["station"] = data.get("station", {})
+        view["counts"] = data.get("counts", {})
+        view["daily"] = data.get("daily", [])
+        view["recent"] = [enrich(r) for r in data.get("recent", [])]
+        view["species"] = sorted((enrich(s) for s in data.get("species", [])),
+                                 key=lambda s: s.get("last") or "", reverse=True)
+        miss = [s for s in view["species"] if not s["shot"]]
+        view["missing"] = miss
+        n = len(view["species"])
+        view["hv"] = {"heard": n, "shot": n - len(miss), "miss": len(miss)}
+    return render_template(
+        "birds_live.html", title="Live from the yard", sound=view,
+        has_data=bool(view["recent"]), generated=(data or {}).get("generated"),
+        curate=_curate_on(), local=_is_local())
+
+
 @app.route("/birds/stats", methods=["GET"])
 def birds_stats():
     shots = birds.load_gallery(shuffle=False)
