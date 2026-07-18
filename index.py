@@ -164,6 +164,18 @@ HIDDEN_PAGES = {"blog"}
 def _home_context():
     shots = birds.load_gallery()
     stats = birds.gallery_stats(shots)
+    # A varied home-page preview of the photography gallery: one per subject,
+    # newest first, capped at five (matches the birds strip).
+    all_photos = birds.load_photos()
+    seen, wildlife = set(), []
+    for p in sorted(all_photos, key=lambda p: p.get("date") or "", reverse=True):
+        key = (p.get("species") or p.get("title") or "").lower()
+        if key and key in seen:
+            continue
+        seen.add(key)
+        wildlife.append(p)
+        if len(wildlife) >= 5:
+            break
     return {
         "title": TITLE,
         "bird_stats": {
@@ -174,6 +186,8 @@ def _home_context():
         "background_image": random.choice(load_backgrounds()),
         "posts": [] if "blog" in HIDDEN_PAGES else blog.list_posts()[:3],
         "shots": shots,
+        "wildlife": wildlife,
+        "wildlife_count": len(all_photos),
         "projects": load_projects(),
         "taglines": load_taglines(),
         "species": birds.ticker_species(shots),

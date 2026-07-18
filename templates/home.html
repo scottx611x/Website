@@ -40,6 +40,7 @@
         </p>
         <div class="hero-links">
             <a class="btn" href="/birds">Birds &rarr;</a>
+            <a class="btn btn-ghost" href="/photography">Photography &rarr;</a>
             <a class="btn btn-ghost" href="/projects">Coding Projects &rarr;</a>
         </div>
         <script>
@@ -205,6 +206,31 @@
             <a class="more" href="/birds/stats">By the numbers &rarr;</a>
         </div>
     </section>
+
+    {% if wildlife %}
+    <section class="strip editorial reveal">
+        <div class="strip-head">
+            <div>
+                <h2>Photography</h2>
+                <p class="lede">Beyond the birds &mdash; the mammals, insects, and other wildlife I run into.</p>
+            </div>
+        </div>
+        <div class="feature-grid">
+            {% for p in wildlife %}
+            <a class="feature-tile{% if loop.first %} lead{% endif %}" href="/photography">
+                <img loading="lazy" decoding="async" src="{{ p.thumb or p.image }}" alt="{{ p.title or p.species or '' }}">
+                {% if p.title %}<span class="tile-cap">{{ p.title }}</span>{% endif %}
+            </a>
+            {% endfor %}
+        </div>
+        {% if wildlife_count %}
+        <p class="strip-stats mono"><strong>{{ wildlife_count }}</strong> photo{{ 's' if wildlife_count != 1 }} and counting</p>
+        {% endif %}
+        <div class="strip-links">
+            <a class="more" href="/photography">See all photography &rarr;</a>
+        </div>
+    </section>
+    {% endif %}
 
     <!-- ============ PROJECTS ============ -->
     <section class="strip techy reveal">
