@@ -46,7 +46,10 @@ def _title_from_filename(filename):
 def _exif_date(im, path):
     """Capture date: EXIF DateTimeOriginal if present, else the file's mtime."""
     try:
-        raw = im.getexif().get(36867) or im.getexif().get(306)  # DateTimeOriginal/DateTime
+        ex = im.getexif()
+        # DateTimeOriginal lives in the Exif sub-IFD (0x8769); fall back to the
+        # top-level DateTimeOriginal/DateTime if a camera puts it there.
+        raw = (ex.get_ifd(0x8769).get(36867) or ex.get(36867) or ex.get(306))
         if raw:
             return datetime.datetime.strptime(raw[:10], "%Y:%m:%d").date().isoformat()
     except Exception:  # noqa: BLE001 - bad/missing EXIF is fine

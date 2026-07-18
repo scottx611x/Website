@@ -39,7 +39,7 @@
     <div class="masonry">
         {% for p in photos %}
         {% set meta = [] %}
-        {% if p.species %}{% set _ = meta.append(p.species) %}{% endif %}
+        {% if p.species and p.species != p.title %}{% set _ = meta.append(p.species) %}{% endif %}
         {% if p.location %}{% set _ = meta.append(p.location) %}{% endif %}
         {% if p.date %}{% set _ = meta.append(p.date) %}{% endif %}
         {% set cap = ([p.title] if p.title else []) + meta %}
