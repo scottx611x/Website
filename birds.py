@@ -538,7 +538,7 @@ def images_filtered(shots, bird=None, family=None, area=None, ooa_only=(), media
     ('local' = North Andover, 'elsewhere' = ⚠️ out-of-area-only species),
     ``media`` ('video' = only videos, 'photo' = only stills), and ``month``
     (1–12: frames captured that month in any year — the phenology-matrix cells)."""
-    bird_l = (bird or "").strip().lower()
+    bird_set = {b.strip().lower() for b in (bird or "").split(",") if b.strip()}
     fam = (family or "").strip()
     want_elsewhere = area in ("elsewhere", "away")
     has_area = area in ("local", "elsewhere", "away")
@@ -554,7 +554,7 @@ def images_filtered(shots, bird=None, family=None, area=None, ooa_only=(), media
             names = [c[0].lower() for c in canons]
             if not names:
                 continue
-            if bird_l and bird_l not in names:
+            if bird_set and bird_set.isdisjoint(names):
                 continue
             if fam and not any(c[1] == fam for c in canons):
                 continue
@@ -582,7 +582,7 @@ def has_videos(shots):
 def media_counts(shots, bird=None, family=None, area=None, ooa_only=(), month=None):
     """(photo_count, video_count) of frames matching the species/family/area/month
     filter (ignoring any media filter) — for the live, clickable totals."""
-    bird_l = (bird or "").strip().lower()
+    bird_set = {b.strip().lower() for b in (bird or "").split(",") if b.strip()}
     fam = (family or "").strip()
     has_area = area in ("local", "elsewhere")
     want_elsewhere = area == "elsewhere"
@@ -601,7 +601,7 @@ def media_counts(shots, bird=None, family=None, area=None, ooa_only=(), month=No
             names = [c[0].lower() for c in canons]
             if not names:
                 continue
-            if bird_l and bird_l not in names:
+            if bird_set and bird_set.isdisjoint(names):
                 continue
             if fam and not any(c[1] == fam for c in canons):
                 continue
@@ -710,7 +710,7 @@ def start_ordered(shots, tokens):
 def filter_shots(shots, bird=None, family=None, area=None, ooa_only=()):
     """Whole posts that contain at least one frame matching ALL active filters.
     Used by curate mode, which edits whole-post cards (not exploded frames)."""
-    bird_l = (bird or "").strip().lower()
+    bird_set = {b.strip().lower() for b in (bird or "").split(",") if b.strip()}
     fam = (family or "").strip()
     want_elsewhere = area in ("elsewhere", "away")
     has_area = area in ("local", "elsewhere", "away")
@@ -722,7 +722,7 @@ def filter_shots(shots, bird=None, family=None, area=None, ooa_only=()):
             names = [c[0].lower() for c in canons]
             if not names:
                 continue
-            if bird_l and bird_l not in names:
+            if bird_set and bird_set.isdisjoint(names):
                 continue
             if fam and not any(c[1] == fam for c in canons):
                 continue
@@ -751,6 +751,17 @@ def resolve_species(query, groups):
     # loose cutoff mapped unrelated notes like "Heron Rookery" -> "Hairy Woodpecker".
     match = difflib.get_close_matches(query, names, n=1, cutoff=0.75)
     return match[0] if match else query
+
+
+def resolve_species_list(query, groups):
+    """Resolve a comma-separated species query to a de-duped, order-preserving list
+    of real species names — the gallery's multi-species filter (``?bird=A,B,C``)."""
+    out = []
+    for part in (query or "").split(","):
+        name = resolve_species(part, groups)
+        if name and name not in out:
+            out.append(name)
+    return out
 
 
 def _shuffle_images_weighted(shot):

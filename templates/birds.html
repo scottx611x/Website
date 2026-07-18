@@ -19,23 +19,23 @@
             <div class="filter-controls">
                 <div class="filter-search">
                     <input type="search" id="speciesSearch" list="speciesList" autocomplete="off"
-                           placeholder="Search species&hellip;" value="{{ active_bird }}"
+                           placeholder="{% if active_birds %}Add another species&hellip;{% else %}Search species&hellip;{% endif %}" value=""
                            aria-label="Search species"
-                           onchange="birdsGo(null,{bird:this.value})"
-                           onkeydown="if(event.key==='Enter')birdsGo(null,{bird:this.value})">
+                           onchange="birdsGo(null,{addBird:this.value})"
+                           onkeydown="if(event.key==='Enter')birdsGo(null,{addBird:this.value})">
                     <datalist id="speciesList">
                         {% for family, sp in species_groups %}{% for name, count in sp %}<option value="{{ name }}">{{ family }} ({{ count }})</option>{% endfor %}{% endfor %}
                     </datalist>
                 </div>
                 <div class="bird-select">
                     <select id="familyFilter" aria-label="Browse by family or species"
-                            onchange="var v=this.value; if(v.indexOf('fam:')===0){birdsGo(null,{family:v.slice(4),bird:''})}else{birdsGo(null,{bird:v,family:''})}">
-                        <option value="">Browse by family&hellip;</option>
+                            onchange="var v=this.value; if(v.indexOf('fam:')===0){birdsGo(null,{family:v.slice(4),bird:''})}else if(v){birdsGo(null,{addBird:v})}">
+                        <option value="">{% if active_birds %}Add a species&hellip;{% else %}Browse by family&hellip;{% endif %}</option>
                         {% for family, sp in species_groups %}
                         <optgroup label="{{ family }}">
-                            <option value="fam:{{ family }}"{% if family == active_family and not active_bird %} selected{% endif %}>&#9656; All {{ family }} ({{ family_counts[family] }})</option>
+                            <option value="fam:{{ family }}"{% if family == active_family and not active_birds %} selected{% endif %}>&#9656; All {{ family }} ({{ family_counts[family] }})</option>
                             {% for name, count in sp %}
-                            <option value="{{ name }}"{% if name == active_bird %} selected{% endif %}>{{ name }} ({{ count }})</option>
+                            <option value="{{ name }}">{{ name }} ({{ count }})</option>
                             {% endfor %}
                         </optgroup>
                         {% endfor %}
@@ -59,11 +59,11 @@
                 {% if active_media %}<button type="button" class="chip" onclick="birdsGo(null,{media:''})">{% if active_media == 'video' %}&#9654; Videos{% else %}Photos{% endif %} <span>&times;</span></button>{% endif %}
                 {% if active_area %}<button type="button" class="chip" onclick="birdsGo(null,{area:''})">{% if active_area == 'elsewhere' %}Out&#8209;of&#8209;area &#9888;&#65039;{% else %}North Andover{% endif %} <span>&times;</span></button>{% endif %}
                 {% if active_family %}<button type="button" class="chip" onclick="birdsGo(null,{family:''})">{{ active_family }} <span>&times;</span></button>{% endif %}
-                {% if active_bird %}<button type="button" class="chip" onclick="birdsGo(null,{bird:''})">{{ active_bird }}{% if active_bird in out_of_area %} &#9888;&#65039;{% endif %} <span>&times;</span></button>{% endif %}
+                {% for b in active_birds %}<button type="button" class="chip" onclick="birdsGo(null,{removeBird:{{ b|tojson|forceescape }}})">{{ b }}{% if b in out_of_area %} &#9888;&#65039;{% endif %} <span>&times;</span></button>{% endfor %}
             </div>
             <p class="bird-active-meta">
-                {% if active_bird %}{{ bird_family }} &middot; {% endif %}{% set noun = 'video' if active_media == 'video' else 'photo' %}{{ shots|length }} {{ noun }}{{ 's' if shots|length != 1 }}
-                {% if active_bird %} &middot; <a href="/birds/map?bird={{ active_bird|urlencode }}">&#128205; where I find it &rarr;</a>{% endif %}
+                {% if active_birds|length == 1 %}{{ bird_family }} &middot; {% endif %}{% set noun = 'video' if active_media == 'video' else 'photo' %}{{ shots|length }} {{ noun }}{{ 's' if shots|length != 1 }}
+                {% if active_birds|length == 1 %} &middot; <a href="/birds/map?bird={{ active_birds[0]|urlencode }}">&#128205; where I find it &rarr;</a>{% endif %}
                 &middot; <a href="/birds">clear all</a>
             </p>
         </div>
@@ -73,14 +73,19 @@
             window.LOC_PLACE = {{ loc_place_map|tojson }};
             function birdsGo(ev, over) {
                 if (ev) ev.preventDefault();
+                var a = Object.assign({}, window.BIRDS_ACTIVE, over);
+                // Multi-species: add/remove one species from the active comma-list
+                // instead of replacing it, so the filter can hold several at once.
+                var list = (window.BIRDS_ACTIVE.bird || "").split(",").filter(Boolean);
+                if (over.addBird) { if (list.indexOf(over.addBird) < 0) list.push(over.addBird); a.bird = list.join(","); a.family = ""; }
+                if (over.removeBird) { a.bird = list.filter(function (b) { return b !== over.removeBird; }).join(","); }
                 // Location/day and species/family/area/month filters are mutually
                 // exclusive: picking one clears the others so the result is never
                 // ambiguous (month composes with species/family/area/media).
-                if (over.bird || over.family || over.area || over.media || over.month) { over.loc = ""; over.on = ""; over.posted = ""; }
-                if (over.loc || over.on || over.posted) { over.bird = ""; over.family = ""; over.area = ""; over.media = ""; over.month = ""; }
-                if (over.on) over.posted = "";
-                if (over.posted) over.on = "";
-                var a = Object.assign({}, window.BIRDS_ACTIVE, over);
+                if (over.addBird || over.removeBird || over.bird || over.family || over.area || over.media || over.month) { a.loc = ""; a.on = ""; a.posted = ""; }
+                if (over.loc || over.on || over.posted) { a.bird = ""; a.family = ""; a.area = ""; a.media = ""; a.month = ""; }
+                if (over.on) a.posted = "";
+                if (over.posted) a.on = "";
                 var p = new URLSearchParams();
                 if (a.bird) p.set("bird", a.bird);
                 if (a.family) p.set("family", a.family);

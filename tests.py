@@ -382,6 +382,31 @@ class BirdsTestCase(unittest.TestCase):
         self.assertEqual(birds.images_filtered(shots, bird=row["name"], month=None
                                                ).__len__(), row["total"])
 
+    def test_multi_species_filter_is_the_union(self):
+        # The gallery filter can hold several species at once (?bird=A,B): the
+        # result is the union of each species' frames, none double-counted.
+        shots = birds.load_gallery(shuffle=False)
+        groups = birds.species_groups(shots)
+        names = [n for _, sp in groups for n, _ in sp]
+        a, b = names[0], names[1]
+        fa = {id(f) for f in birds.images_filtered(shots, bird=a)}
+        fb = {id(f) for f in birds.images_filtered(shots, bird=b)}
+        both = birds.images_filtered(shots, bird="%s,%s" % (a, b))
+        self.assertGreaterEqual(len(both), max(len(fa), len(fb)))
+        self.assertLessEqual(len(both), len(fa) + len(fb))
+        # Every frame carries at least one of the two selected species.
+        for f in both:
+            got = {c[0] for s in (f.get("image_species") or [])
+                   for c in birds._canon_species_list(s)}
+            self.assertTrue({a, b} & got, got)
+
+    def test_resolve_species_list_dedupes_and_snaps(self):
+        shots = birds.load_gallery(shuffle=False)
+        groups = birds.species_groups(shots)
+        got = birds.resolve_species_list("Barred Owl, Barred Owl, Blue Jay", groups)
+        self.assertEqual(got, ["Barred Owl", "Blue Jay"])
+        self.assertEqual(birds.resolve_species_list("", groups), [])
+
     def test_images_posted_on_matches_post_timestamps(self):
         shots = birds.load_gallery(shuffle=False)
         day = max(s.get("timestamp") or "" for s in shots)[:10]

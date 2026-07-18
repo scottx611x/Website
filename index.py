@@ -362,7 +362,8 @@ def birds_gallery():
     all_shots = birds.load_gallery(shuffle=True)
     groups = birds.species_groups(all_shots)
     out_of_area = birds.out_of_area_species(all_shots)
-    bird = birds.resolve_species(request.args.get("bird") or "", groups)
+    active_birds = birds.resolve_species_list(request.args.get("bird") or "", groups)
+    bird = ",".join(active_birds)  # canonical comma-list for the frame filters
     family = (request.args.get("family") or "").strip()
     if family not in birds._FAMILY_ORDER:
         family = ""
@@ -465,9 +466,9 @@ def birds_gallery():
     display_groups = [(fam, sp) for fam, sp in display_groups if sp]
     family_counts = {fam: sum(c for _, c in sp) for fam, sp in display_groups}
     bird_family = ""
-    if bird:
+    if len(active_birds) == 1:  # the "· family · where I find it" line is single-species
         for fam, sp in groups:
-            if any(name == bird for name, _ in sp):
+            if any(name == active_birds[0] for name, _ in sp):
                 bird_family = fam
                 break
     return render_template(
@@ -481,6 +482,7 @@ def birds_gallery():
         away_count=away,
         out_of_area=out_of_area,
         active_bird=bird,
+        active_birds=active_birds,
         active_family=family,
         active_area=area,
         active_media=media,
