@@ -73,6 +73,58 @@ def find_clip(name):
     return None
 
 
+# The site's palette, as an energy ramp: ink -> deep green -> neon -> bright.
+_SPEC_STOPS = [
+    (0.00, (13, 18, 14)),     # --ink
+    (0.35, (18, 60, 38)),
+    (0.62, (47, 125, 79)),    # --green
+    (0.85, (56, 224, 138)),   # --neon
+    (1.00, (233, 246, 215)),  # near paper, the hottest harmonics
+]
+
+
+def render_spectrogram(wav_path, out_path, height=220, max_hz=12000):
+    """Draw the clip's spectrogram in the site's own colors.
+
+    BirdNET-Go renders its PNGs lazily (the newest clip usually has none yet)
+    and in a foreign palette; we render our own from the WAV so every call has
+    a picture, and the picture belongs to the site.
+    """
+    import wave
+
+    import numpy as np
+    from PIL import Image
+
+    with wave.open(wav_path) as w:
+        rate, n = w.getframerate(), w.getnframes()
+        raw = np.frombuffer(w.readframes(n), dtype=np.int16)
+        if w.getnchannels() > 1:
+            raw = raw.reshape(-1, w.getnchannels()).mean(axis=1)
+    x = raw.astype(np.float64) / 32768.0
+
+    nfft = 1024
+    hop = max(1, len(x) // 900)  # ~900 columns regardless of clip length
+    frames = np.lib.stride_tricks.sliding_window_view(x, nfft)[::hop] * np.hanning(nfft)
+    mag = np.abs(np.fft.rfft(frames, axis=1)).T  # (freq, time), low freq first
+    mag = mag[: int(max_hz / (rate / nfft)) + 1]
+
+    db = 20 * np.log10(mag + 1e-9)
+    # Kill the steady noise floor per frequency band (mic hiss, wind, HVAC) so
+    # only what SANG lights up; then a gamma to keep the ink inky.
+    db -= np.median(db, axis=1, keepdims=True)
+    # Fixed scale above the noise floor (not per-clip max): 8dB of hiss stays
+    # ink, ~40dB is full neon, and brightness means the same on every clip —
+    # a quiet coo reads quiet, a loud robin reads loud.
+    norm = np.clip((db - 7.0) / 27.0, 0, 1) ** 1.05
+
+    pos = np.array([p for p, _ in _SPEC_STOPS])
+    rgb = np.array([c for _, c in _SPEC_STOPS], dtype=np.float64)
+    img = np.stack([np.interp(norm, pos, rgb[:, i]) for i in range(3)], axis=-1)
+    out = Image.fromarray(img[::-1].astype(np.uint8))  # flip: low freq at bottom
+    out = out.resize((out.width, height), Image.LANCZOS)
+    out.save(out_path, optimize=True)
+
+
 def publish_media(dets, s3):
     """Transcode + upload audio and spectrograms for the newest detections.
 
@@ -93,7 +145,7 @@ def publish_media(dets, s3):
         if not clip:
             continue
         base = os.path.splitext(os.path.basename(clip))[0]
-        m4a, spec = base + ".m4a", base + "_514px.png"
+        m4a, spec = base + ".m4a", base + "_site.png"
         ref = {}
 
         wav = find_clip(os.path.basename(clip))
@@ -115,15 +167,20 @@ def publish_media(dets, s3):
                     else:
                         print("afconvert failed for %s: %s" % (clip, r.stderr.decode()[:200]),
                               file=sys.stderr)
-            png = os.path.join(os.path.dirname(wav), spec)
             if spec in have:
                 ref["spec"] = spec
-            elif s3 is not None and os.path.exists(png):
-                s3.upload_file(png, BUCKET, CLIP_PREFIX + spec, ExtraArgs={
-                    "ContentType": "image/png",
-                    "CacheControl": "public, max-age=31536000, immutable"})
-                have.add(spec)
-                ref["spec"] = spec
+            elif s3 is not None:
+                try:
+                    with tempfile.TemporaryDirectory() as td:
+                        png = os.path.join(td, spec)
+                        render_spectrogram(wav, png)
+                        s3.upload_file(png, BUCKET, CLIP_PREFIX + spec, ExtraArgs={
+                            "ContentType": "image/png",
+                            "CacheControl": "public, max-age=31536000, immutable"})
+                        have.add(spec)
+                        ref["spec"] = spec
+                except Exception as e:
+                    print("spectrogram failed for %s: %s" % (clip, e), file=sys.stderr)
         if ref:
             refs[clip] = ref
     return refs

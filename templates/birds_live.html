@@ -41,7 +41,7 @@
   /* The sound itself: BirdNET's real spectrogram as the scrubber. */
   .lv-player{border:1px solid rgba(13,18,14,.12); border-radius:14px; background:#fbf9f3; overflow:hidden}
   .lv-spec{position:relative; cursor:pointer; background:var(--ink); min-height:74px}
-  .lv-spec img{display:block; width:100%; height:110px; object-fit:cover; object-position:center; filter:saturate(.9)}
+  .lv-spec img{display:block; width:100%; height:110px; object-fit:cover; object-position:center}
   .lv-needle{position:absolute; top:0; bottom:0; left:0; width:2px; background:var(--neon); box-shadow:0 0 8px rgba(56,224,138,.9); opacity:0; pointer-events:none}
   .lv-player.playing .lv-needle{opacity:1}
   .lv-pctl{display:flex; align-items:center; gap:.7rem; padding:.55rem .8rem}
@@ -71,7 +71,7 @@
   .lv-rowplay.on{background:var(--ink);color:var(--neon);border-color:var(--ink)}
   /* Each row keeps its own picture of its sound: an inline strip, not a hijacked shared view. */
   .lv-rowspec{display:none; position:relative; margin:.1rem 0 .55rem 2.55rem; border-radius:8px; overflow:hidden; background:var(--ink); cursor:pointer}
-  .lv-rowspec img{display:block; width:100%; height:60px; object-fit:cover; object-position:center; filter:saturate(.9)}
+  .lv-rowspec img{display:block; width:100%; height:60px; object-fit:cover; object-position:center}
   .lv-rowwrap.open .lv-rowspec{display:block}
   .lv-rowwrap.playing .lv-needle{opacity:1}
 
