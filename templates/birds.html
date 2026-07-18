@@ -30,7 +30,7 @@
                 <div class="bird-select">
                     <select id="familyFilter" aria-label="Browse by family or species"
                             onchange="var v=this.value; if(v.indexOf('fam:')===0){birdsGo(null,{family:v.slice(4),bird:''})}else if(v){birdsGo(null,{addBird:v})}">
-                        <option value="">{% if active_birds %}Add a species&hellip;{% else %}Browse by family&hellip;{% endif %}</option>
+                        <option value="">{% if active_birds %}Add another family&hellip;{% else %}Browse by family&hellip;{% endif %}</option>
                         {% for family, sp in species_groups %}
                         <optgroup label="{{ family }}">
                             <option value="fam:{{ family }}"{% if family == active_family and not active_birds %} selected{% endif %}>&#9656; All {{ family }} ({{ family_counts[family] }})</option>
