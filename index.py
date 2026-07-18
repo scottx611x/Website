@@ -158,7 +158,7 @@ def load_taglines():
 
 # Pages temporarily hidden everywhere (nav, home page, direct URL). To bring one
 # back, drop it from this set.
-HIDDEN_PAGES = {"blog", "photography"}
+HIDDEN_PAGES = {"blog"}
 
 
 def _home_context():

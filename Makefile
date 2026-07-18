@@ -1,4 +1,4 @@
-.PHONY: ci test run hooks pull-curations push-curations
+.PHONY: ci test run hooks pull-curations push-curations wildlife
 
 ## ci: run the containerized test suite via Earthly (local CI)
 ci:
@@ -19,6 +19,10 @@ pull-curations:
 ## push-curations: push repo curation files to S3 (make local edits live / seed)
 push-curations:
 	@BIRDS_USE_S3=1 BIRDS_S3_BUCKET=birds-scott-ouellette python -c "import birds; print('pushed:', birds.push_curations())"
+
+## wildlife: publish non-bird photos from wildlife_incoming/<Category>/ to S3 + /photography
+wildlife:
+	@BIRDS_S3_BUCKET=birds-scott-ouellette python wildlife.py $(DIR)
 
 ## hooks: install the git pre-push hook that runs `earthly +test`
 hooks:

@@ -6,6 +6,9 @@ __pycache__/
 .ig_token
 birds/reid_queue.json
 
+# Raw wildlife photos staged for upload (published to S3 by wildlife.py)
+wildlife_incoming/
+
 # Zappa build artifacts
 website-production-*.zip
 *.zip

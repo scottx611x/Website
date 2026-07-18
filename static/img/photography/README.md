@@ -1,16 +1,40 @@
-# Photography galleries
+# Photography galleries (`/photography` → "Wildlife")
 
-Curated, non-bird photography for `/photography`. Add image files to this folder
-and list them in `manifest.json`. Entries are grouped on the page by `category`.
+Non-bird photography (mammals, reptiles, insects, macro, landscapes). Unlike the
+birds gallery (which syncs from Instagram), these are published straight from raw
+files, and the images live on **S3** — not in this repo — so the Lambda deploy
+stays small. Only this small `manifest.json` is committed.
+
+## Adding photos
+
+1. Drop images into `wildlife_incoming/<Category>/` at the repo root — the folder
+   name becomes the on-page category (e.g. `Mammals`, `Reptiles`, `Insects`).
+   Name each file for its subject (`Red Fox.jpg`, `red-fox-ipswich.jpg`); that
+   becomes the caption (editable later).
+2. Run `make wildlife` (or `python wildlife.py <dir>`). It re-encodes each photo
+   **with EXIF stripped** (no leaked GPS), resizes it, uploads a full + thumbnail
+   copy to `s3://birds-scott-ouellette/wildlife/…`, and appends an entry here.
+3. Review this `manifest.json` (tweak any `title`/`category`), commit it, deploy.
+
+Re-runs are idempotent (same file = same content hash → skipped), and they never
+overwrite a manifest entry you've hand-edited.
+
+## Manifest entry
 
 ```json
-[
-  { "image": "mountains.jpg", "title": "Franconia Ridge", "category": "Landscapes", "date": "2026-05-01" },
-  { "image": "dew.jpg",       "title": "Morning dew",      "category": "Macro",      "date": "2026-04-12" }
-]
+{
+  "id": "9f1c2a…",                 // content hash (do not edit)
+  "image": "https://…/wildlife/images/9f1c2a….jpg",
+  "thumb": "https://…/wildlife/thumbs/9f1c2a….jpg",
+  "title": "Red Fox",              // caption (edit freely)
+  "category": "Mammals",           // section heading (edit freely)
+  "date": "2026-06-14",
+  "w": 2048, "h": 1365
+}
 ```
 
-- `image` — filename in this folder (`static/img/photography/`)
-- `title` — caption shown under the photo (optional)
-- `category` — section heading; photos with the same category are grouped
-- `date` — optional, for your own reference
+## One-time setup
+
+The `wildlife/images/*` and `wildlife/thumbs/*` prefixes must be public-read in the
+`birds-scott-ouellette` bucket policy (same scoping as the birds media). See
+`RELEASE.md`.

@@ -41,9 +41,22 @@ class RoutesTestCase(GenericTestBase):
     def test_missing_blog_post_404(self):
         self.assertEqual(self.test_client.get("/blog/nope").status_code, 404)
 
-    def test_photography_route(self):
-        # Photography is hidden for now.
-        self.assertEqual(self.test_client.get("/photography").status_code, 404)
+    def test_photography_route_live(self):
+        # The wildlife gallery is switched on (not in HIDDEN_PAGES).
+        self.assertEqual(self.test_client.get("/photography").status_code, 200)
+
+    def test_photography_groups_by_category(self):
+        items = [
+            {"id": "a", "image": "u1", "thumb": "t1", "title": "Red Fox", "category": "Mammals"},
+            {"id": "b", "image": "u2", "thumb": "t2", "title": "Garter Snake", "category": "Reptiles"},
+            {"id": "c", "image": "u3", "thumb": "t3", "title": "Coyote", "category": "Mammals"},
+        ]
+        with mock.patch("json.load", return_value=items), \
+             mock.patch("builtins.open", mock.mock_open(read_data="[]")):
+            galleries = index.load_photography()
+        self.assertEqual(set(galleries), {"Mammals", "Reptiles"})
+        self.assertEqual(len(galleries["Mammals"]), 2)
+
 
     def test_projects_route(self):
         response = self.test_client.get("/projects")

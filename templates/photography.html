@@ -15,10 +15,14 @@
         <h2 class="gallery-category">{{ category }}</h2>
         <div class="masonry">
             {% for item in items %}
-            <figure class="shot">
-                <img loading="lazy"
-                     src="{{ url_for('static', filename='img/photography/' + item.image) }}"
-                     alt="{{ item.title }}">
+            {% set cap = item.title or '' %}
+            {% if item.date %}{% set cap = (cap ~ '  ·  ' ~ item.date) if cap else item.date %}{% endif %}
+            <figure class="shot" data-images='{{ [item.image]|tojson }}' data-captions='{{ [cap]|tojson }}'
+                    tabindex="0" role="button" aria-label="View {{ item.title or 'photo' }} larger">
+                <img loading="lazy" decoding="async"
+                     src="{{ item.thumb or item.image }}"
+                     {% if item.w and item.h %}width="{{ item.w }}" height="{{ item.h }}"{% endif %}
+                     alt="{{ item.title or item.category }}">
                 {% if item.title %}<figcaption><span class="species">{{ item.title }}</span></figcaption>{% endif %}
             </figure>
             {% endfor %}
