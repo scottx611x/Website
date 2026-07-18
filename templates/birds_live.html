@@ -203,7 +203,7 @@
               <button class="lv-playbtn" id="lv-playbtn" aria-label="play the call">&#9654;</button>
               <div class="lv-ptxt">
                 <div class="lv-pname" id="lv-pname"></div>
-                <div class="lv-psub" id="lv-psub">what the mic actually heard</div>
+                <div class="lv-psub" id="lv-psub"></div>
               </div>
               <span class="lv-ptime" id="lv-ptime">0:00</span>
             </div>
@@ -315,7 +315,7 @@
     heroClip = r;
     player.hidden = false;
     document.getElementById("lv-pname").textContent = r.display;
-    document.getElementById("lv-psub").textContent = clock(r.t) + " · " + Math.round(r.conf * 100) + "% · what the mic actually heard";
+    document.getElementById("lv-psub").textContent = clock(r.t) + " · " + Math.round(r.conf * 100) + "%";
     var img = document.getElementById("lv-specimg");
     if (r.spec) { img.src = MEDIA + r.spec; img.parentElement.style.display = ""; }
     else { img.removeAttribute("src"); img.parentElement.style.display = "none"; }
