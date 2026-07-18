@@ -125,6 +125,21 @@ def render_spectrogram(wav_path, out_path, height=220, max_hz=12000):
     out.save(out_path, optimize=True)
 
 
+def _aac_cmd(src, dst):
+    """WAV -> AAC/m4a using whatever encoder this box has.
+
+    afconvert ships with macOS (the laptop brain); ffmpeg is everywhere else
+    (the Pi). Same 96k AAC either way, so clips are identical wherever the
+    exporter runs.
+    """
+    import shutil
+    if shutil.which("afconvert"):
+        return ["afconvert", "-f", "m4af", "-d", "aac", "-b", "96000", src, dst]
+    if shutil.which("ffmpeg"):
+        return ["ffmpeg", "-y", "-loglevel", "error", "-i", src, "-c:a", "aac", "-b:a", "96k", dst]
+    return None
+
+
 def publish_media(dets, s3):
     """Transcode + upload audio and spectrograms for the newest detections.
 
@@ -155,18 +170,20 @@ def publish_media(dets, s3):
             elif s3 is not None:
                 with tempfile.TemporaryDirectory() as td:
                     out = os.path.join(td, m4a)
-                    r = subprocess.run(
-                        ["afconvert", "-f", "m4af", "-d", "aac", "-b", "96000", wav, out],
-                        capture_output=True)
-                    if r.returncode == 0:
-                        s3.upload_file(out, BUCKET, CLIP_PREFIX + m4a, ExtraArgs={
-                            "ContentType": "audio/mp4",
-                            "CacheControl": "public, max-age=31536000, immutable"})
-                        have.add(m4a)
-                        ref["audio"] = m4a
+                    cmd = _aac_cmd(wav, out)
+                    if cmd is None:
+                        print("no AAC encoder (need afconvert or ffmpeg)", file=sys.stderr)
                     else:
-                        print("afconvert failed for %s: %s" % (clip, r.stderr.decode()[:200]),
-                              file=sys.stderr)
+                        r = subprocess.run(cmd, capture_output=True)
+                        if r.returncode == 0:
+                            s3.upload_file(out, BUCKET, CLIP_PREFIX + m4a, ExtraArgs={
+                                "ContentType": "audio/mp4",
+                                "CacheControl": "public, max-age=31536000, immutable"})
+                            have.add(m4a)
+                            ref["audio"] = m4a
+                        else:
+                            print("%s failed for %s: %s" % (cmd[0], clip, r.stderr.decode()[:200]),
+                                  file=sys.stderr)
             if spec in have:
                 ref["spec"] = spec
             elif s3 is not None:

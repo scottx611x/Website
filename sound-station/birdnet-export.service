@@ -1,0 +1,13 @@
+[Unit]
+Description=Publish BirdNET-Go detections to S3 for scott-ouellette.com/birds/live
+After=network-online.target docker.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=@USER@
+WorkingDirectory=@STATION@
+EnvironmentFile=@STATION@/exporter.env
+ExecStart=@STATION@/export-venv/bin/python @STATION@/sound_export.py
+# Don't let a transient network/API hiccup mark the unit failed forever.
+SuccessExitStatus=0 1
