@@ -31,8 +31,8 @@
             {{ points|length }} place{{ "" if points|length == 1 else "s" }}. Tap a pin.
             <br><a href="/birds/species/{{ active_bird|slug }}">&#10024; the {{ active_bird }} profile</a>
             &nbsp;&middot;&nbsp; <a href="/birds?bird={{ active_bird|urlencode }}">the gallery</a>
-            &nbsp;&middot;&nbsp; <a href="/birds/map">every place &rarr;</a>
         </p>
+        <div class="map-focusbar mono">&#128506;&#65039; focused on <b>{{ active_bird }}</b> &middot; <a href="/birds/map">show everything</a></div>
         {% else %}
         <h1>Where the birds are</h1>
         <p class="empty" style="color:var(--ink);max-width:40rem;margin:0 auto;">

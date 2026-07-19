@@ -969,7 +969,23 @@
             }
             function hideFocus() { fG.interrupt().transition().duration(140).style("opacity", 0); }
 
-            var active = -1;
+            var active = -1, lockedLi = -1;  // lockedLi = a deep-link-focused bird
+            function peakMonth(li) {
+                var pk = 0, pth = -1;
+                for (var i = 0; i < N; i++) {
+                    var t = Math.abs(y(layers[li][i][0]) - y(layers[li][i][1]));
+                    if (t > pth) { pth = t; pk = i; }
+                }
+                return pk;
+            }
+            // Resting state: return to the locked bird if one is focused, else clear.
+            function rest() {
+                if (lockedLi >= 0) {
+                    var pk = peakMonth(lockedLi);
+                    activate(lockedLi, x(pk), faceCenter(lockedLi, pk));
+                    tellReadout(lockedLi);
+                } else { activate(-1); tellReadout(-1); }
+            }
             function activate(li, cx, cy) {
                 if (li === active) {
                     if (li >= 0) showFocus(li, cx, cy);
@@ -1012,13 +1028,8 @@
             window.lvFocusRiver = function (name) {
                 for (var li = 0; li < S2.length; li++) {
                     if (S2[li].name !== name) continue;
-                    var pk = 0, pth = -1;
-                    for (var i = 0; i < N; i++) {
-                        var t = Math.abs(y(layers[li][i][0]) - y(layers[li][i][1]));
-                        if (t > pth) { pth = t; pk = i; }
-                    }
-                    activate(li, x(pk), faceCenter(li, pk));
-                    tellReadout(li);
+                    lockedLi = li;       // hovering explores, leaving snaps back here
+                    rest();
                     return S2[li].fam;   // hand the family to the treemap
                 }
                 return null;
@@ -1096,7 +1107,7 @@
             });
             svg.on("pointerleave", function () {
                 if (lastType === "touch") return;                       // touch selection persists
-                activate(-1); tellReadout(-1);
+                rest();   // snap back to the focused bird if one is locked, else clear
             });
 
             // ---- Pinch to zoom (touch): drive the viewBox, so hit-testing and the
@@ -1183,7 +1194,7 @@
                     location.href = birdURL(S2[kbSel].name); ev.preventDefault();
                 }
             });
-            el.addEventListener("blur", function () { if (lastType !== "touch") { activate(-1); tellReadout(-1); } });
+            el.addEventListener("blur", function () { if (lastType !== "touch") rest(); });
         }
 
         renderRiver();

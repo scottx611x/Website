@@ -544,6 +544,9 @@ body.home .site-nav { z-index: 0; }
 .stat-focusbar { display: inline-flex; align-items: center; gap: 0.4rem; margin: 0.9rem auto 0; font-size: 0.76rem; color: var(--green); padding: 0.3rem 0.8rem; border: 1px solid rgba(47, 125, 79, 0.35); border-radius: 999px; }
 .stat-focusbar a { color: var(--muted); text-decoration: none; }
 .stat-focusbar a:hover { color: var(--green); }
+.map-focusbar { display: inline-flex; align-items: center; gap: 0.4rem; margin: 0.4rem auto 0; font-size: 0.76rem; color: var(--green); padding: 0.3rem 0.8rem; border: 1px solid rgba(47, 125, 79, 0.35); border-radius: 999px; }
+.map-focusbar a { color: var(--muted); text-decoration: none; }
+.map-focusbar a:hover { color: var(--green); }
 .bar-label { font-size: 0.86rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .bar-sub { color: var(--muted); font-size: 0.7rem; }
 .bar-track { height: 0.62rem; background: rgba(13, 18, 14, 0.06); border-radius: 999px; overflow: hidden; }
