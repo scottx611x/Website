@@ -3,6 +3,22 @@
 {% block head %}
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
           integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+    <style>
+      /* Every pin wears the best photo taken there — the map is made of shots. */
+      .photo-pin{background:none;border:none}
+      .photo-pin .pp-img{display:block;width:100%;height:100%;border-radius:50%;
+        background-size:cover;background-position:center;border:2.5px solid #2f7d4f;
+        box-shadow:0 2px 9px rgba(13,18,14,.45);transition:transform .28s ease,opacity .28s ease;
+        transform-origin:center;cursor:pointer;background-color:#12160f}
+      .photo-pin.away .pp-img{border-color:#d9863b}
+      .photo-pin:hover{z-index:1000 !important}
+      .photo-pin:hover .pp-img{transform:scale(1.14);box-shadow:0 4px 16px rgba(13,18,14,.55)}
+      .dot-pin{border-radius:50%;background:#2f7d4f;border:2px solid #fff;box-shadow:0 2px 6px rgba(13,18,14,.4)}
+      .dot-pin.away{background:#d9863b}
+      .pop-photo{display:block;width:100%;height:132px;background-size:cover;background-position:center;
+        border-radius:9px;margin-bottom:.5rem;background-color:#12160f}
+      .leaflet-popup-content{width:210px !important}
+    </style>
 {% endblock %}
 
 {% block content %}
@@ -55,33 +71,40 @@
             maxZoom: 19
         }).addTo(map);
 
-        function pinSize(n) { return Math.min(7 + 4.5 * Math.sqrt(n), 34); }
+        // Diameter of a photo pin, gently scaled by how many shots are from there.
+        function pinSize(n) { return Math.round(Math.min(30 + 6 * Math.sqrt(n), 62)); }
+        function esc(s) { var d = document.createElement("i"); d.textContent = s == null ? "" : s; return d.innerHTML; }
         var localGroup = [], allGroup = [], markers = [];
         points.forEach(function (p) {
             var away = p.area === "away";
-            var m = L.circleMarker([p.lat, p.lng], {
-                radius: pinSize(p.count),
-                color: "#fff", weight: 1.5,
-                fillColor: away ? "#d9863b" : "#2f7d4f", fillOpacity: 0.82
-            }).addTo(map);
+            var d = pinSize(p.count);
+            var icon = p.img
+                ? L.divIcon({
+                    className: "photo-pin" + (away ? " away" : ""),
+                    html: '<span class="pp-img" style="background-image:url(\'' + p.img + '\')"></span>',
+                    iconSize: [d, d], iconAnchor: [d / 2, d / 2], popupAnchor: [0, -d / 2]
+                })
+                : L.divIcon({ className: "dot-pin" + (away ? " away" : ""), iconSize: [14, 14], iconAnchor: [7, 7], popupAnchor: [0, -7] });
+            var m = L.marker([p.lat, p.lng], { icon: icon, riseOnHover: true }).addTo(map);
             var noun = p.count === 1 ? "photo" : "photos";
             var href, body;
             if (activeBird) {
                 // Species map: each pin is that bird here, linking to the combined
                 // species + place gallery filter.
                 href = "/birds?bird=" + encodeURIComponent(activeBird) + "&loc=" + encodeURIComponent(p.name);
-                body = p.count + ' ' + activeBird + ' ' + noun + ' here';
+                body = p.count + ' ' + esc(activeBird) + ' ' + noun + ' here';
             } else {
                 href = "/birds?loc=" + encodeURIComponent(p.name);
                 body = p.count + ' ' + noun + ' · ' + p.species + ' species<br>' +
-                    '<span class="pop-top">' + p.top.join(", ") + '</span>';
+                    '<span class="pop-top">' + esc(p.top.join(", ")) + '</span>';
             }
             m.bindPopup(
-                '<strong>' + (away ? "⚠️ " : "") + p.name + '</strong><br>' +
+                (p.img ? '<span class="pop-photo" style="background-image:url(\'' + p.img + '\')"></span>' : '') +
+                '<strong>' + (away ? "⚠️ " : "") + esc(p.name) + '</strong><br>' +
                 body + '<br>' +
                 '<a href="' + href + '">see the shots &rarr;</a>'
             );
-            m.bindTooltip(p.name + " (" + p.count + ")", { direction: "top", offset: [0, -6] });
+            m.bindTooltip(esc(p.name) + " (" + p.count + ")", { direction: "top", offset: [0, -d / 2 - 2] });
             allGroup.push(m);
             if (!away) localGroup.push(m);
             markers.push({ m: m, p: p });
@@ -114,14 +137,22 @@
                 return new Date(+p[0], +p[1] - 1, 1)
                     .toLocaleString("en-US", { month: "short", year: "numeric" });
             }
+            // Photo pins are DOM icons, not vector circles — breathe them by
+            // scaling/fading the inner image element instead of setRadius/setStyle.
+            function breathe(mk, opacity, scale) {
+                var el = mk.m.getElement(); if (!el) return;
+                var img = el.querySelector(".pp-img, .dot-pin") || el;
+                img.style.opacity = opacity;
+                img.style.transform = "scale(" + scale + ")";
+            }
             function setMonth(i) {
                 var ym = months[i];
                 label.textContent = fmt(ym);
                 allBtn.classList.remove("on");
                 markers.forEach(function (mk) {
                     var n = (mk.p.months || {})[ym] || 0;
-                    if (n) mk.m.setStyle({ fillOpacity: 0.85, opacity: 1 }).setRadius(pinSize(n));
-                    else mk.m.setStyle({ fillOpacity: 0.1, opacity: 0.25 }).setRadius(3);
+                    if (n) breathe(mk, 1, Math.min(0.6 + 0.14 * Math.sqrt(n), 1.2));
+                    else breathe(mk, 0.12, 0.42);
                 });
             }
             function setAll() {
@@ -129,9 +160,7 @@
                 label.textContent = "All time";
                 allBtn.classList.add("on");
                 range.value = months.length - 1;
-                markers.forEach(function (mk) {
-                    mk.m.setStyle({ fillOpacity: 0.82, opacity: 1 }).setRadius(pinSize(mk.p.count));
-                });
+                markers.forEach(function (mk) { breathe(mk, 1, 1); });
             }
             var timer = null;
             function stop() {

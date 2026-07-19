@@ -2220,12 +2220,15 @@ def map_points(shots, places=None, species_filter=None):
     counts = collections.Counter()
     species = collections.defaultdict(collections.Counter)
     monthly = collections.defaultdict(collections.Counter)  # place -> "YYYY-MM" -> n
+    best_img = collections.defaultdict(lambda: (-1, None))  # place -> (weight, url)
     for shot in shots:
         iloc = shot.get("image_locations") or []
         isp = shot.get("image_species") or []
+        images = shot.get("images") or []
+        weight = shot.get("weight") or 0
         d = _capture_date_obj(shot.get("caption") or "", shot.get("timestamp"))
         ym = d.isoformat()[:7] if d else None
-        for i in range(len(shot.get("images") or [])):
+        for i in range(len(images)):
             loc = iloc[i] if i < len(iloc) and iloc[i] else shot.get("location")
             if not loc:
                 continue
@@ -2241,17 +2244,21 @@ def map_points(shots, places=None, species_filter=None):
                 monthly[place["name"]][ym] += 1
             for nm in names:
                 species[place["name"]][nm] += 1
+            if weight > best_img[place["name"]][0]:  # the shot the pin wears
+                best_img[place["name"]] = (weight, images[i])
     out = []
     for p in places:
         n = counts.get(p["name"], 0)
         if not n:
             continue
         sp = species[p["name"]]
+        img = best_img[p["name"]][1]
         out.append({
             "name": p["name"], "lat": p["lat"], "lng": p["lng"], "area": p["area"],
             "count": n, "species": len(sp),
             "top": [s for s, _ in sp.most_common(3)],
             "months": dict(monthly[p["name"]]),
+            "img": thumb_url(img) if img else None,
         })
     out.sort(key=lambda p: -p["count"])
     return out
