@@ -179,7 +179,9 @@
                 if (f.species) {
                     f.species.split(" & ").forEach(function (sp, i) {
                         if (i) cap.appendChild(document.createTextNode(" & "));
-                        cap.appendChild(capLink("/birds?bird=" + encodeURIComponent(sp), sp));
+                        // A species name is a portal to that bird's full profile.
+                        var slug = sp.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+                        cap.appendChild(capLink("/birds/species/" + slug, sp));
                     });
                     if (f.location) {
                         sep();
