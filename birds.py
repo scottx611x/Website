@@ -2579,9 +2579,16 @@ def species_profile(name, shots=None, sound=None):
         if c and c[0] == canon:
             heard = s
             break
-    for r in (sound or {}).get("recent", []):
-        c = _canon_species(r.get("common") or "")
-        if c and c[0] == canon:
+    # Latest recording WITH media: the newest feed entry can predate its clip's
+    # publication, which left the profile player as an empty dark box. Search
+    # the recent feed and then the full log, newest first, for one that plays.
+    log = load_sound_log() if heard else None
+    cands = list((sound or {}).get("recent", [])) + list((log or {}).get("log", []))
+    cands = [r for r in cands
+             if (_canon_species(r.get("common") or "") or ("",))[0] == canon]
+    cands.sort(key=lambda r: r.get("t") or "", reverse=True)
+    for r in cands:
+        if r.get("audio") or r.get("spec"):
             recent_call = r
             break
 

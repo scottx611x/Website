@@ -14,7 +14,7 @@
         <div class="stat-card"><span class="stat-num">{{ span_months }}</span><span class="stat-lbl">months tracked</span></div>
         <div class="stat-card"><span class="stat-num">{{ stats.away }}</span><span class="stat-lbl">out&#8209;of&#8209;area</span></div>
         {% if ear %}
-        <a class="stat-card" href="#ear-block"><span class="stat-num">{{ "{:,}".format(ear.calls) }}</span><span class="stat-lbl">calls heard</span></a>
+        <a class="stat-card" href="#ear-block"><span class="stat-num">{{ "{:,}".format(ear.calls) }}</span><span class="stat-lbl">recordings</span></a>
         <a class="stat-card" href="#ear-block"><span class="stat-num">{{ ear.heard|length }}</span><span class="stat-lbl">species heard all&#8209;time</span></a>
         {% endif %}
     </div>
@@ -128,7 +128,7 @@
                 </div>
                 <div class="ear-side">
                     <div class="ear-cards mono">
-                        <span><b>{{ "{:,}".format(ear.calls) }}</b> calls logged</span>
+                        <span><b>{{ "{:,}".format(ear.calls) }}</b> recordings logged</span>
                         <span><b>{{ ear.heard|length }}</b> species heard all&#8209;time</span>
                         <span><b>{{ ear.shot }}</b> also photographed</span>
                         <span class="amber"><b>{{ ear.heard|length - ear.shot }}</b> ear&#8209;only</span>
@@ -137,10 +137,10 @@
                     <div class="ear-daily">
                         {% set dmax = ear.daily|map(attribute='n')|max or 1 %}
                         {% for d in ear.daily %}
-                        <span class="ear-day{{ ' zero' if not d.n }}" style="height:{{ [6, (d.n / dmax * 100)|round|int]|max }}%" title="{{ d.d }} &middot; {{ d.n }} call{{ 's' if d.n != 1 }}"></span>
+                        <span class="ear-day{{ ' zero' if not d.n }}" style="height:{{ [6, (d.n / dmax * 100)|round|int]|max }}%" title="{{ d.d }} &middot; {{ d.n }} recording{{ 's' if d.n != 1 }}"></span>
                         {% endfor %}
                     </div>
-                    <p class="ear-dailyax mono"><span>{{ ear.daily[0].d }}</span><span>calls per day{% if ear.busiest %} &middot; busiest {{ ear.busiest.d }} ({{ ear.busiest.n }}){% endif %}</span><span>{{ ear.daily[-1].d }}</span></p>
+                    <p class="ear-dailyax mono"><span>{{ ear.daily[0].d }}</span><span>recordings per day{% if ear.busiest %} &middot; busiest {{ ear.busiest.d }} ({{ ear.busiest.n }}){% endif %}</span><span>{{ ear.daily[-1].d }}</span></p>
                     {% endif %}
                 </div>
             </div>

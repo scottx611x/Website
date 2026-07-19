@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% block meta_description %}{{ sp.name }} on scott-ouellette.com — {{ sp.count }} photos, seasonal rhythm, where it's found, and the call heard by the yard mic.{% endblock %}
+{% block meta_description %}{{ sp.name }} on scott-ouellette.com — {{ sp.count }} photos, seasonal rhythm, where it's found, and the recordings from the yard mic.{% endblock %}
 {% block og_image %}{% if sp.frames and sp.frames[0].images %}{{ sp.frames[0].images[0] }}{% else %}{{ site_url }}{{ url_for('static', filename='img/fall.jpg') }}{% endif %}{% endblock %}
 
 {% block content %}
@@ -142,8 +142,9 @@
             <a class="sp-more" href="/birds/live?bird={{ sp.name|urlencode }}">the live feed &rarr;</a>
         </div>
         <div class="sp-sound">
-            <div class="sp-player" id="sp-player"{% if sp.recent_call and sp.recent_call.audio %} data-audio="{{ sp.recent_call.audio }}"{% endif %}{% if sp.recent_call and sp.recent_call.spec %} data-spec="{{ MEDIA }}{{ sp.recent_call.spec }}"{% endif %}>
-                {% if sp.recent_call and sp.recent_call.spec %}
+            {% if sp.recent_call %}
+            <div class="sp-player" id="sp-player"{% if sp.recent_call.audio %} data-audio="{{ sp.recent_call.audio }}"{% endif %}{% if sp.recent_call.spec %} data-spec="{{ MEDIA }}{{ sp.recent_call.spec }}"{% endif %}>
+                {% if sp.recent_call.spec %}
                 <div class="sp-spec" style="background-image:url('{{ MEDIA }}{{ sp.recent_call.spec }}')"></div>
                 <div class="sp-veil"></div>
                 <div class="sp-speclabel">spectrogram</div>
@@ -151,13 +152,14 @@
                 <button type="button" class="sp-expand" id="sp-expand" aria-label="enlarge spectrogram">&#8599;</button>
                 {% endif %}
                 <div class="sp-pbar">
-                    {% if sp.recent_call and sp.recent_call.audio %}<button type="button" class="sp-play" id="sp-play" aria-label="play the call">&#9654;</button>{% endif %}
+                    {% if sp.recent_call.audio %}<button type="button" class="sp-play" id="sp-play" aria-label="play the recording">&#9654;</button>{% endif %}
                     <div class="sp-ptxt">
-                        <b>Latest call</b>
-                        <span id="sp-ptime">{% if sp.recent_call %}{{ (sp.recent_call.conf*100)|round|int }}% confident{% endif %}</span>
+                        <b>Latest recording</b>
+                        <span id="sp-ptime">{{ (sp.recent_call.conf*100)|round|int }}% confident</span>
                     </div>
                 </div>
             </div>
+            {% endif %}
             <div class="sp-heard">
                 <div class="row"><span>heard by ear</span><b>{{ sp.heard.count }}&times;</b></div>
                 {% if sp.heard.maxConf %}<div class="row"><span>best confidence</span><b>{{ (sp.heard.maxConf*100)|round|int }}%</b></div>{% endif %}
@@ -263,7 +265,7 @@
       '<div class="sp-zwrap"><img src="' + spec + '" alt="spectrogram"><div class="zneedle"></div></div>' +
       '<div class="sp-zbar">' +
         '<button type="button" class="sp-zplay" aria-label="play">' + (audio.paused ? "&#9654;" : "&#10074;&#10074;") + '</button>' +
-        '<div><b>Latest call</b><span class="sub">' + (document.getElementById("sp-ptime") ? document.getElementById("sp-ptime").textContent : "") + '</span></div>' +
+        '<div><b>Latest recording</b><span class="sub">' + (document.getElementById("sp-ptime") ? document.getElementById("sp-ptime").textContent : "") + '</span></div>' +
         '<span class="sp-ztime">' + fmtT(audio.currentTime) + '</span>' +
       '</div>';
     document.body.appendChild(zoom);

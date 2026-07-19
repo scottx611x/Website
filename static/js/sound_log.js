@@ -91,7 +91,7 @@
         var ns = Object.keys(spset).length;
         grp.innerHTML =
           '<div class="dl-dayhead"><span class="dl-dayname">' + esc(dayLabel(r.p)) + '</span>' +
-          '<span class="dl-daymeta mono">' + count + ' call' + (count !== 1 ? 's' : '') +
+          '<span class="dl-daymeta mono">' + count + ' recording' + (count !== 1 ? 's' : '') +
           ' &middot; ' + ns + ' species</span></div>' +
           '<div class="dl-daybody"></div>';
         listEl.appendChild(grp);
