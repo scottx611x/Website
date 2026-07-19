@@ -62,7 +62,9 @@
   @media(hover:hover){.lv-spec:hover .lv-ghost,.lv-spec:hover .lv-htip,.lv-rowspec:hover .lv-ghost,.lv-rowspec:hover .lv-htip,.lv-zwrap:hover .lv-ghost,.lv-zwrap:hover .lv-htip{opacity:1}}
   .lv-expand{position:absolute; top:.35rem; right:.35rem; z-index:2; width:26px; height:26px; border-radius:50%; border:none; background:rgba(6,10,7,.65); color:var(--neon); font-size:.72rem; cursor:pointer; display:flex; align-items:center; justify-content:center}
   .lv-expand:hover{background:rgba(6,10,7,.9)}
-  .lv-expand::after,.lv-rowplay::after{content:""; position:absolute; inset:-9px} /* thumb-sized hit area behind the small glyph */
+  .lv-expand::after,.lv-rowplay::after,.lv-rowhide::after{content:""; position:absolute; inset:-9px} /* thumb-sized hit area behind the small glyph */
+  .lv-rowhide{position:absolute; top:.35rem; left:.35rem; z-index:2; width:26px; height:26px; border-radius:50%; border:none; background:rgba(6,10,7,.65); color:var(--paper); font-size:.8rem; line-height:1; cursor:pointer; display:flex; align-items:center; justify-content:center}
+  .lv-rowhide:hover{background:rgba(6,10,7,.9); color:var(--neon)}
 
   /* Full-screen call viewer: the spectrogram with its needle, seek and play —
      the whole instrument, not just a bigger picture. */
@@ -563,6 +565,17 @@
       openZoom(ex.getAttribute("data-zoom") === "hero" ? heroClip : findRec(ex.getAttribute("data-audio")));
       return;
     }
+    var hide = e.target.closest(".lv-rowhide");
+    if (hide) {
+      e.stopPropagation();
+      var wh = hide.closest(".lv-rowwrap");
+      if (wh) {
+        wh.classList.remove("open");
+        var rh = findRec(wh.getAttribute("data-audio"));
+        if (rh && current && current.audio === rh.audio && !audio.paused) audio.pause();
+      }
+      return;
+    }
     var strip = e.target.closest(".lv-rowspec");
     if (strip) {
       var w1 = strip.closest(".lv-rowwrap"), r1 = findRec(w1.getAttribute("data-audio"));
@@ -625,7 +638,7 @@
         '<span class="rc">' + Math.round(r.conf * 100) + '%</span>' +
         (r.audio ? '<button class="lv-rowplay" data-audio="' + esc(r.audio) + '" aria-label="play this call">&#9654;</button>' : '') +
         '</div>' +
-        (r.spec ? '<div class="lv-rowspec" title="this call — click to seek"><img src="' + MEDIA + esc(r.spec) + '" alt="spectrogram of the ' + esc(r.display) + ' call" loading="lazy"><div class="lv-wash"></div><div class="lv-veil"></div><div class="lv-needle"></div><div class="lv-ghost"></div><div class="lv-htip"></div><button type="button" class="lv-expand" data-audio="' + esc(r.audio || '') + '" aria-label="enlarge spectrogram">&#8599;</button></div>' : '') +
+        (r.spec ? '<div class="lv-rowspec" title="this call — click to seek"><img src="' + MEDIA + esc(r.spec) + '" alt="spectrogram of the ' + esc(r.display) + ' call" loading="lazy"><div class="lv-wash"></div><div class="lv-veil"></div><div class="lv-needle"></div><div class="lv-ghost"></div><div class="lv-htip"></div><button type="button" class="lv-rowhide" aria-label="hide spectrogram">&times;</button><button type="button" class="lv-expand" data-audio="' + esc(r.audio || '') + '" aria-label="enlarge spectrogram">&#8599;</button></div>' : '') +
         '</div>';
     }).join("");
     // Re-point the live needle at the rebuilt strip for whatever's playing.

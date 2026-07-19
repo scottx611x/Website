@@ -572,18 +572,19 @@ def _live_view():
     groups = birds.species_groups(shots)
     photographed = {n for _, sp in groups for n, _ in sp}
     covers = birds.species_covers(shots)
+    # Seed the photo pick by species + day: every instance of a species on the
+    # screen (hero, feed rows, wall) shows the SAME shot, it's stable across the
+    # 60s polls, and it rotates to a different shot day to day.
+    day = datetime.date.today().isoformat()
 
     def enrich(entry):
         common = entry.get("common") if isinstance(entry, dict) else entry
         canon = birds._canon_species(common or "")
         disp = canon[0] if canon else (common or "")
-        # Vary the photo per detection (seed by its timestamp) so repeated calls of
-        # a species don't all show the same shot; species-level rows (no timestamp)
-        # fall back to a stable per-species pick.
-        seed = entry.get("t") if isinstance(entry, dict) and entry.get("t") else disp
         out = {"common": common, "display": disp,
                "fam": canon[1] if canon else "Other birds",
-               "photo": birds.pick_cover(covers.get(disp), seed), "shot": disp in photographed}
+               "photo": birds.pick_cover(covers.get(disp), disp + "|" + day),
+               "shot": disp in photographed}
         if isinstance(entry, dict):
             out.update({k: entry[k] for k in
                         ("t", "conf", "new", "count", "first", "last", "maxConf",
