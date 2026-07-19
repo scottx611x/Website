@@ -83,7 +83,7 @@
             <p class="stat-sub mono">the birds that keep posing.</p>
             {% set smax = series.top[0].n %}
             {% for t in series.top %}
-            <a class="bar-row rich" href="/birds?bird={{ t.name|urlencode }}">
+            <a class="bar-row rich" href="/birds/species/{{ t.name|slug }}">
                 <img class="bird-avatar" src="{{ t.img }}" alt="" loading="lazy"
                      onerror="this.classList.add('missing')">
                 <span class="bar-label">{{ t.name }} <span class="bar-sub">{{ t.fam }}</span></span>
@@ -173,7 +173,7 @@
         if (typeof d3 === "undefined") return;   // CDN blocked? page still works
 
         function chartWidth(el) { return Math.max(el.clientWidth, 300); }
-        function birdURL(name) { return "/birds?bird=" + encodeURIComponent(name); }
+        function birdURL(name) { return "/birds/species/" + (name || "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, ""); }
 
         // One floating tooltip for the matrix / calendar / treemap. Content is
         // built with textContent only (species names come from IG captions).

@@ -227,7 +227,7 @@
           <div class="lv-portrait" style="background-image:url('{{ r0.photo }}')">
             <div class="lv-body">
               <div class="lv-when" data-t="{{ r0.t }}">{{ r0.fam }}</div>
-              <div class="lv-nm"><a href="/birds?bird={{ r0.display|urlencode }}">{{ r0.display }}</a></div>
+              <div class="lv-nm"><a href="/birds/species/{{ r0.display|slug }}">{{ r0.display }}</a></div>
               <div class="lv-meta">
                 <span class="lv-tag">&#10003; in the gallery</span>
                 {% if r0.new %}<span class="lv-tag new">new to the ear</span>{% endif %}
@@ -275,7 +275,7 @@
             {% for r in sound.recent[1:9] %}
             <div class="lv-row">
               <span class="lv-av {{ '' if r.photo else 'miss' }}"{% if r.photo %} style="background-image:url('{{ r.photo }}')"{% endif %}></span>
-              <span class="rn"><a href="/birds?bird={{ r.display|urlencode }}">{{ r.display }}</a></span>
+              <span class="rn"><a href="/birds/species/{{ r.display|slug }}">{{ r.display }}</a></span>
               <span class="rt" data-t="{{ r.t }}"></span>
               <span class="rc">{{ (r.conf*100)|round|int }}%</span>
             </div>
@@ -296,7 +296,7 @@
       <div class="lv-wall" id="lv-wall">
         {% for s in sound.species %}
           {% if s.photo %}
-          <a class="lv-chip" href="/birds?bird={{ s.display|urlencode }}" style="background-image:url('{{ s.photo }}')" title="{{ s.display }} &middot; {{ s.count }}&times;"><span class="cl">{{ s.display }}</span></a>
+          <a class="lv-chip" href="/birds/species/{{ s.display|slug }}" style="background-image:url('{{ s.photo }}')" title="{{ s.display }} &middot; {{ s.count }}&times;"><span class="cl">{{ s.display }}</span></a>
           {% else %}
           <span class="lv-chip miss" title="{{ s.display }} &middot; heard, not photographed">{{ feather('%23a9761f') }}<span class="cl">{{ s.display }}</span></span>
           {% endif %}
@@ -335,7 +335,7 @@
   var LIVE; try { LIVE = JSON.parse(document.getElementById("lv-data").textContent); } catch (_) { return; }
   var MEDIA = "https://birds-scott-ouellette.s3.amazonaws.com/birds/sounds/clips/";
   var esc = function (s) { var d = document.createElement("i"); d.textContent = s == null ? "" : s; return d.innerHTML; };
-  var birdHref = function (n) { return "/birds?bird=" + encodeURIComponent(n); };
+  var birdHref = function (n) { return "/birds/species/" + (n || "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, ""); };
 
   /* ---- times: everything renders in the viewer's clock ---- */
   function clock(iso) {

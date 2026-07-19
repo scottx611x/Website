@@ -2469,6 +2469,95 @@ def stats_series(shots, top_n=15):
     }
 
 
+def _species_slug(name):
+    """"Golden-crowned Kinglet" -> "golden-crowned-kinglet" (URL id for the hub)."""
+    return re.sub(r"[^a-z0-9]+", "-", (name or "").lower()).strip("-")
+
+
+def species_index(shots=None, sound=None):
+    """Every species the site knows — photographed OR heard by ear — as
+    ``{slug: display_name}``, so /birds/species/<slug> can resolve either kind."""
+    if shots is None:
+        shots = load_gallery(shuffle=False)
+    names = {}
+    for _, sp in species_groups(shots):
+        for nm, _ in sp:
+            names[_species_slug(nm)] = nm
+    if sound is None:
+        sound = load_sounds()
+    for s in (sound or {}).get("species", []):
+        canon = _canon_species(s.get("common") or "")
+        if canon:
+            names.setdefault(_species_slug(canon[0]), canon[0])
+    return names
+
+
+def species_profile(name, shots=None, sound=None):
+    """Everything the site knows about one bird, gathered across all four views —
+    the data behind the /birds/species/<slug> hub. Returns None for an unknown
+    species. Pulls photos (gallery), lifer rank + first shot + monthly rhythm
+    (stats), places (map), and heard-by-ear status + its latest call (live)."""
+    if shots is None:
+        shots = load_gallery(shuffle=False)
+    if sound is None:
+        sound = load_sounds()
+    groups = species_groups(shots)
+    canon = resolve_species(name, groups)
+    cc = _canon_species(canon)
+    if cc:
+        canon, family = cc[0], cc[1]
+    else:
+        family = "Other birds"
+
+    count = 0
+    for fam, sp in groups:
+        for nm, c in sp:
+            if nm == canon:
+                family, count = fam, c
+
+    frames = images_filtered(shots, bird=canon) if count else []
+    series = stats_series(shots)
+    pheno = next((p for p in series["pheno"] if p["name"] == canon), None)
+    accum = series["accum"]
+    rank, first = None, None
+    for i, a in enumerate(accum):
+        if a["s"] == canon:
+            rank, first = i + 1, a
+            break
+    places = map_points(shots, species_filter=canon)
+
+    heard = recent_call = None
+    for s in (sound or {}).get("species", []):
+        c = _canon_species(s.get("common") or "")
+        if c and c[0] == canon:
+            heard = s
+            break
+    for r in (sound or {}).get("recent", []):
+        c = _canon_species(r.get("common") or "")
+        if c and c[0] == canon:
+            recent_call = r
+            break
+
+    if not count and not heard:
+        return None  # neither photographed nor heard -> not a real page
+    return {
+        "name": canon,
+        "slug": _species_slug(canon),
+        "family": family or "Other birds",
+        "count": count,
+        "photographed": bool(count),
+        "frames": frames,
+        "pheno": pheno,
+        "rank": rank,
+        "total_lifers": len(accum),
+        "first": first,
+        "places": places,
+        "mapped": sum(p["count"] for p in places),
+        "heard": heard,
+        "recent_call": recent_call,
+    }
+
+
 def activity_river(shots, top_n=None):
     """Photo activity as a streamgraph 'river' — one flowing band per species that
     was active in the window (``top_n`` = None means every one), counts binned by

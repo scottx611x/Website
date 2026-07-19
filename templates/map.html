@@ -29,8 +29,9 @@
         <p class="empty" style="color:var(--ink);max-width:40rem;margin:0 auto;">
             {{ "{:,}".format(mapped) }} photo{{ "" if mapped == 1 else "s" }} across
             {{ points|length }} place{{ "" if points|length == 1 else "s" }}. Tap a pin.
-            <br><a href="/birds?bird={{ active_bird|urlencode }}">&larr; back to the {{ active_bird }} gallery</a>
-            &nbsp;&middot;&nbsp; <a href="/birds/map">see every place &rarr;</a>
+            <br><a href="/birds/species/{{ active_bird|slug }}">&#10024; the {{ active_bird }} profile</a>
+            &nbsp;&middot;&nbsp; <a href="/birds?bird={{ active_bird|urlencode }}">the gallery</a>
+            &nbsp;&middot;&nbsp; <a href="/birds/map">every place &rarr;</a>
         </p>
         {% else %}
         <h1>Where the birds are</h1>

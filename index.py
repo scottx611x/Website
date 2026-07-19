@@ -26,6 +26,7 @@ app.config["SEND_FILE_MAX_AGE_DEFAULT"] = 31536000
 
 # Gallery grids render S3 thumbnails; the lightbox keeps the full image.
 app.add_template_filter(birds.thumb_url, "thumb")
+app.add_template_filter(birds._species_slug, "slug")  # species name -> /birds/species/<slug>
 
 
 @app.template_filter("shuffle")
@@ -550,6 +551,24 @@ def birds_gallery():
         curate=curate,
         local=_is_local(),
         reid_queued=sorted(birds.reid_keys()) if curate else [],
+    )
+
+
+@app.route("/birds/species/<slug>", methods=["GET"])
+def birds_species(slug):
+    """The hub page for one bird — its photos, lifer rank, seasonal rhythm, the
+    call heard by the yard mic, and where it turns up, all in one place."""
+    shots = birds.load_gallery(shuffle=False)
+    sound = birds.load_sounds()
+    name = birds.species_index(shots, sound).get(slug)
+    if not name:
+        abort(404)
+    profile = birds.species_profile(name, shots, sound)
+    if not profile:
+        abort(404)
+    return render_template(
+        "species.html", title=profile["name"], sp=profile,
+        local=_is_local(), curate=_curate_on(),
     )
 
 

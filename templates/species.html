@@ -1,0 +1,218 @@
+{% extends 'base.html' %}
+{% block meta_description %}{{ sp.name }} on scott-ouellette.com — {{ sp.count }} photos, seasonal rhythm, where it's found, and the call heard by the yard mic.{% endblock %}
+
+{% block content %}
+<style>
+  .sppage .sp-eyebrow{font-family:var(--mono); font-size:.72rem; letter-spacing:.15em; text-transform:uppercase; color:var(--green); margin:0 0 .3rem}
+  .sppage h1{margin-bottom:.7rem}
+  .sp-chips{display:flex; flex-wrap:wrap; justify-content:center; gap:.5rem; margin-top:1rem}
+  .sp-chip{font-family:var(--mono); font-size:.8rem; text-decoration:none; color:var(--ink); padding:.4rem .9rem; border-radius:999px; border:1px solid rgba(13,18,14,.18); transition:all .15s ease; white-space:nowrap}
+  .sp-chip:hover{border-color:var(--green); color:var(--green); transform:translateY(-1px)}
+  .sp-chip b{font-weight:600}
+
+  .sp-sec{margin-top:3.2rem}
+  .sp-sec-h{display:flex; align-items:baseline; justify-content:space-between; gap:1rem; margin-bottom:1.1rem}
+  .sp-kick{font-family:var(--mono); font-size:.7rem; letter-spacing:.16em; text-transform:uppercase; color:var(--green); margin:0}
+  .sp-more{font-family:var(--mono); font-size:.74rem; text-decoration:none; color:var(--muted); white-space:nowrap}
+  .sp-more:hover{color:var(--green)}
+
+  /* Sound: the yard-mic call, in the live page's dark idiom. */
+  .sp-sound{display:grid; grid-template-columns:minmax(0,1.4fr) minmax(0,1fr); gap:1.2rem; align-items:stretch}
+  @media(max-width:720px){.sp-sound{grid-template-columns:1fr}}
+  .sp-player{position:relative; border-radius:14px; overflow:hidden; background:var(--ink); min-height:150px; display:flex; flex-direction:column; justify-content:flex-end}
+  .sp-player .sp-spec{position:absolute; inset:0; background-size:cover; background-position:center}
+  .sp-player .sp-needle{position:absolute; top:0; bottom:0; left:calc(var(--p,0)*100%); width:2px; margin-left:-1px; background:linear-gradient(180deg,#eafff4,var(--neon)); box-shadow:0 0 10px 1px rgba(56,224,138,.85); opacity:0}
+  .sp-player.playing .sp-needle{opacity:1}
+  .sp-player .sp-veil{position:absolute; top:0; bottom:0; left:calc(var(--p,0)*100%); right:0; background:linear-gradient(90deg,rgba(6,10,7,0),rgba(6,10,7,.5) 24px); opacity:0; transition:opacity .3s}
+  .sp-player.playing .sp-veil{opacity:1}
+  .sp-pbar{position:relative; z-index:2; display:flex; align-items:center; gap:.7rem; padding:.7rem .8rem; background:linear-gradient(transparent,rgba(6,10,7,.75))}
+  .sp-play{flex:0 0 auto; width:40px; height:40px; border-radius:50%; border:none; background:var(--neon); color:var(--ink); font-size:.95rem; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:transform .12s}
+  .sp-play:active{transform:scale(.92)}
+  .sp-ptxt{flex:1; min-width:0; color:var(--paper)}
+  .sp-ptxt b{display:block; font-family:var(--mono); font-size:.7rem; letter-spacing:.1em; text-transform:uppercase; color:var(--neon)}
+  .sp-ptxt span{font-family:var(--mono); font-size:.68rem; color:rgba(244,241,233,.7)}
+  .sp-speclabel{position:absolute; left:.6rem; top:.5rem; z-index:1; font-family:var(--mono); font-size:.55rem; letter-spacing:.2em; text-transform:uppercase; color:rgba(56,224,138,.7); text-shadow:0 1px 3px rgba(6,10,7,.9)}
+  .sp-heard{border:1px solid rgba(13,18,14,.12); border-radius:14px; padding:1.1rem 1.2rem; background:#fbf9f3; display:flex; flex-direction:column; justify-content:center; gap:.55rem}
+  .sp-heard .row{display:flex; justify-content:space-between; align-items:baseline; font-size:.86rem; color:var(--muted)}
+  .sp-heard .row b{font-family:var(--display); font-size:1.15rem; color:var(--ink); font-weight:600}
+  .sp-heard a{font-family:var(--mono); font-size:.74rem; color:var(--green); text-decoration:none; margin-top:.2rem}
+
+  /* Seasonal rhythm */
+  .sp-year{display:flex; align-items:flex-end; gap:.4rem; height:108px}
+  .sp-mo{flex:1; height:100%; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; gap:.35rem}
+  .sp-mo .bar{transition:filter .15s} .sp-mo a.bar:hover{filter:brightness(1.15)}
+  .sp-mo .bar{width:100%; max-width:34px; background:linear-gradient(180deg,var(--green),rgba(47,125,79,.28)); border-radius:3px 3px 0 0; min-height:2px}
+  .sp-mo .bar.zero{background:rgba(13,18,14,.07)}
+  .sp-mo .bar.peak{background:linear-gradient(180deg,var(--neon),rgba(56,224,138,.35))}
+  .sp-mo .ml{font-family:var(--mono); font-size:.6rem; color:var(--muted)}
+
+  /* Places */
+  .sp-places{display:flex; flex-direction:column; gap:.1rem; max-width:34rem}
+  .sp-place{display:flex; align-items:center; gap:.7rem; padding:.55rem 0; border-top:1px solid rgba(13,18,14,.08); text-decoration:none; color:var(--ink)}
+  .sp-place:first-child{border-top:none}
+  .sp-place .pin{width:34px; height:34px; border-radius:50%; flex:0 0 auto; background-size:cover; background-position:center; border:2px solid var(--green)}
+  .sp-place.away .pin{border-color:#d9863b}
+  .sp-place .nm{flex:1; font-family:var(--display); font-size:1rem}
+  .sp-place:hover .nm{color:var(--green)}
+  .sp-place .ct{font-family:var(--mono); font-size:.72rem; color:var(--muted)}
+  .sp-place .aw{font-size:.7rem}
+</style>
+
+{% set mo_names = ['J','F','M','A','M','J','J','A','S','O','N','D'] %}
+{% set MEDIA = 'https://birds-scott-ouellette.s3.amazonaws.com/birds/sounds/clips/' %}
+
+<section class="page wide sppage">
+    <header class="gallery-header">
+        <p class="sp-eyebrow">{{ sp.family }}{% if sp.rank %} &middot; #{{ sp.rank }} lifer of {{ sp.total_lifers }}{% endif %}</p>
+        <h1>{{ sp.name }}</h1>
+        {% set subnav_active = 'gallery' %}{% include '_birds_nav.html' %}
+        <div class="sp-chips">
+            {% if sp.count %}<a class="sp-chip" href="/birds?bird={{ sp.name|urlencode }}">&#128247; <b>{{ sp.count }}</b> photo{{ '' if sp.count == 1 else 's' }}</a>{% endif %}
+            {% if sp.rank %}<a class="sp-chip" href="/birds/stats">&#128202; <b>#{{ sp.rank }}</b> lifer</a>{% endif %}
+            {% if sp.heard %}<a class="sp-chip" href="/birds/live">&#128308; heard <b>{{ sp.heard.count }}&times;</b></a>{% endif %}
+            {% if sp.places %}<a class="sp-chip" href="/birds/map?bird={{ sp.name|urlencode }}">&#128506;&#65039; <b>{{ sp.places|length }}</b> place{{ '' if sp.places|length == 1 else 's' }}</a>{% endif %}
+        </div>
+    </header>
+
+    {# ---- PHOTOS ---- #}
+    {% if sp.frames %}
+    <section class="sp-sec">
+        <div class="sp-sec-h">
+            <p class="sp-kick">In the gallery</p>
+            <a class="sp-more" href="/birds?bird={{ sp.name|urlencode }}">all {{ sp.count }} &rarr;</a>
+        </div>
+        <div class="masonry">
+            {% for shot in sp.frames[:12] %}
+            <figure class="shot"
+                data-id="{{ shot.id }}"{% if shot.post_id %} data-post-id="{{ shot.post_id }}"{% endif %}
+                data-images='{{ shot.images|tojson }}'
+                data-captions='{{ shot.captions|tojson }}'
+                data-image-species='{{ (shot.image_species or [])|tojson }}'
+                data-image-locations='{{ (shot.image_locations or [])|tojson }}'
+                data-image-areas='{{ (shot.image_areas or [])|tojson }}'
+                data-image-videos='{{ (shot.image_videos or [])|tojson }}'
+                data-image-indices='{{ (shot.image_indices or [])|tojson }}'
+                data-date='{{ shot.date or "" }}'
+                data-sighted='{{ shot._sort or "" }}'
+                data-posted='{{ ((shot._posted if shot._posted is defined else none) or "")[:10] }}'
+                tabindex="0" role="button" aria-label="View {{ sp.name }} larger">
+                {% set dm = (shot.image_dims or [none])[0] %}
+                <img loading="lazy" decoding="async" src="{{ shot.images[0]|thumb }}"
+                     {% if dm %}width="{{ dm[0] }}" height="{{ dm[1] }}"{% endif %} alt="{{ sp.name }}">
+                {% if shot.image_videos and shot.image_videos[0] %}<span class="play-badge" aria-hidden="true">&#9654;</span>{% endif %}
+                {% if shot.image_areas and shot.image_areas[0] == 'away' %}<span class="away-badge"><span class="away-badge-mark">&#9888;&#65039;</span></span>{% endif %}
+                {% if shot.location or shot.date %}
+                <figcaption>
+                    <span class="species">{{ shot.location or '' }}</span>
+                    {% if shot.date %}<span class="shot-date">{{ shot.date }}</span>{% endif %}
+                </figcaption>
+                {% endif %}
+            </figure>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
+    {# ---- HEARD BY THE YARD ---- #}
+    {% if sp.heard %}
+    <section class="sp-sec">
+        <div class="sp-sec-h">
+            <p class="sp-kick">Heard by the yard</p>
+            <a class="sp-more" href="/birds/live">the live feed &rarr;</a>
+        </div>
+        <div class="sp-sound">
+            <div class="sp-player" id="sp-player"{% if sp.recent_call and sp.recent_call.audio %} data-audio="{{ sp.recent_call.audio }}"{% endif %}>
+                {% if sp.recent_call and sp.recent_call.spec %}
+                <div class="sp-spec" style="background-image:url('{{ MEDIA }}{{ sp.recent_call.spec }}')"></div>
+                <div class="sp-veil"></div>
+                <div class="sp-speclabel">spectrogram</div>
+                <div class="sp-needle"></div>
+                {% endif %}
+                <div class="sp-pbar">
+                    {% if sp.recent_call and sp.recent_call.audio %}<button type="button" class="sp-play" id="sp-play" aria-label="play the call">&#9654;</button>{% endif %}
+                    <div class="sp-ptxt">
+                        <b>The last call</b>
+                        <span id="sp-ptime">{% if sp.recent_call %}{{ (sp.recent_call.conf*100)|round|int }}% confident{% endif %}</span>
+                    </div>
+                </div>
+            </div>
+            <div class="sp-heard">
+                <div class="row"><span>heard by ear</span><b>{{ sp.heard.count }}&times;</b></div>
+                {% if sp.heard.maxConf %}<div class="row"><span>best confidence</span><b>{{ (sp.heard.maxConf*100)|round|int }}%</b></div>{% endif %}
+                <div class="row"><span>photographed?</span><b>{{ 'yes' if sp.photographed else 'not yet' }}</b></div>
+                <a href="/birds/live">open the live viewer &rarr;</a>
+            </div>
+        </div>
+    </section>
+    {% endif %}
+
+    {# ---- SEASONAL RHYTHM ---- #}
+    {% if sp.pheno and sp.pheno.total %}
+    {% set mx = sp.pheno.months|max %}
+    <section class="sp-sec">
+        <div class="sp-sec-h">
+            <p class="sp-kick">Through the year</p>
+            <a class="sp-more" href="/birds/stats">by the numbers &rarr;</a>
+        </div>
+        <div class="sp-year">
+            {% for n in sp.pheno.months %}
+            <div class="sp-mo">
+                {% if n %}<a href="/birds?bird={{ sp.name|urlencode }}&month={{ loop.index }}" class="bar {{ 'peak' if n == mx else '' }}" style="height:{{ (4 + (n/mx)*84)|round }}%" title="{{ n }} in month {{ loop.index }}"></a>
+                {% else %}<span class="bar zero" style="height:2px"></span>{% endif %}
+                <span class="ml">{{ mo_names[loop.index0] }}</span>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
+    {# ---- WHERE I FIND THEM ---- #}
+    {% if sp.places %}
+    <section class="sp-sec">
+        <div class="sp-sec-h">
+            <p class="sp-kick">Where I find them</p>
+            <a class="sp-more" href="/birds/map?bird={{ sp.name|urlencode }}">on the map &rarr;</a>
+        </div>
+        <div class="sp-places">
+            {% for p in sp.places %}
+            <a class="sp-place {{ 'away' if p.area == 'away' }}" href="/birds?bird={{ sp.name|urlencode }}&loc={{ p.name|urlencode }}">
+                <span class="pin"{% if p.img %} style="background-image:url('{{ p.img }}')"{% endif %}></span>
+                <span class="nm">{% if p.area == 'away' %}<span class="aw">&#9888;&#65039;</span> {% endif %}{{ p.name }}</span>
+                <span class="ct">{{ p.count }} photo{{ '' if p.count == 1 else 's' }}</span>
+            </a>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+</section>
+
+{% if sp.heard and sp.recent_call and sp.recent_call.audio %}
+<script>
+(function () {
+  var wrap = document.getElementById("sp-player");
+  var btn = document.getElementById("sp-play");
+  if (!wrap || !btn) return;
+  var MEDIA = "https://birds-scott-ouellette.s3.amazonaws.com/birds/sounds/clips/";
+  var audio = new Audio(MEDIA + wrap.getAttribute("data-audio"));
+  var raf = null;
+  function paint() {
+    var d = audio.duration || 0;
+    wrap.style.setProperty("--p", d ? audio.currentTime / d : 0);
+    raf = audio.paused ? null : requestAnimationFrame(paint);
+  }
+  btn.addEventListener("click", function () {
+    if (audio.paused) audio.play().catch(function () {}); else audio.pause();
+  });
+  audio.addEventListener("play", function () { wrap.classList.add("playing"); if (raf == null) raf = requestAnimationFrame(paint); btn.innerHTML = "&#10074;&#10074;"; });
+  audio.addEventListener("pause", function () { wrap.classList.remove("playing"); btn.innerHTML = "&#9654;"; });
+  audio.addEventListener("ended", function () { wrap.classList.remove("playing"); btn.innerHTML = "&#9654;"; wrap.style.setProperty("--p", 0); });
+  wrap.querySelector(".sp-spec") && wrap.querySelector(".sp-spec").addEventListener("click", function (e) {
+    if (!audio.duration) return;
+    var r = wrap.getBoundingClientRect();
+    audio.currentTime = ((e.clientX - r.left) / r.width) * audio.duration;
+    if (audio.paused) audio.play().catch(function () {});
+  });
+})();
+</script>
+{% endif %}
+{% endblock %}

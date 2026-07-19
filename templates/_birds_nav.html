@@ -1,13 +1,7 @@
-{# Shared sub-nav for the bird section. Set `subnav_active` before including.
-   Order is shuffled each load for a bit of fun. #}
-{% set navitems = [
-    ('gallery', '/birds', '📷 Gallery'),
-    ('stats', '/birds/stats', '📊 By the numbers'),
-    ('live', '/birds/live', '🔴 Live'),
-    ('map', '/birds/map', '🗺️ Map'),
-] %}
+{# Shared sub-nav for the bird section. Set `subnav_active` before including. #}
 <nav class="birds-subnav mono" aria-label="Bird pages">
-    {% for key, href, label in navitems|shuffle %}
-    <a href="{{ href }}" class="{{ 'on' if subnav_active == key }}">{{ label }}</a>
-    {% endfor %}
+    <a href="/birds" class="{{ 'on' if subnav_active == 'gallery' }}">&#128247; Gallery</a>
+    <a href="/birds/stats" class="{{ 'on' if subnav_active == 'stats' }}">&#128202; By the numbers</a>
+    <a href="/birds/live" class="{{ 'on' if subnav_active == 'live' }}">&#128308; Live</a>
+    <a href="/birds/map" class="{{ 'on' if subnav_active == 'map' }}">&#128506;&#65039; Map</a>
 </nav>
