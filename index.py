@@ -259,11 +259,25 @@ def photography():
     tag = (request.args.get("tag") or "").strip()
     shown = [p for p in photos if not tag or tag in (p.get("tags") or [])]
     if _curate_on():
-        shown.sort(key=lambda p: p.get("date") or "", reverse=True)  # stable for editing
+        # stable, one card per photo: the edit fields are per-photo
+        shown.sort(key=lambda p: p.get("date") or "", reverse=True)
+        groups = [dict(p, group=[p]) for p in shown]
     else:
-        random.shuffle(shown)  # a fresh order each visit
+        # One card per SUBJECT: five deer shots become one card whose lightbox
+        # is a 1/5 carousel, like a multi-image post in the bird gallery.
+        by_key, groups = {}, []
+        for p in sorted(shown, key=lambda p: (p.get("date") or "", p.get("id") or "")):
+            key = (p.get("title") or p.get("species") or "").strip().lower()
+            if key and key in by_key:
+                by_key[key]["group"].append(p)
+            else:
+                g = dict(p, group=[p])
+                groups.append(g)
+                if key:
+                    by_key[key] = g
+        random.shuffle(groups)  # a fresh order each visit
     return render_template(
-        "photography.html", title="Photography", photos=shown,
+        "photography.html", title="Photography", photos=groups,
         all_tags=birds.photo_tags(photos), active_tag=tag, photo_count=len(photos),
         curate=_curate_on(), local=_is_local(),
     )

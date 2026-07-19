@@ -38,17 +38,26 @@
     {% if photos %}
     <div class="masonry">
         {% for p in photos %}
+        {% set grp = p.group or [p] %}
+        {% set caps = [] %}
+        {% for g in grp %}
+            {% set gmeta = [] %}
+            {% if g.species and g.species != g.title %}{% set _ = gmeta.append(g.species) %}{% endif %}
+            {% if g.location %}{% set _ = gmeta.append(g.location) %}{% endif %}
+            {% if g.date %}{% set _ = gmeta.append(g.date) %}{% endif %}
+            {% set _ = caps.append((([g.title] if g.title else []) + gmeta)|join('  ·  ')) %}
+        {% endfor %}
         {% set meta = [] %}
         {% if p.species and p.species != p.title %}{% set _ = meta.append(p.species) %}{% endif %}
         {% if p.location %}{% set _ = meta.append(p.location) %}{% endif %}
         {% if p.date %}{% set _ = meta.append(p.date) %}{% endif %}
-        {% set cap = ([p.title] if p.title else []) + meta %}
-        <figure class="shot" data-id="{{ p.id }}" data-image-indices='[0]'
-                data-images='{{ [p.image]|tojson }}' data-captions='{{ [cap|join("  ·  ")]|tojson }}'
+        <figure class="shot" data-id="{{ p.id }}" data-image-indices='{{ range(grp|length)|list|tojson }}'
+                data-images='{{ grp|map(attribute="image")|list|tojson }}' data-captions='{{ caps|tojson }}'
                 tabindex="0" role="button" aria-label="View {{ p.title or 'photo' }} larger">
             <img loading="lazy" decoding="async" src="{{ p.thumb or p.image }}"
                  {% if p.w and p.h %}width="{{ p.w }}" height="{{ p.h }}"{% endif %}
                  alt="{{ p.title or p.species or 'photo' }}">
+            {% if grp|length > 1 %}<span class="multi-badge">&#10697; {{ grp|length }}</span>{% endif %}
             <figcaption>
                 {% if p.title %}<span class="species">{{ p.title }}</span>{% endif %}
                 {% if meta %}<span class="meta mono">{{ meta|join('  ·  ') }}</span>{% endif %}
