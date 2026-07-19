@@ -41,14 +41,57 @@
   /* The sound itself: BirdNET's real spectrogram as the scrubber. */
   .lv-player{border:1px solid rgba(13,18,14,.12); border-radius:14px; background:#fbf9f3; overflow:hidden}
   .lv-spec{position:relative; cursor:pointer; background:var(--ink); min-height:74px}
-  .lv-spec img{display:block; width:100%; height:110px; object-fit:cover; object-position:center}
-  .lv-needle{position:absolute; top:0; bottom:0; left:0; width:2px; background:var(--neon); box-shadow:0 0 8px rgba(56,224,138,.9); opacity:0; pointer-events:none}
+  /* fill, not cover: the strip is a scrubber, so the whole call must be on
+     screen — cropping the time axis makes the needle and seek positions lie. */
+  .lv-spec img{display:block; width:100%; height:110px; object-fit:fill}
+  /* Progress lives in one CSS var per spectrogram (--p, 0..1), driven at 60fps
+     from rAF, so the playhead glides and every layer below tracks it — including
+     the rotated portrait viewer, where the whole wrap (and these layers) turn 90°
+     together, no separate math. --hp is the hover-scrub position. */
+  .lv-spec,.lv-rowspec,.lv-zwrap{--p:0; --hp:0}
+  .lv-needle{position:absolute; top:0; bottom:0; left:calc(var(--p)*100%); width:2px; margin-left:-1px; background:linear-gradient(180deg,#eafff4,var(--neon)); box-shadow:0 0 10px 1px rgba(56,224,138,.85), 0 0 24px 4px rgba(56,224,138,.4); opacity:0; pointer-events:none; will-change:left}
+  .lv-needle::after{content:""; position:absolute; top:0; bottom:0; left:-30px; width:30px; background:linear-gradient(90deg,rgba(56,224,138,0),rgba(56,224,138,.28))} /* neon wake trailing the played side */
+  /* Played glows, unplayed dims — the call lights up as it sounds. */
+  .lv-veil{position:absolute; top:0; bottom:0; left:calc(var(--p)*100%); right:0; background:linear-gradient(90deg,rgba(6,10,7,0),rgba(6,10,7,.5) 24px); opacity:0; transition:opacity .3s; pointer-events:none}
+  .lv-wash{position:absolute; top:0; bottom:0; left:0; width:calc(var(--p)*100%); background:linear-gradient(90deg,rgba(56,224,138,.04),rgba(56,224,138,.16)); mix-blend-mode:screen; opacity:0; transition:opacity .3s; pointer-events:none}
+  .lv-player.playing .lv-veil,.lv-player.playing .lv-wash,
+  .lv-rowwrap.playing .lv-veil,.lv-rowwrap.playing .lv-wash,
+  .lv-zoom.zplaying .lv-veil,.lv-zoom.zplaying .lv-wash{opacity:1}
+  /* Hover to scrub: a ghost needle + time bubble track the cursor (pointer devices). */
+  .lv-ghost{position:absolute; top:0; bottom:0; left:calc(var(--hp)*100%); width:1px; background:rgba(244,241,233,.6); opacity:0; transition:opacity .12s; pointer-events:none}
+  .lv-htip{position:absolute; top:5px; left:calc(var(--hp)*100%); transform:translateX(-50%); font-family:var(--mono); font-size:.6rem; padding:.08rem .32rem; border-radius:4px; background:rgba(6,10,7,.82); color:var(--paper); opacity:0; transition:opacity .12s; pointer-events:none; white-space:nowrap}
+  @media(hover:hover){.lv-spec:hover .lv-ghost,.lv-spec:hover .lv-htip,.lv-rowspec:hover .lv-ghost,.lv-rowspec:hover .lv-htip,.lv-zwrap:hover .lv-ghost,.lv-zwrap:hover .lv-htip{opacity:1}}
   .lv-expand{position:absolute; top:.35rem; right:.35rem; z-index:2; width:26px; height:26px; border-radius:50%; border:none; background:rgba(6,10,7,.65); color:var(--neon); font-size:.72rem; cursor:pointer; display:flex; align-items:center; justify-content:center}
   .lv-expand:hover{background:rgba(6,10,7,.9)}
-  .lv-zoom{position:fixed; inset:0; z-index:1000; background:rgba(6,10,7,.96); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:.9rem; padding:1.2rem; cursor:zoom-out}
-  .lv-zoom img{max-width:min(96vw,1100px); max-height:70vh; width:100%; object-fit:contain; border-radius:10px}
-  .lv-zoom figcaption{font-family:var(--mono); font-size:.74rem; color:var(--paper); letter-spacing:.06em}
-  .lv-zoom figcaption b{color:var(--neon); font-weight:600}
+  .lv-expand::after,.lv-rowplay::after{content:""; position:absolute; inset:-9px} /* thumb-sized hit area behind the small glyph */
+
+  /* Full-screen call viewer: the spectrogram with its needle, seek and play —
+     the whole instrument, not just a bigger picture. */
+  /* margin:0 beats normalize's figure{margin:1em 40px}, which left uncovered
+     strips of page peeking around the old overlay. */
+  .lv-zoom{position:fixed; inset:0; margin:0; z-index:1000; background:rgba(6,10,7,.97); display:flex; flex-direction:column; overflow:hidden; overscroll-behavior:contain; animation:lvZoomIn .18s ease}
+  @keyframes lvZoomIn{from{opacity:0}}
+  .lv-zclose{position:absolute; top:max(.7rem, env(safe-area-inset-top)); right:.9rem; z-index:3; width:38px; height:38px; border-radius:50%; border:1px solid rgba(244,241,233,.25); background:rgba(6,10,7,.6); color:var(--paper); font-size:1.1rem; line-height:1; cursor:pointer}
+  .lv-zclose:hover{border-color:var(--neon); color:var(--neon)}
+  .lv-zstage{flex:1; min-height:0; display:flex; align-items:center; justify-content:center; cursor:zoom-out}
+  .lv-zwrap{position:relative; flex:0 0 auto; width:min(92vw,1100px); border-radius:12px; overflow:hidden; background:var(--ink); box-shadow:0 24px 70px -24px rgba(0,0,0,.9); cursor:crosshair}
+  .lv-zwrap img{display:block; width:100%; height:min(48vh,340px); object-fit:fill}
+  .lv-zoom .lv-needle{transition:opacity .2s}
+  .lv-zoom.zplaying .lv-needle{opacity:1}
+  /* Portrait phone: turn the strip 90° so the call runs down the long axis of
+     the screen, the way video players do. Time then flows top→bottom, and the
+     seek math in JS flips with it. */
+  .lv-zoom.rot .lv-zwrap{width:min(76vh,1000px); width:min(76dvh,1000px); transform:rotate(90deg)}
+  .lv-zoom.rot .lv-zwrap img{height:min(62vw,340px); max-height:none}
+  .lv-zbar{display:flex; align-items:center; gap:.75rem; width:min(92vw,1100px); margin:0 auto; padding:.7rem 1rem calc(.7rem + env(safe-area-inset-bottom)); color:var(--paper)}
+  .lv-zplay{flex:0 0 auto; width:42px; height:42px; border-radius:50%; border:none; background:var(--neon); color:var(--ink); font-size:.95rem; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:transform .12s}
+  .lv-zplay:active{transform:scale(.92)}
+  .lv-zrate{flex:0 0 auto; font-family:var(--mono); font-size:.7rem; letter-spacing:.02em; padding:.32rem .55rem; border-radius:999px; border:1px solid rgba(244,241,233,.3); background:transparent; color:var(--paper); cursor:pointer}
+  .lv-zrate.on{background:var(--neon); color:var(--ink); border-color:var(--neon)}
+  .lv-ztxt{flex:1; min-width:0; line-height:1.3}
+  .lv-ztxt b{display:block; font-family:var(--display); font-weight:600; font-size:1.05rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+  .lv-ztxt .sub{display:block; font-family:var(--mono); font-size:.66rem; color:rgba(244,241,233,.6); letter-spacing:.04em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+  .lv-ztime{font-family:var(--mono); font-size:.72rem; color:var(--neon)}
   .lv-player.playing .lv-needle{opacity:1}
   .lv-pctl{display:flex; align-items:center; gap:.7rem; padding:.55rem .8rem}
   .lv-playbtn{flex:0 0 auto; width:38px;height:38px;border-radius:50%;border:none;background:var(--ink);color:var(--neon);font-size:.9rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:transform .12s}
@@ -72,12 +115,12 @@
   .lv-row .rn a{text-decoration:none} .lv-row .rn a:hover{color:var(--green)}
   .lv-row .rt{font-family:var(--mono); font-size:.7rem; color:var(--muted); white-space:nowrap}
   .lv-row .rc{font-family:var(--mono); font-size:.7rem; color:var(--green); width:2.5rem; text-align:right}
-  .lv-rowplay{flex:0 0 auto; width:26px;height:26px;border-radius:50%;border:1px solid rgba(13,18,14,.2);background:transparent;color:var(--ink);font-size:.6rem;cursor:pointer;display:flex;align-items:center;justify-content:center}
+  .lv-rowplay{position:relative; flex:0 0 auto; width:26px;height:26px;border-radius:50%;border:1px solid rgba(13,18,14,.2);background:transparent;color:var(--ink);font-size:.6rem;cursor:pointer;display:flex;align-items:center;justify-content:center}
   .lv-rowplay:hover{background:var(--ink);color:var(--neon);border-color:var(--ink)}
   .lv-rowplay.on{background:var(--ink);color:var(--neon);border-color:var(--ink)}
   /* Each row keeps its own picture of its sound: an inline strip, not a hijacked shared view. */
   .lv-rowspec{display:none; position:relative; margin:.1rem 0 .55rem 2.55rem; border-radius:8px; overflow:hidden; background:var(--ink); cursor:pointer}
-  .lv-rowspec img{display:block; width:100%; height:60px; object-fit:cover; object-position:center}
+  .lv-rowspec img{display:block; width:100%; height:64px; object-fit:fill}
   .lv-rowwrap.open .lv-rowspec{display:block}
   .lv-rowwrap.playing .lv-needle{opacity:1}
 
@@ -129,9 +172,17 @@
   .lv-hoursax{display:flex; justify-content:space-between; max-width:34rem; font-family:var(--mono); font-size:.64rem; color:var(--muted)}
 
   .lv-foot{color:var(--muted); font-size:.74rem; margin-top:3rem}
+  .livewire{-webkit-tap-highlight-color:transparent}
+  .lv-spec,.lv-rowspec,.lv-expand,.lv-playbtn,.lv-rowplay,.lv-range,.lv-bar,.lv-zoom{touch-action:manipulation}
+  @media(pointer:coarse){
+    .lv-expand{width:32px; height:32px; font-size:.8rem}
+    .lv-rowplay{width:32px; height:32px; font-size:.7rem}
+    .lv-rowspec img{height:80px} /* a 60px strip is too fine a target to seek by thumb */
+  }
   @media(max-width:560px){
     .livewire section{margin-top:2.2rem}
     .lv-rowspec{margin-left:0}
+    .lv-spec img{height:96px}
     .lv-toprow .tn{flex:0 0 42%}
     .lv-status{text-align:center}
     .lv-when{font-size:.62rem}
@@ -140,7 +191,7 @@
   .lv-empty{padding:3rem 0 1rem; text-align:center}
   .lv-empty h2{font-family:var(--display); font-weight:500; font-size:1.6rem; margin-bottom:.5rem}
   .lv-empty p{color:var(--muted); max-width:32rem; margin:.4rem auto}
-  @media(prefers-reduced-motion:reduce){.lv-dot{animation:none} .lv-row.flash{animation:none}}
+  @media(prefers-reduced-motion:reduce){.lv-dot{animation:none} .lv-row.flash{animation:none} .lv-zoom{animation:none}}
 </style>
 
 {% macro feather(fill) %}<span class="feather" style="background-image:url('data:image/svg+xml;utf8,{{ ('<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"' ~ fill ~ '\"><path d=\"M23 6c-1 0-1.8.3-2.5.9C19 5.6 16.8 4.7 14 5.2c-4 .7-5.6 4-9 4.3-2 .2-3.3-.6-3.3-.6S2 12 6 12.6c-.7 1-2 1.7-3.5 1.9 0 0 1.2 1.5 3.6 1.1-.5.9-1.6 2-3.6 2.4 0 0 3.4 1.6 6.9-.6 2.9-1.8 4-4.8 6.1-6.9C22.5 9.4 24 8 23 6z\"/></svg>') }}')"></span>{% endmacro %}
@@ -203,7 +254,11 @@
           <div class="lv-player" id="lv-player" hidden>
             <div class="lv-spec" id="lv-spec" title="the call, as a spectrogram — click to seek">
               <img id="lv-specimg" alt="spectrogram of the call">
+              <div class="lv-wash"></div>
+              <div class="lv-veil"></div>
               <div class="lv-needle" id="lv-needle"></div>
+              <div class="lv-ghost"></div>
+              <div class="lv-htip"></div>
               <button type="button" class="lv-expand" data-zoom="hero" aria-label="enlarge spectrogram">&#8599;</button>
             </div>
             <div class="lv-pctl">
@@ -353,8 +408,51 @@
     var pb = document.getElementById("lv-playbtn");
     if (pb) pb.innerHTML = (playing && current && current.isHero) ? "&#10074;&#10074;" : "&#9654;";
     if (player) player.classList.toggle("playing", playing && current && current.isHero);
+    if (zoom && zoomRec) {
+      var zon = playing && current && current.audio === zoomRec.audio;
+      zoom.classList.toggle("zplaying", !!zon);
+      var zp = zoom.querySelector(".lv-zplay");
+      if (zp) zp.innerHTML = zon ? "&#10074;&#10074;" : "&#9654;";
+    }
   }
   function fmtT(s) { s = Math.floor(s || 0); return Math.floor(s / 60) + ":" + ("0" + (s % 60)).slice(-2); }
+
+  /* ---- 60fps playhead engine ----
+     One rAF loop drives a single --p (progress 0..1) on every on-screen view of
+     the playing clip — the hero strip, its open feed row, and the full-screen
+     viewer at once. The needle, the "played" wash and the "unplayed" veil all key
+     off --p in CSS, so they glide together instead of stepping ~4×/s on timeupdate,
+     and the rotated portrait viewer inherits it for free. */
+  function specRec(el) {
+    if (el.id === "lv-spec") return heroClip;
+    if (el.classList.contains("lv-zwrap")) return zoomRec;
+    var w = el.closest(".lv-rowwrap");
+    return w ? findRec(w.getAttribute("data-audio")) : null;
+  }
+  function activeSpecs() {
+    var out = [];
+    if (!current) return out;
+    if (current.isHero) { var s = document.getElementById("lv-spec"); if (s) out.push(s); }
+    var row = document.querySelector('#lv-feed .lv-rowwrap[data-audio="' + current.audio + '"] .lv-rowspec');
+    if (row) out.push(row);
+    if (zoom && zoomRec && zoomRec.audio === current.audio) {
+      var zw = zoom.querySelector(".lv-zwrap"); if (zw) out.push(zw);
+    }
+    return out;
+  }
+  function paint() {
+    var d = audio.duration, p = d ? audio.currentTime / d : 0;
+    activeSpecs().forEach(function (el) { el.style.setProperty("--p", p); });
+    var label = fmtT(audio.currentTime) + (d ? " / " + fmtT(d) : "");
+    if (current && current.isHero) { var pt = document.getElementById("lv-ptime"); if (pt) pt.textContent = label; }
+    if (zoom && zoomRec && current && current.audio === zoomRec.audio) {
+      var zt = zoom.querySelector(".lv-ztime"); if (zt) zt.textContent = label;
+    }
+  }
+  var rafId = null;
+  function tick() { paint(); rafId = audio.paused ? null : requestAnimationFrame(tick); }
+  function startRaf() { if (rafId == null) rafId = requestAnimationFrame(tick); }
+
   if (player) {
     document.getElementById("lv-playbtn").addEventListener("click", function () {
       if (current && current.isHero) { if (audio.paused) audio.play().catch(function(){}); else audio.pause(); }
@@ -365,34 +463,116 @@
       var box = this.getBoundingClientRect(), frac = (e.clientX - box.left) / box.width;
       if (heroClip) playClip(heroClip, { needle: document.getElementById("lv-needle"), isHero: true }, frac);
     });
-    audio.addEventListener("timeupdate", function () {
-      if (current && current.isHero) {
-        document.getElementById("lv-ptime").textContent = fmtT(audio.currentTime) + (audio.duration ? " / " + fmtT(audio.duration) : "");
-      }
-      if (current && current.needle && audio.duration) {
-        current.needle.style.left = (audio.currentTime / audio.duration * 100) + "%";
-      }
-    });
-    ["play", "pause", "ended"].forEach(function (ev) { audio.addEventListener(ev, syncViews); });
+    audio.addEventListener("play", function () { syncViews(); startRaf(); });
+    audio.addEventListener("pause", function () { syncViews(); paint(); });
+    audio.addEventListener("ended", function () { syncViews(); paint(); });
+    audio.addEventListener("seeked", paint);
+    audio.addEventListener("loadedmetadata", paint);
     // Clips not public yet (or expired): pull the whole affordance, no broken UI.
     audio.addEventListener("error", function () { root.classList.add("no-media"); });
+
+    // Hover to scrub: a ghost needle + time bubble track the cursor (pointer
+    // devices); the click handlers already seek to where you release.
+    document.addEventListener("pointermove", function (e) {
+      var el = e.target.closest && e.target.closest(".lv-spec, .lv-rowspec, .lv-zwrap");
+      if (!el) return;
+      var b = el.getBoundingClientRect();
+      var rot = zoom && zoom.classList.contains("rot") && el.classList.contains("lv-zwrap");
+      var f = rot ? (e.clientY - b.top) / b.height : (e.clientX - b.left) / b.width;
+      f = Math.max(0, Math.min(1, f));
+      el.style.setProperty("--hp", f);
+      var tip = el.querySelector(".lv-htip");
+      if (tip) {
+        var rec = specRec(el);
+        var known = rec && current && current.audio === rec.audio && audio.duration;
+        tip.textContent = known ? fmtT(f * audio.duration) : Math.round(f * 100) + "%";
+      }
+    }, { passive: true });
   }
-  /* ---- tap to enlarge: full-screen look at the call's picture ---- */
-  var zoom = null;
+  /* ---- tap to enlarge: a full-screen, PLAYABLE look at the call. On a
+     portrait phone the strip rotates 90° (CSS .rot) so the call runs down the
+     long axis of the screen; seeking reads Y instead of X to match. The phone
+     back gesture closes it like any lightbox should. ---- */
+  var zoom = null, zoomRec = null, zoomPushed = false;
+  var zoomRot = matchMedia("(orientation: portrait) and (pointer: coarse)");
+  function zoomLayout() { if (zoom) zoom.classList.toggle("rot", zoomRot.matches); }
+  if (zoomRot.addEventListener) zoomRot.addEventListener("change", zoomLayout);
+  else if (zoomRot.addListener) zoomRot.addListener(zoomLayout);
+  function zoomCtx(r) { // play from the zoom, but keep the source view's needle alive too
+    if (heroClip && r.audio === heroClip.audio) return { needle: document.getElementById("lv-needle"), isHero: true };
+    var w = document.querySelector('#lv-feed .lv-rowwrap[data-audio="' + r.audio + '"]');
+    return { needle: w ? w.querySelector(".lv-needle") : null };
+  }
   function openZoom(r) {
     if (!r || !r.spec) return;
-    closeZoom();
+    closeZoom("replace");
+    zoomRec = r;
     zoom = document.createElement("figure");
     zoom.className = "lv-zoom";
-    zoom.innerHTML = '<img src="' + MEDIA + esc(r.spec) + '" alt="spectrogram of the ' + esc(r.display) + ' call">' +
-      '<figcaption><b>' + esc(r.display) + '</b> · ' + clock(r.t) + ' · ' + Math.round(r.conf * 100) + '%</figcaption>';
-    zoom.addEventListener("click", closeZoom);
+    zoom.innerHTML =
+      '<button type="button" class="lv-zclose" aria-label="close">&times;</button>' +
+      '<div class="lv-zstage"><div class="lv-zwrap">' +
+        '<img src="' + MEDIA + esc(r.spec) + '" alt="spectrogram of the ' + esc(r.display) + ' call" decoding="async">' +
+        '<div class="lv-wash"></div><div class="lv-veil"></div>' +
+        '<div class="lv-needle"></div>' +
+        '<div class="lv-ghost"></div><div class="lv-htip"></div>' +
+      '</div></div>' +
+      '<div class="lv-zbar">' +
+        (r.audio ? '<button type="button" class="lv-zplay" aria-label="play the call">&#9654;</button>' : '') +
+        '<div class="lv-ztxt"><b>' + esc(r.display) + '</b><span class="sub">' + clock(r.t) + ' &middot; ' + Math.round(r.conf * 100) + '%' + (r.audio ? ' &middot; tap to seek' : '') + '</span></div>' +
+        (r.audio ? '<button type="button" class="lv-zrate" aria-label="playback speed">1&times;</button>' : '') +
+        (r.audio ? '<span class="lv-ztime">0:00</span>' : '') +
+      '</div>';
     document.body.appendChild(zoom);
+    document.body.style.overflow = "hidden";
+    zoomLayout();
+    audio.playbackRate = 1; // fresh 1× button on open
+    if (!zoomPushed) { try { history.pushState({ lvZoom: 1 }, ""); zoomPushed = true; } catch (_) {} }
+    syncViews();
+    paint(); // reflect the live position on the enlarged strip immediately
   }
-  function closeZoom() { if (zoom) { zoom.remove(); zoom = null; } }
+  function closeZoom(how) {
+    if (!zoom) return;
+    zoom.remove(); zoom = null; zoomRec = null;
+    document.body.style.overflow = "";
+    if (how === "replace") return;            // next openZoom reuses the pushed entry
+    if (how !== "pop" && zoomPushed) { try { history.back(); } catch (_) {} }
+    zoomPushed = false;
+  }
+  window.addEventListener("popstate", function () { if (zoom) closeZoom("pop"); });
   document.addEventListener("keydown", function (e) { if (e.key === "Escape") closeZoom(); });
 
   document.addEventListener("click", function (e) {
+    if (zoom && zoom.contains(e.target)) {
+      if (e.target.closest(".lv-zclose")) { closeZoom(); return; }
+      if (e.target.closest(".lv-zplay")) {
+        if (current && current.audio === zoomRec.audio) {
+          if (audio.paused) audio.play().catch(function () {}); else audio.pause();
+        } else playClip(zoomRec, zoomCtx(zoomRec));
+        return;
+      }
+      if (e.target.closest(".lv-zrate")) {
+        // Slow-mo: hear (and watch) a fast warbler or a subtle owl at half speed.
+        var rb = e.target.closest(".lv-zrate");
+        var rate = audio.playbackRate < 1 ? 1 : 0.5;
+        audio.playbackRate = rate;
+        rb.innerHTML = (rate === 1 ? "1" : "0.5") + "&times;";
+        rb.classList.toggle("on", rate < 1);
+        return;
+      }
+      var zw = e.target.closest(".lv-zwrap");
+      if (zw && zoomRec.audio) {
+        // getBoundingClientRect is the post-rotation box, so in .rot mode the
+        // time axis is its height.
+        var zb = zw.getBoundingClientRect();
+        var zf = zoom.classList.contains("rot") ? (e.clientY - zb.top) / zb.height : (e.clientX - zb.left) / zb.width;
+        playClip(zoomRec, zoomCtx(zoomRec), Math.max(0, Math.min(1, zf)));
+        return;
+      }
+      if (e.target.closest(".lv-zbar")) return;
+      closeZoom();
+      return;
+    }
     var ex = e.target.closest(".lv-expand");
     if (ex) {
       e.stopPropagation();
@@ -461,7 +641,7 @@
         '<span class="rc">' + Math.round(r.conf * 100) + '%</span>' +
         (r.audio ? '<button class="lv-rowplay" data-audio="' + esc(r.audio) + '" aria-label="play this call">&#9654;</button>' : '') +
         '</div>' +
-        (r.spec ? '<div class="lv-rowspec" title="this call — click to seek"><img src="' + MEDIA + esc(r.spec) + '" alt="spectrogram of the ' + esc(r.display) + ' call" loading="lazy"><div class="lv-needle"></div><button type="button" class="lv-expand" data-audio="' + esc(r.audio || '') + '" aria-label="enlarge spectrogram">&#8599;</button></div>' : '') +
+        (r.spec ? '<div class="lv-rowspec" title="this call — click to seek"><img src="' + MEDIA + esc(r.spec) + '" alt="spectrogram of the ' + esc(r.display) + ' call" loading="lazy"><div class="lv-wash"></div><div class="lv-veil"></div><div class="lv-needle"></div><div class="lv-ghost"></div><div class="lv-htip"></div><button type="button" class="lv-expand" data-audio="' + esc(r.audio || '') + '" aria-label="enlarge spectrogram">&#8599;</button></div>' : '') +
         '</div>';
     }).join("");
     // Re-point the live needle at the rebuilt strip for whatever's playing.
