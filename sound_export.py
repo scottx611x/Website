@@ -40,7 +40,8 @@ LOG_KEY = "birds/sounds/log.json"    # the full browsable detection log (its own
 CLIP_PREFIX = "birds/sounds/clips/"
 RECENT_N = 80         # feed backlog: the live page consolidates + scrolls these
 LOG_N = 1500          # detections in the log page's backlog
-MEDIA_N = 25          # newest detections that get audio + spectrogram published
+INDEX_KEY = "birds/sounds/media_index.json"  # clipName -> published refs, forever
+NEW_PER_RUN = 20      # fresh transcode+render budget per pass (backlog can't stall the timer)
 DAILY_DAYS = 400      # enough runway for the year view
 
 
@@ -151,12 +152,28 @@ def _aac_cmd(src, dst):
     return None
 
 
-def publish_media(dets, s3):
-    """Transcode + upload audio and spectrograms for the newest detections.
+def load_media_index(s3):
+    """clipName -> {"audio":..., "spec":...} for every clip ever published."""
+    if s3 is None:
+        return {}
+    try:
+        body = s3.get_object(Bucket=BUCKET, Key=INDEX_KEY)["Body"].read()
+        return json.loads(body)
+    except Exception:
+        return {}
 
-    Returns {clipName: {"audio": key-basename, "spec": key-basename}} for
-    everything that made it (now or on a previous run). Uploads are immutable
-    (clip names embed the timestamp), so existing keys are skipped wholesale.
+
+def publish_media(dets, s3):
+    """Publish audio + spectrograms for EVERY detection, and never forget them.
+
+    A persistent clipName->refs index (media_index.json) makes old recordings
+    stay playable forever: once a clip's media is in S3 (uploads are immutable,
+    names embed the timestamp) its refs come straight from the index with zero
+    per-run S3 probes. Only un-indexed clips cost anything — new ones are
+    transcoded + rendered (budgeted at NEW_PER_RUN per pass so a backlog can't
+    stall the 60s timer; the next pass picks up where this one stopped), and
+    ones whose WAV already rotated off disk get a one-time HeadObject probe to
+    adopt whatever made it to S3 while we had it.
 
     Existence is probed per-key with HeadObject (covered by the exporter's
     GetObject grant) rather than a bucket ListObjects, so the S3 key stays
@@ -171,10 +188,11 @@ def publish_media(dets, s3):
         except Exception:
             return False
 
-    refs = {}
-    for d in dets[:MEDIA_N]:
+    index = load_media_index(s3)
+    dirty, fresh = False, 0
+    for d in dets[:LOG_N]:
         clip = d.get("clipName")
-        if not clip:
+        if not clip or clip in index:
             continue
         base = os.path.splitext(os.path.basename(clip))[0]
         # _v3: 2200x480 (2x for retina + the full-screen zoom). _v2 is the old
@@ -184,51 +202,65 @@ def publish_media(dets, s3):
 
         wav = find_clip(os.path.basename(clip))
         if not wav:
-            # The WAV rotated off disk — reuse whatever was published while we
-            # had it instead of silently dropping the refs.
+            # The WAV rotated off disk — adopt whatever was published while we
+            # had it. Indexed even when empty, so the probe happens only once.
             if have(m4a):
                 ref["audio"] = m4a
             if have(spec):
                 ref["spec"] = spec
             elif have(old_spec):
                 ref["spec"] = old_spec
-        if wav:
-            if have(m4a):
-                ref["audio"] = m4a
-            elif s3 is not None:
-                with tempfile.TemporaryDirectory() as td:
-                    out = os.path.join(td, m4a)
-                    cmd = _aac_cmd(wav, out)
-                    if cmd is None:
-                        print("no AAC encoder (need afconvert or ffmpeg)", file=sys.stderr)
-                    else:
-                        r = subprocess.run(cmd, capture_output=True)
-                        if r.returncode == 0:
-                            s3.upload_file(out, BUCKET, CLIP_PREFIX + m4a, ExtraArgs={
-                                "ContentType": "audio/mp4",
-                                "CacheControl": "public, max-age=31536000, immutable"})
-                            ref["audio"] = m4a
-                        else:
-                            print("%s failed for %s: %s" % (cmd[0], clip, r.stderr.decode()[:200]),
-                                  file=sys.stderr)
-            if have(spec):
-                ref["spec"] = spec
-            elif s3 is not None:
-                try:
-                    with tempfile.TemporaryDirectory() as td:
-                        png = os.path.join(td, spec)
-                        render_spectrogram(wav, png)
-                        s3.upload_file(png, BUCKET, CLIP_PREFIX + spec, ExtraArgs={
-                            "ContentType": "image/png",
+            index[clip] = ref
+            dirty = True
+            continue
+        if fresh >= NEW_PER_RUN:
+            continue  # budget spent — NOT indexed, so the next run takes it
+        fresh += 1
+        if have(m4a):
+            ref["audio"] = m4a
+        elif s3 is not None:
+            with tempfile.TemporaryDirectory() as td:
+                out = os.path.join(td, m4a)
+                cmd = _aac_cmd(wav, out)
+                if cmd is None:
+                    print("no AAC encoder (need afconvert or ffmpeg)", file=sys.stderr)
+                else:
+                    r = subprocess.run(cmd, capture_output=True)
+                    if r.returncode == 0:
+                        s3.upload_file(out, BUCKET, CLIP_PREFIX + m4a, ExtraArgs={
+                            "ContentType": "audio/mp4",
                             "CacheControl": "public, max-age=31536000, immutable"})
-                        ref["spec"] = spec
-                except Exception as e:
-                    print("spectrogram failed for %s: %s" % (clip, e), file=sys.stderr)
-                    if have(old_spec):
-                        ref["spec"] = old_spec
+                        ref["audio"] = m4a
+                    else:
+                        print("%s failed for %s: %s" % (cmd[0], clip, r.stderr.decode()[:200]),
+                              file=sys.stderr)
+        if have(spec):
+            ref["spec"] = spec
+        elif s3 is not None:
+            try:
+                with tempfile.TemporaryDirectory() as td:
+                    png = os.path.join(td, spec)
+                    render_spectrogram(wav, png)
+                    s3.upload_file(png, BUCKET, CLIP_PREFIX + spec, ExtraArgs={
+                        "ContentType": "image/png",
+                        "CacheControl": "public, max-age=31536000, immutable"})
+                    ref["spec"] = spec
+            except Exception as e:
+                print("spectrogram failed for %s: %s" % (clip, e), file=sys.stderr)
+                if have(old_spec):
+                    ref["spec"] = old_spec
         if ref:
-            refs[clip] = ref
-    return refs
+            # Something made it — index it so it's never re-done (and never lost).
+            index[clip] = ref
+            dirty = True
+        # else: both legs failed while the WAV is still here (encoder missing,
+        # transient error) — leave it un-indexed so the next run retries.
+    if dirty and s3 is not None:
+        s3.put_object(
+            Bucket=BUCKET, Key=INDEX_KEY,
+            Body=json.dumps(index, separators=(",", ":")).encode(),
+            ContentType="application/json", CacheControl="no-cache")
+    return index
 
 
 def build(s3=None):
