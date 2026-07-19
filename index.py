@@ -656,6 +656,7 @@ def birds_live_json():
 @app.route("/birds/stats", methods=["GET"])
 def birds_stats():
     shots = birds.load_gallery(shuffle=False)
+    _stats_covers = birds.species_covers(shots)  # best thumb per species (ghost-row avatar)
     stats = birds.gallery_stats(shots)
     span_months = 0
     if stats["first"] and stats["last"]:
@@ -689,7 +690,8 @@ def birds_stats():
         river=birds.activity_river(shots),
         species_places=birds.species_places(shots),
         species_ranked=sorted(
-            ((nm, c) for _, sp in birds.species_groups(shots) for nm, c in sp),
+            ((nm, c, (_stats_covers.get(nm) or [None])[0])
+             for _, sp in birds.species_groups(shots) for nm, c in sp),
             key=lambda kv: -kv[1]),
         loc_place=loc_place,
         span_months=span_months,

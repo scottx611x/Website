@@ -1207,7 +1207,10 @@
         var rt;
         addEventListener("resize", function () {
             clearTimeout(rt);
-            rt = setTimeout(function () { renderRiver(); renderAccum(); renderFam(); }, 200);
+            rt = setTimeout(function () {
+                renderRiver(); renderAccum(); renderFam();
+                if (window.__statsRefocus) window.__statsRefocus();  // re-render dropped the focus; restore it
+            }, 200);
         });
 
         // Curate: flip a spot's local/away status right where you spot the error.
@@ -1273,7 +1276,7 @@
         var hdr = document.querySelector(".stats .gallery-header") || document.querySelector(".gallery-header");
         if (hdr) hdr.appendChild(bar);
 
-        setTimeout(function () {
+        function runFocus() {
             var onLifeList = window.lvFocusLifer && window.lvFocusLifer(name);
             // Light up the bird's current in the river, its family in the treemap,
             // and the days I shot it in the calendar — context kept, focus shown.
@@ -1303,16 +1306,17 @@
             if (!row) {
                 // Not in the top-N leaderboard — drop a ghost row at the bottom so
                 // the focused bird still shows its rank and count.
-                var ranked = window.SPECIES_RANKED || [], rk = -1, cnt = 0;
-                for (var i = 0; i < ranked.length; i++) { if (ranked[i][0] === name) { rk = i + 1; cnt = ranked[i][1]; break; } }
+                var ranked = window.SPECIES_RANKED || [], rk = -1, cnt = 0, img = null;
+                for (var i = 0; i < ranked.length; i++) { if (ranked[i][0] === name) { rk = i + 1; cnt = ranked[i][1]; img = ranked[i][2]; break; } }
                 var board = document.getElementById("board");
                 if (rk > 0 && board) {
-                    var smax = (ranked[0] && ranked[0][1]) || 1;
+                    var smax = (ranked[0] && ranked[0][1]) || 1, nm = name.replace(/[<&>]/g, "");
                     row = document.createElement("a");
                     row.className = "bar-row rich ghost";
                     row.href = "/birds/species/" + slug;
                     row.innerHTML =
-                        '<span class="bar-label">#' + rk + ' &middot; ' + name.replace(/[<&>]/g, "") + '</span>' +
+                        (img ? '<img class="bird-avatar" src="' + img + '" alt="" loading="lazy" onerror="this.classList.add(\'missing\')">' : '') +
+                        '<span class="bar-label">' + nm + ' <span class="bar-sub">#' + rk + '</span></span>' +
                         '<span class="bar-track"><span class="bar-fill" style="width:' + Math.max(2, Math.round(cnt / smax * 100)) + '%"></span></span>' +
                         '<span class="bar-val mono">' + cnt + '</span>';
                     board.appendChild(row);
@@ -1323,8 +1327,13 @@
             // otherwise the phenology matrix we just filtered.
             var target = onLifeList ? document.getElementById("accum-chart")
                 : (row || document.getElementById("pheno-matrix"));
-            if (target) target.scrollIntoView({ behavior: "smooth", block: "center" });
-        }, 500);
+            if (target && !scrolled) { scrolled = true; target.scrollIntoView({ behavior: "smooth", block: "center" }); }
+        }
+        var scrolled = false;
+        // Re-runnable: a resize re-renders the river/treemap/life-list and would
+        // otherwise drop the focus (mobile fires a resize when the URL bar hides).
+        window.__statsRefocus = runFocus;
+        setTimeout(runFocus, 500);
     })();
 </script>
 {% endblock %}

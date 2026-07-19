@@ -5,10 +5,13 @@
 <style>
   .sppage .sp-eyebrow{font-family:var(--mono); font-size:.72rem; letter-spacing:.15em; text-transform:uppercase; color:var(--green); margin:0 0 .3rem}
   .sppage h1{margin-bottom:.7rem}
-  .sp-chips{display:flex; flex-wrap:wrap; justify-content:center; gap:.5rem; margin-top:1rem}
-  .sp-chip{font-family:var(--mono); font-size:.8rem; text-decoration:none; color:var(--ink); padding:.4rem .9rem; border-radius:999px; border:1px solid rgba(13,18,14,.18); transition:all .15s ease; white-space:nowrap}
-  .sp-chip:hover{border-color:var(--green); color:var(--green); transform:translateY(-1px)}
-  .sp-chip b{font-weight:600}
+  /* A tappable STAT line, deliberately unlike the pill subnav above it (no
+     borders, number-forward, muted labels) so the two rows don't read alike. */
+  .sp-chips{display:flex; flex-wrap:wrap; justify-content:center; align-items:center; gap:.5rem 1.6rem; margin-top:1.7rem}
+  .sp-chip{font-family:var(--mono); font-size:.82rem; text-decoration:none; color:var(--muted); display:inline-flex; align-items:baseline; gap:.35rem; white-space:nowrap; transition:color .15s ease}
+  .sp-chip b{font-weight:600; color:var(--ink); font-size:1.05rem; letter-spacing:-.01em}
+  .sp-chip:hover{color:var(--green)} .sp-chip:hover b{color:var(--green)}
+  @media(hover:hover){.sp-chip{border-bottom:1px dotted transparent} .sp-chip:hover{border-color:var(--green)}}
 
   .sp-sec{margin-top:3.2rem}
   .sp-sec-h{display:flex; align-items:baseline; justify-content:space-between; gap:1rem; margin-bottom:1.1rem}
