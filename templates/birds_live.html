@@ -197,6 +197,8 @@
     .lv-when{font-size:.62rem}
     .lv-wall{grid-template-columns:repeat(auto-fill,minmax(78px,1fr)); gap:.4rem}
   }
+  .lv-logmore{display:inline-block; margin-top:1rem; font-size:.72rem; text-transform:uppercase; letter-spacing:.1em; color:var(--green); text-decoration:none; border-bottom:1px solid transparent}
+  .lv-logmore:hover{color:var(--neon); border-color:currentColor}
   .lv-empty{padding:3rem 0 1rem; text-align:center}
   .lv-empty h2{font-family:var(--display); font-weight:500; font-size:1.6rem; margin-bottom:.5rem}
   .lv-empty p{color:var(--muted); max-width:32rem; margin:.4rem auto}
@@ -290,6 +292,7 @@
             </div>
             {% endfor %}
           </div>
+          <a class="lv-logmore mono" href="/birds/live/log">Every detection, day by day &rarr;</a>
         </div>
       </div>
     </section>

@@ -653,6 +653,43 @@ def birds_live_json():
     return resp
 
 
+def _log_view():
+    """The full browsable detection log, enriched with display names + photos."""
+    data = birds.load_sound_log()
+    shots = birds.load_gallery(shuffle=False)
+    groups = birds.species_groups(shots)
+    photographed = {n for _, sp in groups for n, _ in sp}
+    covers = birds.species_covers(shots)
+
+    def enrich(entry):
+        common = entry.get("common") or ""
+        canon = birds._canon_species(common)
+        disp = canon[0] if canon else common
+        out = {"common": common, "display": disp,
+               "slug": birds._species_slug(disp),
+               "fam": canon[1] if canon else "Other birds",
+               "photo": birds.pick_cover(covers.get(disp), disp),
+               "shot": disp in photographed}
+        for k in ("t", "conf", "new", "audio", "spec", "sci"):
+            if k in entry:
+                out[k] = entry[k]
+        return out
+
+    log = data.get("log", []) if data else []
+    return {"generated": (data or {}).get("generated"),
+            "log": [enrich(e) for e in log]}
+
+
+@app.route("/birds/live/log", methods=["GET"])
+def birds_live_log():
+    """Every detection the mic has logged — grouped, paginated, filterable."""
+    view = _log_view()
+    return render_template(
+        "sound_log.html", title="Detection log", log=view["log"],
+        generated=view["generated"], has_data=bool(view["log"]),
+        curate=_curate_on(), local=_is_local())
+
+
 @app.route("/birds/stats", methods=["GET"])
 def birds_stats():
     shots = birds.load_gallery(shuffle=False)

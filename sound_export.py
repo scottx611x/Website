@@ -36,8 +36,10 @@ BNG = os.environ.get("BNG_URL", "http://localhost:8080").rstrip("/")
 BUCKET = os.environ.get("BIRDS_S3_BUCKET", "birds-scott-ouellette")
 CLIPS_DIR = os.path.expanduser(os.environ.get("BNG_CLIPS_DIR", "~/birdnet-go/data/clips"))
 KEY = "birds/sounds/recent.json"
+LOG_KEY = "birds/sounds/log.json"    # the full browsable detection log (its own file)
 CLIP_PREFIX = "birds/sounds/clips/"
 RECENT_N = 40
+LOG_N = 1500          # detections in the log page's backlog
 MEDIA_N = 25          # newest detections that get audio + spectrogram published
 DAILY_DAYS = 400      # enough runway for the year view
 
@@ -270,8 +272,9 @@ def build(s3=None):
 
     today_sp = sorted(day_sp.get(today, {}))
 
+    generated = dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds")
     return {
-        "generated": dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds"),
+        "generated": generated,
         "station": {"source": (dets[0]["source"]["displayName"] if dets else "BirdPi Mic")},
         "recent": [det(d) for d in dets[:RECENT_N]],
         "species": sp_out,
@@ -284,6 +287,9 @@ def build(s3=None):
             "speciesToday": len(today_sp),
             "callsToday": per_day.get(today, 0),
         },
+        # Split out in main(): the full detection log lives in its own file so
+        # recent.json (polled every 60s) stays tiny.
+        "log": [det(d) for d in dets[:LOG_N]],
     }
 
 
@@ -294,7 +300,11 @@ def main():
         import boto3
         s3 = boto3.client("s3")
     payload = build(s3)
+    # The detection log ships in its own file; keep it out of recent.json.
+    log = payload.pop("log", [])
+    log_payload = {"generated": payload["generated"], "log": log}
     body = json.dumps(payload, separators=(",", ":")).encode()
+    log_body = json.dumps(log_payload, separators=(",", ":")).encode()
     # local copy for debugging / commit-as-mirror
     here = os.path.dirname(os.path.abspath(__file__))
     local_path = os.path.join(here, "birds", "sounds_recent.json")
@@ -302,9 +312,9 @@ def main():
     with open(local_path, "wb") as fh:
         fh.write(body)
     with_audio = sum(1 for r in payload["recent"] if r.get("audio"))
-    print("built: %d species, %d recent calls (%d with audio), %d calls today (%d bytes)" % (
+    print("built: %d species, %d recent (%d w/audio), %d log entries, %d calls today (%d+%d bytes)" % (
         payload["counts"]["speciesAllTime"], len(payload["recent"]), with_audio,
-        payload["counts"]["callsToday"], len(body)))
+        len(log), payload["counts"]["callsToday"], len(body), len(log_body)))
     if dry:
         print("--dry-run: not uploading. Sample:")
         print(json.dumps(payload, indent=2)[:900])
@@ -312,7 +322,10 @@ def main():
     s3.put_object(
         Bucket=BUCKET, Key=KEY, Body=body,
         ContentType="application/json", CacheControl="max-age=30")
-    print("uploaded s3://%s/%s" % (BUCKET, KEY))
+    s3.put_object(
+        Bucket=BUCKET, Key=LOG_KEY, Body=log_body,
+        ContentType="application/json", CacheControl="max-age=30")
+    print("uploaded s3://%s/%s and %s" % (BUCKET, KEY, LOG_KEY))
 
 
 if __name__ == "__main__":

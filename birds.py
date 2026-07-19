@@ -1407,6 +1407,25 @@ def load_sounds():
         return None
 
 
+def load_sound_log():
+    """The full browsable detection log (birds/sounds/log.json) — every recent
+    detection, for /birds/live/log. Its own file so recent.json stays small."""
+    key = "{}/sounds/log.json".format(S3_PREFIX)
+    if os.environ.get("BIRDS_USE_S3"):
+        try:
+            import boto3
+
+            body = boto3.client("s3").get_object(Bucket=S3_BUCKET, Key=key)["Body"].read()
+            return json.loads(body)
+        except Exception:  # noqa: BLE001 - not published yet / unreachable
+            return None
+    try:
+        with open(os.path.join(HERE, "birds", "sounds_log.json")) as fh:
+            return json.load(fh)
+    except (OSError, ValueError):
+        return None
+
+
 def species_covers(shots):
     """Every grid thumbnail per canonical species (best-weight first, de-duped) —
     the pool the /birds/live viewer draws from when it hears a species you've also

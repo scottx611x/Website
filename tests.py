@@ -64,6 +64,18 @@ class RoutesTestCase(GenericTestBase):
         self.assertEqual(view["recent"], [])
         self.assertIsNone(view["generated"])
 
+    def test_birds_live_log_route(self):
+        response = self.test_client.get("/birds/live/log")
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(b"Detection log", response.data)
+
+    def test_birds_live_log_empty_when_no_log_data(self):
+        with mock.patch.object(birds, "load_sound_log", return_value=None):
+            response = self.test_client.get("/birds/live/log")
+        self.assertEqual(response.status_code, 200)
+        # Empty state, not the filter UI.
+        self.assertNotIn(b'id="dl-species"', response.data)
+
     def test_photography_renders_photos_and_tags(self):
         photos = [{"id": "a", "image": "u", "thumb": "t", "title": "Red Fox",
                    "species": "Red Fox", "location": "Weir Hill", "date": "2026-06-01",
