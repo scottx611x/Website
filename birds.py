@@ -950,21 +950,35 @@ def _caption_image_species(caption, n):
     """The per-frame species implied by the caption, for a post's ``n`` frames.
 
     When the caption pins one species per frame (line count matches the image
-    count) each frame gets its own; otherwise every frame gets the caption's
-    primary species (a single-species post, or a multi-species post we can't pin
-    1:1 — matching how the cover species was chosen). Frames a caption says nothing
-    about come back None.
+    count) each frame gets its own. When there are fewer species than frames — a
+    carousel with several photos per bird — we distribute the species
+    contiguously in caption order, as evenly as possible, with earlier species
+    taking any remainder (the headliner usually leads with more shots). A single
+    species covers every frame. Frames a caption says nothing about come back None.
 
-    This is the base a partial per-image override overlays onto, so editing one
-    frame's species never bleeds onto the post's other frames: the un-edited frames
-    keep their own caption species instead of collapsing to the edited value.
+    Contiguous distribution (not "every frame = the primary species") is what
+    stops a 9-photo post captioned "Chimney Swift / American Crow / Red-tailed
+    Hawk" from labelling the crow and hawk photos as swifts. It's a rough base
+    the curate editor refines; when it's wrong the fix is a per-frame edit.
+
+    This is also the base a partial per-image override overlays onto, so editing
+    one frame's species never bleeds onto the post's other frames: the un-edited
+    frames keep their own caption species instead of collapsing to the edited value.
     """
-    pairs = _species_pairs(caption)
-    if not pairs:
+    names = [p[0] for p in _species_pairs(caption)]
+    if not names:
         return [None] * n
-    if len(pairs) == n:
-        return [p[0] for p in pairs]
-    return [pairs[0][0]] * n
+    if len(names) == 1:
+        return [names[0]] * n
+    if len(names) == n:
+        return names
+    if len(names) < n:
+        base, extra = divmod(n, len(names))
+        out = []
+        for i, nm in enumerate(names):
+            out.extend([nm] * (base + (1 if i < extra else 0)))
+        return out
+    return names[:n]  # more species than frames (unusual): one each, in order
 
 
 def apply_overrides(shots, overrides=None, apply_exclusions=True):
@@ -1010,6 +1024,19 @@ def apply_overrides(shots, overrides=None, apply_exclusions=True):
                 shot["location"] = override["location"] or None
             if override.get("date"):
                 shot["date"] = override["date"]
+        # Posts without a per-image species edit still need per-frame species
+        # pinned from the caption — otherwise a multi-species carousel with no
+        # baked image_species falls back to the cover species on every frame
+        # (the same collapse that made a crow and a hawk read as Chimney Swifts).
+        # Preserve any per-frame species already present; only fill the gaps.
+        if not (override and override.get("images")):
+            n = len(shot.get("images") or [])
+            base = _caption_image_species(shot.get("caption") or "", n)
+            existing = shot.get("image_species") or []
+            filled = [(existing[i] if i < len(existing) and existing[i] else base[i])
+                      for i in range(n)]
+            if any(filled):
+                shot["image_species"] = filled
         shot["ambiguous"] = (not override) and _is_ambiguous(shot)
         shot["image_areas"] = _image_areas(shot)
         # Manual out-of-area overrides overlay the caption-derived areas.

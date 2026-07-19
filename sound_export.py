@@ -146,13 +146,19 @@ def publish_media(dets, s3):
     Returns {clipName: {"audio": key-basename, "spec": key-basename}} for
     everything that made it (now or on a previous run). Uploads are immutable
     (clip names embed the timestamp), so existing keys are skipped wholesale.
+
+    Existence is probed per-key with HeadObject (covered by the exporter's
+    GetObject grant) rather than a bucket ListObjects, so the S3 key stays
+    scoped to exactly PutObject/GetObject on birds/sounds/* — no ListBucket.
     """
-    have = set()
-    if s3 is not None:
-        paginator = s3.get_paginator("list_objects_v2")
-        for pg in paginator.paginate(Bucket=BUCKET, Prefix=CLIP_PREFIX):
-            for o in pg.get("Contents", []):
-                have.add(o["Key"][len(CLIP_PREFIX):])
+    def have(name):
+        if s3 is None:
+            return False
+        try:
+            s3.head_object(Bucket=BUCKET, Key=CLIP_PREFIX + name)
+            return True
+        except Exception:
+            return False
 
     refs = {}
     for d in dets[:MEDIA_N]:
@@ -165,7 +171,7 @@ def publish_media(dets, s3):
 
         wav = find_clip(os.path.basename(clip))
         if wav:
-            if m4a in have:
+            if have(m4a):
                 ref["audio"] = m4a
             elif s3 is not None:
                 with tempfile.TemporaryDirectory() as td:
@@ -179,12 +185,11 @@ def publish_media(dets, s3):
                             s3.upload_file(out, BUCKET, CLIP_PREFIX + m4a, ExtraArgs={
                                 "ContentType": "audio/mp4",
                                 "CacheControl": "public, max-age=31536000, immutable"})
-                            have.add(m4a)
                             ref["audio"] = m4a
                         else:
                             print("%s failed for %s: %s" % (cmd[0], clip, r.stderr.decode()[:200]),
                                   file=sys.stderr)
-            if spec in have:
+            if have(spec):
                 ref["spec"] = spec
             elif s3 is not None:
                 try:
@@ -194,7 +199,6 @@ def publish_media(dets, s3):
                         s3.upload_file(png, BUCKET, CLIP_PREFIX + spec, ExtraArgs={
                             "ContentType": "image/png",
                             "CacheControl": "public, max-age=31536000, immutable"})
-                        have.add(spec)
                         ref["spec"] = spec
                 except Exception as e:
                     print("spectrogram failed for %s: %s" % (clip, e), file=sys.stderr)

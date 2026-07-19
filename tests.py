@@ -288,6 +288,37 @@ class BirdsTestCase(unittest.TestCase):
         birds.apply_overrides([shot], overrides, apply_exclusions=False)
         self.assertEqual(shot["image_species"], ["Northern Cardinal", "Tufted Titmouse"])
 
+    def test_multispecies_carousel_distributes_not_collapses(self):
+        # A 9-photo post captioned with 3 species must spread those species across
+        # the frames in caption order — NOT label every frame the first species
+        # (the bug that made a crow and a hawk both read as Chimney Swifts).
+        cap = ("Chimney Swift - Rea St.\nAmerican Crow - Johnson St.\n"
+               "Red-tailed Hawk - Rea St.\n\n6-21-26")
+        self.assertEqual(
+            birds._caption_image_species(cap, 9),
+            ["Chimney Swift"] * 3 + ["American Crow"] * 3 + ["Red-tailed Hawk"] * 3,
+        )
+        # Uneven split: earlier (headliner) species take the remainder.
+        self.assertEqual(
+            birds._caption_image_species(cap, 7),
+            ["Chimney Swift"] * 3 + ["American Crow"] * 2 + ["Red-tailed Hawk"] * 2,
+        )
+        # And it holds through the load path for a post with no override / no
+        # baked per-frame species — the crow and hawk frames must not be swifts.
+        shot = {"id": "C", "images": list("012345678"), "caption": cap,
+                "species": "Chimney Swift"}
+        birds.apply_overrides([shot], overrides={}, apply_exclusions=False)
+        self.assertEqual(shot["image_species"][4], "American Crow")
+        self.assertEqual(shot["image_species"][7], "Red-tailed Hawk")
+        self.assertNotIn("Chimney Swift", shot["image_species"][3:])
+
+    def test_single_species_carousel_covers_every_frame(self):
+        # One species, many photos: every frame is that species (no regression).
+        self.assertEqual(
+            birds._caption_image_species("Barred Owl - Rea St.\n\n5-1-26", 4),
+            ["Barred Owl"] * 4,
+        )
+
     def test_map_points_matches_aliases(self):
         places = [{"name": "Rea St.", "lat": 42.67, "lng": -71.1, "area": "local",
                    "match": ["rea st"]}]
