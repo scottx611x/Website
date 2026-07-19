@@ -103,9 +103,47 @@
   .no-media .lv-player{display:none}
   .no-media .lv-rowplay{display:none}
 
-  .lv-feed{margin-top:.9rem}
-  .lv-rowwrap{border-top:1px solid rgba(13,18,14,.09)}
-  .lv-rowwrap:first-child{border-top:none}
+  /* Today-by-hour strip: each bar is a filter on the feed below it. */
+  #lv-hstrip{margin-top:1.1rem}
+  .lv-hkick{font-size:.62rem; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); margin:0 0 .35rem}
+  .lv-hbars{display:flex; align-items:flex-end; gap:2px; height:38px}
+  .lv-hb{flex:1; min-width:2px; border:none; padding:0; background:linear-gradient(180deg,var(--amber),rgba(232,176,75,.3)); border-radius:2px 2px 0 0; cursor:pointer}
+  .lv-hb.zero{background:rgba(13,18,14,.08); height:3px !important; cursor:default}
+  .lv-hb:hover:not(.zero){background:var(--neon)}
+  .lv-hb.sel{background:var(--green); box-shadow:0 0 0 1.5px rgba(13,18,14,.45)}
+  .lv-hb:focus-visible{outline:2px solid var(--green); outline-offset:2px}
+  .lv-hax{display:flex; justify-content:space-between; font-size:.6rem; color:var(--muted); margin-top:.15rem}
+  .lv-feednote{font-size:.72rem; color:#a9761f; margin:.7rem 0 0}
+  .lv-feednote b{color:var(--ink)}
+  .lv-nofeed{font-size:.78rem; color:var(--muted); padding:1rem 0}
+
+  /* The feed scrolls the whole backlog; a bottom fade hints there's more. */
+  .lv-feed{margin-top:.9rem; max-height:min(52vh,430px); overflow-y:auto; overscroll-behavior:contain; scrollbar-width:thin; scrollbar-color:rgba(13,18,14,.25) transparent; padding-right:.3rem}
+  .lv-feed.scrolly{-webkit-mask-image:linear-gradient(180deg,#000 calc(100% - 30px),transparent); mask-image:linear-gradient(180deg,#000 calc(100% - 30px),transparent)}
+  .lv-chain{border-top:1px solid rgba(13,18,14,.09)}
+  .lv-chain:first-child{border-top:none}
+  /* A run of the same species collapses to one row; ×N expands the calls. */
+  .lv-xn{flex:0 0 auto; font-family:var(--mono); font-size:.62rem; letter-spacing:.02em; padding:.14rem .48rem; border-radius:999px; border:1px solid rgba(47,125,79,.35); background:rgba(47,125,79,.08); color:var(--green); cursor:pointer}
+  .lv-xn:hover{background:var(--green); color:var(--paper); border-color:var(--green)}
+  .lv-chain.x .lv-xn{background:var(--ink); color:var(--neon); border-color:var(--ink)}
+  .lv-sub{display:none; margin:0 0 .5rem 2.55rem; border-left:2px solid rgba(47,125,79,.25); padding-left:.65rem}
+  .lv-chain.x .lv-sub{display:block}
+  .lv-sub .lv-row{padding:.26rem 0}
+  .lv-sub .rt2{flex:1; min-width:0; font-family:var(--mono); font-size:.7rem; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+  .lv-sub .rt2 .bb{color:var(--green)}
+  .lv-sub .lv-rowspec{margin-left:0}
+  /* Desktop: the meta wrapper is invisible to layout; phones re-grid the row so
+     the species name gets the full line and the meta drops underneath. */
+  .rmeta{display:contents}
+  @media(max-width:560px){
+    .lv-sub{margin-left:1.2rem}
+    .lv-row.mr{display:grid; grid-template-columns:34px minmax(0,1fr) auto; column-gap:.65rem; row-gap:.12rem; align-items:center}
+    .lv-row.mr .lv-av{grid-row:1/3}
+    .lv-row.mr .rn{grid-column:2; grid-row:1}
+    .lv-row.mr .lv-rowplay{grid-column:3; grid-row:1/3; align-self:center}
+    .lv-row.mr .rmeta{display:flex; align-items:center; gap:.6rem; grid-column:2; grid-row:2; min-width:0}
+    .lv-row.mr .rc{width:auto}
+  }
   .lv-row{display:flex; align-items:center; gap:.65rem; padding:.48rem 0}
   .lv-row.flash{animation:lvIn .9s ease}
   @keyframes lvIn{from{background:rgba(56,224,138,.25)}to{background:transparent}}
@@ -147,9 +185,9 @@
   .lv-wall.focusing .lv-chip{transition:opacity .3s, filter .3s}
   .lv-wall.focusing .lv-chip:not(.lv-match){opacity:.28; filter:grayscale(.5)}
   .lv-chip.lv-match{outline:2.5px solid var(--neon); outline-offset:2px; box-shadow:0 0 14px rgba(56,224,138,.5)}
-  .lv-feed.focusing .lv-rowwrap{transition:opacity .3s}
-  .lv-feed.focusing .lv-rowwrap:not(.lv-match){opacity:.3}
-  .lv-rowwrap.lv-match{background:rgba(56,224,138,.07); border-radius:8px}
+  .lv-feed.focusing .lv-chain{transition:opacity .3s}
+  .lv-feed.focusing .lv-chain:not(.lv-match){opacity:.3}
+  .lv-chain.lv-match{background:rgba(56,224,138,.07); border-radius:8px}
 
   /* History: one strip, four lenses. */
   .lv-ranges{display:flex; gap:.4rem; flex-wrap:wrap; margin-bottom:1rem}
@@ -175,14 +213,9 @@
   .lv-toprow .tb>i{display:block;height:100%;background:linear-gradient(90deg,var(--green),var(--neon))}
   .lv-toprow .tc{font-family:var(--mono); font-size:.7rem; color:var(--muted); width:3rem; text-align:right}
 
-  .lv-hours{display:flex; align-items:flex-end; gap:2px; height:52px; max-width:34rem; margin-top:1.4rem}
-  .lv-hourbar{flex:1; background:linear-gradient(180deg,var(--amber),rgba(232,176,75,.3)); border-radius:2px 2px 0 0}
-  .lv-hourbar.zero{background:rgba(13,18,14,.07); height:3px !important}
-  .lv-hoursax{display:flex; justify-content:space-between; max-width:34rem; font-family:var(--mono); font-size:.64rem; color:var(--muted)}
-
   .lv-foot{color:var(--muted); font-size:.74rem; margin-top:3rem}
   .livewire{-webkit-tap-highlight-color:transparent}
-  .lv-spec,.lv-rowspec,.lv-expand,.lv-playbtn,.lv-rowplay,.lv-range,.lv-bar,.lv-zoom{touch-action:manipulation}
+  .lv-spec,.lv-rowspec,.lv-expand,.lv-playbtn,.lv-rowplay,.lv-range,.lv-bar,.lv-hb,.lv-xn,.lv-zoom{touch-action:manipulation}
   @media(pointer:coarse){
     .lv-expand{width:32px; height:32px; font-size:.8rem}
     .lv-rowplay{width:32px; height:32px; font-size:.7rem}
@@ -282,13 +315,19 @@
               <span class="lv-ptime" id="lv-ptime">0:00</span>
             </div>
           </div>
+          <div id="lv-hstrip" hidden>
+            <p class="lv-hkick mono">today by hour &middot; tap a bar to filter the feed</p>
+            <div class="lv-hbars" id="lv-hbars"></div>
+            <div class="lv-hax mono"><span>12a</span><span>6a</span><span>12p</span><span>6p</span><span>11p</span></div>
+          </div>
+          <p class="lv-feednote mono" id="lv-feednote" hidden></p>
           <div class="lv-feed" id="lv-feed">
-            {% for r in sound.recent[1:9] %}
-            <div class="lv-row">
+            {% for r in sound.recent[:9] %}
+            <div class="lv-row mr">
               <span class="lv-av {{ '' if r.photo else 'miss' }}"{% if r.photo %} style="background-image:url('{{ r.photo }}')"{% endif %}></span>
               <span class="rn"><a href="/birds/species/{{ r.display|slug }}">{{ r.display }}</a></span>
-              <span class="rt" data-t="{{ r.t }}"></span>
-              <span class="rc">{{ (r.conf*100)|round|int }}%</span>
+              <span class="rmeta"><span class="rt" data-t="{{ r.t }}"></span>
+              <span class="rc">{{ (r.conf*100)|round|int }}%</span></span>
             </div>
             {% endfor %}
           </div>
@@ -329,11 +368,6 @@
       <div class="lv-chart" id="lv-chart"></div>
       <div class="lv-axis" id="lv-axis"></div>
       <div class="lv-top" id="lv-top"></div>
-      <div id="lv-hoursblock" hidden>
-        <p class="lv-kick" style="margin-top:1.6rem">Today, hour by hour</p>
-        <div class="lv-hours" id="lv-hours"></div>
-        <div class="lv-hoursax"><span>12a</span><span>6a</span><span>12p</span><span>6p</span><span>11p</span></div>
-      </div>
     </section>
 
     {% endif %}
@@ -446,8 +480,9 @@
     var out = [];
     if (!current) return out;
     if (current.isHero) { var s = document.getElementById("lv-spec"); if (s) out.push(s); }
-    var row = document.querySelector('#lv-feed .lv-rowwrap[data-audio="' + current.audio + '"] .lv-rowspec');
-    if (row) out.push(row);
+    // the same clip can be on screen twice (chain row + its expanded sub-row)
+    document.querySelectorAll('#lv-feed .lv-rowwrap[data-audio="' + current.audio + '"] .lv-rowspec')
+      .forEach(function (row) { out.push(row); });
     if (zoom && zoomRec && zoomRec.audio === current.audio) {
       var zw = zoom.querySelector(".lv-zwrap"); if (zw) out.push(zw);
     }
@@ -639,32 +674,105 @@
         '<div class="lv-meta">' + tags + confHTML(r) + '</div></div></div>';
     }
   }
+  /* ---- the feed: contiguous same-species calls fold into one chain row
+     showing the run's best confidence; ×N expands the individual calls.
+     The whole backlog scrolls; the hour strip narrows it to one hour. ---- */
+  var expandedChains = {}, hourSel = -1;
+  function chainsOf(list) {
+    var out = [];
+    list.forEach(function (r) {
+      var last = out[out.length - 1];
+      if (last && last.display === r.display) last.calls.push(r);
+      else out.push({ display: r.display, fam: r.fam, photo: r.photo, calls: [r] });
+    });
+    out.forEach(function (c) {
+      // the oldest call anchors the key: new calls prepend, the chain stays "the same"
+      c.key = slugify(c.display) + "|" + c.calls[c.calls.length - 1].t;
+      c.best = c.calls.reduce(function (a, x) { return x.conf > a.conf ? x : a; });
+      c.bestPlay = c.calls.filter(function (x) { return x.audio; })
+        .reduce(function (a, x) { return (!a || x.conf > a.conf) ? x : a; }, null);
+    });
+    return out;
+  }
+  function stripHTML(r) {
+    if (!r.spec) return "";
+    return '<div class="lv-rowspec" title="this call — click to seek"><img src="' + MEDIA + esc(r.spec) + '" alt="spectrogram of the ' + esc(r.display) + ' call" loading="lazy"><div class="lv-wash"></div><div class="lv-veil"></div><div class="lv-needle"></div><div class="lv-ghost"></div><div class="lv-htip"></div><div class="lv-speclabel">spectrogram</div><button type="button" class="lv-rowhide" aria-label="hide spectrogram">&times;</button><button type="button" class="lv-expand" data-audio="' + esc(r.audio || '') + '" aria-label="enlarge spectrogram">&#8599;</button></div>';
+  }
+  function hlabel(h) { return ((h % 12) || 12) + (h < 12 ? "a" : "p"); }
+  function feedFade() {
+    var f = document.getElementById("lv-feed");
+    f.classList.toggle("scrolly",
+      f.scrollHeight > f.clientHeight + 4 && f.scrollTop + f.clientHeight < f.scrollHeight - 8);
+  }
   function renderFeed(list, flashTop) {
     var feed = document.getElementById("lv-feed");
     // A re-render must not close the spectrograms someone opened.
     var open = {}, needleAt = null;
     feed.querySelectorAll(".lv-rowwrap.open").forEach(function (w) { open[w.getAttribute("data-audio")] = true; });
     if (current && !current.isHero && current.needle) needleAt = current.needle.style.left;
-    feed.innerHTML = list.slice(1, 9).map(function (r, i) {
-      var isOpen = r.audio && open[r.audio];
-      return '<div class="lv-rowwrap' + (isOpen ? ' open' : '') + '"' + (r.audio ? ' data-audio="' + esc(r.audio) + '"' : '') + '>' +
-        '<div class="lv-row' + (flashTop && i === 0 ? ' flash' : '') + '">' +
-        '<span class="lv-av ' + (r.photo ? '' : 'miss') + '"' + (r.photo ? ' style="background-image:url(\'' + r.photo + '\')"' : '') + '></span>' +
-        '<span class="rn"><a href="' + birdHref(r.display) + '">' + esc(r.display) + '</a></span>' +
-        '<span class="rt" data-t="' + esc(r.t) + '"></span>' +
-        '<span class="rc">' + Math.round(r.conf * 100) + '%</span>' +
-        (r.audio ? '<button class="lv-rowplay" data-audio="' + esc(r.audio) + '" aria-label="play this call">&#9654;</button>' : '') +
-        '</div>' +
-        (r.spec ? '<div class="lv-rowspec" title="this call — click to seek"><img src="' + MEDIA + esc(r.spec) + '" alt="spectrogram of the ' + esc(r.display) + ' call" loading="lazy"><div class="lv-wash"></div><div class="lv-veil"></div><div class="lv-needle"></div><div class="lv-ghost"></div><div class="lv-htip"></div><div class="lv-speclabel">spectrogram</div><button type="button" class="lv-rowhide" aria-label="hide spectrogram">&times;</button><button type="button" class="lv-expand" data-audio="' + esc(r.audio || '') + '" aria-label="enlarge spectrogram">&#8599;</button></div>' : '') +
-        '</div>';
-    }).join("");
+    var shown = list;
+    if (hourSel >= 0) {
+      var todayKey = new Date().toDateString();
+      shown = list.filter(function (r) {
+        var d = new Date(r.t);
+        return d.toDateString() === todayKey && d.getHours() === hourSel;
+      });
+    }
+    feed.innerHTML = chainsOf(shown).map(function (c, i) {
+      var n = c.calls.length, top = c.calls[0], bp = c.bestPlay;
+      var xd = n > 1 && expandedChains[c.key];
+      var main =
+        '<div class="lv-rowwrap' + (bp && open[bp.audio] ? ' open' : '') + '"' + (bp ? ' data-audio="' + esc(bp.audio) + '"' : '') + '>' +
+        '<div class="lv-row mr' + (flashTop && i === 0 ? ' flash' : '') + '">' +
+        '<span class="lv-av ' + (c.photo ? '' : 'miss') + '"' + (c.photo ? ' style="background-image:url(\'' + c.photo + '\')"' : '') + '></span>' +
+        '<span class="rn"><a href="' + birdHref(c.display) + '">' + esc(c.display) + '</a></span>' +
+        '<span class="rmeta">' +
+        (n > 1 ? '<button type="button" class="lv-xn" data-key="' + esc(c.key) + '" aria-expanded="' + (xd ? 'true' : 'false') + '" title="' + n + ' calls in a row — tap for each one">&times;' + n + ' ' + (xd ? '&#9652;' : '&#9662;') + '</button>' : '') +
+        '<span class="rt" data-t="' + esc(top.t) + '"></span>' +
+        '<span class="rc"' + (n > 1 ? ' title="best of ' + n + ' calls"' : '') + '>' + Math.round(c.best.conf * 100) + '%</span>' +
+        '</span>' +
+        (bp ? '<button class="lv-rowplay" data-audio="' + esc(bp.audio) + '" aria-label="play the best call">&#9654;</button>' : '') +
+        '</div>' + (bp ? stripHTML(bp) : '') + '</div>';
+      var sub = "";
+      if (n > 1) {
+        sub = '<div class="lv-sub">' + c.calls.map(function (x) {
+          return '<div class="lv-rowwrap' + (x.audio && open[x.audio] ? ' open' : '') + '"' + (x.audio ? ' data-audio="' + esc(x.audio) + '"' : '') + '>' +
+            '<div class="lv-row">' +
+            '<span class="rt2">' + clock(x.t) + (x === c.best ? ' <span class="bb">· best</span>' : '') + '</span>' +
+            '<span class="rc">' + Math.round(x.conf * 100) + '%</span>' +
+            (x.audio ? '<button class="lv-rowplay" data-audio="' + esc(x.audio) + '" aria-label="play this call">&#9654;</button>' : '') +
+            '</div>' + stripHTML(x) + '</div>';
+        }).join("") + '</div>';
+      }
+      return '<div class="lv-chain' + (xd ? ' x' : '') + '" data-key="' + esc(c.key) + '">' + main + sub + '</div>';
+    }).join("") || '<p class="lv-nofeed">nothing logged in this hour (yet)</p>';
     // Re-point the live needle at the rebuilt strip for whatever's playing.
     if (current && !current.isHero) {
       var w = feed.querySelector('.lv-rowwrap[data-audio="' + current.audio + '"]');
       current.needle = w ? w.querySelector(".lv-needle") : null;
       if (current.needle && needleAt) current.needle.style.left = needleAt;
     }
+    feedFade();
     syncViews();
+  }
+  function renderHourStrip() {
+    var wrap = document.getElementById("lv-hstrip"), hours = LIVE.hours || [];
+    var any = hours.some(function (n) { return n; });
+    wrap.hidden = !any;
+    if (!any) { hourSel = -1; return; }
+    var hm = Math.max.apply(null, hours);
+    document.getElementById("lv-hbars").innerHTML = hours.map(function (n, h) {
+      return '<button type="button" class="lv-hb' + (n ? '' : ' zero') + (h === hourSel ? ' sel' : '') + '" data-h="' + h + '"' +
+        (n ? '' : ' tabindex="-1" aria-hidden="true"') +
+        ' style="height:' + Math.max(4, Math.round(n / hm * 100)) + '%" aria-label="' + hlabel(h) + ', ' + n + ' calls"' +
+        ' title="' + hlabel(h) + ' · ' + n + ' call' + (n === 1 ? '' : 's') + (n ? ' — tap to filter' : '') + '"></button>';
+    }).join("");
+    var note = document.getElementById("lv-feednote");
+    if (hourSel >= 0) {
+      note.hidden = false;
+      note.innerHTML = 'showing <b>' + hlabel(hourSel) + '&ndash;' + hlabel((hourSel + 1) % 24) + '</b> · ' +
+        (hours[hourSel] || 0) + ' calls <button type="button" class="lv-clear mono" id="lv-hclear">&times; all hours</button>';
+    } else note.hidden = true;
   }
 
   /* ---- history: one daily strip, four lenses ---- */
@@ -738,17 +846,29 @@
         '<span class="tc">' + sp[n] + '&times;</span></div>';
     }).join("");
 
-    var hours = LIVE.hours || [], any = hours.some(function (n) { return n; });
-    document.getElementById("lv-hoursblock").hidden = !any;
-    if (any) {
-      var hm = Math.max.apply(null, hours);
-      document.getElementById("lv-hours").innerHTML = hours.map(function (n, h) {
-        return '<div class="lv-hourbar' + (n ? '' : ' zero') + '" style="height:' + Math.max(4, Math.round(n / hm * 100)) + '%" title="' +
-          ((h % 12) || 12) + (h < 12 ? 'a' : 'p') + ' · ' + n + ' calls"></div>';
-      }).join("");
-    }
   }
   document.addEventListener("click", function (e) {
+    // hour strip: a bar toggles the feed to just that hour
+    var hb = e.target.closest(".lv-hb");
+    if (hb && !hb.classList.contains("zero")) {
+      var h = +hb.getAttribute("data-h");
+      hourSel = hourSel === h ? -1 : h;
+      renderHourStrip(); renderFeed(LIVE.recent, false); stampTimes();
+      return;
+    }
+    if (e.target.closest("#lv-hclear")) {
+      hourSel = -1;
+      renderHourStrip(); renderFeed(LIVE.recent, false); stampTimes();
+      return;
+    }
+    // ×N chip: unfold the chain into its individual calls
+    var xn = e.target.closest(".lv-xn");
+    if (xn) {
+      var k = xn.getAttribute("data-key");
+      expandedChains[k] = !expandedChains[k];
+      renderFeed(LIVE.recent, false); stampTimes();
+      return;
+    }
     if (e.target.closest("#lv-clear")) { picked = -1; renderHistory(); return; }
     var bar = e.target.closest(".lv-bar");
     if (bar) {
@@ -781,6 +901,7 @@
     if (focusSlug) hero = data.recent.filter(function (r) { return slugify(r.display) === focusSlug; })[0] || hero;
     renderCounts(data.counts || {});
     renderHero(hero);
+    renderHourStrip();
     renderFeed(data.recent, newTop);
     renderHistory();
     stampTimes();
@@ -816,7 +937,7 @@
     var feed = document.getElementById("lv-feed");
     if (feed) {
       feed.classList.add("focusing");
-      feed.querySelectorAll(".lv-rowwrap").forEach(function (w) {
+      feed.querySelectorAll(".lv-chain").forEach(function (w) {
         var a = w.querySelector(".rn a");
         w.classList.toggle("lv-match", !!a && (a.getAttribute("href") || "").endsWith("/species/" + focusSlug));
       });
@@ -837,6 +958,9 @@
       if (m) m.scrollIntoView({ behavior: "smooth", block: "center" });
     }, 300);
   }
+
+  var feedEl = document.getElementById("lv-feed");
+  if (feedEl) feedEl.addEventListener("scroll", feedFade, { passive: true });
 
   setInterval(poll, 60000);
   setInterval(stampTimes, 30000);
