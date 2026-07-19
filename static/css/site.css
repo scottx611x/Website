@@ -515,6 +515,8 @@ body.home .site-nav { z-index: 0; }
     min-width: 8rem; padding: 1.2rem 1.4rem; border-radius: 12px;
     background: var(--paper); border: 1px solid rgba(47, 125, 79, 0.28);
 }
+a.stat-card { text-decoration: none; } /* the mic's cards jump to the ear block */
+a.stat-card:hover { border-color: var(--green); }
 .stat-num { font-family: var(--display); font-size: 2.6rem; font-weight: 600; line-height: 1; color: var(--green); letter-spacing: -0.02em; }
 .stat-lbl { font-family: var(--mono); font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
 .stat-span { text-align: center; color: var(--muted); font-size: 0.8rem; margin: 0.4rem 0 2rem; }

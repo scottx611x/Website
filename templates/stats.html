@@ -13,6 +13,10 @@
         {% if stats.videos %}<div class="stat-card"><span class="stat-num">{{ stats.videos }}</span><span class="stat-lbl">videos</span></div>{% endif %}
         <div class="stat-card"><span class="stat-num">{{ span_months }}</span><span class="stat-lbl">months tracked</span></div>
         <div class="stat-card"><span class="stat-num">{{ stats.away }}</span><span class="stat-lbl">out&#8209;of&#8209;area</span></div>
+        {% if ear %}
+        <a class="stat-card" href="#ear-block"><span class="stat-num">{{ "{:,}".format(ear.calls) }}</span><span class="stat-lbl">calls heard</span></a>
+        <a class="stat-card" href="#ear-block"><span class="stat-num">{{ ear.heard|length }}</span><span class="stat-lbl">species by ear</span></a>
+        {% endif %}
     </div>
     {% if stats.first %}
     <p class="stat-span mono">First frame {{ stats.first.strftime('%b %-d, %Y') }} &middot; latest {{ stats.last.strftime('%b %-d, %Y') }}</p>
