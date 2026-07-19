@@ -662,5 +662,11 @@
         });
     </script>
     {% block scripts %}{% endblock %}
+    {% if not local and not curate %}
+    {# GoatCounter: open-source, cookie-less pageview counts. Skipped for local
+       dev and while curating, so my own editing sessions don't pollute the numbers. #}
+    <script data-goatcounter="https://scott-ouellette.goatcounter.com/count"
+            async src="//gc.zgo.at/count.js"></script>
+    {% endif %}
 </body>
 </html>
