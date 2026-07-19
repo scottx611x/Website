@@ -28,6 +28,13 @@ app.config["SEND_FILE_MAX_AGE_DEFAULT"] = 31536000
 app.add_template_filter(birds.thumb_url, "thumb")
 
 
+@app.template_filter("shuffle")
+def _shuffle_filter(seq):
+    items = list(seq)
+    random.shuffle(items)
+    return items
+
+
 def _asset_version():
     """Cache-buster derived from the newest css/js mtime, fixed at boot."""
     newest = 0
