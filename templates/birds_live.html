@@ -344,7 +344,8 @@
   var LIVE; try { LIVE = JSON.parse(document.getElementById("lv-data").textContent); } catch (_) { return; }
   var MEDIA = "https://birds-scott-ouellette.s3.amazonaws.com/birds/sounds/clips/";
   var esc = function (s) { var d = document.createElement("i"); d.textContent = s == null ? "" : s; return d.innerHTML; };
-  var birdHref = function (n) { return "/birds/species/" + (n || "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, ""); };
+  var slugify = function (n) { return (n || "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, ""); };
+  var birdHref = function (n) { return "/birds/species/" + slugify(n); };
 
   /* ---- times: everything renders in the viewer's clock ---- */
   function clock(iso) {
@@ -771,14 +772,18 @@
     LIVE = data;
     if (!(data.recent || []).length) return;
     var newTop = data.recent[0].t !== prevTop && !isFirst;
+    // In focus mode the hero is the FOCUSED bird's latest call, not the overall
+    // most-recent — so "focused on Mourning Dove" doesn't show a Barred Owl.
+    var hero = data.recent[0];
+    if (focusSlug) hero = data.recent.filter(function (r) { return slugify(r.display) === focusSlug; })[0] || hero;
     renderCounts(data.counts || {});
-    renderHero(data.recent[0]);
+    renderHero(hero);
     renderFeed(data.recent, newTop);
     renderHistory();
     stampTimes();
-    // The hero player always belongs to the newest playable call; row plays
-    // never touch it. Don't steal focus mid-listen: keep whatever's playing.
-    var top = playable(data.recent)[0];
+    // The hero player belongs to that hero call. Don't steal focus mid-listen:
+    // only (re)load on first paint or when the hero call changes.
+    var top = focusSlug ? (hero && hero.audio ? hero : null) : playable(data.recent)[0];
     if (top && (isFirst || newTop)) loadHero(top);
     applyFocus();  // the feed just re-rendered — keep the deep-link focus on
   }
@@ -795,7 +800,7 @@
   // poll so the feed re-render keeps the focus. ----
   var focusM = /[?&]bird=([^&]+)/.exec(location.search);
   var focusName = focusM ? decodeURIComponent(focusM[1].replace(/\+/g, " ")) : null;
-  var focusSlug = focusName ? focusName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") : null;
+  var focusSlug = focusName ? slugify(focusName) : null;
   function applyFocus() {
     if (!focusSlug) return;
     var wall = document.getElementById("lv-wall");
