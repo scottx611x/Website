@@ -687,6 +687,10 @@ def birds_stats():
         loc_area=loc_area,
         series=birds.stats_series(shots),
         river=birds.activity_river(shots),
+        species_places=birds.species_places(shots),
+        species_ranked=sorted(
+            ((nm, c) for _, sp in birds.species_groups(shots) for nm, c in sp),
+            key=lambda kv: -kv[1]),
         loc_place=loc_place,
         span_months=span_months,
         local=_is_local(),

@@ -2264,6 +2264,34 @@ def map_points(shots, places=None, species_filter=None):
     return out
 
 
+def species_places(shots):
+    """{species: [[place, count, area], ...]} — where each bird turns up, by
+    canonical map place (busiest first). Powers the stats 'where I find them'
+    focus, so a deep-linked species swaps the global top-spots for its own."""
+    import collections
+    places = load_locations()
+    idx = _place_index(places)
+    area_by = {p["name"]: p.get("area", "local") for p in places}
+    out = collections.defaultdict(collections.Counter)
+    for shot in shots:
+        iloc = shot.get("image_locations") or []
+        isp = shot.get("image_species") or []
+        imgs = shot.get("images") or []
+        for i in range(len(imgs)):
+            loc = iloc[i] if i < len(iloc) and iloc[i] else shot.get("location")
+            if not loc:
+                continue
+            place = _match_place(loc, idx)
+            if not place:
+                continue
+            raw = isp[i] if i < len(isp) and isp[i] else shot.get("species")
+            for name, _ in _canon_species_list(raw):
+                out[name][place["name"]] += 1
+    return {sp: [[nm, n, area_by.get(nm, "local")]
+                 for nm, n in sorted(pl.items(), key=lambda kv: -kv[1])]
+            for sp, pl in out.items()}
+
+
 def images_at_place(shots, place, species=None):
     """Every frame taken at ``place`` (a locations.json entry), for /birds?loc=.
     Interleaved one-frame-per-post like the other filters, so a single long

@@ -540,6 +540,9 @@ body.home .site-nav { z-index: 0; }
 .fam-cell { transition: opacity 0.3s; }
 .cal-day { transition: opacity 0.3s; }
 .cal-day.cal-match { stroke: var(--neon); stroke-width: 2; }
+/* Ghost leaderboard row for a focused bird outside the top N. */
+.bar-row.ghost { margin-top: 0.4rem; border-top: 1px dashed rgba(13, 18, 14, 0.2); padding-top: 0.5rem; }
+.bar-row.ghost .bar-label { color: var(--muted); }
 /* Deep-link focus banner (mirrors the live page's). */
 .stat-focusbar { display: inline-flex; align-items: center; gap: 0.4rem; margin: 0.9rem auto 0; font-size: 0.76rem; color: var(--green); padding: 0.3rem 0.8rem; border: 1px solid rgba(47, 125, 79, 0.35); border-radius: 999px; }
 .stat-focusbar a { color: var(--muted); text-decoration: none; }

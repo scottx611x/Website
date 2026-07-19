@@ -78,7 +78,7 @@
         </div>
 
         <!-- Most photographed -->
-        <div class="stat-block">
+        <div class="stat-block" id="board">
             <h2>Most photographed</h2>
             <p class="stat-sub mono">the birds that keep posing.</p>
             {% set smax = series.top[0].n %}
@@ -155,6 +155,8 @@
     (function () {
         var S = {{ series|tojson }};
         var RIVER = {{ river|tojson }};
+        window.SPECIES_PLACES = {{ species_places|tojson }};  // read by the deep-link focus (outside this IIFE)
+        window.SPECIES_RANKED = {{ species_ranked|tojson }};  // [name, count] all species, for the leaderboard ghost
         var CURATE = {{ 'true' if curate else 'false' }};
         var FAM = [{% for fam, count in stats.families %}{ name: {{ fam|tojson }}, n: {{ count }}, spp: {{ stats.family_species[fam] }} }{{ "," if not loop.last }}{% endfor %}];
         var GREEN = "#2f7d4f", NEON = "#38e08a", INK = "#0d120e", MUTED = "#8a9486";
@@ -1278,9 +1280,44 @@
             var fam = window.lvFocusRiver && window.lvFocusRiver(name);
             if (fam && window.lvFocusFam) window.lvFocusFam(fam);
             if (window.lvFocusCal) window.lvFocusCal(name);
+            // Where I find them -> just this bird's spots (swap the global top-list).
+            var spots = (window.SPECIES_PLACES || {})[name], list = document.querySelector("#places-block .places-list");
+            if (spots && spots.length && list) {
+                var lmax = spots[0][1] || 1;
+                list.innerHTML = spots.map(function (p) {
+                    var away = p[2] === "away", nm = String(p[0]).replace(/[<&>]/g, "");
+                    return '<a class="bar-row" href="/birds?bird=' + encodeURIComponent(name) + '&loc=' + encodeURIComponent(p[0]) + '">' +
+                        '<span class="bar-label">📍 ' + nm + (away ? ' ⚠️' : '') + '</span>' +
+                        '<span class="bar-track"><span class="bar-fill ' + (away ? 'warm' : 'loc') + '" style="width:' + Math.round(p[1] / lmax * 100) + '%"></span></span>' +
+                        '<span class="bar-val mono">' + p[1] + '</span></a>';
+                }).join("");
+                var sub = document.querySelector("#places-block .stat-sub");
+                if (sub) sub.textContent = "every spot I've found " + name + ".";
+                ["#places-block .split-bar", "#places-block .split-legend"].forEach(function (s) {
+                    var el = document.querySelector(s); if (el) el.style.display = "none";  // whole-collection summary; hide when focused
+                });
+            }
             var search = document.getElementById("pheno-search");
             if (search) { search.value = name; search.dispatchEvent(new Event("input", { bubbles: true })); }
-            var row = document.querySelector('.bar-row[href$="/species/' + slug + '"]');
+            var row = document.querySelector('#board .bar-row[href$="/species/' + slug + '"]');
+            if (!row) {
+                // Not in the top-N leaderboard — drop a ghost row at the bottom so
+                // the focused bird still shows its rank and count.
+                var ranked = window.SPECIES_RANKED || [], rk = -1, cnt = 0;
+                for (var i = 0; i < ranked.length; i++) { if (ranked[i][0] === name) { rk = i + 1; cnt = ranked[i][1]; break; } }
+                var board = document.getElementById("board");
+                if (rk > 0 && board) {
+                    var smax = (ranked[0] && ranked[0][1]) || 1;
+                    row = document.createElement("a");
+                    row.className = "bar-row rich ghost";
+                    row.href = "/birds/species/" + slug;
+                    row.innerHTML =
+                        '<span class="bar-label">#' + rk + ' &middot; ' + name.replace(/[<&>]/g, "") + '</span>' +
+                        '<span class="bar-track"><span class="bar-fill" style="width:' + Math.max(2, Math.round(cnt / smax * 100)) + '%"></span></span>' +
+                        '<span class="bar-val mono">' + cnt + '</span>';
+                    board.appendChild(row);
+                }
+            }
             if (row) row.classList.add("stat-focus");
             // Land on the life list (the lifer view) if we could pin it there;
             // otherwise the phenology matrix we just filtered.
