@@ -257,7 +257,7 @@
     <div class="stat-cards" id="lv-counts">
         <div class="stat-card"><span class="stat-num">{{ sound.counts.speciesToday or 0 }}</span><span class="stat-lbl">species today</span></div>
         <div class="stat-card"><span class="stat-num">{{ sound.counts.callsToday or 0 }}</span><span class="stat-lbl">calls today</span></div>
-        <div class="stat-card"><span class="stat-num">{{ sound.counts.speciesAllTime or 0 }}</span><span class="stat-lbl">species recorded all&#8209;time</span></div>
+        <div class="stat-card"><span class="stat-num">{{ sound.counts.speciesAllTime or 0 }}</span><span class="stat-lbl">species heard all&#8209;time</span></div>
         <div class="stat-card"><span class="stat-num">{{ "{:,}".format(sound.counts.callsAllTime or 0) }}</span><span class="stat-lbl">calls all&#8209;time</span></div>
     </div>
 
@@ -652,7 +652,7 @@
     document.getElementById("lv-counts").innerHTML =
       '<div class="stat-card"><span class="stat-num">' + (c.speciesToday || 0) + '</span><span class="stat-lbl">species today</span></div>' +
       '<div class="stat-card"><span class="stat-num">' + (c.callsToday || 0) + '</span><span class="stat-lbl">calls today</span></div>' +
-      '<div class="stat-card"><span class="stat-num">' + (c.speciesAllTime || 0) + '</span><span class="stat-lbl">species recorded all&#8209;time</span></div>' +
+      '<div class="stat-card"><span class="stat-num">' + (c.speciesAllTime || 0) + '</span><span class="stat-lbl">species heard all&#8209;time</span></div>' +
       '<div class="stat-card"><span class="stat-num">' + (c.callsAllTime || 0).toLocaleString() + '</span><span class="stat-lbl">calls all&#8209;time</span></div>';
   }
   function confHTML(r) {
