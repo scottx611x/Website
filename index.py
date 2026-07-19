@@ -250,7 +250,10 @@ def photography():
     photos = birds.load_photos()
     tag = (request.args.get("tag") or "").strip()
     shown = [p for p in photos if not tag or tag in (p.get("tags") or [])]
-    shown.sort(key=lambda p: p.get("date") or "", reverse=True)  # newest first
+    if _curate_on():
+        shown.sort(key=lambda p: p.get("date") or "", reverse=True)  # stable for editing
+    else:
+        random.shuffle(shown)  # a fresh order each visit
     return render_template(
         "photography.html", title="Photography", photos=shown,
         all_tags=birds.photo_tags(photos), active_tag=tag, photo_count=len(photos),
