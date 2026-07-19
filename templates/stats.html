@@ -758,6 +758,19 @@
                 }).on("pointerleave", tipHide);
             });
             readout.textContent = "tap a family to browse its photos";
+
+            // A /birds/stats?bird=X deep-link lights up that bird's family cell.
+            window.lvFocusFam = function (famName) {
+                var found = false;
+                el.querySelectorAll(".fam-cell").forEach(function (c) {
+                    var fam = decodeURIComponent((c.getAttribute("href") || "").split("family=")[1] || "");
+                    var on = famName && fam === famName;
+                    c.classList.toggle("fam-focus", !!on);
+                    c.style.opacity = famName ? (on ? "1" : "0.32") : "1";
+                    if (on) found = true;
+                });
+                return found;
+            };
         }
 
         // ---- The river: a bird-face rides each current; touch one to meet it ----
@@ -980,6 +993,23 @@
                     + s.fam + ' &middot; busiest ' + fmtMonth(s.busiest) + ' (' + s.busiest_n + ') '
                     + '<span class="riv-go">see them &rarr;</span>';
             }
+
+            // Let a /birds/stats?bird=X deep-link bloom that bird's current — the
+            // river keeps every band for context, but the focused one lights up.
+            window.lvFocusRiver = function (name) {
+                for (var li = 0; li < S2.length; li++) {
+                    if (S2[li].name !== name) continue;
+                    var pk = 0, pth = -1;
+                    for (var i = 0; i < N; i++) {
+                        var t = Math.abs(y(layers[li][i][0]) - y(layers[li][i][1]));
+                        if (t > pth) { pth = t; pk = i; }
+                    }
+                    activate(li, x(pk), faceCenter(li, pk));
+                    tellReadout(li);
+                    return S2[li].fam;   // hand the family to the treemap
+                }
+                return null;
+            };
 
             // Selection rides the RENDERED band shapes (native hit-testing). On a
             // mouse, hover reveals and a click goes. On TOUCH there's no hover, so
@@ -1212,6 +1242,10 @@
         var slug = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
         setTimeout(function () {
             var onLifeList = window.lvFocusLifer && window.lvFocusLifer(name);
+            // Light up the bird's current in the river, and its family in the
+            // treemap — context kept, focus shown.
+            var fam = window.lvFocusRiver && window.lvFocusRiver(name);
+            if (fam && window.lvFocusFam) window.lvFocusFam(fam);
             var search = document.getElementById("pheno-search");
             if (search) { search.value = name; search.dispatchEvent(new Event("input", { bubbles: true })); }
             var row = document.querySelector('.bar-row[href$="/species/' + slug + '"]');
