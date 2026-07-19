@@ -88,7 +88,7 @@ _SPEC_STOPS = [
 ]
 
 
-def render_spectrogram(wav_path, out_path, height=240, width=1100, max_hz=11000):
+def render_spectrogram(wav_path, out_path, height=480, width=2200, max_hz=11000):
     """Draw the clip's spectrogram in the site's own colors — bright, detailed.
 
     A log-frequency axis gives the low-mid band where birds actually sing most
@@ -177,10 +177,21 @@ def publish_media(dets, s3):
         if not clip:
             continue
         base = os.path.splitext(os.path.basename(clip))[0]
-        m4a, spec = base + ".m4a", base + "_v2.png"
+        # _v3: 2200x480 (2x for retina + the full-screen zoom). _v2 is the old
+        # 1100x240 render, kept as a fallback for clips whose WAV is gone.
+        m4a, spec, old_spec = base + ".m4a", base + "_v3.png", base + "_v2.png"
         ref = {}
 
         wav = find_clip(os.path.basename(clip))
+        if not wav:
+            # The WAV rotated off disk — reuse whatever was published while we
+            # had it instead of silently dropping the refs.
+            if have(m4a):
+                ref["audio"] = m4a
+            if have(spec):
+                ref["spec"] = spec
+            elif have(old_spec):
+                ref["spec"] = old_spec
         if wav:
             if have(m4a):
                 ref["audio"] = m4a
@@ -213,6 +224,8 @@ def publish_media(dets, s3):
                         ref["spec"] = spec
                 except Exception as e:
                     print("spectrogram failed for %s: %s" % (clip, e), file=sys.stderr)
+                    if have(old_spec):
+                        ref["spec"] = old_spec
         if ref:
             refs[clip] = ref
     return refs
