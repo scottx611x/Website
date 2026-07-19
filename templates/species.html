@@ -149,7 +149,7 @@
                 <div class="sp-pbar">
                     {% if sp.recent_call and sp.recent_call.audio %}<button type="button" class="sp-play" id="sp-play" aria-label="play the call">&#9654;</button>{% endif %}
                     <div class="sp-ptxt">
-                        <b>The last call</b>
+                        <b>Latest call</b>
                         <span id="sp-ptime">{% if sp.recent_call %}{{ (sp.recent_call.conf*100)|round|int }}% confident{% endif %}</span>
                     </div>
                 </div>
@@ -259,7 +259,7 @@
       '<div class="sp-zwrap"><img src="' + spec + '" alt="spectrogram"><div class="zneedle"></div></div>' +
       '<div class="sp-zbar">' +
         '<button type="button" class="sp-zplay" aria-label="play">' + (audio.paused ? "&#9654;" : "&#10074;&#10074;") + '</button>' +
-        '<div><b>The last call</b><span class="sub">' + (document.getElementById("sp-ptime") ? document.getElementById("sp-ptime").textContent : "") + '</span></div>' +
+        '<div><b>Latest call</b><span class="sub">' + (document.getElementById("sp-ptime") ? document.getElementById("sp-ptime").textContent : "") + '</span></div>' +
         '<span class="sp-ztime">' + fmtT(audio.currentTime) + '</span>' +
       '</div>';
     document.body.appendChild(zoom);

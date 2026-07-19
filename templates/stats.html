@@ -319,6 +319,14 @@
                     : d.total + " photos so far →";
                 updateCurate();
             }
+            // Let a /birds/stats?bird=X deep-link (from a species profile) pin the
+            // life list on that bird's lifer moment.
+            window.lvFocusLifer = function (name) {
+                for (var i = 0; i < data.length; i++) {
+                    if (data[i].s === name) { pinned = true; show(i); return true; }
+                }
+                return false;
+            };
             var bisect = d3.bisector(function (d) { return d.d; }).left;
             function idxAt(ev) {
                 var px = d3.pointer(ev, svg.node())[0];
@@ -1203,12 +1211,16 @@
         var name = decodeURIComponent(m[1].replace(/\+/g, " "));
         var slug = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
         setTimeout(function () {
+            var onLifeList = window.lvFocusLifer && window.lvFocusLifer(name);
             var search = document.getElementById("pheno-search");
             if (search) { search.value = name; search.dispatchEvent(new Event("input", { bubbles: true })); }
             var row = document.querySelector('.bar-row[href$="/species/' + slug + '"]');
-            var target = row || document.getElementById("pheno-matrix");
-            if (target) target.scrollIntoView({ behavior: "smooth", block: "center" });
             if (row) row.classList.add("stat-focus");
+            // Land on the life list (the lifer view) if we could pin it there;
+            // otherwise the phenology matrix we just filtered.
+            var target = onLifeList ? document.getElementById("accum-chart")
+                : (row || document.getElementById("pheno-matrix"));
+            if (target) target.scrollIntoView({ behavior: "smooth", block: "center" });
         }, 500);
     })();
 </script>

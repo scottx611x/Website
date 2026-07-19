@@ -74,21 +74,26 @@ def find_clip(name):
 
 
 # The site's palette, as an energy ramp: ink -> deep green -> neon -> bright.
+# Extra low stops make faint detail glow instead of vanishing into the ink.
 _SPEC_STOPS = [
     (0.00, (13, 18, 14)),     # --ink
-    (0.35, (18, 60, 38)),
-    (0.62, (47, 125, 79)),    # --green
-    (0.85, (56, 224, 138)),   # --neon
-    (1.00, (233, 246, 215)),  # near paper, the hottest harmonics
+    (0.12, (15, 40, 27)),
+    (0.30, (26, 84, 54)),
+    (0.52, (47, 125, 79)),    # --green
+    (0.74, (56, 224, 138)),   # --neon
+    (0.90, (150, 240, 180)),
+    (1.00, (240, 250, 225)),  # near paper, the hottest harmonics
 ]
 
 
-def render_spectrogram(wav_path, out_path, height=220, max_hz=12000):
-    """Draw the clip's spectrogram in the site's own colors.
+def render_spectrogram(wav_path, out_path, height=240, width=1100, max_hz=11000):
+    """Draw the clip's spectrogram in the site's own colors — bright, detailed.
 
-    BirdNET-Go renders its PNGs lazily (the newest clip usually has none yet)
-    and in a foreign palette; we render our own from the WAV so every call has
-    a picture, and the picture belongs to the site.
+    A log-frequency axis gives the low-mid band where birds actually sing most
+    of the vertical space (so harmonics read as structure, not a smear at the
+    bottom), per-band noise-floor removal keeps the ink clean, and a bright ramp
+    with a low gamma makes faint calls glow. BirdNET-Go renders its own PNGs
+    lazily and in a foreign palette; this one belongs to the site.
     """
     import wave
 
@@ -102,26 +107,30 @@ def render_spectrogram(wav_path, out_path, height=220, max_hz=12000):
             raw = raw.reshape(-1, w.getnchannels()).mean(axis=1)
     x = raw.astype(np.float64) / 32768.0
 
-    nfft = 1024
-    hop = max(1, len(x) // 900)  # ~900 columns regardless of clip length
+    nfft = 2048
+    hop = max(1, (len(x) - nfft) // width)  # ~`width` columns regardless of length
     frames = np.lib.stride_tricks.sliding_window_view(x, nfft)[::hop] * np.hanning(nfft)
     mag = np.abs(np.fft.rfft(frames, axis=1)).T  # (freq, time), low freq first
-    mag = mag[: int(max_hz / (rate / nfft)) + 1]
+    freqs = np.fft.rfftfreq(nfft, 1.0 / rate)
 
-    db = 20 * np.log10(mag + 1e-9)
-    # Kill the steady noise floor per frequency band (mic hiss, wind, HVAC) so
-    # only what SANG lights up; then a gamma to keep the ink inky.
-    db -= np.median(db, axis=1, keepdims=True)
-    # Fixed scale above the noise floor (not per-clip max): 8dB of hiss stays
-    # ink, ~40dB is full neon, and brightness means the same on every clip —
-    # a quiet coo reads quiet, a loud robin reads loud.
-    norm = np.clip((db - 7.0) / 27.0, 0, 1) ** 1.05
+    # Resample the linear frequency bins onto a log axis (~150 Hz .. max_hz), so
+    # the bird band gets the pixels. Interp per time column (fast enough).
+    f_hi = min(max_hz, rate / 2.0)
+    log_f = np.geomspace(150.0, f_hi, height)
+    mag_log = np.empty((height, mag.shape[1]))
+    for t in range(mag.shape[1]):
+        mag_log[:, t] = np.interp(log_f, freqs, mag[:, t])
+
+    db = 20 * np.log10(mag_log + 1e-9)
+    db -= np.median(db, axis=1, keepdims=True)   # drop each band's steady hiss
+    # Brighten: 5 dB above the floor already glows, ~28 dB is white-hot; gamma
+    # < 1 lifts the mid-tones so structure is visible, not just the loudest hit.
+    norm = np.clip((db - 5.0) / 28.0, 0, 1) ** 0.55
 
     pos = np.array([p for p, _ in _SPEC_STOPS])
     rgb = np.array([c for _, c in _SPEC_STOPS], dtype=np.float64)
     img = np.stack([np.interp(norm, pos, rgb[:, i]) for i in range(3)], axis=-1)
     out = Image.fromarray(img[::-1].astype(np.uint8))  # flip: low freq at bottom
-    out = out.resize((out.width, height), Image.LANCZOS)
     out.save(out_path, optimize=True)
 
 
@@ -166,7 +175,7 @@ def publish_media(dets, s3):
         if not clip:
             continue
         base = os.path.splitext(os.path.basename(clip))[0]
-        m4a, spec = base + ".m4a", base + "_site.png"
+        m4a, spec = base + ".m4a", base + "_v2.png"
         ref = {}
 
         wav = find_clip(os.path.basename(clip))
