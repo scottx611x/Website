@@ -141,8 +141,15 @@
   .lv-chip.miss{border:1.5px dashed rgba(176,125,36,.55);background:var(--paper-2)}
   .lv-chip.miss .cl{color:#a9761f;background:none}
   .lv-chip.miss .feather{position:absolute;inset:0;background:no-repeat center 40%/44%;opacity:.3}
-  .lv-chip.lv-focus{animation:lvFocus 2.4s ease}
-  @keyframes lvFocus{0%,100%{box-shadow:0 0 0 0 rgba(56,224,138,0)}15%,45%{box-shadow:0 0 0 4px rgba(56,224,138,.85)}}
+  /* Deep-link focus (/birds/live?bird=X): the bird pops, everything else recedes. */
+  .lv-focusbar{display:inline-flex; align-items:center; gap:.4rem; margin:.9rem auto 0; font-family:var(--mono); font-size:.76rem; color:var(--green); padding:.3rem .8rem; border:1px solid rgba(47,125,79,.35); border-radius:999px}
+  .lv-focusbar a{color:var(--muted); text-decoration:none} .lv-focusbar a:hover{color:var(--green)}
+  .lv-wall.focusing .lv-chip{transition:opacity .3s, filter .3s}
+  .lv-wall.focusing .lv-chip:not(.lv-match){opacity:.28; filter:grayscale(.5)}
+  .lv-chip.lv-match{outline:2.5px solid var(--neon); outline-offset:2px; box-shadow:0 0 14px rgba(56,224,138,.5)}
+  .lv-feed.focusing .lv-rowwrap{transition:opacity .3s}
+  .lv-feed.focusing .lv-rowwrap:not(.lv-match){opacity:.3}
+  .lv-rowwrap.lv-match{background:rgba(56,224,138,.07); border-radius:8px}
 
   /* History: one strip, four lenses. */
   .lv-ranges{display:flex; gap:.4rem; flex-wrap:wrap; margin-bottom:1rem}
@@ -298,9 +305,9 @@
       <div class="lv-wall" id="lv-wall">
         {% for s in sound.species %}
           {% if s.photo %}
-          <a class="lv-chip" href="/birds/species/{{ s.display|slug }}" style="background-image:url('{{ s.photo }}')" title="{{ s.display }} &middot; {{ s.count }}&times;"><span class="cl">{{ s.display }}</span></a>
+          <a class="lv-chip" data-slug="{{ s.display|slug }}" href="/birds/species/{{ s.display|slug }}" style="background-image:url('{{ s.photo }}')" title="{{ s.display }} &middot; {{ s.count }}&times;"><span class="cl">{{ s.display }}</span></a>
           {% else %}
-          <span class="lv-chip miss" title="{{ s.display }} &middot; heard, not photographed">{{ feather('%23a9761f') }}<span class="cl">{{ s.display }}</span></span>
+          <span class="lv-chip miss" data-slug="{{ s.display|slug }}" title="{{ s.display }} &middot; heard, not photographed">{{ feather('%23a9761f') }}<span class="cl">{{ s.display }}</span></span>
           {% endif %}
         {% endfor %}
       </div>
@@ -773,6 +780,7 @@
     // never touch it. Don't steal focus mid-listen: keep whatever's playing.
     var top = playable(data.recent)[0];
     if (top && (isFirst || newTop)) loadHero(top);
+    applyFocus();  // the feed just re-rendered — keep the deep-link focus on
   }
   function poll() {
     fetch("/birds/live.json").then(function (r) { return r.json(); }).then(function (d) {
@@ -781,21 +789,46 @@
     }).catch(function () {});
   }
 
+  // ---- Deep-link focus: /birds/live?bird=X (from a species profile) puts the
+  // page in a persistent focus mode — that bird lit up in the wall and the feed,
+  // everything else dimmed, with a banner to clear it. Re-applied after every
+  // poll so the feed re-render keeps the focus. ----
+  var focusM = /[?&]bird=([^&]+)/.exec(location.search);
+  var focusName = focusM ? decodeURIComponent(focusM[1].replace(/\+/g, " ")) : null;
+  var focusSlug = focusName ? focusName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") : null;
+  function applyFocus() {
+    if (!focusSlug) return;
+    var wall = document.getElementById("lv-wall");
+    if (wall) {
+      wall.classList.add("focusing");
+      wall.querySelectorAll(".lv-chip").forEach(function (c) {
+        c.classList.toggle("lv-match", c.getAttribute("data-slug") === focusSlug);
+      });
+    }
+    var feed = document.getElementById("lv-feed");
+    if (feed) {
+      feed.classList.add("focusing");
+      feed.querySelectorAll(".lv-rowwrap").forEach(function (w) {
+        var a = w.querySelector(".rn a");
+        w.classList.toggle("lv-match", !!a && (a.getAttribute("href") || "").endsWith("/species/" + focusSlug));
+      });
+    }
+  }
+
   apply(LIVE, true);
 
-  // Deep-link focus: /birds/live?bird=X (from a species profile) scrolls to and
-  // pulses that bird in the heard-vs-shot wall.
-  (function () {
-    var m = /[?&]bird=([^&]+)/.exec(location.search);
-    if (!m) return;
-    var slug = decodeURIComponent(m[1].replace(/\+/g, " ")).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+  if (focusName) {
+    var bar = document.createElement("div");
+    bar.className = "lv-focusbar";
+    bar.innerHTML = '🔴 focused on <b>' + esc(focusName) + '</b> &middot; <a href="/birds/live">show everything</a>';
+    var hdr = root.querySelector(".gallery-header");
+    if (hdr) hdr.appendChild(bar);
     setTimeout(function () {
-      var el = root.querySelector('.lv-wall a[href$="/species/' + slug + '"]');
-      if (!el) return;
-      el.scrollIntoView({ behavior: "smooth", block: "center" });
-      el.classList.add("lv-focus");
-    }, 450);
-  })();
+      applyFocus();
+      var m = document.querySelector('#lv-wall .lv-chip.lv-match') || document.getElementById("lv-wall");
+      if (m) m.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 300);
+  }
 
   setInterval(poll, 60000);
   setInterval(stampTimes, 30000);
