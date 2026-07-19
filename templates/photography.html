@@ -43,7 +43,8 @@
         {% if p.location %}{% set _ = meta.append(p.location) %}{% endif %}
         {% if p.date %}{% set _ = meta.append(p.date) %}{% endif %}
         {% set cap = ([p.title] if p.title else []) + meta %}
-        <figure class="shot" data-images='{{ [p.image]|tojson }}' data-captions='{{ [cap|join("  ·  ")]|tojson }}'
+        <figure class="shot" data-id="{{ p.id }}" data-image-indices='[0]'
+                data-images='{{ [p.image]|tojson }}' data-captions='{{ [cap|join("  ·  ")]|tojson }}'
                 tabindex="0" role="button" aria-label="View {{ p.title or 'photo' }} larger">
             <img loading="lazy" decoding="async" src="{{ p.thumb or p.image }}"
                  {% if p.w and p.h %}width="{{ p.w }}" height="{{ p.h }}"{% endif %}
