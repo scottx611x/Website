@@ -87,10 +87,17 @@ def robots():
 
 @app.route("/sitemap.xml")
 def sitemap():
-    paths = ["/", "/projects", "/birds", "/birds/stats", "/birds/map"]
+    paths = ["/", "/projects", "/birds", "/birds/stats", "/birds/live",
+             "/birds/live/log", "/birds/map"]
+    if "photography" not in HIDDEN_PAGES:
+        paths.append("/photography")
     if "blog" not in HIDDEN_PAGES:
         paths.append("/blog")
         paths += ["/blog/%s" % p["slug"] for p in blog.list_posts()]
+    # Every species hub page — the long-tail entry points ("<bird> north andover").
+    shots = birds.load_gallery(shuffle=False)
+    paths += sorted("/birds/species/%s" % slug
+                    for slug in birds.species_index(shots, birds.load_sounds()))
     urls = "".join("<url><loc>{}{}</loc></url>".format(SITE_URL, p) for p in paths)
     xml = ('<?xml version="1.0" encoding="UTF-8"?>'
            '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'

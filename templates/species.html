@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% block meta_description %}{{ sp.name }} on scott-ouellette.com — {{ sp.count }} photos, seasonal rhythm, where it's found, and the call heard by the yard mic.{% endblock %}
+{% block og_image %}{% if sp.frames and sp.frames[0].images %}{{ sp.frames[0].images[0] }}{% else %}{{ site_url }}{{ url_for('static', filename='img/fall.jpg') }}{% endif %}{% endblock %}
 
 {% block content %}
 <style>
