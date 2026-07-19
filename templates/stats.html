@@ -101,6 +101,48 @@
             <p class="chart-readout mono" id="fam-readout"></p>
         </div>
 
+        <!-- Heard from the yard: the mic's numbers beside the camera's -->
+        {% if ear %}
+        <div class="stat-block stat-span-2" id="ear-block">
+            <h2>Heard from the yard</h2>
+            <p class="stat-sub mono">the mic&rsquo;s side of the story{% if ear.since %}, listening since {{ ear.since }}{% endif %}. <a href="/birds/live">live &rarr;</a></p>
+            <div class="ear-grid">
+                <div class="ear-bars">
+                    {% set emax = ear.heard[0].n or 1 %}
+                    {% for h in ear.heard[:8] %}
+                    <a class="bar-row rich" href="/birds/species/{{ h.name|slug }}">
+                        {% if h.img %}<img class="bird-avatar" src="{{ h.img }}" alt="" loading="lazy" onerror="this.classList.add('missing')">
+                        {% else %}<span class="bird-avatar ear-miss" title="heard, never photographed">&#129718;</span>{% endif %}
+                        <span class="bar-label">{{ h.name }} <span class="bar-sub">{{ h.fam }}</span></span>
+                        <span class="bar-track"><span class="bar-fill{{ ' ear' if not h.shot }}" style="width: {{ (h.n / emax * 100)|round(1) }}%"></span></span>
+                        <span class="bar-val mono">{{ h.n }}&times;</span>
+                    </a>
+                    {% endfor %}
+                    {% if ear.heard|length > 8 %}
+                    <p class="ear-more mono"><a href="/birds/live/log">all {{ ear.heard|length }} species in the log &rarr;</a></p>
+                    {% endif %}
+                </div>
+                <div class="ear-side">
+                    <div class="ear-cards mono">
+                        <span><b>{{ "{:,}".format(ear.calls) }}</b> calls logged</span>
+                        <span><b>{{ ear.heard|length }}</b> species by ear</span>
+                        <span><b>{{ ear.shot }}</b> also photographed</span>
+                        <span class="amber"><b>{{ ear.heard|length - ear.shot }}</b> ear&#8209;only</span>
+                    </div>
+                    {% if ear.daily|length > 1 %}
+                    <div class="ear-daily">
+                        {% set dmax = ear.daily|map(attribute='n')|max or 1 %}
+                        {% for d in ear.daily %}
+                        <span class="ear-day{{ ' zero' if not d.n }}" style="height:{{ [6, (d.n / dmax * 100)|round|int]|max }}%" title="{{ d.d }} &middot; {{ d.n }} call{{ 's' if d.n != 1 }}"></span>
+                        {% endfor %}
+                    </div>
+                    <p class="ear-dailyax mono"><span>{{ ear.daily[0].d }}</span><span>calls per day{% if ear.busiest %} &middot; busiest {{ ear.busiest.d }} ({{ ear.busiest.n }}){% endif %}</span><span>{{ ear.daily[-1].d }}</span></p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
         <!-- Where I find them — led by the home-turf vs. away summary -->
         <div class="stat-block stat-span-2" id="places-block">
             <h2>Where I find them</h2>
@@ -157,6 +199,7 @@
         var RIVER = {{ river|tojson }};
         window.SPECIES_PLACES = {{ species_places|tojson }};  // read by the deep-link focus (outside this IIFE)
         window.SPECIES_RANKED = {{ species_ranked|tojson }};  // [name, count] all species, for the leaderboard ghost
+        window.EAR_HEARD = {{ (ear.heard if ear else [])|tojson }};  // every species the mic has heard, for the ear-block ghost
         var CURATE = {{ 'true' if curate else 'false' }};
         var FAM = [{% for fam, count in stats.families %}{ name: {{ fam|tojson }}, n: {{ count }}, spp: {{ stats.family_species[fam] }} }{{ "," if not loop.last }}{% endfor %}];
         var GREEN = "#2f7d4f", NEON = "#38e08a", INK = "#0d120e", MUTED = "#8a9486";
@@ -1323,6 +1366,36 @@
                 }
             }
             if (row) row.classList.add("stat-focus");
+            // The mic's numbers: pulse the bird's heard-row, ghost it in when it
+            // sits below the top-8, or admit the mic hasn't caught it yet.
+            var eb = document.getElementById("ear-block");
+            if (eb) {
+                var er = eb.querySelector('.bar-row[href$="/species/' + slug + '"]');
+                var bars = eb.querySelector(".ear-bars");
+                if (!er && bars) {
+                    var heard = window.EAR_HEARD || [], hi = -1;
+                    for (var j = 0; j < heard.length; j++) { if (heard[j].name === name) { hi = j; break; } }
+                    if (hi >= 0) {
+                        var h = heard[hi], hmax = (heard[0] && heard[0].n) || 1, hnm = name.replace(/[<&>]/g, "");
+                        er = document.createElement("a");
+                        er.className = "bar-row rich ghost";
+                        er.href = "/birds/species/" + slug;
+                        er.innerHTML =
+                            (h.img ? '<img class="bird-avatar" src="' + h.img + '" alt="" loading="lazy" onerror="this.classList.add(\'missing\')">'
+                                   : '<span class="bird-avatar ear-miss">🪶</span>') +
+                            '<span class="bar-label">' + hnm + ' <span class="bar-sub">#' + (hi + 1) + ' by ear</span></span>' +
+                            '<span class="bar-track"><span class="bar-fill' + (h.shot ? '' : ' ear') + '" style="width:' + Math.max(2, Math.round(h.n / hmax * 100)) + '%"></span></span>' +
+                            '<span class="bar-val mono">' + h.n + '×</span>';
+                        bars.appendChild(er);
+                    } else if (!eb.querySelector(".ear-none")) {
+                        var pn = document.createElement("p");
+                        pn.className = "ear-none mono";
+                        pn.textContent = "the mic hasn't caught this one yet.";
+                        bars.appendChild(pn);
+                    }
+                }
+                if (er) er.classList.add("stat-focus");
+            }
             // Land on the life list (the lifer view) if we could pin it there;
             // otherwise the phenology matrix we just filtered.
             var target = onLifeList ? document.getElementById("accum-chart")

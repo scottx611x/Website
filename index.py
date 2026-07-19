@@ -718,6 +718,35 @@ def birds_stats():
                 loc_area[name] = place.get("area", "local")
     merged.sort(key=lambda r: -r[1])
     stats["top_locations"] = [tuple(r) for r in merged]
+    # The mic's side of the story: per-species call counts + daily volume,
+    # cross-linked to the photo gallery (avatar when shot, feather when not).
+    sound = birds.load_sounds()
+    ear = None
+    if sound and sound.get("species"):
+        photographed = {nm for _, sp in birds.species_groups(shots) for nm, _ in sp}
+        heard = []
+        for s in sound["species"]:
+            canon = birds._canon_species(s.get("common") or "")
+            disp = canon[0] if canon else (s.get("common") or "")
+            heard.append({"name": disp, "fam": canon[1] if canon else "Other birds",
+                          "n": s.get("count") or 0,
+                          "img": (_stats_covers.get(disp) or [None])[0],
+                          "shot": disp in photographed})
+        heard.sort(key=lambda x: (-x["n"], x["name"]))
+
+        def _d(k):
+            try:
+                return datetime.datetime.strptime(k, "%Y-%m-%d").strftime("%b %-d")
+            except (TypeError, ValueError):
+                return k
+        daily = sound.get("daily") or []
+        busiest = max(daily, key=lambda d: d.get("n") or 0) if daily else None
+        ear = {"heard": heard,
+               "calls": (sound.get("counts") or {}).get("callsAllTime") or 0,
+               "shot": sum(1 for x in heard if x["shot"]),
+               "since": _d(daily[0]["d"]) if daily else None,
+               "busiest": {"d": _d(busiest["d"]), "n": busiest.get("n") or 0} if busiest else None,
+               "daily": [{"d": _d(d.get("d")), "n": d.get("n") or 0} for d in daily[-30:]]}
     return render_template(
         "stats.html",
         title="Birds by the numbers",
@@ -732,6 +761,7 @@ def birds_stats():
             key=lambda kv: -kv[1]),
         loc_place=loc_place,
         span_months=span_months,
+        ear=ear,
         local=_is_local(),
         curate=_curate_on(),
     )

@@ -737,6 +737,24 @@ a.pheno-cell:hover, a.pheno-cell:focus-visible {
 }
 .bird-avatar.missing { visibility: hidden; }
 
+/* heard from the yard (stats): the mic's numbers beside the camera's */
+.ear-grid { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 1.6rem; align-items: start; }
+@media (max-width: 760px) { .ear-grid { grid-template-columns: minmax(0, 1fr); } }
+.bird-avatar.ear-miss { display: flex; align-items: center; justify-content: center; font-size: 1rem; border: 1.5px dashed rgba(176, 125, 36, 0.6); }
+.bar-fill.ear { background: linear-gradient(90deg, #a9761f, var(--amber)); }
+.ear-more { font-size: 0.68rem; margin-top: 0.6rem; }
+.ear-more a { color: var(--green); text-decoration: none; }
+.ear-more a:hover { color: var(--neon); }
+.ear-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; }
+.ear-cards span { border: 1px solid rgba(13, 18, 14, 0.12); border-radius: 10px; padding: 0.55rem 0.7rem; font-size: 0.7rem; color: var(--muted); background: #fbf9f3; }
+.ear-cards b { display: block; font-family: var(--display); font-weight: 600; font-size: 1.35rem; letter-spacing: -0.02em; color: var(--ink); }
+.ear-cards .amber b, .ear-cards span.amber b { color: #a9761f; }
+.ear-daily { display: flex; align-items: flex-end; gap: 2px; height: 46px; margin-top: 1rem; }
+.ear-day { flex: 1; min-width: 2px; background: linear-gradient(180deg, var(--green), rgba(47, 125, 79, 0.25)); border-radius: 2px 2px 0 0; }
+.ear-day.zero { background: rgba(13, 18, 14, 0.07); height: 3px !important; }
+.ear-dailyax { display: flex; justify-content: space-between; gap: 0.5rem; font-size: 0.6rem; color: var(--muted); margin-top: 0.2rem; }
+.ear-none { font-size: 0.72rem; color: #a9761f; margin-top: 0.6rem; }
+
 /* family treemap */
 .fam-cell rect:hover { opacity: 0.85; }
 .fam-label { font-family: var(--ui); font-size: 12px; font-weight: 600; fill: var(--ink); pointer-events: none; }

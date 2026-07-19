@@ -130,6 +130,14 @@ class RoutesTestCase(GenericTestBase):
         response = self.test_client.get("/birds/stats")
         self.assertEqual(response.status_code, 200)
         self.assertIn(b"by the numbers", response.data)
+        # The mic's numbers ride along when sound data exists.
+        self.assertIn(b'id="ear-block"', response.data)
+
+    def test_birds_stats_without_sound_data(self):
+        with mock.patch.object(birds, "load_sounds", return_value=None):
+            response = self.test_client.get("/birds/stats")
+        self.assertEqual(response.status_code, 200)
+        self.assertNotIn(b'id="ear-block"', response.data)
 
     def test_birds_map_route(self):
         response = self.test_client.get("/birds/map")
