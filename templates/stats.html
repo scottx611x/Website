@@ -1194,5 +1194,22 @@
             requestAnimationFrame(tick);
         });
     })();
+
+    // Deep-link focus: /birds/stats?bird=X (from a species profile) filters the
+    // phenology matrix to that bird and pulses its leaderboard row.
+    (function () {
+        var m = /[?&]bird=([^&]+)/.exec(location.search);
+        if (!m) return;
+        var name = decodeURIComponent(m[1].replace(/\+/g, " "));
+        var slug = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+        setTimeout(function () {
+            var search = document.getElementById("pheno-search");
+            if (search) { search.value = name; search.dispatchEvent(new Event("input", { bubbles: true })); }
+            var row = document.querySelector('.bar-row[href$="/species/' + slug + '"]');
+            var target = row || document.getElementById("pheno-matrix");
+            if (target) target.scrollIntoView({ behavior: "smooth", block: "center" });
+            if (row) row.classList.add("stat-focus");
+        }, 500);
+    })();
 </script>
 {% endblock %}

@@ -32,6 +32,23 @@
   .sp-ptxt b{display:block; font-family:var(--mono); font-size:.7rem; letter-spacing:.1em; text-transform:uppercase; color:var(--neon)}
   .sp-ptxt span{font-family:var(--mono); font-size:.68rem; color:rgba(244,241,233,.7)}
   .sp-speclabel{position:absolute; left:.6rem; top:.5rem; z-index:1; font-family:var(--mono); font-size:.55rem; letter-spacing:.2em; text-transform:uppercase; color:rgba(56,224,138,.7); text-shadow:0 1px 3px rgba(6,10,7,.9)}
+  .sp-expand{position:absolute; top:.5rem; right:.5rem; z-index:3; width:30px; height:30px; border-radius:50%; border:none; background:rgba(6,10,7,.6); color:var(--neon); font-size:.8rem; cursor:pointer; display:flex; align-items:center; justify-content:center}
+  .sp-expand:hover{background:rgba(6,10,7,.9)}
+  /* Full-screen call viewer, same idiom as the live page. */
+  .sp-zoom{position:fixed; inset:0; z-index:1000; background:rgba(6,10,7,.97); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:1rem; padding:1.2rem; animation:spZoomIn .18s ease; cursor:zoom-out}
+  @keyframes spZoomIn{from{opacity:0}}
+  .sp-zclose{position:absolute; top:.9rem; right:.9rem; width:38px; height:38px; border-radius:50%; border:1px solid rgba(244,241,233,.25); background:rgba(6,10,7,.6); color:var(--paper); font-size:1.1rem; cursor:pointer}
+  .sp-zclose:hover{border-color:var(--neon); color:var(--neon)}
+  .sp-zwrap{position:relative; width:min(92vw,1100px); border-radius:12px; overflow:hidden; background:var(--ink); cursor:crosshair}
+  .sp-zwrap img{display:block; width:100%; height:min(42vh,320px); object-fit:fill}
+  @media(max-width:560px){.sp-zwrap img{height:min(30vh,240px)}}
+  .sp-zwrap .zneedle{position:absolute; top:0; bottom:0; left:calc(var(--zp,0)*100%); width:2px; margin-left:-1px; background:linear-gradient(180deg,#eafff4,var(--neon)); box-shadow:0 0 10px 1px rgba(56,224,138,.85); opacity:0}
+  .sp-zwrap.playing .zneedle{opacity:1}
+  .sp-zbar{display:flex; align-items:center; gap:.75rem; width:min(92vw,1100px); color:var(--paper)}
+  .sp-zplay{flex:0 0 auto; width:42px; height:42px; border-radius:50%; border:none; background:var(--neon); color:var(--ink); font-size:.95rem; cursor:pointer}
+  .sp-zbar b{font-family:var(--display); font-weight:600; font-size:1rem}
+  .sp-zbar .sub{font-family:var(--mono); font-size:.68rem; color:rgba(244,241,233,.65)}
+  .sp-ztime{margin-left:auto; font-family:var(--mono); font-size:.72rem; color:var(--neon)}
   .sp-heard{border:1px solid rgba(13,18,14,.12); border-radius:14px; padding:1.1rem 1.2rem; background:#fbf9f3; display:flex; flex-direction:column; justify-content:center; gap:.55rem}
   .sp-heard .row{display:flex; justify-content:space-between; align-items:baseline; font-size:.86rem; color:var(--muted)}
   .sp-heard .row b{font-family:var(--display); font-size:1.15rem; color:var(--ink); font-weight:600}
@@ -68,8 +85,8 @@
         {% set subnav_active = 'gallery' %}{% include '_birds_nav.html' %}
         <div class="sp-chips">
             {% if sp.count %}<a class="sp-chip" href="/birds?bird={{ sp.name|urlencode }}">&#128247; <b>{{ sp.count }}</b> photo{{ '' if sp.count == 1 else 's' }}</a>{% endif %}
-            {% if sp.rank %}<a class="sp-chip" href="/birds/stats">&#128202; <b>#{{ sp.rank }}</b> lifer</a>{% endif %}
-            {% if sp.heard %}<a class="sp-chip" href="/birds/live">&#128308; heard <b>{{ sp.heard.count }}&times;</b></a>{% endif %}
+            {% if sp.rank %}<a class="sp-chip" href="/birds/stats?bird={{ sp.name|urlencode }}">&#128202; <b>#{{ sp.rank }}</b> lifer</a>{% endif %}
+            {% if sp.heard %}<a class="sp-chip" href="/birds/live?bird={{ sp.name|urlencode }}">&#128308; heard <b>{{ sp.heard.count }}&times;</b></a>{% endif %}
             {% if sp.places %}<a class="sp-chip" href="/birds/map?bird={{ sp.name|urlencode }}">&#128506;&#65039; <b>{{ sp.places|length }}</b> place{{ '' if sp.places|length == 1 else 's' }}</a>{% endif %}
         </div>
     </header>
@@ -118,15 +135,16 @@
     <section class="sp-sec">
         <div class="sp-sec-h">
             <p class="sp-kick">Heard by the yard</p>
-            <a class="sp-more" href="/birds/live">the live feed &rarr;</a>
+            <a class="sp-more" href="/birds/live?bird={{ sp.name|urlencode }}">the live feed &rarr;</a>
         </div>
         <div class="sp-sound">
-            <div class="sp-player" id="sp-player"{% if sp.recent_call and sp.recent_call.audio %} data-audio="{{ sp.recent_call.audio }}"{% endif %}>
+            <div class="sp-player" id="sp-player"{% if sp.recent_call and sp.recent_call.audio %} data-audio="{{ sp.recent_call.audio }}"{% endif %}{% if sp.recent_call and sp.recent_call.spec %} data-spec="{{ MEDIA }}{{ sp.recent_call.spec }}"{% endif %}>
                 {% if sp.recent_call and sp.recent_call.spec %}
                 <div class="sp-spec" style="background-image:url('{{ MEDIA }}{{ sp.recent_call.spec }}')"></div>
                 <div class="sp-veil"></div>
                 <div class="sp-speclabel">spectrogram</div>
                 <div class="sp-needle"></div>
+                <button type="button" class="sp-expand" id="sp-expand" aria-label="enlarge spectrogram">&#8599;</button>
                 {% endif %}
                 <div class="sp-pbar">
                     {% if sp.recent_call and sp.recent_call.audio %}<button type="button" class="sp-play" id="sp-play" aria-label="play the call">&#9654;</button>{% endif %}
@@ -140,7 +158,7 @@
                 <div class="row"><span>heard by ear</span><b>{{ sp.heard.count }}&times;</b></div>
                 {% if sp.heard.maxConf %}<div class="row"><span>best confidence</span><b>{{ (sp.heard.maxConf*100)|round|int }}%</b></div>{% endif %}
                 <div class="row"><span>photographed?</span><b>{{ 'yes' if sp.photographed else 'not yet' }}</b></div>
-                <a href="/birds/live">open the live viewer &rarr;</a>
+                <a href="/birds/live?bird={{ sp.name|urlencode }}">open the live viewer &rarr;</a>
             </div>
         </div>
     </section>
@@ -152,7 +170,7 @@
     <section class="sp-sec">
         <div class="sp-sec-h">
             <p class="sp-kick">Through the year</p>
-            <a class="sp-more" href="/birds/stats">by the numbers &rarr;</a>
+            <a class="sp-more" href="/birds/stats?bird={{ sp.name|urlencode }}">by the numbers &rarr;</a>
         </div>
         <div class="sp-year">
             {% for n in sp.pheno.months %}
@@ -194,24 +212,72 @@
   if (!wrap || !btn) return;
   var MEDIA = "https://birds-scott-ouellette.s3.amazonaws.com/birds/sounds/clips/";
   var audio = new Audio(MEDIA + wrap.getAttribute("data-audio"));
-  var raf = null;
+  var spec = wrap.getAttribute("data-spec");
+  var raf = null, zoom = null;
+  function fmtT(s) { s = Math.floor(s || 0); return Math.floor(s / 60) + ":" + ("0" + (s % 60)).slice(-2); }
   function paint() {
-    var d = audio.duration || 0;
-    wrap.style.setProperty("--p", d ? audio.currentTime / d : 0);
+    var d = audio.duration || 0, p = d ? audio.currentTime / d : 0;
+    wrap.style.setProperty("--p", p);
+    if (zoom) {
+      zoom.querySelector(".sp-zwrap").style.setProperty("--zp", p);
+      zoom.querySelector(".sp-ztime").textContent = fmtT(audio.currentTime) + (d ? " / " + fmtT(d) : "");
+    }
     raf = audio.paused ? null : requestAnimationFrame(paint);
   }
-  btn.addEventListener("click", function () {
-    if (audio.paused) audio.play().catch(function () {}); else audio.pause();
-  });
-  audio.addEventListener("play", function () { wrap.classList.add("playing"); if (raf == null) raf = requestAnimationFrame(paint); btn.innerHTML = "&#10074;&#10074;"; });
-  audio.addEventListener("pause", function () { wrap.classList.remove("playing"); btn.innerHTML = "&#9654;"; });
-  audio.addEventListener("ended", function () { wrap.classList.remove("playing"); btn.innerHTML = "&#9654;"; wrap.style.setProperty("--p", 0); });
-  wrap.querySelector(".sp-spec") && wrap.querySelector(".sp-spec").addEventListener("click", function (e) {
+  function toggle() { if (audio.paused) audio.play().catch(function () {}); else audio.pause(); }
+  btn.addEventListener("click", toggle);
+  function setPlaying(on) {
+    wrap.classList.toggle("playing", on);
+    btn.innerHTML = on ? "&#10074;&#10074;" : "&#9654;";
+    if (zoom) {
+      zoom.querySelector(".sp-zwrap").classList.toggle("playing", on);
+      zoom.querySelector(".sp-zplay").innerHTML = on ? "&#10074;&#10074;" : "&#9654;";
+    }
+  }
+  audio.addEventListener("play", function () { setPlaying(true); if (raf == null) raf = requestAnimationFrame(paint); });
+  audio.addEventListener("pause", function () { setPlaying(false); });
+  audio.addEventListener("ended", function () { setPlaying(false); wrap.style.setProperty("--p", 0); if (zoom) zoom.querySelector(".sp-zwrap").style.setProperty("--zp", 0); });
+  function seekFrom(el, clientX) {
     if (!audio.duration) return;
-    var r = wrap.getBoundingClientRect();
-    audio.currentTime = ((e.clientX - r.left) / r.width) * audio.duration;
+    var r = el.getBoundingClientRect();
+    audio.currentTime = Math.max(0, Math.min(1, (clientX - r.left) / r.width)) * audio.duration;
     if (audio.paused) audio.play().catch(function () {});
+  }
+  var specEl = wrap.querySelector(".sp-spec");
+  if (specEl) specEl.addEventListener("click", function (e) {
+    if (e.target.closest(".sp-expand")) return;   // enlarge, don't seek
+    seekFrom(wrap, e.clientX);
   });
+
+  // ---- enlarge: full-screen spectrogram, same audio, seek + play ----
+  function openZoom() {
+    if (zoom || !spec) return;
+    zoom = document.createElement("div");
+    zoom.className = "sp-zoom";
+    zoom.innerHTML =
+      '<button type="button" class="sp-zclose" aria-label="close">&times;</button>' +
+      '<div class="sp-zwrap"><img src="' + spec + '" alt="spectrogram"><div class="zneedle"></div></div>' +
+      '<div class="sp-zbar">' +
+        '<button type="button" class="sp-zplay" aria-label="play">' + (audio.paused ? "&#9654;" : "&#10074;&#10074;") + '</button>' +
+        '<div><b>The last call</b><span class="sub">' + (document.getElementById("sp-ptime") ? document.getElementById("sp-ptime").textContent : "") + '</span></div>' +
+        '<span class="sp-ztime">' + fmtT(audio.currentTime) + '</span>' +
+      '</div>';
+    document.body.appendChild(zoom);
+    document.body.style.overflow = "hidden";
+    zoom.querySelector(".sp-zwrap").classList.toggle("playing", !audio.paused);
+    paint();
+    zoom.addEventListener("click", function (e) {
+      if (e.target.closest(".sp-zclose")) { closeZoom(); return; }
+      if (e.target.closest(".sp-zplay")) { toggle(); return; }
+      var zw = e.target.closest(".sp-zwrap");
+      if (zw) { seekFrom(zw, e.clientX); return; }
+      if (!e.target.closest(".sp-zbar")) closeZoom();
+    });
+  }
+  function closeZoom() { if (zoom) { zoom.remove(); zoom = null; document.body.style.overflow = ""; } }
+  var exp = document.getElementById("sp-expand");
+  if (exp) exp.addEventListener("click", function (e) { e.stopPropagation(); openZoom(); });
+  document.addEventListener("keydown", function (e) { if (e.key === "Escape") closeZoom(); });
 })();
 </script>
 {% endif %}

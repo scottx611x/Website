@@ -141,6 +141,8 @@
   .lv-chip.miss{border:1.5px dashed rgba(176,125,36,.55);background:var(--paper-2)}
   .lv-chip.miss .cl{color:#a9761f;background:none}
   .lv-chip.miss .feather{position:absolute;inset:0;background:no-repeat center 40%/44%;opacity:.3}
+  .lv-chip.lv-focus{animation:lvFocus 2.4s ease}
+  @keyframes lvFocus{0%,100%{box-shadow:0 0 0 0 rgba(56,224,138,0)}15%,45%{box-shadow:0 0 0 4px rgba(56,224,138,.85)}}
 
   /* History: one strip, four lenses. */
   .lv-ranges{display:flex; gap:.4rem; flex-wrap:wrap; margin-bottom:1rem}
@@ -780,6 +782,21 @@
   }
 
   apply(LIVE, true);
+
+  // Deep-link focus: /birds/live?bird=X (from a species profile) scrolls to and
+  // pulses that bird in the heard-vs-shot wall.
+  (function () {
+    var m = /[?&]bird=([^&]+)/.exec(location.search);
+    if (!m) return;
+    var slug = decodeURIComponent(m[1].replace(/\+/g, " ")).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+    setTimeout(function () {
+      var el = root.querySelector('.lv-wall a[href$="/species/' + slug + '"]');
+      if (!el) return;
+      el.scrollIntoView({ behavior: "smooth", block: "center" });
+      el.classList.add("lv-focus");
+    }, 450);
+  })();
+
   setInterval(poll, 60000);
   setInterval(stampTimes, 30000);
 })();
