@@ -32,9 +32,9 @@
     "lng": -71.051728,
     "area": "away",
     "match": [
-      "congress st bridge boston",
-      "congress st boston",
-      "harborwalkcongress st bridge"
+      "congress st bridge",
+      "harborwalkcongress st bridge",
+      "congress st boston"
     ]
   },
   {
@@ -134,8 +134,8 @@
     "lng": -71.055719,
     "area": "away",
     "match": [
-      "post office square boston",
-      "postoffice square boston"
+      "post office sq boston",
+      "postoffice sq boston"
     ]
   },
   {
@@ -376,6 +376,24 @@
     "area": "local",
     "match": [
       "weir hill"
+    ]
+  },
+  {
+    "name": "Sand Pond, Litchfield ME",
+    "lat": 44.191747,
+    "lng": -69.956356,
+    "area": "away",
+    "match": [
+      "sand pond"
+    ]
+  },
+  {
+    "name": "Garlic Breath Pizza",
+    "lat": 42.6605,
+    "lng": -71.137,
+    "area": "local",
+    "match": [
+      "garlic breath pizza"
     ]
   }
 ]

@@ -160,8 +160,8 @@
     {% if species %}
     <div class="ticker">
         <div class="ticker-track" style="animation-duration: {{ [species|length * 4, 40]|max }}s">
-            {% for s in species %}<a class="ticker-bird" href="/birds?bird={{ s|urlencode }}">{{ s }}</a><span class="sep" aria-hidden="true">&bull;</span>{% endfor %}
-            {% for s in species %}<a class="ticker-bird" href="/birds?bird={{ s|urlencode }}" tabindex="-1" aria-hidden="true">{{ s }}</a><span class="sep" aria-hidden="true">&bull;</span>{% endfor %}
+            {% for s in species %}<a class="ticker-bird" href="/birds/species/{{ s|slug }}">{{ s }}</a><span class="sep" aria-hidden="true">&bull;</span>{% endfor %}
+            {% for s in species %}<a class="ticker-bird" href="/birds/species/{{ s|slug }}" tabindex="-1" aria-hidden="true">{{ s }}</a><span class="sep" aria-hidden="true">&bull;</span>{% endfor %}
         </div>
     </div>
     {% endif %}

@@ -239,7 +239,7 @@
               <div class="lv-nm"><a href="/birds/species/{{ r0.display|slug }}">{{ r0.display }}</a></div>
               <div class="lv-meta">
                 <span class="lv-tag">&#10003; in the gallery</span>
-                {% if r0.new %}<span class="lv-tag new">new to the ear</span>{% endif %}
+                {% if r0.new %}<span class="lv-tag new">first recording</span>{% endif %}
                 <span class="lv-conf">conf <span class="lv-meter"><i style="width:{{ (r0.conf*100)|round }}%"></i></span> {{ (r0.conf*100)|round|int }}%</span>
               </div>
             </div>
@@ -251,7 +251,7 @@
               <div class="lv-when" data-t="{{ r0.t }}">heard, not photographed</div>
               <div class="lv-nm">{{ r0.display }}</div>
               <div class="lv-meta">
-                {% if r0.new %}<span class="lv-tag new">new to the ear</span>{% endif %}
+                {% if r0.new %}<span class="lv-tag new">first recording</span>{% endif %}
                 <span class="lv-conf">conf <span class="lv-meter"><i style="width:{{ (r0.conf*100)|round }}%"></i></span> {{ (r0.conf*100)|round|int }}%</span>
               </div>
             </div>
@@ -623,7 +623,7 @@
   function renderHero(r) {
     var h = document.getElementById("lv-hero");
     var tags = (r.photo ? '<span class="lv-tag">&#10003; in the gallery</span>' : '') +
-               (r.new ? '<span class="lv-tag new">new to the ear</span>' : '');
+               (r.new ? '<span class="lv-tag new">first recording</span>' : '');
     if (r.photo) {
       h.innerHTML = '<div class="lv-portrait" style="background-image:url(\'' + r.photo + '\')"><div class="lv-body">' +
         '<div class="lv-when" data-t="' + esc(r.t) + '" data-lead="' + esc(r.fam) + '"></div>' +
