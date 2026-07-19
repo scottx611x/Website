@@ -26,6 +26,7 @@ import json
 import os
 import random
 import re
+import zlib
 
 import requests
 
@@ -1407,19 +1408,39 @@ def load_sounds():
 
 
 def species_covers(shots):
-    """Best (highest-weight) grid thumbnail per canonical species — the photo the
-    /birds/live viewer shows when it hears a species you've also photographed."""
-    best = {}
+    """Every grid thumbnail per canonical species (best-weight first, de-duped) —
+    the pool the /birds/live viewer draws from when it hears a species you've also
+    photographed, so it can vary the photo instead of always showing one."""
+    pool = {}
     for s in shots:
         isp = s.get("image_species") or []
         imgs = s.get("images") or []
         w = s.get("weight") or 0
         for i in range(len(imgs)):
             raw = isp[i] if i < len(isp) and isp[i] else s.get("species")
+            url = thumb_url(imgs[i])
             for name, _ in _canon_species_list(raw):
-                if name not in best or w > best[name][0]:
-                    best[name] = (w, thumb_url(imgs[i]))
-    return {name: url for name, (w, url) in best.items()}
+                pool.setdefault(name, []).append((w, url))
+    out = {}
+    for name, items in pool.items():
+        items.sort(key=lambda wu: -wu[0])
+        seen, urls = set(), []
+        for _, u in items:
+            if u not in seen:
+                seen.add(u)
+                urls.append(u)
+        out[name] = urls
+    return out
+
+
+def pick_cover(urls, seed):
+    """Pick one thumbnail from a species' pool, deterministically by ``seed`` (a
+    detection timestamp, or a species name). Varies the photo across detections
+    while staying stable across the live page's 60s polls — and identical across
+    Lambda processes, which a bare hash() would not be (PYTHONHASHSEED)."""
+    if not urls:
+        return None
+    return urls[zlib.crc32((seed or "").encode("utf-8")) % len(urls)]
 
 
 def _save_curation(path, data):

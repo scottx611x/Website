@@ -45,9 +45,8 @@
      screen — cropping the time axis makes the needle and seek positions lie. */
   .lv-spec img{display:block; width:100%; height:110px; object-fit:fill}
   /* Progress lives in one CSS var per spectrogram (--p, 0..1), driven at 60fps
-     from rAF, so the playhead glides and every layer below tracks it — including
-     the rotated portrait viewer, where the whole wrap (and these layers) turn 90°
-     together, no separate math. --hp is the hover-scrub position. */
+     from rAF, so the playhead glides and every layer below (needle, played wash,
+     unplayed veil) tracks it in lockstep. --hp is the hover-scrub position. */
   .lv-spec,.lv-rowspec,.lv-zwrap{--p:0; --hp:0}
   .lv-needle{position:absolute; top:0; bottom:0; left:calc(var(--p)*100%); width:2px; margin-left:-1px; background:linear-gradient(180deg,#eafff4,var(--neon)); box-shadow:0 0 10px 1px rgba(56,224,138,.85), 0 0 24px 4px rgba(56,224,138,.4); opacity:0; pointer-events:none; will-change:left}
   .lv-needle::after{content:""; position:absolute; top:0; bottom:0; left:-30px; width:30px; background:linear-gradient(90deg,rgba(56,224,138,0),rgba(56,224,138,.28))} /* neon wake trailing the played side */
@@ -75,14 +74,10 @@
   .lv-zclose:hover{border-color:var(--neon); color:var(--neon)}
   .lv-zstage{flex:1; min-height:0; display:flex; align-items:center; justify-content:center; cursor:zoom-out}
   .lv-zwrap{position:relative; flex:0 0 auto; width:min(92vw,1100px); border-radius:12px; overflow:hidden; background:var(--ink); box-shadow:0 24px 70px -24px rgba(0,0,0,.9); cursor:crosshair}
-  .lv-zwrap img{display:block; width:100%; height:min(48vh,340px); object-fit:fill}
+  .lv-zwrap img{display:block; width:100%; height:min(42vh,320px); object-fit:fill}
+  @media(max-width:560px){.lv-zwrap img{height:min(30vh,240px)}} /* a wide band, not a stretched square */
   .lv-zoom .lv-needle{transition:opacity .2s}
   .lv-zoom.zplaying .lv-needle{opacity:1}
-  /* Portrait phone: turn the strip 90° so the call runs down the long axis of
-     the screen, the way video players do. Time then flows top→bottom, and the
-     seek math in JS flips with it. */
-  .lv-zoom.rot .lv-zwrap{width:min(76vh,1000px); width:min(76dvh,1000px); transform:rotate(90deg)}
-  .lv-zoom.rot .lv-zwrap img{height:min(62vw,340px); max-height:none}
   .lv-zbar{display:flex; align-items:center; gap:.75rem; width:min(92vw,1100px); margin:0 auto; padding:.7rem 1rem calc(.7rem + env(safe-area-inset-bottom)); color:var(--paper)}
   .lv-zplay{flex:0 0 auto; width:42px; height:42px; border-radius:50%; border:none; background:var(--neon); color:var(--ink); font-size:.95rem; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:transform .12s}
   .lv-zplay:active{transform:scale(.92)}
@@ -421,8 +416,7 @@
      One rAF loop drives a single --p (progress 0..1) on every on-screen view of
      the playing clip — the hero strip, its open feed row, and the full-screen
      viewer at once. The needle, the "played" wash and the "unplayed" veil all key
-     off --p in CSS, so they glide together instead of stepping ~4×/s on timeupdate,
-     and the rotated portrait viewer inherits it for free. */
+     off --p in CSS, so they glide together instead of stepping ~4×/s on timeupdate. */
   function specRec(el) {
     if (el.id === "lv-spec") return heroClip;
     if (el.classList.contains("lv-zwrap")) return zoomRec;
@@ -477,9 +471,7 @@
       var el = e.target.closest && e.target.closest(".lv-spec, .lv-rowspec, .lv-zwrap");
       if (!el) return;
       var b = el.getBoundingClientRect();
-      var rot = zoom && zoom.classList.contains("rot") && el.classList.contains("lv-zwrap");
-      var f = rot ? (e.clientY - b.top) / b.height : (e.clientX - b.left) / b.width;
-      f = Math.max(0, Math.min(1, f));
+      var f = Math.max(0, Math.min(1, (e.clientX - b.left) / b.width));
       el.style.setProperty("--hp", f);
       var tip = el.querySelector(".lv-htip");
       if (tip) {
@@ -489,15 +481,10 @@
       }
     }, { passive: true });
   }
-  /* ---- tap to enlarge: a full-screen, PLAYABLE look at the call. On a
-     portrait phone the strip rotates 90° (CSS .rot) so the call runs down the
-     long axis of the screen; seeking reads Y instead of X to match. The phone
-     back gesture closes it like any lightbox should. ---- */
+  /* ---- tap to enlarge: a full-screen, PLAYABLE look at the call — a wide
+     horizontal strip on every device (time reads left→right, always), seek by X.
+     The phone back gesture closes it like any lightbox should. ---- */
   var zoom = null, zoomRec = null, zoomPushed = false;
-  var zoomRot = matchMedia("(orientation: portrait) and (pointer: coarse)");
-  function zoomLayout() { if (zoom) zoom.classList.toggle("rot", zoomRot.matches); }
-  if (zoomRot.addEventListener) zoomRot.addEventListener("change", zoomLayout);
-  else if (zoomRot.addListener) zoomRot.addListener(zoomLayout);
   function zoomCtx(r) { // play from the zoom, but keep the source view's needle alive too
     if (heroClip && r.audio === heroClip.audio) return { needle: document.getElementById("lv-needle"), isHero: true };
     var w = document.querySelector('#lv-feed .lv-rowwrap[data-audio="' + r.audio + '"]');
@@ -525,7 +512,6 @@
       '</div>';
     document.body.appendChild(zoom);
     document.body.style.overflow = "hidden";
-    zoomLayout();
     audio.playbackRate = 1; // fresh 1× button on open
     if (!zoomPushed) { try { history.pushState({ lvZoom: 1 }, ""); zoomPushed = true; } catch (_) {} }
     syncViews();
@@ -562,10 +548,8 @@
       }
       var zw = e.target.closest(".lv-zwrap");
       if (zw && zoomRec.audio) {
-        // getBoundingClientRect is the post-rotation box, so in .rot mode the
-        // time axis is its height.
         var zb = zw.getBoundingClientRect();
-        var zf = zoom.classList.contains("rot") ? (e.clientY - zb.top) / zb.height : (e.clientX - zb.left) / zb.width;
+        var zf = (e.clientX - zb.left) / zb.width;
         playClip(zoomRec, zoomCtx(zoomRec), Math.max(0, Math.min(1, zf)));
         return;
       }

@@ -574,9 +574,13 @@ def _live_view():
         common = entry.get("common") if isinstance(entry, dict) else entry
         canon = birds._canon_species(common or "")
         disp = canon[0] if canon else (common or "")
+        # Vary the photo per detection (seed by its timestamp) so repeated calls of
+        # a species don't all show the same shot; species-level rows (no timestamp)
+        # fall back to a stable per-species pick.
+        seed = entry.get("t") if isinstance(entry, dict) and entry.get("t") else disp
         out = {"common": common, "display": disp,
                "fam": canon[1] if canon else "Other birds",
-               "photo": covers.get(disp), "shot": disp in photographed}
+               "photo": birds.pick_cover(covers.get(disp), seed), "shot": disp in photographed}
         if isinstance(entry, dict):
             out.update({k: entry[k] for k in
                         ("t", "conf", "new", "count", "first", "last", "maxConf",
