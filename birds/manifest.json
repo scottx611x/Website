@@ -1,5 +1,284 @@
 [
   {
+    "id": "18145153738523272",
+    "images": [
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/18145153738523272-0.jpg",
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/18145153738523272-1.jpg",
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/18145153738523272-2.jpg",
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/18145153738523272-3.jpg",
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/18145153738523272-4.jpg",
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/18145153738523272-5.jpg",
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/18145153738523272-6.jpg",
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/18145153738523272-7.jpg",
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/18145153738523272-8.jpg"
+    ],
+    "image_dims": [
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ],
+    "image_videos": [],
+    "captions": [
+      "Chimney Swift (Rea St.), American Crow (Johnson St.), Red-tailed Hawk (Rea St.) \u00b7 Jun 21, 2026",
+      "Chimney Swift (Rea St.), American Crow (Johnson St.), Red-tailed Hawk (Rea St.) \u00b7 Jun 21, 2026",
+      "Chimney Swift (Rea St.), American Crow (Johnson St.), Red-tailed Hawk (Rea St.) \u00b7 Jun 21, 2026",
+      "Chimney Swift (Rea St.), American Crow (Johnson St.), Red-tailed Hawk (Rea St.) \u00b7 Jun 21, 2026",
+      "Chimney Swift (Rea St.), American Crow (Johnson St.), Red-tailed Hawk (Rea St.) \u00b7 Jun 21, 2026",
+      "Chimney Swift (Rea St.), American Crow (Johnson St.), Red-tailed Hawk (Rea St.) \u00b7 Jun 21, 2026",
+      "Chimney Swift (Rea St.), American Crow (Johnson St.), Red-tailed Hawk (Rea St.) \u00b7 Jun 21, 2026",
+      "Chimney Swift (Rea St.), American Crow (Johnson St.), Red-tailed Hawk (Rea St.) \u00b7 Jun 21, 2026",
+      "Chimney Swift (Rea St.), American Crow (Johnson St.), Red-tailed Hawk (Rea St.) \u00b7 Jun 21, 2026"
+    ],
+    "caption": "Chimney Swift - Rea St.\nAmerican Crow - Johnson St.\nRed-tailed Hawk - Rea St.\n\n6-21-26",
+    "species": "Chimney Swift",
+    "species_list": [
+      "Chimney Swift",
+      "American Crow",
+      "Red-tailed Hawk"
+    ],
+    "location": "Rea St.",
+    "locations": [
+      "Rea St.",
+      "Johnson St.",
+      "Rea St."
+    ],
+    "date": "Jun 21, 2026",
+    "permalink": "https://www.instagram.com/p/Da8TfWBliX_/",
+    "timestamp": "2026-07-18T17:15:44+0000",
+    "weight": 0.13,
+    "image_species": [
+      "Chimney Swift",
+      "Chimney Swift",
+      "Chimney Swift",
+      "American Crow",
+      "American Crow",
+      "American Crow",
+      "American Crow",
+      "Red-tailed Hawk",
+      "Red-tailed Hawk"
+    ],
+    "image_locations": [
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ],
+    "ambiguous": false,
+    "image_areas": [
+      "local",
+      "local",
+      "local",
+      "local",
+      "local",
+      "local",
+      "local",
+      "local",
+      "local"
+    ],
+    "caption_species": [
+      "Chimney Swift",
+      "American Crow",
+      "Red-tailed Hawk"
+    ],
+    "reclassified": false,
+    "image_indices": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ]
+  },
+  {
+    "id": "18088616054447348",
+    "images": [
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/18088616054447348-0.jpg",
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/18088616054447348-1.jpg",
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/18088616054447348-2.jpg",
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/18088616054447348-3.jpg",
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/18088616054447348-4.jpg",
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/18088616054447348-5.jpg",
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/18088616054447348-6.jpg"
+    ],
+    "image_dims": [
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ],
+    "image_videos": [],
+    "captions": [
+      "Baltimore Orioles \u00b7 Weir Hill \u00b7 Jun 21, 2026",
+      "Baltimore Orioles \u00b7 Weir Hill \u00b7 Jun 21, 2026",
+      "Baltimore Orioles \u00b7 Weir Hill \u00b7 Jun 21, 2026",
+      "Baltimore Orioles \u00b7 Weir Hill \u00b7 Jun 21, 2026",
+      "Baltimore Orioles \u00b7 Weir Hill \u00b7 Jun 21, 2026",
+      "Baltimore Orioles \u00b7 Weir Hill \u00b7 Jun 21, 2026",
+      "Baltimore Orioles \u00b7 Weir Hill \u00b7 Jun 21, 2026"
+    ],
+    "caption": "Baltimore Orioles\n\nWeir Hill\n\n6-21-26",
+    "species": "Baltimore Orioles",
+    "species_list": [
+      "Baltimore Orioles"
+    ],
+    "location": "Weir Hill",
+    "locations": [
+      "Weir Hill"
+    ],
+    "date": "Jun 21, 2026",
+    "permalink": "https://www.instagram.com/p/Da6KSolmBUe/",
+    "timestamp": "2026-07-17T21:16:53+0000",
+    "weight": 0.31,
+    "image_species": [
+      "Baltimore Orioles",
+      "Baltimore Orioles",
+      "Baltimore Orioles",
+      "Baltimore Orioles",
+      "Baltimore Orioles",
+      "Baltimore Orioles",
+      "Baltimore Orioles"
+    ],
+    "ambiguous": false,
+    "image_areas": [
+      "local",
+      "local",
+      "local",
+      "local",
+      "local",
+      "local",
+      "local"
+    ],
+    "caption_species": [
+      "Baltimore Oriole"
+    ],
+    "reclassified": false,
+    "image_indices": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6
+    ]
+  },
+  {
+    "id": "18106201940109025",
+    "images": [
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/18106201940109025-0.jpg",
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/18106201940109025-1.jpg",
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/18106201940109025-2.jpg"
+    ],
+    "image_dims": [
+      null,
+      null,
+      null
+    ],
+    "image_videos": [],
+    "captions": [
+      "Eastern Towhee \u00b7 Weir Hill \u00b7 Jun 21, 2026",
+      "Eastern Towhee \u00b7 Weir Hill \u00b7 Jun 21, 2026",
+      "Eastern Towhee \u00b7 Weir Hill \u00b7 Jun 21, 2026"
+    ],
+    "caption": "Eastern Towhee\n\nWeir Hill\n\n6-21-26",
+    "species": "Eastern Towhee",
+    "species_list": [
+      "Eastern Towhee"
+    ],
+    "location": "Weir Hill",
+    "locations": [
+      "Weir Hill"
+    ],
+    "date": "Jun 21, 2026",
+    "permalink": "https://www.instagram.com/p/Da3SNOyIHTA/",
+    "timestamp": "2026-07-16T18:28:20+0000",
+    "weight": 0.31,
+    "image_species": [
+      "Eastern Towhee",
+      "Eastern Towhee",
+      "Eastern Towhee"
+    ],
+    "ambiguous": false,
+    "image_areas": [
+      "local",
+      "local",
+      "local"
+    ],
+    "caption_species": [
+      "Eastern Towhee"
+    ],
+    "reclassified": false,
+    "image_indices": [
+      0,
+      1,
+      2
+    ]
+  },
+  {
+    "id": "18085650896544321",
+    "images": [
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/18085650896544321-0.jpg",
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/18085650896544321-1.jpg"
+    ],
+    "image_dims": [
+      null,
+      null
+    ],
+    "image_videos": [],
+    "captions": [
+      "Wood Thrush \u00b7 Weir Hill \u00b7 Jun 21, 2026",
+      "Wood Thrush \u00b7 Weir Hill \u00b7 Jun 21, 2026"
+    ],
+    "caption": "Wood Thrush\n\nWeir Hill\n\n6-21-26",
+    "species": "Wood Thrush",
+    "species_list": [
+      "Wood Thrush"
+    ],
+    "location": "Weir Hill",
+    "locations": [
+      "Weir Hill"
+    ],
+    "date": "Jun 21, 2026",
+    "permalink": "https://www.instagram.com/p/Das2qeVICii/",
+    "timestamp": "2026-07-12T17:15:16+0000",
+    "weight": 0.31,
+    "image_species": [
+      "Wood Thrush",
+      "Wood Thrush"
+    ],
+    "ambiguous": false,
+    "image_areas": [
+      "local",
+      "local"
+    ],
+    "caption_species": [
+      "Wood Thrush"
+    ],
+    "reclassified": false,
+    "image_indices": [
+      0,
+      1
+    ]
+  },
+  {
     "id": "18600233677021121",
     "images": [
       "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/18600233677021121-0.jpg",
@@ -62,7 +341,16 @@
     "date": "Jun 19, 2026",
     "permalink": "https://www.instagram.com/p/DaExdoTkcKW/",
     "timestamp": "2026-06-27T03:40:11+0000",
-    "weight": 0.296,
+    "weight": 0.31,
+    "image_species": [
+      "Red-tailed Hawk",
+      "Red-tailed Hawk",
+      "Red-tailed Hawk",
+      "Red-tailed Hawk",
+      "Red-tailed Hawk",
+      "Red-tailed Hawk",
+      "Red-tailed Hawk"
+    ],
     "ambiguous": false,
     "image_areas": [
       "local",
@@ -85,6 +373,266 @@
       4,
       5,
       6
+    ]
+  },
+  {
+    "id": "17908523211263911",
+    "images": [
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/17908523211263911-0.jpg",
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/17908523211263911-1.jpg",
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/17908523211263911-2.jpg"
+    ],
+    "image_dims": [
+      null,
+      null,
+      null
+    ],
+    "image_videos": [],
+    "captions": [
+      "Double-crested Cormorant \u00b7 Congress St. Bridge \u00b7 Jun 18, 2026",
+      "Double-crested Cormorant \u00b7 Congress St. Bridge \u00b7 Jun 18, 2026",
+      "Double-crested Cormorant \u00b7 Congress St. Bridge \u00b7 Jun 18, 2026"
+    ],
+    "caption": "\u26a0\ufe0f Double-crested Cormorant\n\nCongress St. Bridge\n\n6-18-26",
+    "species": "Double-crested Cormorant",
+    "species_list": [
+      "Double-crested Cormorant"
+    ],
+    "location": "Congress St. Bridge",
+    "locations": [
+      "Congress St. Bridge"
+    ],
+    "date": "Jun 18, 2026",
+    "permalink": "https://www.instagram.com/p/Daxj_jwm-0m/",
+    "timestamp": "2026-07-14T13:08:18+0000",
+    "weight": 0.456,
+    "image_species": [
+      "Double-crested Cormorant",
+      "Double-crested Cormorant",
+      "Double-crested Cormorant"
+    ],
+    "ambiguous": false,
+    "image_areas": [
+      "away",
+      "away",
+      "away"
+    ],
+    "caption_species": [
+      "Double-crested Cormorant"
+    ],
+    "reclassified": false,
+    "image_indices": [
+      0,
+      1,
+      2
+    ]
+  },
+  {
+    "id": "18214071976339270",
+    "images": [
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/18214071976339270-0.jpg",
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/18214071976339270-1.jpg",
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/18214071976339270-2.jpg",
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/18214071976339270-3.jpg",
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/18214071976339270-4.jpg",
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/18214071976339270-5.jpg",
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/18214071976339270-6.jpg"
+    ],
+    "image_dims": [
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ],
+    "image_videos": [],
+    "captions": [
+      "Rock Pigeon \u00b7 Dorchester Ave, Boston \u00b7 Jun 16, 2026",
+      "Rock Pigeon \u00b7 Dorchester Ave, Boston \u00b7 Jun 16, 2026",
+      "Rock Pigeon \u00b7 Dorchester Ave, Boston \u00b7 Jun 16, 2026",
+      "Rock Pigeon \u00b7 Dorchester Ave, Boston \u00b7 Jun 16, 2026",
+      "Rock Pigeon \u00b7 Dorchester Ave, Boston \u00b7 Jun 16, 2026",
+      "Rock Pigeon \u00b7 Dorchester Ave, Boston \u00b7 Jun 16, 2026",
+      "Rock Pigeon \u00b7 Dorchester Ave, Boston \u00b7 Jun 16, 2026"
+    ],
+    "caption": "\u26a0\ufe0f Rock Pigeon (leucistic)\n\nDorchester Ave, Boston\n\n6-16-26",
+    "species": "Rock Pigeon",
+    "species_list": [
+      "Rock Pigeon"
+    ],
+    "location": "Dorchester Ave, Boston",
+    "locations": [
+      "Dorchester Ave, Boston"
+    ],
+    "date": "Jun 16, 2026",
+    "permalink": "https://www.instagram.com/p/Dap1mYEFhmK/",
+    "timestamp": "2026-07-11T13:08:13+0000",
+    "weight": 0.456,
+    "image_species": [
+      "Rock Pigeon",
+      "Rock Pigeon",
+      "Rock Pigeon",
+      "Rock Pigeon",
+      "Rock Pigeon",
+      "Rock Pigeon",
+      "Rock Pigeon"
+    ],
+    "ambiguous": false,
+    "image_areas": [
+      "away",
+      "away",
+      "away",
+      "away",
+      "away",
+      "away",
+      "away"
+    ],
+    "caption_species": [
+      "Rock Pigeon"
+    ],
+    "reclassified": false,
+    "image_indices": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6
+    ]
+  },
+  {
+    "id": "17857860690679642",
+    "images": [
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/17857860690679642-0.jpg",
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/17857860690679642-1.jpg",
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/17857860690679642-2.jpg",
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/17857860690679642-3.jpg"
+    ],
+    "image_dims": [
+      null,
+      null,
+      null,
+      null
+    ],
+    "image_videos": [],
+    "captions": [
+      "Baltimore Oriole, Orchard Oriole \u00b7 Weir Hill \u00b7 Jun 14, 2026",
+      "Baltimore Oriole, Orchard Oriole \u00b7 Weir Hill \u00b7 Jun 14, 2026",
+      "Baltimore Oriole, Orchard Oriole \u00b7 Weir Hill \u00b7 Jun 14, 2026",
+      "Baltimore Oriole, Orchard Oriole \u00b7 Weir Hill \u00b7 Jun 14, 2026"
+    ],
+    "caption": "Baltimore Oriole\nOrchard Oriole\n\nWeir Hill\n\n6-14-26",
+    "species": "Baltimore Oriole",
+    "species_list": [
+      "Baltimore Oriole",
+      "Orchard Oriole"
+    ],
+    "location": "Weir Hill",
+    "locations": [
+      "Weir Hill",
+      "Weir Hill"
+    ],
+    "date": "Jun 14, 2026",
+    "permalink": "https://www.instagram.com/p/Da0lEZ_loGa/",
+    "timestamp": "2026-07-15T17:15:26+0000",
+    "weight": 0.661,
+    "image_species": [
+      "Baltimore Oriole",
+      "Baltimore Oriole",
+      "Orchard Oriole",
+      "Orchard Oriole"
+    ],
+    "ambiguous": true,
+    "image_areas": [
+      "local",
+      "local",
+      "local",
+      "local"
+    ],
+    "caption_species": [
+      "Baltimore Oriole",
+      "Orchard Oriole"
+    ],
+    "reclassified": false,
+    "image_indices": [
+      0,
+      1,
+      2,
+      3
+    ]
+  },
+  {
+    "id": "18068717327427822",
+    "images": [
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/18068717327427822-0.jpg",
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/18068717327427822-1.jpg",
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/18068717327427822-2.jpg",
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/18068717327427822-3.jpg"
+    ],
+    "image_dims": [
+      null,
+      null,
+      null,
+      null
+    ],
+    "image_videos": [],
+    "captions": [
+      "Wild Turkey \u00b7 Rea St. \u00b7 Jun 14, 2026",
+      "Mallard \u00b7 Stevens Pond \u00b7 Jun 14, 2026",
+      "Eastern Wood Pewee \u00b7 Weir Hill \u00b7 Jun 14, 2026",
+      "Eastern Wood Pewee \u00b7 Annie L. Sargent School Access Road \u00b7 Jun 14, 2026"
+    ],
+    "caption": "Wild Turkey - Rea St.\nMallard - Stevens Pond\nEastern Wood Pewee - Weir Hill\nEastern Wood Pewee - Annie L. Sargent School Access Road\n\n6-14-26",
+    "species": "Wild Turkey",
+    "species_list": [
+      "Wild Turkey",
+      "Mallard",
+      "Eastern Wood-Pewee"
+    ],
+    "location": "Rea St.",
+    "locations": [
+      "Rea St.",
+      "Stevens Pond",
+      "Weir Hill",
+      "Annie L. Sargent School Access Road"
+    ],
+    "date": "Jun 14, 2026",
+    "permalink": "https://www.instagram.com/p/Dal8SIriX2f/",
+    "timestamp": "2026-07-10T00:49:41+0000",
+    "weight": 0.205,
+    "image_species": [
+      "Wild Turkey",
+      "Mallard",
+      "Eastern Wood-Pewee",
+      "Eastern Wood-Pewee"
+    ],
+    "image_locations": [
+      null,
+      null,
+      null,
+      null
+    ],
+    "ambiguous": false,
+    "image_areas": [
+      "local",
+      "local",
+      "local",
+      "local"
+    ],
+    "caption_species": [
+      "Wild Turkey",
+      "Mallard",
+      "Eastern Wood-Pewee"
+    ],
+    "reclassified": false,
+    "image_indices": [
+      0,
+      1,
+      2,
+      3
     ]
   },
   {
@@ -145,30 +693,42 @@
     ],
     "image_videos": [],
     "captions": [
-      "Killdeer \u00b7 Jun 14, 2026",
-      "Killdeer \u00b7 Jun 14, 2026",
-      "Killdeer \u00b7 Jun 14, 2026",
-      "Killdeer \u00b7 Jun 14, 2026",
-      "Killdeer \u00b7 Jun 14, 2026",
-      "Killdeer \u00b7 Jun 14, 2026",
-      "Killdeer \u00b7 Jun 14, 2026",
-      "Killdeer \u00b7 Jun 14, 2026",
-      "Killdeer \u00b7 Jun 14, 2026",
-      "Killdeer \u00b7 Jun 14, 2026"
+      "Killdeer \u00b7 Stevens Pond \u00b7 Jun 14, 2026",
+      "Killdeer \u00b7 Stevens Pond \u00b7 Jun 14, 2026",
+      "Killdeer \u00b7 Stevens Pond \u00b7 Jun 14, 2026",
+      "Killdeer \u00b7 Stevens Pond \u00b7 Jun 14, 2026",
+      "Killdeer \u00b7 Stevens Pond \u00b7 Jun 14, 2026",
+      "Killdeer \u00b7 Stevens Pond \u00b7 Jun 14, 2026",
+      "Killdeer \u00b7 Stevens Pond \u00b7 Jun 14, 2026",
+      "Killdeer \u00b7 Stevens Pond \u00b7 Jun 14, 2026",
+      "Killdeer \u00b7 Stevens Pond \u00b7 Jun 14, 2026",
+      "Killdeer \u00b7 Stevens Pond \u00b7 Jun 14, 2026"
     ],
     "caption": "Killdeer\n\nStevens Pond\n\n6-14-26",
     "species": "Killdeer",
     "species_list": [
       "Killdeer"
     ],
-    "location": null,
+    "location": "Stevens Pond",
     "locations": [
-      null
+      "Stevens Pond"
     ],
     "date": "Jun 14, 2026",
     "permalink": "https://www.instagram.com/p/DZ-ptTSne4c/",
     "timestamp": "2026-06-24T18:36:59+0000",
-    "weight": 0.103,
+    "weight": 0.096,
+    "image_species": [
+      "Killdeer",
+      "Killdeer",
+      "Killdeer",
+      "Killdeer",
+      "Killdeer",
+      "Killdeer",
+      "Killdeer",
+      "Killdeer",
+      "Killdeer",
+      "Killdeer"
+    ],
     "ambiguous": false,
     "image_areas": [
       "local",
@@ -200,6 +760,73 @@
     ]
   },
   {
+    "id": "18126994204643464",
+    "images": [
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/18126994204643464-0.jpg",
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/18126994204643464-1.jpg",
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/18126994204643464-2.jpg",
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/18126994204643464-3.jpg"
+    ],
+    "image_dims": [
+      null,
+      null,
+      null,
+      null
+    ],
+    "image_videos": [],
+    "captions": [
+      "Cooper's Hawk, Northern Cardinal \u00b7 Rea St. \u00b7 Jun 13, 2026",
+      "Cooper's Hawk, Northern Cardinal \u00b7 Rea St. \u00b7 Jun 13, 2026",
+      "Cooper's Hawk, Northern Cardinal \u00b7 Rea St. \u00b7 Jun 13, 2026",
+      "Cooper's Hawk, Northern Cardinal \u00b7 Rea St. \u00b7 Jun 13, 2026"
+    ],
+    "caption": "Cooper's Hawk\nNorthern Cardinal\n\nRea St.\n\n6-13-26",
+    "species": "Cooper's Hawk",
+    "species_list": [
+      "Cooper's Hawk",
+      "Northern Cardinal"
+    ],
+    "location": "Rea St.",
+    "locations": [
+      "Rea St.",
+      "Rea St."
+    ],
+    "date": "Jun 13, 2026",
+    "permalink": "https://www.instagram.com/p/DaijhmrkXGU/",
+    "timestamp": "2026-07-08T17:15:38+0000",
+    "weight": 0.456,
+    "image_species": [
+      "Cooper's Hawk",
+      "Cooper's Hawk",
+      "Northern Cardinal",
+      "Northern Cardinal"
+    ],
+    "image_locations": [
+      null,
+      null,
+      null,
+      null
+    ],
+    "ambiguous": false,
+    "image_areas": [
+      "local",
+      "local",
+      "local",
+      "local"
+    ],
+    "caption_species": [
+      "Cooper's Hawk",
+      "Northern Cardinal"
+    ],
+    "reclassified": false,
+    "image_indices": [
+      0,
+      1,
+      2,
+      3
+    ]
+  },
+  {
     "id": "18099360580897758",
     "images": [
       "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/18099360580897758-0.jpg",
@@ -218,7 +845,7 @@
     "species": "Rose-breasted Grosbeak",
     "species_list": [
       "Rose-breasted Grosbeak",
-      "Red-bellied Wookpecker"
+      "Red-bellied Woodpecker"
     ],
     "location": "Rea St.",
     "locations": [
@@ -228,8 +855,16 @@
     "date": "Jun 12, 2026",
     "permalink": "https://www.instagram.com/p/DaT3k7-mhpZ/",
     "timestamp": "2026-07-03T00:22:14+0000",
-    "weight": 0.139,
-    "ambiguous": true,
+    "weight": 0.31,
+    "image_species": [
+      "Rose-breasted Grosbeak",
+      "Red-bellied Woodpecker"
+    ],
+    "image_locations": [
+      null,
+      null
+    ],
+    "ambiguous": false,
     "image_areas": [
       "local",
       "local"
@@ -289,7 +924,13 @@
     "date": "Jun 12, 2026",
     "permalink": "https://www.instagram.com/p/DaOt_cyFErR/",
     "timestamp": "2026-07-01T00:22:15+0000",
-    "weight": 0.206,
+    "weight": 0.205,
+    "image_species": [
+      "Northern House Wren",
+      "Northern House Wren",
+      "Northern House Wren",
+      "Northern House Wren"
+    ],
     "ambiguous": false,
     "image_areas": [
       "local",
@@ -306,6 +947,348 @@
       1,
       2,
       3
+    ]
+  },
+  {
+    "id": "18092956400059892",
+    "images": [
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/18092956400059892-0.jpg",
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/18092956400059892-1.jpg",
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/18092956400059892-2.jpg"
+    ],
+    "image_dims": [
+      null,
+      null,
+      null
+    ],
+    "image_videos": [],
+    "captions": [
+      "Turkey Vulture \u00b7 Rea St. \u00b7 Jun 9, 2026",
+      "Turkey Vulture \u00b7 Rea St. \u00b7 Jun 9, 2026",
+      "Turkey Vulture \u00b7 Rea St. \u00b7 Jun 9, 2026"
+    ],
+    "caption": "Turkey Vulture\n\nRea St.\n\n6-9-26",
+    "species": "Turkey Vulture",
+    "species_list": [
+      "Turkey Vulture"
+    ],
+    "location": "Rea St.",
+    "locations": [
+      "Rea St."
+    ],
+    "date": "Jun 9, 2026",
+    "permalink": "https://www.instagram.com/p/Dav_MB0Capg/",
+    "timestamp": "2026-07-13T22:27:28+0000",
+    "weight": 0.31,
+    "image_species": [
+      "Turkey Vulture",
+      "Turkey Vulture",
+      "Turkey Vulture"
+    ],
+    "ambiguous": false,
+    "image_areas": [
+      "local",
+      "local",
+      "local"
+    ],
+    "caption_species": [
+      "Turkey Vulture"
+    ],
+    "reclassified": false,
+    "image_indices": [
+      0,
+      1,
+      2
+    ]
+  },
+  {
+    "id": "18108119650954245",
+    "images": [
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/18108119650954245-0.jpg",
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/18108119650954245-1.jpg",
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/18108119650954245-2.jpg",
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/18108119650954245-3.jpg",
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/18108119650954245-4.jpg"
+    ],
+    "image_dims": [
+      null,
+      null,
+      null,
+      null,
+      null
+    ],
+    "image_videos": [],
+    "captions": [
+      "Red-tailed Hawk \u00b7 North Cross Road \u00b7 Jun 9, 2026",
+      "Red-tailed Hawk \u00b7 North Cross Road \u00b7 Jun 9, 2026",
+      "Red-tailed Hawk \u00b7 North Cross Road \u00b7 Jun 9, 2026",
+      "Red-tailed Hawk \u00b7 North Cross Road \u00b7 Jun 9, 2026",
+      "Red-tailed Hawk \u00b7 North Cross Road \u00b7 Jun 9, 2026"
+    ],
+    "caption": "Red-tailed Hawk\n\nNorth Cross Road\n\n6-9-26",
+    "species": "Red-tailed Hawk",
+    "species_list": [
+      "Red-tailed Hawk"
+    ],
+    "location": "North Cross Road",
+    "locations": [
+      "North Cross Road"
+    ],
+    "date": "Jun 9, 2026",
+    "permalink": "https://www.instagram.com/p/Daa1IQkoD32/",
+    "timestamp": "2026-07-05T17:15:29+0000",
+    "weight": 0.13,
+    "image_species": [
+      "Red-tailed Hawk",
+      "Red-tailed Hawk",
+      "Red-tailed Hawk",
+      "Red-tailed Hawk",
+      "Red-tailed Hawk"
+    ],
+    "ambiguous": false,
+    "image_areas": [
+      "local",
+      "local",
+      "local",
+      "local",
+      "local"
+    ],
+    "caption_species": [
+      "Red-tailed Hawk"
+    ],
+    "reclassified": false,
+    "image_indices": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ]
+  },
+  {
+    "id": "17959977741153400",
+    "images": [
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/17959977741153400-0.jpg",
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/17959977741153400-1.jpg",
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/17959977741153400-2.jpg",
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/17959977741153400-3.jpg",
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/17959977741153400-4.jpg"
+    ],
+    "image_dims": [
+      null,
+      null,
+      null,
+      null,
+      null
+    ],
+    "image_videos": [],
+    "captions": [
+      "Barred Owl \u00b7 Rea St. \u00b7 Jun 8, 2026",
+      "Barred Owl \u00b7 Rea St. \u00b7 Jun 8, 2026",
+      "Barred Owl \u00b7 Rea St. \u00b7 Jun 8, 2026",
+      "Barred Owl \u00b7 Rea St. \u00b7 Jun 8, 2026",
+      "Barred Owl \u00b7 Rea St. \u00b7 Jun 8, 2026"
+    ],
+    "caption": "Barred Owl\n\nRea St.\n\n6-8-26",
+    "species": "Barred Owl",
+    "species_list": [
+      "Barred Owl"
+    ],
+    "location": "Rea St.",
+    "locations": [
+      "Rea St."
+    ],
+    "date": "Jun 8, 2026",
+    "permalink": "https://www.instagram.com/p/DantHIrm9eX/",
+    "timestamp": "2026-07-10T17:15:34+0000",
+    "weight": 0.31,
+    "image_species": [
+      "Barred Owl",
+      "Barred Owl",
+      "Barred Owl",
+      "Barred Owl",
+      "Barred Owl"
+    ],
+    "ambiguous": false,
+    "image_areas": [
+      "local",
+      "local",
+      "local",
+      "local",
+      "local"
+    ],
+    "caption_species": [
+      "Barred Owl"
+    ],
+    "reclassified": false,
+    "image_indices": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ]
+  },
+  {
+    "id": "17909494311439462",
+    "images": [
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/17909494311439462-0.jpg",
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/17909494311439462-1.jpg",
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/17909494311439462-2.jpg",
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/17909494311439462-3.jpg",
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/17909494311439462-4.jpg"
+    ],
+    "image_dims": [
+      null,
+      null,
+      null,
+      null,
+      null
+    ],
+    "image_videos": [],
+    "captions": [
+      "Gray Catbird, Red-tailed Hawk \u00b7 Rea St. \u00b7 Jun 8, 2026",
+      "Gray Catbird, Red-tailed Hawk \u00b7 Rea St. \u00b7 Jun 8, 2026",
+      "Gray Catbird, Red-tailed Hawk \u00b7 Rea St. \u00b7 Jun 8, 2026",
+      "Gray Catbird, Red-tailed Hawk \u00b7 Rea St. \u00b7 Jun 8, 2026",
+      "Gray Catbird, Red-tailed Hawk \u00b7 Rea St. \u00b7 Jun 8, 2026"
+    ],
+    "caption": "Gray Catbird\nRed-tailed Hawk\n\nRea St.\n\n6-8-26",
+    "species": "Gray Catbird",
+    "species_list": [
+      "Gray Catbird",
+      "Red-tailed Hawk"
+    ],
+    "location": "Rea St.",
+    "locations": [
+      "Rea St.",
+      "Rea St."
+    ],
+    "date": "Jun 8, 2026",
+    "permalink": "https://www.instagram.com/p/Daf-uxAGmN1/",
+    "timestamp": "2026-07-07T17:15:38+0000",
+    "weight": 0.456,
+    "image_species": [
+      "Gray Catbird",
+      "Gray Catbird",
+      "Gray Catbird",
+      "Red-tailed Hawk",
+      "Red-tailed Hawk"
+    ],
+    "image_locations": [
+      null,
+      null,
+      null,
+      null,
+      null
+    ],
+    "ambiguous": false,
+    "image_areas": [
+      "local",
+      "local",
+      "local",
+      "local",
+      "local"
+    ],
+    "caption_species": [
+      "Gray Catbird",
+      "Red-tailed Hawk"
+    ],
+    "reclassified": false,
+    "image_indices": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ]
+  },
+  {
+    "id": "17962441899127953",
+    "images": [
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/17962441899127953-0.jpg",
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/17962441899127953-1.jpg",
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/17962441899127953-2.jpg",
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/17962441899127953-3.jpg",
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/17962441899127953-4.jpg",
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/17962441899127953-5.jpg",
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/17962441899127953-6.jpg",
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/17962441899127953-7.jpg",
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/17962441899127953-8.jpg"
+    ],
+    "image_dims": [
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ],
+    "image_videos": [],
+    "captions": [
+      "Barred Owl \u00b7 Rea St. \u00b7 Jun 8, 2026",
+      "Barred Owl \u00b7 Rea St. \u00b7 Jun 8, 2026",
+      "Barred Owl \u00b7 Rea St. \u00b7 Jun 8, 2026",
+      "Barred Owl \u00b7 Rea St. \u00b7 Jun 8, 2026",
+      "Barred Owl \u00b7 Rea St. \u00b7 Jun 8, 2026",
+      "Barred Owl \u00b7 Rea St. \u00b7 Jun 8, 2026",
+      "Barred Owl \u00b7 Rea St. \u00b7 Jun 8, 2026",
+      "Barred Owl \u00b7 Rea St. \u00b7 Jun 8, 2026",
+      "Barred Owl \u00b7 Rea St. \u00b7 Jun 8, 2026"
+    ],
+    "caption": "Barred Owl\n\nRea St.\n\n6-8-26",
+    "species": "Barred Owl",
+    "species_list": [
+      "Barred Owl"
+    ],
+    "location": "Rea St.",
+    "locations": [
+      "Rea St."
+    ],
+    "date": "Jun 8, 2026",
+    "permalink": "https://www.instagram.com/p/DaYQYyYFGsN/",
+    "timestamp": "2026-07-04T17:15:58+0000",
+    "weight": 0.745,
+    "image_species": [
+      "Barred Owl",
+      "Barred Owl",
+      "Barred Owl",
+      "Barred Owl",
+      "Barred Owl",
+      "Barred Owl",
+      "Barred Owl",
+      "Barred Owl",
+      "Barred Owl"
+    ],
+    "ambiguous": false,
+    "image_areas": [
+      "local",
+      "local",
+      "local",
+      "local",
+      "local",
+      "local",
+      "local",
+      "local",
+      "local"
+    ],
+    "caption_species": [
+      "Barred Owl"
+    ],
+    "reclassified": false,
+    "image_indices": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
     ]
   },
   {
@@ -338,7 +1321,12 @@
     "date": "Jun 7, 2026",
     "permalink": "https://www.instagram.com/p/DaVrdaLli9a/",
     "timestamp": "2026-07-03T17:14:49+0000",
-    "weight": 0.139,
+    "weight": 0.205,
+    "image_species": [
+      "Eastern Wood Pewee",
+      "Eastern Wood Pewee",
+      "Eastern Wood Pewee"
+    ],
     "ambiguous": false,
     "image_areas": [
       "local",
@@ -388,7 +1376,11 @@
     "date": "Jun 6, 2026",
     "permalink": "https://www.instagram.com/p/DaMJMyAEfaT/",
     "timestamp": "2026-06-30T00:22:17+0000",
-    "weight": 0.206,
+    "weight": 0.205,
+    "image_species": [
+      "Chipping Sparrow",
+      "Chipping Sparrow"
+    ],
     "ambiguous": false,
     "image_areas": [
       "local",
@@ -449,9 +1441,11 @@
       "House Finches (Rea St.), Mourning Dove (Annie L. Sargent School), White-breasted Nuthatch (Abbott St.) \u00b7 Jun 6, 2026"
     ],
     "caption": "House Finches (Parent and Juveniles) - Rea St.\nMourning Dove - Annie L. Sargent School\nWhite-breasted Nuthatch - Abbott St.\n\n6-6-26",
-    "species": "Mourning Dove",
+    "species": "House Finch",
     "species_list": [
-      "Mourning Dove"
+      "House Finch",
+      "Mourning Dove",
+      "White-breasted Nuthatch"
     ],
     "location": "Rea St.",
     "locations": [
@@ -462,14 +1456,14 @@
     "date": "Jun 6, 2026",
     "permalink": "https://www.instagram.com/p/DaI81GDmj_k/",
     "timestamp": "2026-06-28T18:36:28+0000",
-    "weight": 0.296,
+    "weight": 0.456,
     "image_species": [
-      null,
-      null,
-      null,
-      null,
+      "House Finch",
+      "House Finch",
+      "House Finch",
+      "House Finch",
       "Mourning Dove",
-      null
+      "White-breasted Nuthatch"
     ],
     "image_locations": [
       null,
@@ -489,6 +1483,7 @@
       "local"
     ],
     "caption_species": [
+      "House Finch",
       "Mourning Dove",
       "White-breasted Nuthatch"
     ],
@@ -500,6 +1495,64 @@
       3,
       4,
       5
+    ]
+  },
+  {
+    "id": "18605056576051219",
+    "images": [
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/18605056576051219-0.jpg",
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/18605056576051219-1.jpg",
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/18605056576051219-2.jpg",
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/18605056576051219-3.jpg"
+    ],
+    "image_dims": [
+      null,
+      null,
+      null,
+      null
+    ],
+    "image_videos": [],
+    "captions": [
+      "Barred Owl \u00b7 Rea St. \u00b7 Jun 5, 2026",
+      "Barred Owl \u00b7 Rea St. \u00b7 Jun 5, 2026",
+      "Barred Owl \u00b7 Rea St. \u00b7 Jun 5, 2026",
+      "Barred Owl \u00b7 Rea St. \u00b7 Jun 5, 2026"
+    ],
+    "caption": "Barred Owl\n\nRea St.\n\n6-5-26",
+    "species": "Barred Owl",
+    "species_list": [
+      "Barred Owl"
+    ],
+    "location": "Rea St.",
+    "locations": [
+      "Rea St."
+    ],
+    "date": "Jun 5, 2026",
+    "permalink": "https://www.instagram.com/p/DadZ8wYoA5E/",
+    "timestamp": "2026-07-06T17:15:45+0000",
+    "weight": 0.205,
+    "image_species": [
+      "Barred Owl",
+      "Barred Owl",
+      "Barred Owl",
+      "Barred Owl"
+    ],
+    "ambiguous": false,
+    "image_areas": [
+      "local",
+      "local",
+      "local",
+      "local"
+    ],
+    "caption_species": [
+      "Barred Owl"
+    ],
+    "reclassified": false,
+    "image_indices": [
+      0,
+      1,
+      2,
+      3
     ]
   },
   {
@@ -541,7 +1594,12 @@
     "date": "Jun 5, 2026",
     "permalink": "https://www.instagram.com/p/DaREmfnnGjE/",
     "timestamp": "2026-07-01T22:18:21+0000",
-    "weight": 0.646,
+    "weight": 0.891,
+    "image_species": [
+      "Juvenile Barred Owl",
+      "Juvenile Barred Owl",
+      "Juvenile Barred Owl"
+    ],
     "ambiguous": false,
     "image_areas": [
       "local",
@@ -603,7 +1661,13 @@
     "date": "Jun 5, 2026",
     "permalink": "https://www.instagram.com/p/DaGYA9eFDEm/",
     "timestamp": "2026-06-27T18:36:16+0000",
-    "weight": 0.43,
+    "weight": 0.456,
+    "image_species": [
+      "Barred Owl",
+      "Barred Owl",
+      "Barred Owl",
+      "Barred Owl"
+    ],
     "ambiguous": false,
     "image_areas": [
       "local",
@@ -703,7 +1767,19 @@
     "date": "Jun 5, 2026",
     "permalink": "https://www.instagram.com/p/DaBOeb_iYmy/",
     "timestamp": "2026-06-25T18:36:44+0000",
-    "weight": 0.43,
+    "weight": 0.456,
+    "image_species": [
+      "Juvenile Barred Owl",
+      "Juvenile Barred Owl",
+      "Juvenile Barred Owl",
+      "Juvenile Barred Owl",
+      "Juvenile Barred Owl",
+      "Juvenile Barred Owl",
+      "Juvenile Barred Owl",
+      "Juvenile Barred Owl",
+      "Juvenile Barred Owl",
+      "Juvenile Barred Owl"
+    ],
     "ambiguous": false,
     "image_areas": [
       "local",
@@ -781,7 +1857,7 @@
     "date": "Jun 4, 2026",
     "permalink": "https://www.instagram.com/p/DZ8E1DFlEEf/",
     "timestamp": "2026-06-23T18:36:15+0000",
-    "weight": 0.43,
+    "weight": 0.456,
     "image_species": [
       "Barred Owl",
       "Barred Owl",
@@ -840,7 +1916,10 @@
     "date": "Jun 3, 2026",
     "permalink": "https://www.instagram.com/p/DZ0We_UIP3T/",
     "timestamp": "2026-06-20T18:36:36+0000",
-    "weight": 0.103,
+    "weight": 0.096,
+    "image_species": [
+      "Gray Catbird"
+    ],
     "ambiguous": false,
     "image_areas": [
       "local"
@@ -910,7 +1989,15 @@
     "date": "Jun 2, 2026",
     "permalink": "https://www.instagram.com/p/DZ20gaglnh7/",
     "timestamp": "2026-06-21T17:37:24+0000",
-    "weight": 0.798,
+    "weight": 0.808,
+    "image_species": [
+      "Double-crested Cormorant",
+      "Double-crested Cormorant",
+      "Double-crested Cormorant",
+      "Double-crested Cormorant",
+      "Double-crested Cormorant",
+      "Double-crested Cormorant"
+    ],
     "ambiguous": false,
     "image_areas": [
       "away",
@@ -1022,7 +2109,7 @@
     "date": "May 31, 2026",
     "permalink": "https://www.instagram.com/p/DZ5ZVCxibKB/",
     "timestamp": "2026-06-22T17:37:40+0000",
-    "weight": 0.103,
+    "weight": 0.096,
     "image_species": [
       "Barred Owl",
       "Gray Catbird",
@@ -1107,7 +2194,10 @@
     "date": "May 30, 2026",
     "permalink": "https://www.instagram.com/p/DZxq4UdEVq2/",
     "timestamp": "2026-06-19T17:37:04+0000",
-    "weight": 0.139,
+    "weight": 0.13,
+    "image_species": [
+      "A very wet Barred Owl"
+    ],
     "ambiguous": false,
     "image_areas": [
       "local"
@@ -1183,7 +2273,16 @@
     "date": "May 29, 2026",
     "permalink": "https://www.instagram.com/p/DZle_sJoCdX/",
     "timestamp": "2026-06-15T00:02:21+0000",
-    "weight": 0.296,
+    "weight": 0.31,
+    "image_species": [
+      "Black-capped Chickadee",
+      "Black-capped Chickadee",
+      "Black-capped Chickadee",
+      "Black-capped Chickadee",
+      "Black-capped Chickadee",
+      "Black-capped Chickadee",
+      "Black-capped Chickadee"
+    ],
     "ambiguous": false,
     "image_areas": [
       "local",
@@ -1265,7 +2364,15 @@
     "date": "May 29, 2026",
     "permalink": "https://www.instagram.com/p/DZSR1QgFGe2/",
     "timestamp": "2026-06-07T13:02:56+0000",
-    "weight": 0.646,
+    "weight": 0.661,
+    "image_species": [
+      "Peregrine Falcon",
+      "Peregrine Falcon",
+      "Peregrine Falcon",
+      "Peregrine Falcon",
+      "Peregrine Falcon",
+      "Peregrine Falcon"
+    ],
     "ambiguous": false,
     "image_areas": [
       "local",
@@ -1337,7 +2444,7 @@
     "date": "May 28, 2026",
     "permalink": "https://www.instagram.com/p/DZvGHQukWhM/",
     "timestamp": "2026-06-18T17:37:20+0000",
-    "weight": 0.731,
+    "weight": 0.745,
     "image_species": [
       "Barred Owl",
       "Barred Owl",
@@ -1445,7 +2552,18 @@
     "date": "May 28, 2026",
     "permalink": "https://www.instagram.com/p/DZclSCplK_T/",
     "timestamp": "2026-06-11T13:04:51+0000",
-    "weight": 0.798,
+    "weight": 0.808,
+    "image_species": [
+      "Great Egret",
+      "Great Egret",
+      "Great Egret",
+      "Great Egret",
+      "Great Egret",
+      "Great Egret",
+      "Great Egret",
+      "Great Egret",
+      "Great Egret"
+    ],
     "ambiguous": false,
     "image_areas": [
       "away",
@@ -1549,7 +2667,18 @@
     "date": "May 26, 2026",
     "permalink": "https://www.instagram.com/p/DZiU6bfFDnV/",
     "timestamp": "2026-06-13T18:36:32+0000",
-    "weight": 0.91,
+    "weight": 0.916,
+    "image_species": [
+      "Barred Owls",
+      "Barred Owls",
+      "Barred Owls",
+      "Barred Owls",
+      "Barred Owls",
+      "Barred Owls",
+      "Barred Owls",
+      "Barred Owls",
+      "Barred Owls"
+    ],
     "ambiguous": false,
     "image_areas": [
       "local",
@@ -1613,7 +2742,7 @@
     "date": "May 25, 2026",
     "permalink": "https://www.instagram.com/p/DZshTHUFB06/",
     "timestamp": "2026-06-17T17:37:10+0000",
-    "weight": 0.538,
+    "weight": 0.556,
     "image_species": [
       "American Herring Gull",
       "Eastern Bluebird"
@@ -1718,7 +2847,19 @@
     "date": "May 25, 2026",
     "permalink": "https://www.instagram.com/p/DZn8-1qGjl9/",
     "timestamp": "2026-06-15T23:02:57+0000",
-    "weight": 0.731,
+    "weight": 0.745,
+    "image_species": [
+      "Barred Owl",
+      "Barred Owl",
+      "Barred Owl",
+      "Barred Owl",
+      "Barred Owl",
+      "Barred Owl",
+      "Barred Owl",
+      "Barred Owl",
+      "Barred Owl",
+      "Barred Owl"
+    ],
     "ambiguous": false,
     "image_areas": [
       "local",
@@ -1776,7 +2917,10 @@
     "date": "May 25, 2026",
     "permalink": "https://www.instagram.com/p/DZgVWD4DtRT/",
     "timestamp": "2026-06-13T00:02:19+0000",
-    "weight": 0.43,
+    "weight": 0.456,
+    "image_species": [
+      "Red-tailed Hawk"
+    ],
     "ambiguous": false,
     "image_areas": [
       "local"
@@ -1870,7 +3014,19 @@
     "date": "May 25, 2026",
     "permalink": "https://www.instagram.com/p/DZbRskJDfW6/",
     "timestamp": "2026-06-11T00:53:45+0000",
-    "weight": 0.91,
+    "weight": 0.916,
+    "image_species": [
+      "Barred Owls",
+      "Barred Owls",
+      "Barred Owls",
+      "Barred Owls",
+      "Barred Owls",
+      "Barred Owls",
+      "Barred Owls",
+      "Barred Owls",
+      "Barred Owls",
+      "Barred Owls"
+    ],
     "ambiguous": false,
     "image_areas": [
       "local",
@@ -1948,7 +3104,7 @@
     "date": "May 25, 2026",
     "permalink": "https://www.instagram.com/p/DZYTOgbgSh_/",
     "timestamp": "2026-06-09T21:09:24+0000",
-    "weight": 0.43,
+    "weight": 0.456,
     "image_species": [
       "Northern House Wren",
       "Northern House Wren",
@@ -2019,7 +3175,12 @@
     "date": "May 25, 2026",
     "permalink": "https://www.instagram.com/p/DY-musTidJ_/",
     "timestamp": "2026-05-30T21:39:33+0000",
-    "weight": 0.731,
+    "weight": 0.745,
+    "image_species": [
+      "Barred Owl",
+      "Barred Owl",
+      "Barred Owl"
+    ],
     "ambiguous": false,
     "image_areas": [
       "local",
@@ -2071,7 +3232,7 @@
     "date": "May 24, 2026",
     "permalink": "https://www.instagram.com/p/DZOTw7emq3q/",
     "timestamp": "2026-06-06T00:02:02+0000",
-    "weight": 0.538,
+    "weight": 0.556,
     "image_species": [
       "Pine Warbler",
       "Great Blue Heron"
@@ -2134,7 +3295,12 @@
     "date": "May 24, 2026",
     "permalink": "https://www.instagram.com/p/DZKxicUlWpO/",
     "timestamp": "2026-06-04T15:04:52+0000",
-    "weight": 0.538,
+    "weight": 0.556,
+    "image_species": [
+      "Yellow-bellied Sapsucker",
+      "Yellow-bellied Sapsucker",
+      "Yellow-bellied Sapsucker"
+    ],
     "ambiguous": false,
     "image_areas": [
       "away",
@@ -2184,7 +3350,11 @@
     "date": "May 24, 2026",
     "permalink": "https://www.instagram.com/p/DZI8gB7AQuB/",
     "timestamp": "2026-06-03T22:02:45+0000",
-    "weight": 0.43,
+    "weight": 0.456,
+    "image_species": [
+      "Chipping Sparrow",
+      "Chipping Sparrow"
+    ],
     "ambiguous": false,
     "image_areas": [
       "away",
@@ -2252,7 +3422,7 @@
     "date": "May 24, 2026",
     "permalink": "https://www.instagram.com/p/DZGQ2SXGOlx/",
     "timestamp": "2026-06-02T21:02:22+0000",
-    "weight": 0.798,
+    "weight": 0.808,
     "image_species": [
       "Eastern Phoebe",
       "Eastern Phoebe",
@@ -2286,6 +3456,61 @@
       2,
       3,
       4
+    ]
+  },
+  {
+    "id": "18117714382801671",
+    "images": [
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/18117714382801671-0.jpg",
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/18117714382801671-1.jpg"
+    ],
+    "image_dims": [
+      [
+        640,
+        800
+      ],
+      [
+        640,
+        799
+      ]
+    ],
+    "image_videos": [],
+    "captions": [
+      "Red-eyed Vireo \u00b7 Rea St. \u00b7 May 23, 2026",
+      "Wild Turkey \u00b7 Rea St. \u00b7 May 23, 2026"
+    ],
+    "caption": "Red-eyed Vireo\nWild Turkey\n\nRea St.\n\n5-23-26",
+    "species": "Red-eyed Vireo",
+    "species_list": [
+      "Red-eyed Vireo",
+      "Wild Turkey"
+    ],
+    "location": "Rea St.",
+    "locations": [
+      "Rea St.",
+      "Rea St."
+    ],
+    "date": "May 23, 2026",
+    "permalink": "https://www.instagram.com/p/DZqUxSWluEq/",
+    "timestamp": "2026-06-16T21:09:13+0000",
+    "weight": 0.661,
+    "image_species": [
+      "Red-eyed Vireo",
+      "Wild Turkey"
+    ],
+    "ambiguous": true,
+    "image_areas": [
+      "local",
+      "local"
+    ],
+    "caption_species": [
+      "Red-eyed Vireo",
+      "Wild Turkey"
+    ],
+    "reclassified": false,
+    "image_indices": [
+      0,
+      1
     ]
   },
   {
@@ -2331,27 +3556,36 @@
     ],
     "image_videos": [],
     "captions": [
-      "Common Loon \u00b7 Litchfield, Maine \u00b7 May 23, 2026",
-      "Common Loon \u00b7 Litchfield, Maine \u00b7 May 23, 2026",
-      "Common Loon \u00b7 Litchfield, Maine \u00b7 May 23, 2026",
-      "Common Loon \u00b7 Litchfield, Maine \u00b7 May 23, 2026",
-      "Common Loon \u00b7 Litchfield, Maine \u00b7 May 23, 2026",
-      "Common Loon \u00b7 Litchfield, Maine \u00b7 May 23, 2026",
-      "Common Loon \u00b7 Litchfield, Maine \u00b7 May 23, 2026"
+      "Common Loon \u00b7 Sand Pond \u00b7 May 23, 2026",
+      "Common Loon \u00b7 Sand Pond \u00b7 May 23, 2026",
+      "Common Loon \u00b7 Sand Pond \u00b7 May 23, 2026",
+      "Common Loon \u00b7 Sand Pond \u00b7 May 23, 2026",
+      "Common Loon \u00b7 Sand Pond \u00b7 May 23, 2026",
+      "Common Loon \u00b7 Sand Pond \u00b7 May 23, 2026",
+      "Common Loon \u00b7 Sand Pond \u00b7 May 23, 2026"
     ],
     "caption": "\u26a0\ufe0f Common Loon\n\nSand Pond\nLitchfield, Maine\n\n5-23-26",
     "species": "Common Loon",
     "species_list": [
       "Common Loon"
     ],
-    "location": "Litchfield, Maine",
+    "location": "Sand Pond",
     "locations": [
-      "Litchfield, Maine"
+      "Sand Pond"
     ],
     "date": "May 23, 2026",
     "permalink": "https://www.instagram.com/p/DZRGNtgDpLe/",
     "timestamp": "2026-06-07T02:00:58+0000",
-    "weight": 0.937,
+    "weight": 0.941,
+    "image_species": [
+      "Common Loon",
+      "Common Loon",
+      "Common Loon",
+      "Common Loon",
+      "Common Loon",
+      "Common Loon",
+      "Common Loon"
+    ],
     "ambiguous": false,
     "image_areas": [
       "away",
@@ -2423,7 +3657,7 @@
     "date": "May 20, 2026",
     "permalink": "https://www.instagram.com/p/DZD5vW5FHay/",
     "timestamp": "2026-06-01T23:02:20+0000",
-    "weight": 0.96,
+    "weight": 0.962,
     "image_species": [
       "Barred Owl Baby",
       "Barred Owl Baby",
@@ -2490,7 +3724,7 @@
     "date": "May 20, 2026",
     "permalink": "https://www.instagram.com/p/DZBMMYgFlzF/",
     "timestamp": "2026-05-31T21:45:24+0000",
-    "weight": 0.538,
+    "weight": 0.556,
     "image_species": [
       "Eastern Kingbird",
       "Red-tailed Hawk"
@@ -2564,22 +3798,38 @@
     "species_list": [
       "American Redstarts"
     ],
-    "location": "Thistle St.",
+    "location": "Lewiston, Maine",
     "locations": [
       "Thistle St."
     ],
     "date": "May 18, 2026",
     "permalink": "https://www.instagram.com/p/DY8SK68Ea_E/",
     "timestamp": "2026-05-30T00:02:06+0000",
-    "weight": 0.296,
+    "weight": 0.31,
+    "image_locations": [
+      null,
+      null,
+      null,
+      "Lewiston, Maine",
+      "Lewiston, Maine",
+      "Lewiston, Maine"
+    ],
+    "image_species": [
+      "American Redstarts",
+      "American Redstarts",
+      "American Redstarts",
+      "American Redstarts",
+      "American Redstarts",
+      "American Redstarts"
+    ],
     "ambiguous": false,
     "image_areas": [
       "local",
       "local",
       "local",
-      "local",
-      "local",
-      "local"
+      "away",
+      "away",
+      "away"
     ],
     "caption_species": [
       "American Redstart"
@@ -2645,7 +3895,14 @@
     "date": "May 17, 2026",
     "permalink": "https://www.instagram.com/p/DZV7YrvlOZv/",
     "timestamp": "2026-06-08T23:02:59+0000",
-    "weight": 0.937,
+    "weight": 0.941,
+    "image_species": [
+      "Barred Owl",
+      "Barred Owl",
+      "Barred Owl",
+      "Barred Owl",
+      "Barred Owl"
+    ],
     "ambiguous": false,
     "image_areas": [
       "local",
@@ -2701,7 +3958,7 @@
     "date": "May 17, 2026",
     "permalink": "https://www.instagram.com/p/DY4iKp5lJ4E/",
     "timestamp": "2026-05-28T13:05:22+0000",
-    "weight": 0.206,
+    "weight": 0.205,
     "image_species": [
       "Mourning Dove",
       "Blue Jay"
@@ -2788,7 +4045,16 @@
     "date": "May 17, 2026",
     "permalink": "https://www.instagram.com/p/DY26-MkGL_c/",
     "timestamp": "2026-05-27T22:02:29+0000",
-    "weight": 0.96,
+    "weight": 0.962,
+    "image_species": [
+      "Barred Owls",
+      "Barred Owls",
+      "Barred Owls",
+      "Barred Owls",
+      "Barred Owls",
+      "Barred Owls",
+      "Barred Owls"
+    ],
     "ambiguous": false,
     "image_areas": [
       "local",
@@ -2876,7 +4142,16 @@
     "date": "May 17, 2026",
     "permalink": "https://www.instagram.com/p/DYvDKbtGgSr/",
     "timestamp": "2026-05-24T20:40:10+0000",
-    "weight": 0.646,
+    "weight": 0.661,
+    "image_species": [
+      "Northern Flicker",
+      "Northern Flicker",
+      "Northern Flicker",
+      "Northern Flicker",
+      "Northern Flicker",
+      "Northern Flicker",
+      "Northern Flicker"
+    ],
     "ambiguous": false,
     "image_areas": [
       "local",
@@ -2934,7 +4209,11 @@
     "date": "May 17, 2026",
     "permalink": "https://www.instagram.com/p/DYk5VoPj_dn/",
     "timestamp": "2026-05-20T22:01:53+0000",
-    "weight": 0.296,
+    "weight": 0.31,
+    "image_species": [
+      "Red-tailed Hawk",
+      "Red-tailed Hawk"
+    ],
     "ambiguous": false,
     "image_areas": [
       "local",
@@ -2994,7 +4273,13 @@
     "date": "May 17, 2026",
     "permalink": "https://www.instagram.com/p/DYiOhKrFHRQ/",
     "timestamp": "2026-05-19T21:09:15+0000",
-    "weight": 0.982,
+    "weight": 0.983,
+    "image_species": [
+      "Baby Barred Owl",
+      "Baby Barred Owl",
+      "Baby Barred Owl",
+      "Baby Barred Owl"
+    ],
     "ambiguous": false,
     "image_areas": [
       "local",
@@ -3040,7 +4325,10 @@
     "date": "May 16, 2026",
     "permalink": "https://www.instagram.com/p/DY0c-lVj9ip/",
     "timestamp": "2026-05-26T23:02:35+0000",
-    "weight": 0.91,
+    "weight": 0.916,
+    "image_species": [
+      "Eastern Bluebird"
+    ],
     "ambiguous": false,
     "image_areas": [
       "local"
@@ -3092,7 +4380,12 @@
     "date": "May 16, 2026",
     "permalink": "https://www.instagram.com/p/DYx4M5XFSO2/",
     "timestamp": "2026-05-25T23:02:04+0000",
-    "weight": 0.937,
+    "weight": 0.941,
+    "image_species": [
+      "Barred Owl",
+      "Barred Owl",
+      "Barred Owl"
+    ],
     "ambiguous": false,
     "image_areas": [
       "local",
@@ -3152,7 +4445,7 @@
     "date": "May 16, 2026",
     "permalink": "https://www.instagram.com/p/DYtDFVxFFl1/",
     "timestamp": "2026-05-24T02:01:04+0000",
-    "weight": 0.798,
+    "weight": 0.808,
     "image_species": [
       "Gray Catbird",
       "Brown-headed Cowbird",
@@ -3214,7 +4507,11 @@
     "date": "May 16, 2026",
     "permalink": "https://www.instagram.com/p/DYp8DxWEjca/",
     "timestamp": "2026-05-22T21:01:56+0000",
-    "weight": 0.91,
+    "weight": 0.916,
+    "image_species": [
+      "Barred Owl",
+      "Barred Owl"
+    ],
     "ambiguous": false,
     "image_areas": [
       "local",
@@ -3262,7 +4559,11 @@
     "date": "May 15, 2026",
     "permalink": "https://www.instagram.com/p/DYmgfJRFMwi/",
     "timestamp": "2026-05-21T13:04:39+0000",
-    "weight": 0.538,
+    "weight": 0.556,
+    "image_species": [
+      "Broad-winged Hawk",
+      "Broad-winged Hawk"
+    ],
     "ambiguous": false,
     "image_areas": [
       "local",
@@ -3342,7 +4643,7 @@
     "date": "May 14, 2026",
     "permalink": "https://www.instagram.com/p/DYVzYerjeWv/",
     "timestamp": "2026-05-15T01:21:16+0000",
-    "weight": 0.731,
+    "weight": 0.745,
     "image_species": [
       "Wood Duck",
       "Wood Duck",
@@ -3431,7 +4732,13 @@
     "date": "May 13, 2026",
     "permalink": "https://www.instagram.com/p/DYYO_8qEdTr/",
     "timestamp": "2026-05-16T00:01:10+0000",
-    "weight": 0.646,
+    "weight": 0.661,
+    "image_species": [
+      "Common Yellowthroat",
+      "Common Yellowthroat",
+      "Common Yellowthroat",
+      "Common Yellowthroat"
+    ],
     "ambiguous": false,
     "image_areas": [
       "local",
@@ -3493,7 +4800,7 @@
     "date": "May 13, 2026",
     "permalink": "https://www.instagram.com/p/DYS3ybPiRvK/",
     "timestamp": "2026-05-13T22:03:11+0000",
-    "weight": 0.646,
+    "weight": 0.661,
     "image_species": [
       "Red-winged Blackbird",
       "Common Grackle",
@@ -3569,7 +4876,7 @@
     "date": "May 12, 2026",
     "permalink": "https://www.instagram.com/p/DYa4EAxERlD/",
     "timestamp": "2026-05-17T00:38:22+0000",
-    "weight": 0.538,
+    "weight": 0.556,
     "image_species": [
       "Peregrine Falcon",
       "Barred Owl",
@@ -3656,7 +4963,7 @@
     "date": "May 11, 2026",
     "permalink": "https://www.instagram.com/p/DYdYkZTmK5f/",
     "timestamp": "2026-05-18T00:01:18+0000",
-    "weight": 0.43,
+    "weight": 0.456,
     "image_species": [
       "Black-and-white Warbler",
       "Black-and-white Warbler",
@@ -3764,7 +5071,7 @@
     "date": "May 10, 2026",
     "permalink": "https://www.instagram.com/p/DYf2qU5GEO1/",
     "timestamp": "2026-05-18T23:04:14+0000",
-    "weight": 0.937,
+    "weight": 0.941,
     "image_species": [
       "Barred Owl",
       "Barred Owl",
@@ -3838,7 +5145,10 @@
     "date": "May 9, 2026",
     "permalink": "https://www.instagram.com/p/DYN0-zaFqca/",
     "timestamp": "2026-05-11T23:02:33+0000",
-    "weight": 0.798,
+    "weight": 0.808,
+    "image_species": [
+      "Barred Owl"
+    ],
     "ambiguous": false,
     "image_areas": [
       "local"
@@ -3896,7 +5206,13 @@
     "date": "May 9, 2026",
     "permalink": "https://www.instagram.com/p/DYLW84FlEJG/",
     "timestamp": "2026-05-11T00:00:44+0000",
-    "weight": 0.731,
+    "weight": 0.745,
+    "image_species": [
+      "Cedar Waxwing",
+      "Cedar Waxwing",
+      "Cedar Waxwing",
+      "Cedar Waxwing"
+    ],
     "ambiguous": false,
     "image_areas": [
       "local",
@@ -3990,7 +5306,18 @@
     "date": "May 9, 2026",
     "permalink": "https://www.instagram.com/p/DYI6cGTkR8B/",
     "timestamp": "2026-05-10T01:12:44+0000",
-    "weight": 0.982,
+    "weight": 0.983,
+    "image_species": [
+      "Ruby-throated Hummingbird",
+      "Ruby-throated Hummingbird",
+      "Ruby-throated Hummingbird",
+      "Ruby-throated Hummingbird",
+      "Ruby-throated Hummingbird",
+      "Ruby-throated Hummingbird",
+      "Ruby-throated Hummingbird",
+      "Ruby-throated Hummingbird",
+      "Ruby-throated Hummingbird"
+    ],
     "ambiguous": false,
     "image_areas": [
       "local",
@@ -4052,7 +5379,11 @@
     "date": "May 8, 2026",
     "permalink": "https://www.instagram.com/p/DYQMHpWFKhe/",
     "timestamp": "2026-05-12T21:02:43+0000",
-    "weight": 0.798,
+    "weight": 0.808,
+    "image_species": [
+      "Double-crested Cormorant",
+      "Double-crested Cormorant"
+    ],
     "ambiguous": false,
     "image_areas": [
       "away",
@@ -4112,7 +5443,13 @@
     "date": "May 8, 2026",
     "permalink": "https://www.instagram.com/p/DYGkRHMHJcz/",
     "timestamp": "2026-05-09T03:20:30+0000",
-    "weight": 0.861,
+    "weight": 0.866,
+    "image_species": [
+      "Ovenbird",
+      "Ovenbird",
+      "Ovenbird",
+      "Ovenbird"
+    ],
     "ambiguous": false,
     "image_areas": [
       "away",
@@ -4184,7 +5521,7 @@
     "date": "May 6, 2026",
     "permalink": "https://www.instagram.com/p/DYEA-bBnGVG/",
     "timestamp": "2026-05-08T03:33:38+0000",
-    "weight": 0.861,
+    "weight": 0.866,
     "image_species": [
       "Barred Owl & Cooper's Hawk",
       "Barred Owl & Cooper's Hawk",
@@ -4271,7 +5608,14 @@
     "date": "May 5, 2026",
     "permalink": "https://www.instagram.com/p/DYBQ_77EZ0R/",
     "timestamp": "2026-05-07T01:55:56+0000",
-    "weight": 0.798,
+    "weight": 0.808,
+    "image_species": [
+      "Barred Owl",
+      "Barred Owl",
+      "Barred Owl",
+      "Barred Owl",
+      "Barred Owl"
+    ],
     "ambiguous": false,
     "image_areas": [
       "local",
@@ -4337,7 +5681,13 @@
     "date": "May 5, 2026",
     "permalink": "https://www.instagram.com/p/DX-qzJ6kdZn/",
     "timestamp": "2026-05-06T01:43:40+0000",
-    "weight": 0.937,
+    "weight": 0.941,
+    "image_species": [
+      "Bald Eagle",
+      "Bald Eagle",
+      "Bald Eagle",
+      "Bald Eagle"
+    ],
     "ambiguous": false,
     "image_areas": [
       "local",
@@ -4431,7 +5781,7 @@
     "date": "May 3, 2026",
     "permalink": "https://www.instagram.com/p/DX5aPZUEXhV/",
     "timestamp": "2026-05-04T00:42:46+0000",
-    "weight": 0.883,
+    "weight": 0.891,
     "image_species": [
       "Red-bellied Woodpecker",
       "Brown-headed Cowbird",
@@ -4563,7 +5913,7 @@
     "date": "May 2, 2026",
     "permalink": "https://www.instagram.com/p/DX3AhwBkXjb/",
     "timestamp": "2026-05-03T02:19:36+0000",
-    "weight": 0.538,
+    "weight": 0.556,
     "image_species": [
       "Red-tailed Hawk",
       "Red-tailed Hawk",
@@ -4712,7 +6062,7 @@
     "date": "May 1, 2026",
     "permalink": "https://www.instagram.com/p/DX0aEuRESwq/",
     "timestamp": "2026-05-02T02:05:06+0000",
-    "weight": 0.646,
+    "weight": 0.661,
     "image_species": [
       "Eastern Phoebe",
       "Eastern Phoebe",
@@ -4854,7 +6204,7 @@
     "date": "Apr 30, 2026",
     "permalink": "https://www.instagram.com/p/DX8Ktd_kUEY/",
     "timestamp": "2026-05-05T02:24:47+0000",
-    "weight": 0.538,
+    "weight": 0.556,
     "image_species": [
       "Barred Owl",
       "Barred Owl",
@@ -4991,7 +6341,7 @@
     "date": "Apr 29, 2026",
     "permalink": "https://www.instagram.com/p/DXx5U4ZEQmH/",
     "timestamp": "2026-05-01T02:40:28+0000",
-    "weight": 0.296,
+    "weight": 0.31,
     "image_species": [
       "Gray Catbird",
       "Gray Catbird",
@@ -5103,7 +6453,15 @@
     "date": "Apr 29, 2026",
     "permalink": "https://www.instagram.com/p/DXvL-bvkXb3/",
     "timestamp": "2026-04-30T01:25:42+0000",
-    "weight": 0.969,
+    "weight": 0.983,
+    "image_species": [
+      "Barred Owl",
+      "Barred Owl",
+      "Barred Owl",
+      "Barred Owl",
+      "Barred Owl",
+      "Barred Owl"
+    ],
     "ambiguous": false,
     "image_areas": [
       "local",
@@ -5159,7 +6517,11 @@
     "date": "Apr 28, 2026",
     "permalink": "https://www.instagram.com/p/DXsuagukVzf/",
     "timestamp": "2026-04-29T02:28:55+0000",
-    "weight": 0.43,
+    "weight": 0.456,
+    "image_species": [
+      "House Sparrows",
+      "House Sparrows"
+    ],
     "ambiguous": false,
     "image_areas": [
       "away",
@@ -5238,7 +6600,7 @@
     "date": "Apr 27, 2026",
     "permalink": "https://www.instagram.com/p/DXqNOOvnN0R/",
     "timestamp": "2026-04-28T03:00:24+0000",
-    "weight": 0.883,
+    "weight": 0.891,
     "image_species": [
       "Barred Owl",
       "Barred Owl",
@@ -5348,7 +6710,7 @@
     "date": "Apr 26, 2026",
     "permalink": "https://www.instagram.com/p/DXnie0ukaiL/",
     "timestamp": "2026-04-27T02:08:27+0000",
-    "weight": 0.731,
+    "weight": 0.745,
     "image_species": [
       "Chipping Sparrow",
       "Chipping Sparrow",
@@ -5464,7 +6826,7 @@
     "date": "Apr 25, 2026",
     "permalink": "https://www.instagram.com/p/DXk5_BDETOX/",
     "timestamp": "2026-04-26T01:36:06+0000",
-    "weight": 0.96,
+    "weight": 0.962,
     "image_species": [
       "Red-tailed Hawk",
       "Red-tailed Hawk",
@@ -5564,7 +6926,7 @@
     "date": "Apr 24, 2026",
     "permalink": "https://www.instagram.com/p/DXiiIx1Dawd/",
     "timestamp": "2026-04-25T03:29:14+0000",
-    "weight": 0.731,
+    "weight": 0.745,
     "image_species": [
       "Carolina Wren",
       "Carolina Wren",
@@ -5639,7 +7001,12 @@
     "date": "Apr 23, 2026",
     "permalink": "https://www.instagram.com/p/DXfzKlekXoA/",
     "timestamp": "2026-04-24T02:00:18+0000",
-    "weight": 0.96,
+    "weight": 0.962,
+    "image_species": [
+      "Barred Owl",
+      "Barred Owl",
+      "Barred Owl"
+    ],
     "ambiguous": false,
     "image_areas": [
       "local",
@@ -5745,7 +7112,7 @@
     "date": "Apr 21, 2026",
     "permalink": "https://www.instagram.com/p/DXdRXk0kVsP/",
     "timestamp": "2026-04-23T02:26:30+0000",
-    "weight": 0.816,
+    "weight": 0.824,
     "image_species": [
       "Savannah Sparrow",
       "Savannah Sparrow",
@@ -5891,7 +7258,7 @@
     "date": "Apr 20, 2026",
     "permalink": "https://www.instagram.com/p/DXYFaYCDQrG/",
     "timestamp": "2026-04-21T02:05:49+0000",
-    "weight": 0.798,
+    "weight": 0.808,
     "image_species": [
       "Eastern Bluebird",
       "Eastern Bluebird",
@@ -6030,7 +7397,19 @@
     "date": "Apr 18, 2026",
     "permalink": "https://www.instagram.com/p/DXUS4miEZ-X/",
     "timestamp": "2026-04-19T14:46:35+0000",
-    "weight": 0.973,
+    "weight": 0.971,
+    "image_species": [
+      "Barred Owls",
+      "Barred Owls",
+      "Barred Owls",
+      "Barred Owls",
+      "Barred Owls",
+      "Barred Owls",
+      "Barred Owls",
+      "Barred Owls",
+      "Barred Owls",
+      "Barred Owls"
+    ],
     "ambiguous": false,
     "image_areas": [
       "local",
@@ -6130,7 +7509,7 @@
     "date": "Apr 18, 2026",
     "permalink": "https://www.instagram.com/p/DXS1d7ZEeJ_/",
     "timestamp": "2026-04-19T01:10:18+0000",
-    "weight": 0.139,
+    "weight": 0.13,
     "image_species": [
       "Red-tailed Hawk",
       "Red-tailed Hawk",
@@ -6255,7 +7634,7 @@
     "date": "Apr 17, 2026",
     "permalink": "https://www.instagram.com/p/DXQUJLMkXw2/",
     "timestamp": "2026-04-18T01:40:37+0000",
-    "weight": 0.538,
+    "weight": 0.556,
     "image_species": [
       "Brown-headed Cowbird",
       "Northern Flicker",
@@ -6364,7 +7743,15 @@
     "date": "Apr 16, 2026",
     "permalink": "https://www.instagram.com/p/DXNttHqkVWx/",
     "timestamp": "2026-04-17T01:26:16+0000",
-    "weight": 0.96,
+    "weight": 0.962,
+    "image_species": [
+      "Mallard",
+      "Mallard",
+      "Mallard",
+      "Mallard",
+      "Mallard",
+      "Mallard"
+    ],
     "ambiguous": false,
     "image_areas": [
       "local",
@@ -6444,7 +7831,14 @@
     "date": "Apr 15, 2026",
     "permalink": "https://www.instagram.com/p/DXap214EUrY/",
     "timestamp": "2026-04-22T02:02:46+0000",
-    "weight": 0.883,
+    "weight": 0.891,
+    "image_species": [
+      "Barred Owls",
+      "Barred Owls",
+      "Barred Owls",
+      "Barred Owls",
+      "Barred Owls"
+    ],
     "ambiguous": false,
     "image_areas": [
       "local",
@@ -6514,7 +7908,6 @@
     "species": "Yellow-bellied Sapsucker",
     "species_list": [
       "Yellow-bellied Sapsucker",
-      "Eastern Phoebe",
       "Red-bellied Woodpecker",
       "White-breasted Nuthatch",
       "Chipping Sparrow"
@@ -6530,10 +7923,10 @@
     "date": "Apr 15, 2026",
     "permalink": "https://www.instagram.com/p/DXLMp-FEZxc/",
     "timestamp": "2026-04-16T01:59:00+0000",
-    "weight": 0.296,
+    "weight": 0.31,
     "image_species": [
       "Yellow-bellied Sapsucker",
-      "Eastern Phoebe",
+      "Red-bellied Woodpecker",
       "Red-bellied Woodpecker",
       "White-breasted Nuthatch",
       "Chipping Sparrow",
@@ -6638,7 +8031,7 @@
     "date": "Apr 14, 2026",
     "permalink": "https://www.instagram.com/p/DXIrBPKkU3e/",
     "timestamp": "2026-04-15T02:26:36+0000",
-    "weight": 0.296,
+    "weight": 0.31,
     "image_species": [
       "Northern Flicker",
       "Northern Flicker",
@@ -6732,7 +8125,13 @@
     "date": "Apr 14, 2026",
     "permalink": "https://www.instagram.com/p/DXGEIw5kTmV/",
     "timestamp": "2026-04-14T02:08:21+0000",
-    "weight": 0.798,
+    "weight": 0.808,
+    "image_species": [
+      "Barred Owls",
+      "Barred Owls",
+      "Barred Owls",
+      "Barred Owls"
+    ],
     "ambiguous": false,
     "image_areas": [
       "local",
@@ -6844,7 +8243,7 @@
     "date": "Apr 11, 2026",
     "permalink": "https://www.instagram.com/p/DXDVHGskc-L/",
     "timestamp": "2026-04-13T00:38:57+0000",
-    "weight": 0.731,
+    "weight": 0.745,
     "image_species": [
       "Pileated Woodpecker",
       "Pileated Woodpecker",
@@ -6962,7 +8361,15 @@
     "date": "Apr 11, 2026",
     "permalink": "https://www.instagram.com/p/DXAyY5xEcYT/",
     "timestamp": "2026-04-12T00:57:04+0000",
-    "weight": 0.91,
+    "weight": 0.916,
+    "image_species": [
+      "Barred Owls",
+      "Barred Owls",
+      "Barred Owls",
+      "Barred Owls",
+      "Barred Owls",
+      "Barred Owls"
+    ],
     "ambiguous": false,
     "image_areas": [
       "local",
@@ -7054,7 +8461,7 @@
     "date": "Apr 10, 2026",
     "permalink": "https://www.instagram.com/p/DW-l2nJjXIM/",
     "timestamp": "2026-04-11T04:29:03+0000",
-    "weight": 0.646,
+    "weight": 0.661,
     "image_species": [
       "Song Sparrow",
       "Song Sparrow",
@@ -7165,7 +8572,7 @@
     "date": "Apr 9, 2026",
     "permalink": "https://www.instagram.com/p/DW7uMf9kbTW/",
     "timestamp": "2026-04-10T01:44:13+0000",
-    "weight": 0.538,
+    "weight": 0.556,
     "image_species": [
       "Common Loon",
       "Common Loon",
@@ -7290,7 +8697,19 @@
     "date": "Apr 8, 2026",
     "permalink": "https://www.instagram.com/p/DW5SpKkjW4V/",
     "timestamp": "2026-04-09T03:04:59+0000",
-    "weight": 0.43,
+    "weight": 0.456,
+    "image_species": [
+      "Golden-crowned Kinglet",
+      "Golden-crowned Kinglet",
+      "Golden-crowned Kinglet",
+      "Golden-crowned Kinglet",
+      "Golden-crowned Kinglet",
+      "Golden-crowned Kinglet",
+      "Golden-crowned Kinglet",
+      "Golden-crowned Kinglet",
+      "Golden-crowned Kinglet",
+      "Golden-crowned Kinglet"
+    ],
     "ambiguous": false,
     "image_areas": [
       "local",
@@ -7360,7 +8779,12 @@
     "date": "Apr 6, 2026",
     "permalink": "https://www.instagram.com/p/DW0Hh_xkYAQ/",
     "timestamp": "2026-04-07T02:51:41+0000",
-    "weight": 0.646,
+    "weight": 0.661,
+    "image_species": [
+      "Red-bellied Woodpeckers",
+      "Red-bellied Woodpeckers",
+      "Red-bellied Woodpeckers"
+    ],
     "ambiguous": false,
     "image_areas": [
       "local",
@@ -7450,7 +8874,7 @@
     "date": "Apr 4, 2026",
     "permalink": "https://www.instagram.com/p/DWwPMtBkRPG/",
     "timestamp": "2026-04-05T14:41:43+0000",
-    "weight": 0.296,
+    "weight": 0.31,
     "image_species": [
       "Black-capped Chickadee",
       "Northern Mockingbird",
@@ -7557,7 +8981,7 @@
     "date": "Apr 3, 2026",
     "permalink": "https://www.instagram.com/p/DW2duUAkTFC/",
     "timestamp": "2026-04-08T00:44:05+0000",
-    "weight": 0.538,
+    "weight": 0.556,
     "image_species": [
       "Barred Owl",
       "Barred Owl",
@@ -7666,7 +9090,17 @@
     "date": "Apr 3, 2026",
     "permalink": "https://www.instagram.com/p/DWuzhxYkQ_d/",
     "timestamp": "2026-04-05T01:20:41+0000",
-    "weight": 0.861,
+    "weight": 0.866,
+    "image_species": [
+      "Barred Owl",
+      "Barred Owl",
+      "Barred Owl",
+      "Barred Owl",
+      "Barred Owl",
+      "Barred Owl",
+      "Barred Owl",
+      "Barred Owl"
+    ],
     "ambiguous": false,
     "image_areas": [
       "local",
@@ -7738,7 +9172,13 @@
     "date": "Apr 3, 2026",
     "permalink": "https://www.instagram.com/p/DWsObN6kc8Y/",
     "timestamp": "2026-04-04T01:18:00+0000",
-    "weight": 0.969,
+    "weight": 0.967,
+    "image_species": [
+      "Red-tailed Hawk",
+      "Red-tailed Hawk",
+      "Red-tailed Hawk",
+      "Red-tailed Hawk"
+    ],
     "ambiguous": false,
     "image_areas": [
       "local",
@@ -7808,7 +9248,14 @@
     "date": "Apr 2, 2026",
     "permalink": "https://www.instagram.com/p/DWptXsLkZtm/",
     "timestamp": "2026-04-03T01:50:41+0000",
-    "weight": 0.996,
+    "weight": 1.0,
+    "image_species": [
+      "Barred Owl",
+      "Barred Owl",
+      "Barred Owl",
+      "Barred Owl",
+      "Barred Owl"
+    ],
     "ambiguous": false,
     "image_areas": [
       "local",
@@ -7918,7 +9365,7 @@
     "date": "Mar 31, 2026",
     "permalink": "https://www.instagram.com/p/DWkiz2TEbGW/",
     "timestamp": "2026-04-01T01:42:12+0000",
-    "weight": 0.731,
+    "weight": 0.745,
     "image_species": [
       "Red-breasted Merganser",
       "Red-breasted Merganser",
@@ -8058,7 +9505,7 @@
     "date": "Mar 28, 2026",
     "permalink": "https://www.instagram.com/p/DWfaGBhEe5s/",
     "timestamp": "2026-03-30T01:49:50+0000",
-    "weight": 0.861,
+    "weight": 0.866,
     "image_species": [
       "Fox Sparrow",
       "Fox Sparrow",
@@ -8159,14 +9606,14 @@
     ],
     "image_videos": [],
     "captions": [
-      "Brown Creeper, Mallards, Cooper's Hawk, Eastern Bluebird \u00b7 Mar 28, 2026",
-      "Brown Creeper, Mallards, Cooper's Hawk, Eastern Bluebird \u00b7 Mar 28, 2026",
-      "Brown Creeper, Mallards, Cooper's Hawk, Eastern Bluebird \u00b7 Mar 28, 2026",
-      "Brown Creeper, Mallards, Cooper's Hawk, Eastern Bluebird \u00b7 Mar 28, 2026",
-      "Brown Creeper, Mallards, Cooper's Hawk, Eastern Bluebird \u00b7 Mar 28, 2026",
-      "Brown Creeper, Mallards, Cooper's Hawk, Eastern Bluebird \u00b7 Mar 28, 2026",
-      "Brown Creeper, Mallards, Cooper's Hawk, Eastern Bluebird \u00b7 Mar 28, 2026",
-      "Brown Creeper, Mallards, Cooper's Hawk, Eastern Bluebird \u00b7 Mar 28, 2026"
+      "Brown Creeper, Mallards, Cooper's Hawk, Eastern Bluebird \u00b7 Weir Hill \u00b7 Mar 28, 2026",
+      "Brown Creeper, Mallards, Cooper's Hawk, Eastern Bluebird \u00b7 Weir Hill \u00b7 Mar 28, 2026",
+      "Brown Creeper, Mallards, Cooper's Hawk, Eastern Bluebird \u00b7 Weir Hill \u00b7 Mar 28, 2026",
+      "Brown Creeper, Mallards, Cooper's Hawk, Eastern Bluebird \u00b7 Weir Hill \u00b7 Mar 28, 2026",
+      "Brown Creeper, Mallards, Cooper's Hawk, Eastern Bluebird \u00b7 Weir Hill \u00b7 Mar 28, 2026",
+      "Brown Creeper, Mallards, Cooper's Hawk, Eastern Bluebird \u00b7 Weir Hill \u00b7 Mar 28, 2026",
+      "Brown Creeper, Mallards, Cooper's Hawk, Eastern Bluebird \u00b7 Weir Hill \u00b7 Mar 28, 2026",
+      "Brown Creeper, Mallards, Cooper's Hawk, Eastern Bluebird \u00b7 Weir Hill \u00b7 Mar 28, 2026"
     ],
     "caption": "Brown Creeper\nMallards\nCooper's Hawk\nEastern Bluebird\n\nWeir Hill\n\n3-28-26",
     "species": "Brown Creeper",
@@ -8178,15 +9625,15 @@
     ],
     "location": "Weir Hill",
     "locations": [
-      null,
-      null,
-      null,
-      null
+      "Weir Hill",
+      "Weir Hill",
+      "Weir Hill",
+      "Weir Hill"
     ],
     "date": "Mar 28, 2026",
     "permalink": "https://www.instagram.com/p/DWcUTYhGlfE/",
     "timestamp": "2026-03-28T21:01:31+0000",
-    "weight": 0.538,
+    "weight": 0.556,
     "image_species": [
       "Brown Creeper",
       "Brown Creeper",
@@ -8271,7 +9718,7 @@
     "date": "Mar 27, 2026",
     "permalink": "https://www.instagram.com/p/DWh-ASfkf10/",
     "timestamp": "2026-03-31T01:42:06+0000",
-    "weight": 0.646,
+    "weight": 0.661,
     "image_species": [
       "House Finch",
       "American Crow"
@@ -8377,6 +9824,18 @@
     "permalink": "https://www.instagram.com/p/DWaLuGpkXrn/",
     "timestamp": "2026-03-28T01:08:02+0000",
     "weight": 1.0,
+    "image_species": [
+      "Barred Owls",
+      "Barred Owls",
+      "Barred Owls",
+      "Barred Owls",
+      "Barred Owls",
+      "Barred Owls",
+      "Barred Owls",
+      "Barred Owls",
+      "Barred Owls",
+      "Barred Owls"
+    ],
     "ambiguous": false,
     "image_areas": [
       "local",
@@ -8446,7 +9905,12 @@
     "date": "Mar 26, 2026",
     "permalink": "https://www.instagram.com/p/DWXsYQIEXDo/",
     "timestamp": "2026-03-27T01:55:41+0000",
-    "weight": 0.883,
+    "weight": 0.891,
+    "image_species": [
+      "European Starling",
+      "European Starling",
+      "European Starling"
+    ],
     "ambiguous": false,
     "image_areas": [
       "away",
@@ -8540,7 +10004,7 @@
     "date": "Mar 25, 2026",
     "permalink": "https://www.instagram.com/p/DWVJyTyEVzP/",
     "timestamp": "2026-03-26T02:14:56+0000",
-    "weight": 0.798,
+    "weight": 0.808,
     "image_species": [
       "Northern Cardinal",
       "Northern Cardinal",
@@ -8647,7 +10111,7 @@
     "date": "Mar 24, 2026",
     "permalink": "https://www.instagram.com/p/DWSeAMYEdL0/",
     "timestamp": "2026-03-25T01:13:52+0000",
-    "weight": 0.861,
+    "weight": 0.866,
     "image_species": [
       "American Herring Gull",
       "American Herring Gull",
@@ -8672,6 +10136,7 @@
     ],
     "caption_species": [
       "American Herring Gull",
+      "White-throated Sparrow",
       "Rock Pigeon"
     ],
     "reclassified": false,
@@ -8733,7 +10198,13 @@
     "date": "Mar 22, 2026",
     "permalink": "https://www.instagram.com/p/DWPzWLGGu5m/",
     "timestamp": "2026-03-24T00:22:39+0000",
-    "weight": 0.883,
+    "weight": 0.891,
+    "image_species": [
+      "Barred Owl",
+      "Barred Owl",
+      "Barred Owl",
+      "Barred Owl"
+    ],
     "ambiguous": false,
     "image_areas": [
       "local",
@@ -8841,7 +10312,7 @@
     "date": "Mar 22, 2026",
     "permalink": "https://www.instagram.com/p/DWMw8uMGkQl/",
     "timestamp": "2026-03-22T20:03:58+0000",
-    "weight": 0.731,
+    "weight": 0.745,
     "image_species": [
       "Mute Swan",
       "Mute Swan",
@@ -8969,7 +10440,17 @@
     "date": "Mar 21, 2026",
     "permalink": "https://www.instagram.com/p/DWJgHtNkenX/",
     "timestamp": "2026-03-21T13:39:12+0000",
-    "weight": 0.861,
+    "weight": 0.866,
+    "image_species": [
+      "Barred Owls",
+      "Barred Owls",
+      "Barred Owls",
+      "Barred Owls",
+      "Barred Owls",
+      "Barred Owls",
+      "Barred Owls",
+      "Barred Owls"
+    ],
     "ambiguous": false,
     "image_areas": [
       "local",
@@ -9087,7 +10568,7 @@
     "date": "Mar 20, 2026",
     "permalink": "https://www.instagram.com/p/DWIEXvemn9Z/",
     "timestamp": "2026-03-21T00:17:29+0000",
-    "weight": 0.646,
+    "weight": 0.661,
     "image_species": [
       "Red-tailed Hawk",
       "Red-tailed Hawk",
@@ -9234,7 +10715,7 @@
     "date": "Mar 19, 2026",
     "permalink": "https://www.instagram.com/p/DWFr6cPEbv2/",
     "timestamp": "2026-03-20T02:05:17+0000",
-    "weight": 0.861,
+    "weight": 0.866,
     "image_species": [
       "Common Grackle",
       "Common Grackle",
@@ -9345,7 +10826,7 @@
     "date": "Mar 18, 2026",
     "permalink": "https://www.instagram.com/p/DWC9zodGmlO/",
     "timestamp": "2026-03-19T00:43:55+0000",
-    "weight": 0.731,
+    "weight": 0.745,
     "image_species": [
       "Northern Cardinal",
       "Northern Cardinal",
@@ -9428,7 +10909,7 @@
     "date": "Mar 17, 2026",
     "permalink": "https://www.instagram.com/p/DWAbJ5sGhyL/",
     "timestamp": "2026-03-18T01:02:39+0000",
-    "weight": 0.731,
+    "weight": 0.745,
     "image_species": [
       "Rock Pigeon",
       "Rock Pigeon",
@@ -9493,8 +10974,8 @@
     ],
     "image_videos": [],
     "captions": [
-      "Red-tailed Hawk \u00b7 Mar 15, 2026",
-      "Blue Jay \u00b7 Mar 15, 2026",
+      "Red-tailed Hawk \u00b7 Weir Hill \u00b7 Mar 15, 2026",
+      "Blue Jay \u00b7 Weir Hill \u00b7 Mar 15, 2026",
       "Dark-eyed Junco \u00b7 Rea St. \u00b7 Mar 15, 2026",
       "Black-capped Chickadee \u00b7 Rea St. \u00b7 Mar 15, 2026",
       "Barred Owl \u00b7 Rea St. \u00b7 Mar 15, 2026"
@@ -9503,13 +10984,15 @@
     "species": "Red-tailed Hawk",
     "species_list": [
       "Red-tailed Hawk",
+      "Blue Jay",
       "Dark-eyed Junco",
-      "Black-capped Chickadee"
+      "Black-capped Chickadee",
+      "Barred Owl"
     ],
     "location": "Rea St.",
     "locations": [
-      null,
-      null,
+      "Weir Hill",
+      "Weir Hill",
       "Rea St.",
       "Rea St.",
       "Rea St."
@@ -9517,20 +11000,20 @@
     "date": "Mar 15, 2026",
     "permalink": "https://www.instagram.com/p/DV92nNCkUar/",
     "timestamp": "2026-03-17T01:04:51+0000",
-    "weight": 0.816,
+    "weight": 0.824,
     "image_species": [
       "Red-tailed Hawk",
-      null,
+      "Blue Jay",
       "Dark-eyed Junco",
       "Black-capped Chickadee",
-      null
+      "Barred Owl"
     ],
     "image_locations": [
       null,
       null,
       null,
       null,
-      null
+      "Rea St."
     ],
     "ambiguous": false,
     "image_areas": [
@@ -9613,7 +11096,7 @@
     "date": "Mar 15, 2026",
     "permalink": "https://www.instagram.com/p/DV6TWalEUzu/",
     "timestamp": "2026-03-15T15:59:00+0000",
-    "weight": 0.991,
+    "weight": 0.992,
     "image_species": [
       "Barred Owl",
       "Barred Owl",
@@ -9726,7 +11209,18 @@
     "date": "Mar 14, 2026",
     "permalink": "https://www.instagram.com/p/DV3bxzQkSLC/",
     "timestamp": "2026-03-14T13:14:56+0000",
-    "weight": 0.798,
+    "weight": 0.808,
+    "image_species": [
+      "Cooper's Hawk",
+      "Cooper's Hawk",
+      "Cooper's Hawk",
+      "Cooper's Hawk",
+      "Cooper's Hawk",
+      "Cooper's Hawk",
+      "Cooper's Hawk",
+      "Cooper's Hawk",
+      "Cooper's Hawk"
+    ],
     "ambiguous": false,
     "image_areas": [
       "local",
@@ -9820,7 +11314,7 @@
     "date": "Mar 13, 2026",
     "permalink": "https://www.instagram.com/p/DV2HaVJGl1V/",
     "timestamp": "2026-03-14T00:57:43+0000",
-    "weight": 0.43,
+    "weight": 0.456,
     "image_species": [
       "Tufted Titmouse",
       "Tufted Titmouse",
@@ -9907,7 +11401,7 @@
     "date": "Mar 12, 2026",
     "permalink": "https://www.instagram.com/p/DVzjsI9GkYv/",
     "timestamp": "2026-03-13T01:07:06+0000",
-    "weight": 0.646,
+    "weight": 0.661,
     "image_species": [
       "Mallard",
       "Canada Goose",
@@ -9997,7 +11491,7 @@
     "date": "Mar 11, 2026",
     "permalink": "https://www.instagram.com/p/DVwsaeIGlyt/",
     "timestamp": "2026-03-11T22:25:37+0000",
-    "weight": 0.538,
+    "weight": 0.556,
     "image_species": [
       "Turkey Vulture",
       "Turkey Vulture",
@@ -10103,7 +11597,7 @@
     "date": "Mar 10, 2026",
     "permalink": "https://www.instagram.com/p/DVudWwnEUoI/",
     "timestamp": "2026-03-11T01:35:33+0000",
-    "weight": 0.991,
+    "weight": 0.992,
     "image_species": [
       "Barred Owl",
       "Barred Owl",
@@ -10230,7 +11724,7 @@
     "date": "Mar 9, 2026",
     "permalink": "https://www.instagram.com/p/DVr7arKEV3a/",
     "timestamp": "2026-03-10T02:00:30+0000",
-    "weight": 0.91,
+    "weight": 0.916,
     "image_species": [
       "Northern Cardinal",
       "Northern Cardinal",
@@ -10347,7 +11841,7 @@
     "date": "Mar 8, 2026",
     "permalink": "https://www.instagram.com/p/DVpZWp0EVHl/",
     "timestamp": "2026-03-09T02:24:23+0000",
-    "weight": 0.646,
+    "weight": 0.661,
     "image_species": [
       "White-throated Sparrow",
       "White-throated Sparrow",
@@ -10467,7 +11961,7 @@
     "date": "Mar 7, 2026",
     "permalink": "https://www.instagram.com/p/DVm4EZzEdzg/",
     "timestamp": "2026-03-08T02:55:03+0000",
-    "weight": 0.731,
+    "weight": 0.745,
     "image_species": [
       "Red-tailed Hawk",
       "Red-tailed Hawk",
@@ -10589,7 +12083,7 @@
     "date": "Mar 6, 2026",
     "permalink": "https://www.instagram.com/p/DVkdH9kDYsB/",
     "timestamp": "2026-03-07T04:21:07+0000",
-    "weight": 0.43,
+    "weight": 0.456,
     "image_species": [
       "House Sparrow",
       "House Sparrow",
@@ -10710,7 +12204,7 @@
     "date": "Mar 5, 2026",
     "permalink": "https://www.instagram.com/p/DVhtm71kU-K/",
     "timestamp": "2026-03-06T02:47:26+0000",
-    "weight": 0.798,
+    "weight": 0.808,
     "image_species": [
       "Rock Pigeon",
       "House Sparrow",
@@ -10823,7 +12317,8 @@
       "Black-capped Chickadee",
       "White-throated Sparrow",
       "Cooper's Hawk",
-      "Blue Jay"
+      "Blue Jay",
+      "Tufted Titmouse"
     ],
     "location": "Rea St.",
     "locations": [
@@ -10837,7 +12332,7 @@
     "date": "Mar 4, 2026",
     "permalink": "https://www.instagram.com/p/DVfJHS2DQUr/",
     "timestamp": "2026-03-05T02:50:04+0000",
-    "weight": 0.43,
+    "weight": 0.456,
     "image_species": [
       "Pileated Woodpecker",
       "Pileated Woodpecker",
@@ -10845,8 +12340,8 @@
       "White-throated Sparrow",
       "White-throated Sparrow",
       "Cooper's Hawk",
-      "Cooper's Hawk",
-      "Blue Jay"
+      "Blue Jay",
+      "Tufted Titmouse"
     ],
     "image_locations": [
       "Rea St.",
@@ -10854,8 +12349,8 @@
       "Rea St.",
       "Rea St.",
       "Rea St.",
-      "Rea St.",
-      "High St. Captured by sara.e.ouellette",
+      "High St.",
+      "Annie L. Sargent School",
       "Rea St."
     ],
     "ambiguous": false,
@@ -10924,7 +12419,7 @@
     "date": "Mar 3, 2026",
     "permalink": "https://www.instagram.com/p/DVci5e5kRma/",
     "timestamp": "2026-03-04T02:37:39+0000",
-    "weight": 0.538,
+    "weight": 0.556,
     "image_species": [
       "Black-capped Chickadee",
       "Mourning Dove"
@@ -11037,7 +12532,7 @@
     "date": "Mar 2, 2026",
     "permalink": "https://www.instagram.com/p/DVZ8H7ukSDH/",
     "timestamp": "2026-03-03T02:20:21+0000",
-    "weight": 0.538,
+    "weight": 0.556,
     "image_species": [
       "Carolina Wren",
       "White-breasted Nuthatch",
@@ -11183,7 +12678,7 @@
     "date": "Mar 1, 2026",
     "permalink": "https://www.instagram.com/p/DVXY2urkZ4V/",
     "timestamp": "2026-03-02T02:33:41+0000",
-    "weight": 0.43,
+    "weight": 0.456,
     "image_species": [
       "Red-tailed Hawk",
       "Red-tailed Hawk",
@@ -11340,7 +12835,7 @@
     "date": "Feb 28, 2026",
     "permalink": "https://www.instagram.com/p/DVU5UqJEe9u/",
     "timestamp": "2026-03-01T03:19:41+0000",
-    "weight": 0.43,
+    "weight": 0.456,
     "image_species": [
       "Blue Jay",
       "House Finch",
@@ -11495,7 +12990,7 @@
     "date": "Feb 27, 2026",
     "permalink": "https://www.instagram.com/p/DVSHe_vEY54/",
     "timestamp": "2026-02-28T01:25:42+0000",
-    "weight": 0.296,
+    "weight": 0.31,
     "image_species": [
       "Tufted Titmouse",
       "Tufted Titmouse",
@@ -11642,7 +13137,7 @@
     "date": "Feb 26, 2026",
     "permalink": "https://www.instagram.com/p/DVP2c9ojf1I/",
     "timestamp": "2026-02-27T04:18:24+0000",
-    "weight": 0.646,
+    "weight": 0.661,
     "image_species": [
       "Canada Goose",
       "American Herring Gull",
@@ -11773,7 +13268,7 @@
     "date": "Feb 25, 2026",
     "permalink": "https://www.instagram.com/p/DVNNCGHEYVb/",
     "timestamp": "2026-02-26T03:37:59+0000",
-    "weight": 0.731,
+    "weight": 0.745,
     "image_species": [
       "American Tree Sparrow",
       "American Tree Sparrow",
@@ -11915,7 +13410,7 @@
     "date": "Feb 24, 2026",
     "permalink": "https://www.instagram.com/p/DVKiNybkbc6/",
     "timestamp": "2026-02-25T02:45:21+0000",
-    "weight": 0.646,
+    "weight": 0.661,
     "image_species": [
       "Carolina Wren",
       "Downy Woodpecker",
@@ -12022,7 +13517,13 @@
     "date": "Feb 23, 2026",
     "permalink": "https://www.instagram.com/p/DVIAjjdEQrY/",
     "timestamp": "2026-02-24T03:12:45+0000",
-    "weight": 0.646,
+    "weight": 0.661,
+    "image_species": [
+      "Dark-eyed Junco",
+      "Dark-eyed Junco",
+      "Dark-eyed Junco",
+      "Dark-eyed Junco"
+    ],
     "ambiguous": false,
     "image_areas": [
       "local",
@@ -12084,27 +13585,45 @@
     ],
     "image_videos": [],
     "captions": [
-      "Red-tailed Hawk \u00b7 Feb 22, 2026",
-      "Red-tailed Hawk \u00b7 Feb 22, 2026",
-      "Red-tailed Hawk \u00b7 Feb 22, 2026",
-      "Red-tailed Hawk \u00b7 Feb 22, 2026",
-      "Red-tailed Hawk \u00b7 Feb 22, 2026",
-      "Red-tailed Hawk \u00b7 Feb 22, 2026",
-      "Red-tailed Hawk \u00b7 Feb 22, 2026"
+      "Red-tailed Hawk \u00b7 Weir Hill \u00b7 Feb 22, 2026",
+      "Red-tailed Hawk \u00b7 Weir Hill \u00b7 Feb 22, 2026",
+      "Red-tailed Hawk \u00b7 Weir Hill \u00b7 Feb 22, 2026",
+      "Red-tailed Hawk \u00b7 Weir Hill \u00b7 Feb 22, 2026",
+      "Red-tailed Hawk \u00b7 Weir Hill \u00b7 Feb 22, 2026",
+      "Red-tailed Hawk \u00b7 Weir Hill \u00b7 Feb 22, 2026",
+      "Red-tailed Hawk \u00b7 Weir Hill \u00b7 Feb 22, 2026"
     ],
     "caption": "Red-tailed Hawk\n\nWeir Hill\n\n2-22-26",
     "species": "Red-tailed Hawk",
     "species_list": [
       "Red-tailed Hawk"
     ],
-    "location": null,
+    "location": "Weir Hill",
     "locations": [
-      null
+      "Weir Hill"
     ],
     "date": "Feb 22, 2026",
     "permalink": "https://www.instagram.com/p/DVEKqaYkdeE/",
     "timestamp": "2026-02-22T15:24:06+0000",
-    "weight": 0.538,
+    "weight": 0.556,
+    "image_locations": [
+      "Weir Hill",
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ],
+    "image_species": [
+      "Red-tailed Hawk",
+      "Red-tailed Hawk",
+      "Red-tailed Hawk",
+      "Red-tailed Hawk",
+      "Red-tailed Hawk",
+      "Red-tailed Hawk",
+      "Red-tailed Hawk"
+    ],
     "ambiguous": false,
     "image_areas": [
       "local",
@@ -12156,7 +13675,10 @@
     "date": "Feb 21, 2026",
     "permalink": "https://www.instagram.com/p/DVCsGQTEUi0/",
     "timestamp": "2026-02-22T01:37:47+0000",
-    "weight": 0.103,
+    "weight": 0.096,
+    "image_species": [
+      "Song Sparrow"
+    ],
     "ambiguous": false,
     "image_areas": [
       "local"
@@ -12232,7 +13754,7 @@
     "date": "Feb 20, 2026",
     "permalink": "https://www.instagram.com/p/DVAO_O4kSTy/",
     "timestamp": "2026-02-21T02:44:56+0000",
-    "weight": 0.731,
+    "weight": 0.745,
     "image_species": [
       "Tufted Titmouse",
       "Tufted Titmouse",
@@ -12359,7 +13881,7 @@
     "date": "Feb 19, 2026",
     "permalink": "https://www.instagram.com/p/DU9qExqEdGN/",
     "timestamp": "2026-02-20T02:43:54+0000",
-    "weight": 0.296,
+    "weight": 0.31,
     "image_species": [
       "Surf Scoter",
       "Surf Scoter",
@@ -12477,7 +13999,7 @@
     "date": "Feb 19, 2026",
     "permalink": "https://www.instagram.com/p/DU7BFMsERnE/",
     "timestamp": "2026-02-19T02:07:13+0000",
-    "weight": 0.43,
+    "weight": 0.456,
     "image_species": [
       "American Tree Sparrow",
       "American Tree Sparrow",
@@ -12585,7 +14107,7 @@
     "date": "Feb 16, 2026",
     "permalink": "https://www.instagram.com/p/DU4pm5jjXPe/",
     "timestamp": "2026-02-18T04:03:37+0000",
-    "weight": 0.646,
+    "weight": 0.661,
     "image_species": [
       "House Sparrow",
       "American Black Duck",
@@ -12658,10 +14180,10 @@
     ],
     "image_videos": [],
     "captions": [
-      "Red-tailed Hawks \u00b7 Feb 16, 2026",
-      "Red-tailed Hawks \u00b7 Feb 16, 2026",
-      "Red-tailed Hawks \u00b7 Feb 16, 2026",
-      "Red-tailed Hawks \u00b7 Feb 16, 2026"
+      "Red-tailed Hawks \u00b7 Weir Hill \u00b7 Feb 16, 2026",
+      "Red-tailed Hawks \u00b7 Weir Hill \u00b7 Feb 16, 2026",
+      "Red-tailed Hawks \u00b7 Weir Hill \u00b7 Feb 16, 2026",
+      "Red-tailed Hawks \u00b7 Weir Hill \u00b7 Feb 16, 2026"
     ],
     "caption": "Red-tailed Hawks\nBaltimore Oriole Nest\n\nWeir Hill\n\n2-16-26",
     "species": "Red-tailed Hawk",
@@ -12671,12 +14193,12 @@
     ],
     "location": "Weir Hill",
     "locations": [
-      null
+      "Weir Hill"
     ],
     "date": "Feb 16, 2026",
     "permalink": "https://www.instagram.com/p/DU0rXAiEWV-/",
     "timestamp": "2026-02-16T15:01:58+0000",
-    "weight": 0.43,
+    "weight": 0.456,
     "image_species": [
       "Red-tailed Hawk",
       "Red-tailed Hawk",
@@ -12756,7 +14278,7 @@
     "date": "Feb 15, 2026",
     "permalink": "https://www.instagram.com/p/DUzbzTDEWqC/",
     "timestamp": "2026-02-16T03:26:47+0000",
-    "weight": 0.646,
+    "weight": 0.661,
     "image_species": [
       "Red-bellied Woodpecker",
       "Northern Cardinal",
@@ -12874,7 +14396,7 @@
     "date": "Feb 14, 2026",
     "permalink": "https://www.instagram.com/p/DUw7-3pDYpp/",
     "timestamp": "2026-02-15T04:10:15+0000",
-    "weight": 0.861,
+    "weight": 0.866,
     "image_species": [
       "Red-tailed Hawk",
       "Red-tailed Hawk",
@@ -13022,7 +14544,7 @@
     "date": "Feb 13, 2026",
     "permalink": "https://www.instagram.com/p/DUuJT2QEa_x/",
     "timestamp": "2026-02-14T02:09:00+0000",
-    "weight": 0.646,
+    "weight": 0.661,
     "image_species": [
       "White-breasted Nuthatch",
       "White-breasted Nuthatch",
@@ -13145,7 +14667,7 @@
     "date": "Feb 12, 2026",
     "permalink": "https://www.instagram.com/p/DUrq4iYkfFC/",
     "timestamp": "2026-02-13T03:04:38+0000",
-    "weight": 0.731,
+    "weight": 0.745,
     "image_species": [
       "American Herring Gull",
       "Northern Cardinal",
@@ -13254,7 +14776,7 @@
     "date": "Feb 11, 2026",
     "permalink": "https://www.instagram.com/p/DUpJMUqEUXO/",
     "timestamp": "2026-02-12T03:31:46+0000",
-    "weight": 0.43,
+    "weight": 0.456,
     "image_species": [
       "Northern Flicker",
       "Northern Flicker",
@@ -13380,7 +14902,7 @@
     "date": "Feb 9, 2026",
     "permalink": "https://www.instagram.com/p/DUma4q_Eanj/",
     "timestamp": "2026-02-11T02:08:39+0000",
-    "weight": 0.538,
+    "weight": 0.556,
     "image_species": [
       "American Tree Sparrow",
       "White-throated Sparrow",
@@ -13512,7 +15034,7 @@
     "date": "Feb 9, 2026",
     "permalink": "https://www.instagram.com/p/DUj0KUREQCY/",
     "timestamp": "2026-02-10T01:51:47+0000",
-    "weight": 0.861,
+    "weight": 0.866,
     "image_species": [
       "Mourning Dove",
       "Mourning Dove",
@@ -13656,7 +15178,7 @@
     "date": "Feb 8, 2026",
     "permalink": "https://www.instagram.com/p/DUhU_HKEcHU/",
     "timestamp": "2026-02-09T02:40:54+0000",
-    "weight": 0.296,
+    "weight": 0.31,
     "image_species": [
       "Mourning Dove",
       "Mourning Dove",
@@ -13767,7 +15289,7 @@
     "date": "Feb 6, 2026",
     "permalink": "https://www.instagram.com/p/DUeqXtfkVzW/",
     "timestamp": "2026-02-08T01:50:02+0000",
-    "weight": 0.206,
+    "weight": 0.205,
     "image_species": [
       "Eastern Bluebird",
       "American Robin",
@@ -13882,7 +15404,7 @@
     "date": "Feb 6, 2026",
     "permalink": "https://www.instagram.com/p/DUcGJtPkTAN/",
     "timestamp": "2026-02-07T01:55:04+0000",
-    "weight": 0.43,
+    "weight": 0.456,
     "image_species": [
       "Carolina Wren",
       "Sharp-shinned Hawk",
@@ -14021,7 +15543,7 @@
     "date": "Feb 5, 2026",
     "permalink": "https://www.instagram.com/p/DUZkmbrEWKj/",
     "timestamp": "2026-02-06T02:23:25+0000",
-    "weight": 0.798,
+    "weight": 0.808,
     "image_species": [
       "Common Loon",
       "Common Loon",
@@ -14157,7 +15679,7 @@
     "date": "Feb 4, 2026",
     "permalink": "https://www.instagram.com/p/DUW3EYakSHK/",
     "timestamp": "2026-02-05T01:07:04+0000",
-    "weight": 0.43,
+    "weight": 0.456,
     "image_species": [
       "White-breasted Nuthatch",
       "White-breasted Nuthatch",
@@ -14263,7 +15785,7 @@
     "date": "Feb 3, 2026",
     "permalink": "https://www.instagram.com/p/DUUYKUtEXvF/",
     "timestamp": "2026-02-04T01:58:31+0000",
-    "weight": 0.296,
+    "weight": 0.31,
     "image_species": [
       "House Finch",
       "House Finch",
@@ -14330,7 +15852,10 @@
     "date": "Feb 2, 2026",
     "permalink": "https://www.instagram.com/p/DURjViRjwKv/",
     "timestamp": "2026-02-02T23:38:26+0000",
-    "weight": 0.43,
+    "weight": 0.456,
+    "image_species": [
+      "Mourning Dove"
+    ],
     "ambiguous": false,
     "image_areas": [
       "local"
@@ -14396,7 +15921,7 @@
     "date": "Feb 1, 2026",
     "permalink": "https://www.instagram.com/p/DUOvoq8EVnZ/",
     "timestamp": "2026-02-01T21:28:11+0000",
-    "weight": 0.43,
+    "weight": 0.456,
     "image_species": [
       "Pileated Woodpecker",
       "Pileated Woodpecker",
@@ -14473,7 +15998,7 @@
     "date": "Feb 1, 2026",
     "permalink": "https://www.instagram.com/p/DUONxR0EdVf/",
     "timestamp": "2026-02-01T16:32:16+0000",
-    "weight": 0.296,
+    "weight": 0.31,
     "image_species": [
       "Yellow-bellied Sapsucker",
       "Yellow-bellied Sapsucker",
@@ -14582,7 +16107,7 @@
     "date": "Jan 31, 2026",
     "permalink": "https://www.instagram.com/p/DULm4nakfoF/",
     "timestamp": "2026-01-31T16:14:00+0000",
-    "weight": 0.538,
+    "weight": 0.556,
     "image_species": [
       "Yellow-bellied Sapsucker",
       "Yellow-bellied Sapsucker",
@@ -14700,7 +16225,15 @@
     "date": "Jan 30, 2026",
     "permalink": "https://www.instagram.com/p/DUKFjZlEdKW/",
     "timestamp": "2026-01-31T02:03:30+0000",
-    "weight": 0.43,
+    "weight": 0.456,
+    "image_species": [
+      "Yellow-bellied Sapsucker",
+      "Yellow-bellied Sapsucker",
+      "Yellow-bellied Sapsucker",
+      "Yellow-bellied Sapsucker",
+      "Yellow-bellied Sapsucker",
+      "Yellow-bellied Sapsucker"
+    ],
     "ambiguous": false,
     "image_areas": [
       "local",
@@ -14772,7 +16305,7 @@
     "date": "Jan 28, 2026",
     "permalink": "https://www.instagram.com/p/DUFC1m5kWbq/",
     "timestamp": "2026-01-29T03:03:35+0000",
-    "weight": 0.731,
+    "weight": 0.745,
     "image_species": [
       "Rock Pigeon",
       "Red-breasted Merganser",
@@ -14846,7 +16379,7 @@
     "date": "Jan 25, 2026",
     "permalink": "https://www.instagram.com/p/DT-944pkaVp/",
     "timestamp": "2026-01-26T18:24:53+0000",
-    "weight": 0.646,
+    "weight": 0.661,
     "image_species": [
       "Sanderling",
       "Sanderling",
@@ -14933,7 +16466,7 @@
       "Red-bellied Woodpecker",
       "Tricolored Heron",
       "Sanderling",
-      "Cooper's Hawk"
+      "Red-shouldered Hawk"
     ],
     "location": "Estero, Florida",
     "locations": [
@@ -14947,14 +16480,14 @@
     "date": "Jan 24, 2026",
     "permalink": "https://www.instagram.com/p/DUCX8ZaEdFs/",
     "timestamp": "2026-01-28T02:10:17+0000",
-    "weight": 0.646,
+    "weight": 0.661,
     "image_species": [
       "Osprey",
       "Osprey",
       "Red-bellied Woodpecker",
       "Tricolored Heron",
       "Sanderling",
-      "Cooper's Hawk"
+      "Red-shouldered Hawk"
     ],
     "image_locations": [
       "Estero, Florida",
@@ -14971,7 +16504,7 @@
       "away",
       "away",
       "away",
-      "away"
+      "local"
     ],
     "caption_species": [
       "Osprey",
@@ -14981,7 +16514,7 @@
       "Cooper's Hawk",
       "Boat-tailed Grackle"
     ],
-    "reclassified": false,
+    "reclassified": true,
     "image_indices": [
       0,
       1,
@@ -15076,10 +16609,10 @@
     "species": "Osprey",
     "species_list": [
       "Osprey",
-      "Red-bellied Woodpecker",
       "Brown Pelican",
       "Little Blue Heron",
       "Turkey Vulture",
+      "Red-bellied Woodpecker",
       "Blue Jay",
       "Loggerhead Shrike"
     ],
@@ -15096,12 +16629,12 @@
     "date": "Jan 24, 2026",
     "permalink": "https://www.instagram.com/p/DT8u_ONERDh/",
     "timestamp": "2026-01-25T21:36:12+0000",
-    "weight": 0.937,
+    "weight": 0.941,
     "image_species": [
       "Osprey",
       "Osprey",
       "Osprey",
-      "Red-bellied Woodpecker",
+      "Osprey",
       "Brown Pelican",
       "Brown Pelican",
       "Brown Pelican",
@@ -15212,7 +16745,7 @@
     "date": "Jan 23, 2026",
     "permalink": "https://www.instagram.com/p/DUCYv0mkWSr/",
     "timestamp": "2026-01-28T02:17:18+0000",
-    "weight": 0.538,
+    "weight": 0.556,
     "image_species": [
       "Northern Cardinal",
       "Northern Cardinal",
@@ -15271,7 +16804,10 @@
     "date": "Jan 22, 2026",
     "permalink": "https://www.instagram.com/p/DT1tC7LjcOR/",
     "timestamp": "2026-01-23T04:04:33+0000",
-    "weight": 0.206,
+    "weight": 0.205,
+    "image_species": [
+      "Mallard"
+    ],
     "ambiguous": false,
     "image_areas": [
       "away"
@@ -15311,7 +16847,10 @@
     "date": "Jan 20, 2026",
     "permalink": "https://www.instagram.com/p/DTwjxpojchN/",
     "timestamp": "2026-01-21T04:07:21+0000",
-    "weight": 0.43,
+    "weight": 0.456,
+    "image_species": [
+      "American Herring Gull"
+    ],
     "ambiguous": false,
     "image_areas": [
       "away"
@@ -15411,7 +16950,7 @@
     "date": "Jan 19, 2026",
     "permalink": "https://www.instagram.com/p/DTtTA3ykRl7/",
     "timestamp": "2026-01-19T21:43:09+0000",
-    "weight": 0.731,
+    "weight": 0.745,
     "image_species": [
       "Mourning Dove",
       "Mourning Dove",
@@ -15524,6 +17063,7 @@
     "species_list": [
       "Mallard",
       "Song Sparrow",
+      "American Crow",
       "Northern Harrier"
     ],
     "location": "Great Meadows National Wildlife Refuge - Concord Unit, Concord, MA",
@@ -15536,14 +17076,14 @@
     "date": "Jan 18, 2026",
     "permalink": "https://www.instagram.com/p/DTq3aAAkfQd/",
     "timestamp": "2026-01-18T23:03:26+0000",
-    "weight": 0.816,
+    "weight": 0.824,
     "image_species": [
       "Mallard",
       "Mallard",
       "Mallard",
       "Song Sparrow",
       "Song Sparrow",
-      "Northern Harrier",
+      "American Crow",
       "Northern Harrier"
     ],
     "image_locations": [
@@ -15625,7 +17165,7 @@
     "date": "Jan 17, 2026",
     "permalink": "https://www.instagram.com/p/DTokRjmEQjv/",
     "timestamp": "2026-01-18T01:37:46+0000",
-    "weight": 0.103,
+    "weight": 0.096,
     "image_species": [
       "Dark-eyed Junco",
       "Carolina Wren",
@@ -15711,7 +17251,7 @@
     "date": "Jan 16, 2026",
     "permalink": "https://www.instagram.com/p/DTmByO6EQWa/",
     "timestamp": "2026-01-17T01:57:55+0000",
-    "weight": 0.206,
+    "weight": 0.205,
     "image_species": [
       "Mourning Dove",
       "Carolina Wren",
@@ -15784,7 +17324,7 @@
     "date": "Jan 15, 2026",
     "permalink": "https://www.instagram.com/p/DTjnbMhjYPE/",
     "timestamp": "2026-01-16T03:29:06+0000",
-    "weight": 0.103,
+    "weight": 0.096,
     "image_species": [
       "White-throated Sparrow",
       "Mallard"
@@ -15847,7 +17387,12 @@
     "date": "Jan 14, 2026",
     "permalink": "https://www.instagram.com/p/DTgxNvzEVxq/",
     "timestamp": "2026-01-15T00:56:56+0000",
-    "weight": 0.063,
+    "weight": 0.059,
+    "image_species": [
+      "Red-tailed Hawk",
+      "Red-tailed Hawk",
+      "Red-tailed Hawk"
+    ],
     "ambiguous": false,
     "image_areas": [
       "local",
@@ -15923,7 +17468,7 @@
     "date": "Jan 11, 2026",
     "permalink": "https://www.instagram.com/p/DTZMtObkSy6/",
     "timestamp": "2026-01-12T02:23:14+0000",
-    "weight": 0.206,
+    "weight": 0.205,
     "image_species": [
       "Black-capped Chickadee",
       "Northern Cardinal",
@@ -16024,7 +17569,7 @@
       "Tufted Titmouse",
       "Peregrine Falcon"
     ],
-    "location": "/1-10-26 - Rea St.",
+    "location": "Rea St.",
     "locations": [
       "/1-10-26 - Rea St.",
       "/1-10-26 - Rea St.",
@@ -16036,7 +17581,7 @@
     "date": "Jan 9, 2026",
     "permalink": "https://www.instagram.com/p/DTWw-YHjdT3/",
     "timestamp": "2026-01-11T03:42:25+0000",
-    "weight": 0.43,
+    "weight": 0.456,
     "image_species": [
       "Dark-eyed Junco",
       "Carolina Wren",
@@ -16046,7 +17591,7 @@
       "Peregrine Falcon"
     ],
     "image_locations": [
-      null,
+      "Rea St.",
       null,
       null,
       null,
@@ -16145,7 +17690,7 @@
     "date": "Jan 8, 2026",
     "permalink": "https://www.instagram.com/p/DTUNxL8DQlu/",
     "timestamp": "2026-01-10T03:56:18+0000",
-    "weight": 0.538,
+    "weight": 0.556,
     "image_species": [
       "American Herring Gull",
       "Downy Woodpecker",
@@ -16283,7 +17828,7 @@
     "date": "Jan 3, 2026",
     "permalink": "https://www.instagram.com/p/DTEsysnkQ3_/",
     "timestamp": "2026-01-04T03:19:33+0000",
-    "weight": 0.731,
+    "weight": 0.745,
     "image_species": [
       "American Robin",
       "House Finch",
@@ -16328,7 +17873,8 @@
       "Downy Woodpecker",
       "American Crow",
       "Song Sparrow",
-      "Dark-eyed Junco"
+      "Dark-eyed Junco",
+      "Northern Flicker"
     ],
     "reclassified": false,
     "image_indices": [
@@ -16391,7 +17937,7 @@
     "date": "Jan 2, 2026",
     "permalink": "https://www.instagram.com/p/DTCJoZJDSqo/",
     "timestamp": "2026-01-03T03:33:49+0000",
-    "weight": 0.43,
+    "weight": 0.456,
     "image_species": [
       "Cooper's Hawk",
       "Cooper's Hawk",
@@ -16516,7 +18062,7 @@
     "date": "Jan 1, 2026",
     "permalink": "https://www.instagram.com/p/DS_f4KAEQE4/",
     "timestamp": "2026-01-02T02:50:29+0000",
-    "weight": 0.798,
+    "weight": 0.808,
     "image_species": [
       "Red-tailed Hawk",
       "Red-tailed Hawk",
@@ -16612,7 +18158,7 @@
     "date": "Dec 30, 2025",
     "permalink": "https://www.instagram.com/p/DS6SlSdEVqY/",
     "timestamp": "2025-12-31T02:18:07+0000",
-    "weight": 0.103,
+    "weight": 0.096,
     "image_species": [
       "White-breasted Nuthatch",
       "Tufted Titmouse"
@@ -16711,7 +18257,7 @@
     "date": "Dec 29, 2025",
     "permalink": "https://www.instagram.com/p/DS1N978kZ-R/",
     "timestamp": "2025-12-29T03:01:35+0000",
-    "weight": 0.43,
+    "weight": 0.456,
     "image_species": [
       "Carolina Wren",
       "Northern Cardinal",
@@ -16823,7 +18369,7 @@
     "date": "Dec 27, 2025",
     "permalink": "https://www.instagram.com/p/DSyi8nokQcL/",
     "timestamp": "2025-12-28T02:07:11+0000",
-    "weight": 0.296,
+    "weight": 0.31,
     "image_species": [
       "Cooper's Hawk",
       "Cooper's Hawk",
@@ -16927,7 +18473,7 @@
     "date": "Dec 24, 2025",
     "permalink": "https://www.instagram.com/p/DSoSZJgkWg3/",
     "timestamp": "2025-12-24T02:30:08+0000",
-    "weight": 0.816,
+    "weight": 0.824,
     "image_species": [
       "Red-bellied Woodpecker",
       "Red-bellied Woodpecker",
@@ -16941,7 +18487,7 @@
       "Annie L. Sargent School Access Road",
       "Rea Street Ext.",
       "Annie L. Sargent School Access Road/Rea Street Ext.",
-      "Annie L. Sargent School Access Road/Rea Street Ext.",
+      "Rea St.",
       "Annie L. Sargent School Access Road"
     ],
     "ambiguous": false,
@@ -17004,7 +18550,7 @@
     "date": "Dec 22, 2025",
     "permalink": "https://www.instagram.com/p/DSlzFUYkQit/",
     "timestamp": "2025-12-23T03:18:04+0000",
-    "weight": 0.206,
+    "weight": 0.205,
     "image_species": [
       "Tufted Titmouse",
       "Downy Woodpecker"
@@ -17071,7 +18617,7 @@
     "date": "Dec 15, 2025",
     "permalink": "https://www.instagram.com/p/DSUCld_jUJa/",
     "timestamp": "2025-12-16T05:47:11+0000",
-    "weight": 0.646,
+    "weight": 0.661,
     "image_species": [
       "Blue Jay",
       "Dark-eyed Junco",
@@ -17147,7 +18693,7 @@
     "date": "Dec 14, 2025",
     "permalink": "https://www.instagram.com/p/DSRAfj6Ee0V/",
     "timestamp": "2025-12-15T01:31:11+0000",
-    "weight": 0.646,
+    "weight": 0.661,
     "image_species": [
       "Cooper's Hawk",
       "Cooper's Hawk",
@@ -17275,7 +18821,7 @@
     "date": "Dec 13, 2025",
     "permalink": "https://www.instagram.com/p/DSOwZr_DW3z/",
     "timestamp": "2025-12-14T04:32:06+0000",
-    "weight": 0.798,
+    "weight": 0.808,
     "image_species": [
       "Northern Mockingbird",
       "Northern Mockingbird",
@@ -17365,7 +18911,10 @@
     "date": "Dec 12, 2025",
     "permalink": "https://www.instagram.com/p/DSL9lC1kUTF/",
     "timestamp": "2025-12-13T02:29:31+0000",
-    "weight": 0.139,
+    "weight": 0.13,
+    "image_species": [
+      "Red-tailed Hawk"
+    ],
     "ambiguous": false,
     "image_areas": [
       "local"
@@ -17417,7 +18966,12 @@
     "date": "Dec 7, 2025",
     "permalink": "https://www.instagram.com/p/DSEXWiwEUiV/",
     "timestamp": "2025-12-10T03:40:48+0000",
-    "weight": 0.296,
+    "weight": 0.31,
+    "image_species": [
+      "Song Sparrow",
+      "Song Sparrow",
+      "Song Sparrow"
+    ],
     "ambiguous": false,
     "image_areas": [
       "local",
@@ -17508,7 +19062,7 @@
     "date": "Dec 7, 2025",
     "permalink": "https://www.instagram.com/p/DR_DW8WEdg5/",
     "timestamp": "2025-12-08T02:09:54+0000",
-    "weight": 0.296,
+    "weight": 0.31,
     "image_species": [
       "White-throated Sparrow",
       "Red-shouldered Hawk",
@@ -17603,7 +19157,7 @@
     "date": "Dec 6, 2025",
     "permalink": "https://www.instagram.com/p/DR8nrH4EY_S/",
     "timestamp": "2025-12-07T03:29:30+0000",
-    "weight": 0.296,
+    "weight": 0.31,
     "image_species": [
       "Northern Cardinal",
       "American Goldfinch",
@@ -17701,7 +19255,15 @@
     "date": "Dec 4, 2025",
     "permalink": "https://www.instagram.com/p/DR52jxJkZZc/",
     "timestamp": "2025-12-06T01:41:51+0000",
-    "weight": 0.538,
+    "weight": 0.556,
+    "image_species": [
+      "Yellow-bellied Sapsucker",
+      "Yellow-bellied Sapsucker",
+      "Yellow-bellied Sapsucker",
+      "Yellow-bellied Sapsucker",
+      "Yellow-bellied Sapsucker",
+      "Yellow-bellied Sapsucker"
+    ],
     "ambiguous": false,
     "image_areas": [
       "local",
@@ -17751,7 +19313,10 @@
     "date": "Dec 4, 2025",
     "permalink": "https://www.instagram.com/p/DR3bU_yjWQw/",
     "timestamp": "2025-12-05T03:05:25+0000",
-    "weight": 0.139,
+    "weight": 0.13,
+    "image_species": [
+      "American Herring Gull"
+    ],
     "ambiguous": false,
     "image_areas": [
       "away"
@@ -17852,7 +19417,7 @@
     "date": "Dec 3, 2025",
     "permalink": "https://www.instagram.com/p/DR05q64EfMH/",
     "timestamp": "2025-12-04T03:32:50+0000",
-    "weight": 0.206,
+    "weight": 0.205,
     "image_species": [
       "Tufted Titmouse",
       "Downy Woodpecker",
@@ -17955,7 +19520,7 @@
     "date": "Dec 1, 2025",
     "permalink": "https://www.instagram.com/p/DRvv3oIEUB9/",
     "timestamp": "2025-12-02T03:30:59+0000",
-    "weight": 0.646,
+    "weight": 0.661,
     "image_species": [
       "Northern Cardinal",
       "Northern Cardinal",
@@ -18059,7 +19624,17 @@
     "date": "Nov 30, 2025",
     "permalink": "https://www.instagram.com/p/DRtKfhxEd1N/",
     "timestamp": "2025-12-01T03:25:54+0000",
-    "weight": 0.206,
+    "weight": 0.205,
+    "image_species": [
+      "Eastern Bluebird",
+      "Eastern Bluebird",
+      "Eastern Bluebird",
+      "Eastern Bluebird",
+      "Eastern Bluebird",
+      "Eastern Bluebird",
+      "Eastern Bluebird",
+      "Eastern Bluebird"
+    ],
     "ambiguous": false,
     "image_areas": [
       "local",
@@ -18219,7 +19794,7 @@
     "date": "Nov 29, 2025",
     "permalink": "https://www.instagram.com/p/DRqhx_skaq5/",
     "timestamp": "2025-11-30T02:51:41+0000",
-    "weight": 0.538,
+    "weight": 0.556,
     "image_species": [
       "Northern Flicker",
       "Northern Flicker",
@@ -18330,7 +19905,11 @@
     "date": "Nov 28, 2025",
     "permalink": "https://www.instagram.com/p/DRn0GtOEej4/",
     "timestamp": "2025-11-29T01:34:04+0000",
-    "weight": 0.139,
+    "weight": 0.13,
+    "image_species": [
+      "Eastern Bluebird",
+      "Eastern Bluebird"
+    ],
     "ambiguous": false,
     "image_areas": [
       "local",
@@ -18372,7 +19951,10 @@
     "date": "Nov 27, 2025",
     "permalink": "https://www.instagram.com/p/DRkTIVREVTU/",
     "timestamp": "2025-11-27T16:48:13+0000",
-    "weight": 0.063,
+    "weight": 0.059,
+    "image_species": [
+      "Red-bellied Woodpecker"
+    ],
     "ambiguous": false,
     "image_areas": [
       "local"
@@ -18462,7 +20044,7 @@
     "date": "Nov 26, 2025",
     "permalink": "https://www.instagram.com/p/DRi6ksrDSm8/",
     "timestamp": "2025-11-27T03:54:24+0000",
-    "weight": 0.861,
+    "weight": 0.866,
     "image_species": [
       "Mallard",
       "Mallard",
@@ -18551,7 +20133,7 @@
     "date": "Nov 25, 2025",
     "permalink": "https://www.instagram.com/p/DRgBgJsEYKy/",
     "timestamp": "2025-11-26T00:57:13+0000",
-    "weight": 0.296,
+    "weight": 0.31,
     "image_species": [
       "Dark-eyed Junco",
       "Northern Flicker"
@@ -18620,7 +20202,13 @@
     "date": "Nov 24, 2025",
     "permalink": "https://www.instagram.com/p/DRdgn-ZET_V/",
     "timestamp": "2025-11-25T01:31:27+0000",
-    "weight": 0.43,
+    "weight": 0.456,
+    "image_species": [
+      "Black-Capped Chickadee",
+      "Black-Capped Chickadee",
+      "Black-Capped Chickadee",
+      "Black-Capped Chickadee"
+    ],
     "ambiguous": false,
     "image_areas": [
       "local",
@@ -18714,7 +20302,7 @@
     "date": "Nov 23, 2025",
     "permalink": "https://www.instagram.com/p/DRanHfwkcjc/",
     "timestamp": "2025-11-23T22:30:28+0000",
-    "weight": 0.43,
+    "weight": 0.456,
     "image_species": [
       "Carolina Wren",
       "House Finch",
@@ -18822,7 +20410,7 @@
     "date": "Nov 22, 2025",
     "permalink": "https://www.instagram.com/p/DRYSRWvEaTu/",
     "timestamp": "2025-11-23T00:49:49+0000",
-    "weight": 0.206,
+    "weight": 0.205,
     "image_species": [
       "Cooper's Hawk",
       "House Sparrow",
@@ -18920,7 +20508,7 @@
     "date": "Nov 21, 2025",
     "permalink": "https://www.instagram.com/p/DRV00xOEbFW/",
     "timestamp": "2025-11-22T01:54:02+0000",
-    "weight": 0.646,
+    "weight": 0.661,
     "image_species": [
       "Eastern Bluebird",
       "Northern Flicker",
@@ -18995,7 +20583,11 @@
     "date": "Nov 19, 2025",
     "permalink": "https://www.instagram.com/p/DRQxasJEaQ8/",
     "timestamp": "2025-11-20T02:48:03+0000",
-    "weight": 0.063,
+    "weight": 0.059,
+    "image_species": [
+      "Great Blue Heron",
+      "Great Blue Heron"
+    ],
     "ambiguous": false,
     "image_areas": [
       "local",
@@ -19061,7 +20653,7 @@
     "date": "Nov 17, 2025",
     "permalink": "https://www.instagram.com/p/DROPkwdkacv/",
     "timestamp": "2025-11-19T03:13:51+0000",
-    "weight": 0.063,
+    "weight": 0.059,
     "image_species": [
       "Canada Goose",
       "Heron Rookery",
@@ -19151,7 +20743,14 @@
     "date": "Nov 17, 2025",
     "permalink": "https://www.instagram.com/p/DRLjTKakRze/",
     "timestamp": "2025-11-18T02:08:29+0000",
-    "weight": 0.538,
+    "weight": 0.556,
+    "image_species": [
+      "Eastern Bluebird",
+      "Eastern Bluebird",
+      "Eastern Bluebird",
+      "Eastern Bluebird",
+      "Eastern Bluebird"
+    ],
     "ambiguous": false,
     "image_areas": [
       "local",
@@ -19222,7 +20821,8 @@
     "species_list": [
       "Northern Cardinal",
       "Blue Jay",
-      "Mallard"
+      "Mallard",
+      "Red-tailed Hawk"
     ],
     "location": "Rea Street",
     "locations": [
@@ -19235,13 +20835,13 @@
     "date": "Nov 16, 2025",
     "permalink": "https://www.instagram.com/p/DRI6t1dkTRU/",
     "timestamp": "2025-11-17T01:35:23+0000",
-    "weight": 0.538,
+    "weight": 0.556,
     "image_species": [
       "Northern Cardinal",
       "Blue Jay",
       "Mallard",
       "Mallard",
-      "Mallard",
+      "Red-tailed Hawk",
       "Mallard"
     ],
     "image_locations": [
@@ -19258,7 +20858,7 @@
       "local",
       "local",
       "local",
-      "local",
+      "away",
       "local"
     ],
     "caption_species": [
@@ -19313,7 +20913,7 @@
     "date": "Nov 15, 2025",
     "permalink": "https://www.instagram.com/p/DS31eHZDcrG/",
     "timestamp": "2025-12-30T03:25:15+0000",
-    "weight": 0.43,
+    "weight": 0.456,
     "image_species": [
       "Northern Flicker",
       "Evening Grosbeak"
@@ -19388,7 +20988,7 @@
     "date": "Nov 15, 2025",
     "permalink": "https://www.instagram.com/p/DRFMpYdkT79/",
     "timestamp": "2025-11-15T14:55:06+0000",
-    "weight": 0.43,
+    "weight": 0.456,
     "image_species": [
       "Evening Grosbeak",
       "Northern Flicker",
@@ -19495,7 +21095,7 @@
     "date": "Nov 14, 2025",
     "permalink": "https://www.instagram.com/p/DRDeFTvkcz5/",
     "timestamp": "2025-11-14T22:48:59+0000",
-    "weight": 0.139,
+    "weight": 0.13,
     "image_species": [
       "Hooded Merganser",
       "Hooded Merganser",
@@ -19609,7 +21209,7 @@
     "date": "Nov 13, 2025",
     "permalink": "https://www.instagram.com/p/DQ_5qaHEWQM/",
     "timestamp": "2025-11-13T13:33:01+0000",
-    "weight": 0.296,
+    "weight": 0.31,
     "image_species": [
       "Hooded Merganser",
       "Hooded Merganser",
@@ -19702,7 +21302,13 @@
     "date": "Nov 12, 2025",
     "permalink": "https://www.instagram.com/p/DQ9SUiTEbJy/",
     "timestamp": "2025-11-12T13:10:46+0000",
-    "weight": 0.206,
+    "weight": 0.205,
+    "image_species": [
+      "Bufflehead",
+      "Bufflehead",
+      "Bufflehead",
+      "Bufflehead"
+    ],
     "ambiguous": false,
     "image_areas": [
       "local",
@@ -19764,7 +21370,12 @@
     "date": "Nov 11, 2025",
     "permalink": "https://www.instagram.com/p/DQ8FCPtEU26/",
     "timestamp": "2025-11-12T01:55:26+0000",
-    "weight": 0.206,
+    "weight": 0.205,
+    "image_species": [
+      "Bald Eagle",
+      "Bald Eagle",
+      "Bald Eagle"
+    ],
     "ambiguous": false,
     "image_areas": [
       "away",
@@ -19846,7 +21457,7 @@
     "date": "Nov 11, 2025",
     "permalink": "https://www.instagram.com/p/DQ8DKXfEXie/",
     "timestamp": "2025-11-12T01:39:04+0000",
-    "weight": 0.206,
+    "weight": 0.205,
     "image_species": [
       "Sharp-shinned Hawk",
       "House Sparrow",
@@ -19873,7 +21484,8 @@
       "Cooper's Hawk",
       "House Sparrow",
       "Sharp-shinned Hawk",
-      "Dark-eyed Junco"
+      "Dark-eyed Junco",
+      "Canada Goose"
     ],
     "reclassified": true,
     "image_indices": [
@@ -19927,7 +21539,7 @@
     "date": "Nov 10, 2025",
     "permalink": "https://www.instagram.com/p/DQ5Ya2fkV9c/",
     "timestamp": "2025-11-11T00:47:06+0000",
-    "weight": 0.206,
+    "weight": 0.205,
     "image_species": [
       "Black-capped Chickadee",
       "Dark-eyed Junco",
@@ -19999,7 +21611,17 @@
     "date": "Nov 9, 2025",
     "permalink": "https://www.instagram.com/p/DQ5XnZaERMB/",
     "timestamp": "2025-11-11T00:40:04+0000",
-    "weight": 0.027,
+    "weight": 0.025,
+    "image_species": [
+      "Sharp-shinned Hawk",
+      "Sharp-shinned Hawk",
+      "Sharp-shinned Hawk"
+    ],
+    "image_locations": [
+      null,
+      null,
+      null
+    ],
     "ambiguous": false,
     "image_areas": [
       "local",
@@ -20059,7 +21681,7 @@
     "date": "Nov 9, 2025",
     "permalink": "https://www.instagram.com/p/DQ1oS0zkWdC/",
     "timestamp": "2025-11-09T13:48:51+0000",
-    "weight": 0.027,
+    "weight": 0.025,
     "image_species": [
       "Northern Mockingbird",
       "American Robin",
@@ -20115,7 +21737,10 @@
     "date": "Nov 6, 2025",
     "permalink": "https://www.instagram.com/p/DQsux2vEfbs/",
     "timestamp": "2025-11-06T02:52:21+0000",
-    "weight": 0.027,
+    "weight": 0.025,
+    "image_species": [
+      "Red-bellied Woodpecker"
+    ],
     "ambiguous": false,
     "image_areas": [
       "local"
@@ -20157,7 +21782,10 @@
     "date": "Nov 4, 2025",
     "permalink": "https://www.instagram.com/reel/DQnbXi5kRkA/",
     "timestamp": "2025-11-04T01:27:20+0000",
-    "weight": 0.027,
+    "weight": 0.025,
+    "image_species": [
+      "Peregrine Falcon"
+    ],
     "ambiguous": false,
     "image_areas": [
       "local"
@@ -20235,7 +21863,7 @@
     "date": "Nov 3, 2025",
     "permalink": "https://www.instagram.com/p/DQk9TyqkWL1/",
     "timestamp": "2025-11-03T02:25:23+0000",
-    "weight": 0.063,
+    "weight": 0.059,
     "image_species": [
       "Osprey",
       "Red-tailed Hawk",
@@ -20305,7 +21933,10 @@
     "date": "Oct 31, 2025",
     "permalink": "https://www.instagram.com/p/DQ0RqAHEeNr/",
     "timestamp": "2025-11-09T01:11:47+0000",
-    "weight": 0.063,
+    "weight": 0.059,
+    "image_species": [
+      "Downy Woodpecker"
+    ],
     "ambiguous": false,
     "image_areas": [
       "local"
@@ -20345,7 +21976,10 @@
     "date": "Oct 20, 2025",
     "permalink": "https://www.instagram.com/p/DQptKRDkdmu/",
     "timestamp": "2025-11-04T22:40:29+0000",
-    "weight": 0.009,
+    "weight": 0.008,
+    "image_species": [
+      "Northern Flicker"
+    ],
     "ambiguous": false,
     "image_areas": [
       "local"
@@ -20394,7 +22028,11 @@
     "date": "Sep 7, 2025",
     "permalink": "https://www.instagram.com/p/DQu43-OD7cI/",
     "timestamp": "2025-11-06T22:59:03+0000",
-    "weight": 0.063,
+    "weight": 0.059,
+    "image_species": [
+      "A very wet Red-tailed Hawk",
+      "A very wet Red-tailed Hawk"
+    ],
     "ambiguous": false,
     "image_areas": [
       "local",
@@ -20438,7 +22076,10 @@
     "date": "Aug 27, 2025",
     "permalink": "https://www.instagram.com/reel/DRTAYG9kfSA/",
     "timestamp": "2025-11-20T23:37:48+0000",
-    "weight": 0.063,
+    "weight": 0.059,
+    "image_species": [
+      "Pileated Woodpecker"
+    ],
     "ambiguous": false,
     "image_areas": [
       "local"
@@ -20480,7 +22121,10 @@
     "date": "Jun 9, 2025",
     "permalink": "https://www.instagram.com/reel/DQxsWfCETgC/",
     "timestamp": "2025-11-08T01:07:48+0000",
-    "weight": 0.103,
+    "weight": 0.096,
+    "image_species": [
+      "Carolina Wren"
+    ],
     "ambiguous": false,
     "image_areas": [
       "local"
@@ -20522,7 +22166,10 @@
     "date": "Apr 14, 2025",
     "permalink": "https://www.instagram.com/reel/DQt1xcxkel9/",
     "timestamp": "2025-11-06T13:13:09+0000",
-    "weight": 0.009,
+    "weight": 0.008,
+    "image_species": [
+      "Northern Flicker"
+    ],
     "ambiguous": false,
     "image_areas": [
       "local"
@@ -20564,7 +22211,10 @@
     "date": "Jun 1, 2024",
     "permalink": "https://www.instagram.com/reel/DQxthJGkRw-/",
     "timestamp": "2025-11-08T01:19:16+0000",
-    "weight": 0.103,
+    "weight": 0.096,
+    "image_species": [
+      "Barred Owl"
+    ],
     "ambiguous": false,
     "image_areas": [
       "local"
