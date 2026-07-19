@@ -680,7 +680,7 @@
                     rect.attr("stroke", "#e8b04b").attr("stroke-width", 1.5);
                 }
                 if (day) {
-                    rect.attr("class", "cal-day")
+                    rect.attr("class", "cal-day").attr("data-key", key)
                         .on("pointermove", function (ev) {
                             var sp = day.sp.slice(0, 3).join(", ") +
                                      (day.sp.length > 3 ? " +" + (day.sp.length - 3) + " more" : "");
@@ -700,6 +700,19 @@
                 svg.append("text").attr("x", 0).attr("y", top + (1 + i * 2) * (cell + gap) + 10)
                     .attr("class", "chart-tick").text(lbl[0]);
             });
+            // A /birds/stats?bird=X deep-link outlines the days I shot that bird.
+            window.lvFocusCal = function (name) {
+                var found = false;
+                el.querySelectorAll("rect.cal-day").forEach(function (r) {
+                    var k = r.getAttribute("data-key");
+                    var has = name && k && S.per_day[k] && S.per_day[k].sp.indexOf(name) >= 0;
+                    r.classList.toggle("cal-match", !!has);
+                    r.style.opacity = name ? (has ? "1" : "0.35") : "1";
+                    if (has) found = true;
+                });
+                return found;
+            };
+
             // Favour the latest days: start the scroll at the right edge (today),
             // where the recent shoots are, rather than a year ago.
             el.scrollLeft = el.scrollWidth;
@@ -1240,12 +1253,20 @@
         if (!m) return;
         var name = decodeURIComponent(m[1].replace(/\+/g, " "));
         var slug = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+        // A banner names the focus and clears it (a fresh load resets every chart).
+        var bar = document.createElement("div");
+        bar.className = "stat-focusbar mono";
+        bar.innerHTML = '📊 focused on <b>' + name.replace(/[<&]/g, "") + '</b> &middot; <a href="/birds/stats">show everything</a>';
+        var hdr = document.querySelector(".stats .gallery-header") || document.querySelector(".gallery-header");
+        if (hdr) hdr.appendChild(bar);
+
         setTimeout(function () {
             var onLifeList = window.lvFocusLifer && window.lvFocusLifer(name);
-            // Light up the bird's current in the river, and its family in the
-            // treemap — context kept, focus shown.
+            // Light up the bird's current in the river, its family in the treemap,
+            // and the days I shot it in the calendar — context kept, focus shown.
             var fam = window.lvFocusRiver && window.lvFocusRiver(name);
             if (fam && window.lvFocusFam) window.lvFocusFam(fam);
+            if (window.lvFocusCal) window.lvFocusCal(name);
             var search = document.getElementById("pheno-search");
             if (search) { search.value = name; search.dispatchEvent(new Event("input", { bubbles: true })); }
             var row = document.querySelector('.bar-row[href$="/species/' + slug + '"]');
