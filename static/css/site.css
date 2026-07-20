@@ -1054,6 +1054,20 @@ a.pheno-cell:hover, a.pheno-cell:focus-visible {
 .lightbox-species.saved { border-color: #39d96b; box-shadow: 0 0 0 2px rgba(57, 217, 107, 0.55); }
 .lightbox-species.save-failed { border-color: #ff5a5a; box-shadow: 0 0 0 2px rgba(255, 90, 90, 0.55); }
 .lightbox-location { min-width: 8rem; max-width: 13rem; }
+/* Date pickers ("taken" / "posted"): pill with an inline label, same idiom. */
+.lightbox-datefield {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    font-family: var(--mono); font-size: 0.72rem; color: rgba(255, 255, 255, 0.7);
+    background: rgba(0, 0, 0, 0.4); border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 999px; padding: 0.25rem 0.55rem 0.25rem 0.8rem;
+}
+.lightbox-datefield span { text-transform: uppercase; letter-spacing: 0.08em; }
+.lightbox-datefield input { font-family: var(--mono); font-size: 0.76rem; color: #fff;
+    background: transparent; border: none; color-scheme: dark; padding: 0.1rem 0; }
+.lightbox-datefield input:focus { outline: none; }
+.lightbox-datefield:focus-within { border-color: #f5c518; box-shadow: 0 0 0 2px rgba(245, 197, 24, 0.35); }
+.lightbox-datefield:has(input.saved) { border-color: #39d96b; box-shadow: 0 0 0 2px rgba(57, 217, 107, 0.55); }
+.lightbox-datefield:has(input.save-failed) { border-color: #ff5a5a; box-shadow: 0 0 0 2px rgba(255, 90, 90, 0.55); }
 .lightbox-area {
     font-family: var(--mono); font-size: 0.75rem; cursor: pointer; white-space: nowrap;
     padding: 0.35rem 0.8rem; border-radius: 999px; letter-spacing: 0.02em;

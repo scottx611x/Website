@@ -95,7 +95,8 @@
             <div class="lightbox-curate">
                 <input type="text" id="lightbox-species" class="lightbox-species" placeholder="species" aria-label="Rename this bird">
                 <input type="text" id="lightbox-location" class="lightbox-species lightbox-location" placeholder="location" aria-label="Edit this photo's location">
-                <input type="date" id="lightbox-date" class="lightbox-species lightbox-date" aria-label="Edit this photo's capture date" title="Capture date">
+                <label class="lightbox-datefield"><span>taken</span><input type="date" id="lightbox-date" aria-label="Edit this photo's capture date" title="Capture date"></label>
+                <label class="lightbox-datefield"><span>posted</span><input type="date" id="lightbox-posted" aria-label="Edit this photo's posted date" title="Posted date"></label>
                 <button type="button" id="lightbox-area" class="lightbox-area" aria-pressed="false" title="Mark this photo as spotted outside North Andover">&#9888;&#65039; out of area</button>
                 <button type="button" id="lightbox-reid" class="lightbox-reid" hidden></button>
                 <button type="button" id="lightbox-remove" class="lightbox-remove" title="Hide just this photo from the gallery">&times; hide photo</button>
@@ -135,6 +136,7 @@
                 speciesInput = document.getElementById("lightbox-species"),
                 locationInput = document.getElementById("lightbox-location"),
                 dateInput = document.getElementById("lightbox-date"),
+                postedInput = document.getElementById("lightbox-posted"),
                 areaBtn = document.getElementById("lightbox-area"),
                 removeBtn = document.getElementById("lightbox-remove"),
                 suggest = document.getElementById("lightbox-suggest"),
@@ -274,6 +276,7 @@
                 if (speciesInput) { speciesInput.value = f.species || ""; speciesInput.classList.remove("saved", "save-failed"); }
                 if (locationInput) { locationInput.value = f.location || ""; locationInput.classList.remove("saved", "save-failed"); }
                 if (dateInput) { dateInput.value = (f.sighted || "").slice(0, 10); dateInput.classList.remove("saved", "save-failed"); }
+                if (postedInput) { postedInput.value = (f.posted || "").slice(0, 10); postedInput.classList.remove("saved", "save-failed"); }
                 if (areaBtn) {
                     areaBtn.classList.toggle("on", !!f.away);
                     areaBtn.setAttribute("aria-pressed", f.away ? "true" : "false");
@@ -411,6 +414,27 @@
             if (dateInput) {
                 dateInput.addEventListener("click", function (e) { e.stopPropagation(); });
                 dateInput.addEventListener("change", saveLightboxDate);
+            }
+            function saveLightboxPosted() {
+                var f = frames[idx]; if (!f || !postedInput) return;
+                var iso = postedInput.value;
+                postedInput.classList.remove("saved", "save-failed");
+                fetch("/curate/override", {
+                    method: "POST", headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ id: f.postId, posted: iso })
+                }).then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+                  .then(function () {
+                    f.posted = iso;
+                    postedInput.classList.add("saved");
+                    setTimeout(function () { postedInput.classList.remove("saved"); }, 1500);
+                    renderLabel(f);
+                    var card = document.querySelector('[data-id="' + f.postId + '"]');
+                    if (card && iso) card.setAttribute("data-posted", iso);
+                  }).catch(function () { postedInput.classList.add("save-failed"); });
+            }
+            if (postedInput) {
+                postedInput.addEventListener("click", function (e) { e.stopPropagation(); });
+                postedInput.addEventListener("change", saveLightboxPosted);
             }
             if (areaBtn) areaBtn.addEventListener("click", function (e) {
                 e.stopPropagation();

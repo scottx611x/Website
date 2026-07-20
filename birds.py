@@ -1042,6 +1042,14 @@ def apply_overrides(shots, overrides=None, apply_exclusions=True):
                     shot["date"] = datetime.date.fromisoformat(iso).strftime("%b %-d, %Y")
                 except ValueError:
                     pass
+            # The "posted" date is the post timestamp; let it be corrected too.
+            if override.get("posted"):
+                piso = str(override["posted"])[:10]
+                try:
+                    datetime.date.fromisoformat(piso)  # validate
+                    shot["timestamp"] = piso + "T12:00:00+0000"
+                except ValueError:
+                    pass
         # Posts without a per-image species edit still need per-frame species
         # pinned from the caption — otherwise a multi-species carousel with no
         # baked image_species falls back to the cover species on every frame
@@ -1132,6 +1140,12 @@ def set_override(post_id, fields):
             entry["capture_date"] = iso
         else:
             entry.pop("capture_date", None)  # cleared -> back to caption/post date
+    if "posted" in fields:
+        piso = (fields.get("posted") or "").strip()
+        if piso:
+            entry["posted"] = piso
+        else:
+            entry.pop("posted", None)  # cleared -> back to the original post time
     if isinstance(fields.get("images"), dict):
         images = entry.get("images", {})
         for idx, name in fields["images"].items():
