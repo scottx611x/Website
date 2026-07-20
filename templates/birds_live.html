@@ -901,10 +901,20 @@
     LIVE = data;
     if (!(data.recent || []).length) return;
     var newTop = data.recent[0].t !== prevTop && !isFirst;
-    // In focus mode the hero is the FOCUSED bird's latest call, not the overall
-    // most-recent — so "focused on Mourning Dove" doesn't show a Barred Owl.
+    // In focus mode the hero is the FOCUSED bird, not the overall most-recent —
+    // so "focused on Red-eyed Vireo" doesn't show a Cardinal. If the bird isn't
+    // in the recent feed (last heard days ago), build a hero from the species
+    // rollup so it still leads, with its real last-heard time.
     var hero = data.recent[0];
-    if (focusSlug) hero = data.recent.filter(function (r) { return slugify(r.display) === focusSlug; })[0] || hero;
+    if (focusSlug) {
+      hero = data.recent.filter(function (r) { return slugify(r.display) === focusSlug; })[0];
+      if (!hero) {
+        var sp = (data.species || []).filter(function (s) { return slugify(s.display) === focusSlug; })[0];
+        if (sp) hero = { display: sp.display, photo: sp.photo, fam: sp.fam, shot: sp.shot,
+                         t: sp.last, conf: sp.maxConf || 0, new: false };
+      }
+      hero = hero || data.recent[0];
+    }
     renderCounts(data.counts || {});
     renderHero(hero);
     renderHourStrip();
