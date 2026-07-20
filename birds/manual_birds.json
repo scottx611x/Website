@@ -14,7 +14,7 @@
       "Wild Turkey"
     ],
     "image_locations": [
-      null
+      "Lewiston, ME"
     ],
     "image_videos": [
       null
@@ -23,17 +23,19 @@
       0
     ],
     "captions": [
-      "Wild Turkey \u00b7 Jul 19, 2026"
+      "Wild Turkey \u00b7 Lewiston, ME \u00b7 Jan 27, 2021"
     ],
-    "caption": "Wild Turkey\n\nJul 19, 2026",
+    "caption": "\u26a0\ufe0f Wild Turkey - Lewiston, ME\n\nJan 27, 2021",
     "species": "Wild Turkey",
     "species_list": [
       "Wild Turkey"
     ],
-    "location": null,
-    "locations": [],
-    "date": "Jul 19, 2026",
-    "timestamp": "2026-07-19T22:40:47+0000",
+    "location": "Lewiston, ME",
+    "locations": [
+      "Lewiston, ME"
+    ],
+    "date": "Jan 27, 2021",
+    "timestamp": "2021-01-27T09:00:00+0000",
     "weight": 0.5,
     "manual": true
   },
@@ -61,17 +63,17 @@
       0
     ],
     "captions": [
-      "Northern Flicker \u00b7 Jul 19, 2026"
+      "Northern Flicker \u00b7 Aug 27, 2014"
     ],
-    "caption": "Northern Flicker\n\nJul 19, 2026",
+    "caption": "Northern Flicker\n\nAug 27, 2014",
     "species": "Northern Flicker",
     "species_list": [
       "Northern Flicker"
     ],
     "location": null,
     "locations": [],
-    "date": "Jul 19, 2026",
-    "timestamp": "2026-07-19T22:34:27+0000",
+    "date": "Aug 27, 2014",
+    "timestamp": "2014-08-27T09:00:00+0000",
     "weight": 0.5,
     "manual": true
   },

@@ -21,6 +21,7 @@ import datetime
 import hashlib
 import json
 import os
+import re
 import sys
 from io import BytesIO
 
@@ -59,6 +60,14 @@ def _exif_date(im, path):
             return datetime.datetime.strptime(raw[:10], "%Y:%m:%d").date().isoformat()
     except Exception:  # noqa: BLE001
         pass
+    # Phone exports strip EXIF but keep the date in the filename
+    # (IMG_20210127_..., PXL_20240830_...) — far better than the file mtime.
+    m = re.search(r"(20\d{2})(\d{2})(\d{2})", os.path.basename(path))
+    if m:
+        try:
+            return datetime.date(int(m.group(1)), int(m.group(2)), int(m.group(3))).isoformat()
+        except ValueError:
+            pass
     return datetime.date.fromtimestamp(os.path.getmtime(path)).isoformat()
 
 
