@@ -136,7 +136,7 @@ _TAXONOMY = [
         "Black-chinned Hummingbird"]),
     ("Rails, Gallinules & Coots", [
         "Clapper Rail", "Virginia Rail", "Sora", "Common Gallinule", "American Coot",
-        "Eurasian Coot"]),
+        "Eurasian Coot", "Common Moorhen"]),
     ("Cranes", ["Sandhill Crane"]),
     ("Stilts & Avocets", ["Black-necked Stilt", "American Avocet"]),
     ("Oystercatchers", ["American Oystercatcher"]),
