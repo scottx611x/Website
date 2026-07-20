@@ -503,7 +503,7 @@ def _pseudo_frame(shot, i):
     display = " & ".join(c[0] for c in canons) or (shot.get("species") or "")
     loc = canonical_location(iloc[i] if i < len(iloc) and iloc[i] else shot.get("location"))
     dims = shot.get("image_dims") or []
-    _sd = _capture_date_obj(shot.get("caption") or "", shot.get("timestamp"))
+    _sd = _shot_capture_date(shot)
     return {
         "id": "%s-%d" % (shot.get("id"), i),
         "_sort": _sd.isoformat() if _sd else "",
@@ -598,7 +598,7 @@ def media_counts(shots, bird=None, family=None, area=None, ooa_only=(), month=No
     photos = videos = 0
     for shot in shots:
         if month:
-            d = _capture_date_obj(shot.get("caption") or "", shot.get("timestamp"))
+            d = _shot_capture_date(shot)
             if not d or d.month != month:
                 continue
         isp = shot.get("image_species") or []
@@ -1032,6 +1032,16 @@ def apply_overrides(shots, overrides=None, apply_exclusions=True):
                 shot["location"] = override["location"] or None
             if override.get("date"):
                 shot["date"] = override["date"]
+            # An ISO capture_date override is authoritative: it drives the real
+            # sort/phenology/calendar date (via _shot_capture_date) AND the
+            # human display string, so a corrected date actually moves the photo.
+            if override.get("capture_date"):
+                iso = str(override["capture_date"])[:10]
+                shot["capture_date"] = iso
+                try:
+                    shot["date"] = datetime.date.fromisoformat(iso).strftime("%b %-d, %Y")
+                except ValueError:
+                    pass
         # Posts without a per-image species edit still need per-frame species
         # pinned from the caption — otherwise a multi-species carousel with no
         # baked image_species falls back to the cover species on every frame
@@ -1116,6 +1126,12 @@ def set_override(post_id, fields):
     for key in ("species", "location", "date"):
         if key in fields:
             entry[key] = (fields.get(key) or "").strip()
+    if "capture_date" in fields:
+        iso = (fields.get("capture_date") or "").strip()
+        if iso:
+            entry["capture_date"] = iso
+        else:
+            entry.pop("capture_date", None)  # cleared -> back to caption/post date
     if isinstance(fields.get("images"), dict):
         images = entry.get("images", {})
         for idx, name in fields["images"].items():
@@ -2108,6 +2124,18 @@ def _capture_date_obj(caption, timestamp):
     return None
 
 
+def _shot_capture_date(shot):
+    """A shot's capture date, honoring a curate ``capture_date`` override (ISO)
+    before falling back to the caption date / Instagram timestamp."""
+    cd = shot.get("capture_date")
+    if cd:
+        try:
+            return datetime.date.fromisoformat(str(cd)[:10])
+        except ValueError:
+            pass
+    return _capture_date_obj(shot.get("caption") or "", shot.get("timestamp"))
+
+
 def _capture_date(caption, timestamp):
     """Capture date as a display string like "Mar 27, 2026" (or None)."""
     dt = _capture_date_obj(caption, timestamp)
@@ -2263,7 +2291,7 @@ def map_points(shots, places=None, species_filter=None):
         isp = shot.get("image_species") or []
         images = shot.get("images") or []
         weight = shot.get("weight") or 0
-        d = _capture_date_obj(shot.get("caption") or "", shot.get("timestamp"))
+        d = _shot_capture_date(shot)
         ym = d.isoformat()[:7] if d else None
         for i in range(len(images)):
             loc = iloc[i] if i < len(iloc) and iloc[i] else shot.get("location")
@@ -2403,7 +2431,7 @@ def gallery_stats(shots):
         iloc = shot.get("image_locations") or []
         areas = shot.get("image_areas") or []
         vids = shot.get("image_videos") or []
-        d = _capture_date_obj(shot.get("caption") or "", shot.get("timestamp"))
+        d = _shot_capture_date(shot)
         for i in range(len(images)):
             if i < len(vids) and vids[i]:
                 videos += 1
@@ -2472,7 +2500,7 @@ def stats_series(shots, top_n=15):
     best_shot = {}   # name -> (post weight, image url) for the avatar
     sp_imgs = collections.defaultdict(dict)  # name -> {image url: best weight}
     for shot in shots:
-        d = _capture_date_obj(shot.get("caption") or "", shot.get("timestamp"))
+        d = _shot_capture_date(shot)
         if not d:
             continue
         key = d.isoformat()
@@ -2647,7 +2675,7 @@ def activity_river(shots, top_n=None):
     sp_total = collections.Counter()
     sp_fam, sp_best = {}, {}
     for shot in shots:
-        d = _capture_date_obj(shot.get("caption") or "", shot.get("timestamp"))
+        d = _shot_capture_date(shot)
         if not d:
             continue
         ym = "%04d-%02d" % (d.year, d.month)
@@ -2707,7 +2735,7 @@ def images_on_date(shots, day):
     """
     buckets = []
     for shot in shots:
-        d = _capture_date_obj(shot.get("caption") or "", shot.get("timestamp"))
+        d = _shot_capture_date(shot)
         if not d or d.isoformat() != day:
             continue
         bucket = []
