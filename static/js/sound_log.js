@@ -88,7 +88,7 @@
       var nameHtml = s.slug
         ? '<a class="dl-nm" href="/birds/species/' + encodeURIComponent(s.slug) + '">' + esc(s.name) + '</a>'
         : '<span class="dl-nm">' + esc(s.name) + '</span>';
-      var tag = s.shot ? '<span class="dl-tag">&#10003; gallery</span>' : '<span class="dl-tag ear">by ear only</span>';
+      var tag = s.shot ? '<span class="dl-tag">&#10003; gallery</span>' : '<span class="dl-tag ear">not photographed</span>';
       var subs = s.recs.map(function (r) {
         return '<div class="dl-sub"><span class="st">' + esc(timeLabel(r.p)) + '</span>' +
           '<span class="sc">' + Math.round(r.e.conf * 100) + '%</span>' + playBtn(r, s.name + ' at ' + timeLabel(r.p)) + '</div>';
