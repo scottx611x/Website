@@ -24,6 +24,20 @@
   .dl-toggle.on{color:var(--green); border-color:rgba(47,125,79,.5)}
   .dl-count{text-align:center; color:var(--muted); font-family:var(--mono); font-size:.76rem; margin:.2rem 0 0}
 
+  /* Day rail: click a date to jump straight to that day's recordings. */
+  .dl-dayrail{display:flex; gap:.4rem; overflow-x:auto; padding:.5rem .2rem .6rem; margin-top:.9rem;
+              scrollbar-width:thin; -webkit-overflow-scrolling:touch; scroll-snap-type:x proximity;
+              -webkit-mask-image:linear-gradient(90deg,transparent,#000 18px,#000 calc(100% - 18px),transparent);
+              mask-image:linear-gradient(90deg,transparent,#000 18px,#000 calc(100% - 18px),transparent)}
+  .dl-daychip{flex:0 0 auto; scroll-snap-align:start; display:flex; flex-direction:column; align-items:center; gap:.1rem;
+              font-family:var(--mono); padding:.4rem .7rem; border-radius:10px; border:1px solid rgba(13,18,14,.16);
+              background:var(--paper); color:var(--ink); cursor:pointer; white-space:nowrap; transition:background .15s,border-color .15s,color .15s}
+  .dl-daychip:hover{border-color:var(--green)}
+  .dl-daychip.on{background:var(--ink); color:var(--paper); border-color:var(--ink)}
+  .dl-daychip .dd{font-size:.78rem; font-weight:600}
+  .dl-daychip .dn{font-size:.6rem; color:var(--muted)}
+  .dl-daychip.on .dn{color:rgba(244,241,233,.6)}
+
   /* Day groups */
   .dl-day{margin-top:2.4rem}
   .dl-dayhead{display:flex; align-items:baseline; gap:.7rem; border-bottom:1px solid rgba(13,18,14,.12); padding-bottom:.5rem; position:sticky; top:0; background:linear-gradient(180deg,var(--paper) 76%,rgba(244,241,233,0)); z-index:3}
@@ -93,6 +107,8 @@
     <label class="dl-toggle" id="dl-sound-lbl"><input type="checkbox" id="dl-sound"> with recording</label>
   </div>
   <p class="dl-count" id="dl-count"></p>
+
+  <div class="dl-dayrail" id="dl-days" aria-label="Jump to a day"></div>
 
   <div id="dl-list"></div>
   <button class="dl-more" id="dl-more" hidden>Load more</button>

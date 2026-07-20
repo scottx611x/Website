@@ -11,6 +11,7 @@
   var searchEl = document.getElementById("dl-search");
   var soundEl = document.getElementById("dl-sound");
   var soundLbl = document.getElementById("dl-sound-lbl");
+  var daysEl = document.getElementById("dl-days");
 
   var DAYNAMES = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
   var MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -68,7 +69,41 @@
     listEl.innerHTML = "";
     stopAudio();
     render();
+    renderDayRail();
   }
+
+  // Day rail: one chip per day present in the current filter, click to jump.
+  function renderDayRail() {
+    if (!daysEl) return;
+    var days = [], counts = {};
+    filtered.forEach(function (r) {
+      if (counts[r.p.day] === undefined) { counts[r.p.day] = 0; days.push(r.p); }
+      counts[r.p.day]++;
+    });
+    daysEl.innerHTML = days.map(function (p) {
+      return '<button type="button" class="dl-daychip" data-day="' + p.day + '">' +
+        '<span class="dd">' + MONTHS[p.mo - 1] + ' ' + p.d + '</span>' +
+        '<span class="dn mono">' + counts[p.day] + '</span></button>';
+    }).join("");
+  }
+  function markActiveDay(day) {
+    if (!daysEl) return;
+    daysEl.querySelectorAll(".dl-daychip").forEach(function (c) {
+      c.classList.toggle("on", c.getAttribute("data-day") === day);
+    });
+  }
+  function jumpToDay(day) {
+    // Page in until that day's group exists, then scroll it into view.
+    var guard = 0;
+    while (!listEl.querySelector('.dl-day[data-day="' + day + '"]') && shown < filtered.length && guard++ < 200) {
+      render();
+    }
+    var grp = listEl.querySelector('.dl-day[data-day="' + day + '"]');
+    if (grp) { grp.scrollIntoView({ behavior: "smooth", block: "start" }); markActiveDay(day); }
+  }
+  if (daysEl) daysEl.addEventListener("click", function (e) {
+    var c = e.target.closest(".dl-daychip"); if (c) jumpToDay(c.getAttribute("data-day"));
+  });
 
   function render() {
     var end = Math.min(shown + PAGE, filtered.length);
@@ -189,4 +224,5 @@
   }
 
   render();
+  renderDayRail();
 })();
