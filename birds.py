@@ -2563,6 +2563,10 @@ def species_profile(name, shots=None, sound=None):
                 family, count = fam, c
 
     frames = images_filtered(shots, bird=canon) if count else []
+    # The photo strip shuffles per visit (like the gallery) — but the cover
+    # stays the best frame, so the og:image share preview is stable.
+    cover = frames[0] if frames else None
+    random.shuffle(frames)
     series = stats_series(shots)
     pheno = next((p for p in series["pheno"] if p["name"] == canon), None)
     accum = series["accum"]
@@ -2601,6 +2605,7 @@ def species_profile(name, shots=None, sound=None):
         "count": count,
         "photographed": bool(count),
         "frames": frames,
+        "cover": cover,
         "pheno": pheno,
         "rank": rank,
         "total_lifers": len(accum),
