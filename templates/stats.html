@@ -8,18 +8,18 @@
     </header>
 
     <div class="stat-cards">
-        <div class="stat-card"><span class="stat-num">{{ stats.species }}</span><span class="stat-lbl">species</span></div>
-        <div class="stat-card"><span class="stat-num">{{ "{:,}".format(stats.photos) }}</span><span class="stat-lbl">photos</span></div>
-        {% if stats.videos %}<div class="stat-card"><span class="stat-num">{{ stats.videos }}</span><span class="stat-lbl">videos</span></div>{% endif %}
-        <div class="stat-card"><span class="stat-num">{{ span_months }}</span><span class="stat-lbl">months tracked</span></div>
-        <div class="stat-card"><span class="stat-num">{{ stats.away }}</span><span class="stat-lbl">out&#8209;of&#8209;area</span></div>
+        <a class="stat-card" href="/birds"><span class="stat-num">{{ stats.species }}</span><span class="stat-lbl">species</span></a>
+        <a class="stat-card" href="/birds"><span class="stat-num">{{ "{:,}".format(stats.photos) }}</span><span class="stat-lbl">photos</span></a>
+        {% if stats.videos %}<a class="stat-card" href="/birds?media=video"><span class="stat-num">{{ stats.videos }}</span><span class="stat-lbl">videos</span></a>{% endif %}
+        <a class="stat-card" href="#days"><span class="stat-num">{{ span_months }}</span><span class="stat-lbl">months tracked</span></a>
+        <a class="stat-card" href="/birds?area=elsewhere"><span class="stat-num">{{ stats.away }}</span><span class="stat-lbl">out&#8209;of&#8209;area</span></a>
         {% if ear %}
-        <a class="stat-card" href="#ear-block"><span class="stat-num">{{ "{:,}".format(ear.calls) }}</span><span class="stat-lbl">recordings</span></a>
+        <a class="stat-card" href="/birds/live/log"><span class="stat-num">{{ "{:,}".format(ear.calls) }}</span><span class="stat-lbl">recordings</span></a>
         <a class="stat-card" href="#ear-block"><span class="stat-num">{{ ear.heard|length }}</span><span class="stat-lbl">species heard all&#8209;time</span></a>
         {% endif %}
     </div>
     {% if stats.first %}
-    <p class="stat-span mono">First frame {{ stats.first.strftime('%b %-d, %Y') }} &middot; latest {{ stats.last.strftime('%b %-d, %Y') }}</p>
+    <p class="stat-span mono">{{ stats.first.strftime('%b %-d, %Y') }} &rarr; {{ stats.last.strftime('%b %-d, %Y') }}</p>
     {% endif %}
 
     <div class="stat-grid">
@@ -74,7 +74,7 @@
         </div>
 
         <!-- Calendar heatmap: every day is a door into that day's photos -->
-        <div class="stat-block stat-span-2">
+        <div class="stat-block stat-span-2" id="days">
             <h2>Shooting days</h2>
             <p class="stat-sub mono">the last 12 months. tap a day for its photos.</p>
             <div class="cal-chips mono" id="cal-chips"></div>
