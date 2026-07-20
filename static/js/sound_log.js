@@ -55,9 +55,9 @@
       by[k].recs.push(r);
     });
     order.forEach(function (s) {
-      s.recs.sort(function (a, b) { return a.e.t < b.e.t ? 1 : -1; });   // newest first
+      s.recs.sort(function (a, b) { return b.e.conf - a.e.conf; });   // highest confidence first
       s.count = s.recs.length;
-      s.best = s.recs.reduce(function (a, x) { return x.e.conf > a.e.conf ? x : a; });
+      s.best = s.recs[0];
     });
     order.sort(function (a, b) { return b.count - a.count || (a.name < b.name ? -1 : 1); });
     return order;
@@ -98,12 +98,9 @@
           (s.photo ? '<img class="dl-av" loading="lazy" src="' + esc(s.photo) + '" alt="">' : '<span class="dl-av ear">&#129718;</span>') +
           '<span class="dl-spmain">' + nameHtml +
             '<span class="dl-spmeta"><span class="dl-fam">' + esc(s.fam || "") + '</span>' + tag +
-            (s.count > 1 ? '<span class="dl-fam">best of ' + s.count + '</span>' : '') + '</span></span>' +
-          '<span class="dl-spright">' +
-            (s.count > 1 ? '<span class="dl-count">&times;' + s.count + '</span>' : '<span class="dl-count">' + conf + '%</span>') +
-            playBtn(s.best, s.name) +
-            (s.count > 1 ? '<span class="dl-chev">&#9656;</span>' : '') +
-          '</span>' +
+            (s.count > 1 ? '<button type="button" class="dl-count" aria-label="Show all ' + s.count + ' recordings, highest confidence first">&times;' + s.count + ' recordings</button>' : '') +
+            '<span class="dl-hi mono" title="highest confidence">' + conf + '%</span></span></span>' +
+          '<span class="dl-spright">' + playBtn(s.best, s.name) + '</span>' +
         '</div>' +
         (s.count > 1 ? '<div class="dl-subs">' + subs + '</div>' : '') +
       '</div>';
