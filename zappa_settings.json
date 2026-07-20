@@ -1,7 +1,7 @@
 {
     "production": {
         "app_function": "index.app",
-        "exclude": ["wildlife_incoming", "wildlife_incoming/*", "*.NEF", "*.zip", "sound-station", "sound-station/*"],
+        "exclude": ["wildlife_incoming", "wildlife_incoming/*", "birds_incoming", "birds_incoming/*", "manual_imports", "manual_imports/*", "*.NEF", "*.zip", "*.mp4", "*.mov", "sound-station", "sound-station/*"],
         "timeout_seconds": 300,
         "memory_size": 1024,
         "aws_region": "us-east-1",
