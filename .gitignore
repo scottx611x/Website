@@ -19,3 +19,4 @@ birds/sound_export.err
 
 # Sound station secrets
 sound-station/exporter.env
+birds_incoming/

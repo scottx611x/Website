@@ -1,0 +1,416 @@
+[
+  {
+    "id": "manual-c125ce7fde64",
+    "images": [
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/6826419c53c5.jpg"
+    ],
+    "image_dims": [
+      [
+        1600,
+        1593
+      ]
+    ],
+    "image_species": [
+      "Piping Plover"
+    ],
+    "image_locations": [
+      null
+    ],
+    "image_videos": [
+      null
+    ],
+    "image_indices": [
+      0
+    ],
+    "captions": [
+      "Piping Plover \u00b7 Jun 27, 2026"
+    ],
+    "caption": "Piping Plover\n\nJun 27, 2026",
+    "species": "Piping Plover",
+    "species_list": [
+      "Piping Plover"
+    ],
+    "location": null,
+    "locations": [],
+    "date": "Jun 27, 2026",
+    "timestamp": "2026-06-27T12:00:00+0000",
+    "weight": 0.5,
+    "manual": true
+  },
+  {
+    "id": "manual-f54e31250140",
+    "images": [
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/14811e1482e6.jpg"
+    ],
+    "image_dims": [
+      [
+        1600,
+        2125
+      ]
+    ],
+    "image_species": [
+      "Cooper's Hawk"
+    ],
+    "image_locations": [
+      null
+    ],
+    "image_videos": [
+      null
+    ],
+    "image_indices": [
+      0
+    ],
+    "captions": [
+      "Cooper's Hawk \u00b7 May 16, 2024"
+    ],
+    "caption": "Cooper's Hawk\n\nMay 16, 2024",
+    "species": "Cooper's Hawk",
+    "species_list": [
+      "Cooper's Hawk"
+    ],
+    "location": null,
+    "locations": [],
+    "date": "May 16, 2024",
+    "timestamp": "2024-05-16T12:00:00+0000",
+    "weight": 0.5,
+    "manual": true
+  },
+  {
+    "id": "manual-8519911ca414",
+    "images": [
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/50864f351503.jpg"
+    ],
+    "image_dims": [
+      [
+        1600,
+        2133
+      ]
+    ],
+    "image_species": [
+      "Canada Goose"
+    ],
+    "image_locations": [
+      null
+    ],
+    "image_videos": [
+      null
+    ],
+    "image_indices": [
+      0
+    ],
+    "captions": [
+      "Canada Goose \u00b7 Dec 24, 2022"
+    ],
+    "caption": "Canada Goose\n\nDec 24, 2022",
+    "species": "Canada Goose",
+    "species_list": [
+      "Canada Goose"
+    ],
+    "location": null,
+    "locations": [],
+    "date": "Dec 24, 2022",
+    "timestamp": "2022-12-24T12:00:00+0000",
+    "weight": 0.5,
+    "manual": true
+  },
+  {
+    "id": "manual-80e7186176ce",
+    "images": [
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/04b9986d4ece.jpg",
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/3add15b5ecba.jpg"
+    ],
+    "image_dims": [
+      [
+        1600,
+        2133
+      ],
+      [
+        1600,
+        2125
+      ]
+    ],
+    "image_species": [
+      "Mallard",
+      "Mallard"
+    ],
+    "image_locations": [
+      null,
+      null
+    ],
+    "image_videos": [
+      null,
+      null
+    ],
+    "image_indices": [
+      0,
+      1
+    ],
+    "captions": [
+      "Mallard \u00b7 Sep 20, 2022",
+      "Mallard \u00b7 Sep 20, 2022"
+    ],
+    "caption": "Mallard\n\nSep 20, 2022",
+    "species": "Mallard",
+    "species_list": [
+      "Mallard"
+    ],
+    "location": null,
+    "locations": [],
+    "date": "Sep 20, 2022",
+    "timestamp": "2022-09-20T12:00:00+0000",
+    "weight": 0.5,
+    "manual": true
+  },
+  {
+    "id": "manual-0f2eaaee1747",
+    "images": [
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/e5774c3c44eb.jpg",
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/af4ea161d5d9.jpg"
+    ],
+    "image_dims": [
+      [
+        1600,
+        2133
+      ],
+      [
+        1600,
+        2133
+      ]
+    ],
+    "image_species": [
+      "Muscovy Duck",
+      "Muscovy Duck"
+    ],
+    "image_locations": [
+      null,
+      null
+    ],
+    "image_videos": [
+      null,
+      null
+    ],
+    "image_indices": [
+      0,
+      1
+    ],
+    "captions": [
+      "Muscovy Duck \u00b7 May 29, 2022",
+      "Muscovy Duck \u00b7 May 29, 2022"
+    ],
+    "caption": "Muscovy Duck\n\nMay 29, 2022",
+    "species": "Muscovy Duck",
+    "species_list": [
+      "Muscovy Duck"
+    ],
+    "location": null,
+    "locations": [],
+    "date": "May 29, 2022",
+    "timestamp": "2022-05-29T12:00:00+0000",
+    "weight": 0.5,
+    "manual": true
+  },
+  {
+    "id": "manual-734a5fa6264d",
+    "images": [
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/84a21c0e7ddc.jpg",
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/f79282189804.jpg"
+    ],
+    "image_dims": [
+      [
+        1600,
+        2133
+      ],
+      [
+        1600,
+        2133
+      ]
+    ],
+    "image_species": [
+      "Red-tailed Hawk",
+      "Red-tailed Hawk"
+    ],
+    "image_locations": [
+      null,
+      null
+    ],
+    "image_videos": [
+      null,
+      null
+    ],
+    "image_indices": [
+      0,
+      1
+    ],
+    "captions": [
+      "Red-tailed Hawk \u00b7 Nov 22, 2021",
+      "Red-tailed Hawk \u00b7 Nov 22, 2021"
+    ],
+    "caption": "Red-tailed Hawk\n\nNov 22, 2021",
+    "species": "Red-tailed Hawk",
+    "species_list": [
+      "Red-tailed Hawk"
+    ],
+    "location": null,
+    "locations": [],
+    "date": "Nov 22, 2021",
+    "timestamp": "2021-11-22T12:00:00+0000",
+    "weight": 0.5,
+    "manual": true
+  },
+  {
+    "id": "manual-10ca3dac2af2",
+    "images": [
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/f753ad96de12.jpg",
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/aaadff6bd0e7.jpg",
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/506e710e9933.jpg",
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/6be81185ee62.jpg",
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/4ac114c93d3c.jpg"
+    ],
+    "image_dims": [
+      [
+        608,
+        832
+      ],
+      [
+        608,
+        832
+      ],
+      [
+        608,
+        832
+      ],
+      [
+        608,
+        832
+      ],
+      [
+        1600,
+        2125
+      ]
+    ],
+    "image_species": [
+      "Great Blue Heron",
+      "Great Blue Heron",
+      "Great Blue Heron",
+      "Great Blue Heron",
+      "Great Blue Heron"
+    ],
+    "image_locations": [
+      null,
+      null,
+      null,
+      null,
+      null
+    ],
+    "image_videos": [
+      null,
+      null,
+      null,
+      null,
+      null
+    ],
+    "image_indices": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ],
+    "captions": [
+      "Great Blue Heron \u00b7 Apr 10, 2016",
+      "Great Blue Heron \u00b7 Apr 10, 2016",
+      "Great Blue Heron \u00b7 Apr 10, 2016",
+      "Great Blue Heron \u00b7 Apr 10, 2016",
+      "Great Blue Heron \u00b7 Apr 10, 2016"
+    ],
+    "caption": "Great Blue Heron\n\nApr 10, 2016",
+    "species": "Great Blue Heron",
+    "species_list": [
+      "Great Blue Heron"
+    ],
+    "location": null,
+    "locations": [],
+    "date": "Apr 10, 2016",
+    "timestamp": "2016-04-10T12:00:00+0000",
+    "weight": 0.5,
+    "manual": true
+  },
+  {
+    "id": "manual-8aecea6c475a",
+    "images": [
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/ab223b2890a7.jpg",
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/56abb201066b.jpg",
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/9742b2f8d185.jpg",
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/2caa9754ef57.jpg",
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/c8360fba0762.jpg"
+    ],
+    "image_dims": [
+      [
+        832,
+        608
+      ],
+      [
+        832,
+        608
+      ],
+      [
+        640,
+        640
+      ],
+      [
+        1600,
+        2189
+      ],
+      [
+        1600,
+        2189
+      ]
+    ],
+    "image_species": [
+      "Common Loon",
+      "Common Loon",
+      "Common Loon",
+      "Common Loon",
+      "Common Loon"
+    ],
+    "image_locations": [
+      null,
+      null,
+      null,
+      null,
+      null
+    ],
+    "image_videos": [
+      null,
+      null,
+      null,
+      null,
+      null
+    ],
+    "image_indices": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ],
+    "captions": [
+      "Common Loon \u00b7 Jul 1, 2015",
+      "Common Loon \u00b7 Jul 1, 2015",
+      "Common Loon \u00b7 Jul 1, 2015",
+      "Common Loon \u00b7 Jul 1, 2015",
+      "Common Loon \u00b7 Jul 1, 2015"
+    ],
+    "caption": "Common Loon\n\nJul 1, 2015",
+    "species": "Common Loon",
+    "species_list": [
+      "Common Loon"
+    ],
+    "location": null,
+    "locations": [],
+    "date": "Jul 1, 2015",
+    "timestamp": "2015-07-01T12:00:00+0000",
+    "weight": 0.5,
+    "manual": true
+  }
+]

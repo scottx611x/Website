@@ -32,6 +32,10 @@ import requests
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 LOCAL_MANIFEST = os.path.join(HERE, "birds", "manifest.json")
+# Birds photographed but never posted to Instagram. Same post shape as the IG
+# manifest, merged into the gallery at load time so an IG sync never clobbers
+# them. Written by birds_manual.py (committed + deployed in the Lambda bundle).
+MANUAL_BIRDS_FILE = os.path.join(HERE, "birds", "manual_birds.json")
 
 
 def _atomic_write_json(path, data, sort_keys=False):
@@ -75,6 +79,9 @@ def load_gallery(shuffle=True):
     if shots is None:
         shots = _load_local_manifest()
     shots = list(shots or [])
+    # Fold in birds I photographed but never posted to Instagram. They ride the
+    # same enrichment/overrides/exclusions path as the synced posts below.
+    shots += _load_manual_birds()
     # Whole-post exclusions are baked in at sync time, but a LIVE hide on the
     # deployed site writes only excluded.json — so drop excluded ids at serve
     # time too, and the hide shows on the next request rather than the next sync.
@@ -1179,6 +1186,17 @@ def _load_local_manifest():
             return json.load(fh)
     except (OSError, ValueError):
         return None
+
+
+def _load_manual_birds():
+    """Manually-added bird posts (not from Instagram), same shape as manifest
+    entries. Merged into the gallery so IG-less sightings still show up."""
+    try:
+        with open(MANUAL_BIRDS_FILE) as fh:
+            data = json.load(fh)
+            return data if isinstance(data, list) else []
+    except (OSError, ValueError):
+        return []
 
 
 # The manifest only changes on a sync, but a warm Lambda serves many requests.
