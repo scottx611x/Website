@@ -122,7 +122,8 @@ _TAXONOMY = [
         "Barrow's Goldeneye", "Hooded Merganser", "Common Merganser", "Red-breasted Merganser",
         "Ruddy Duck", "Greylag Goose", "Tufted Duck", "Domestic Mallard"]),
     ("Turkeys & Grouse", [
-        "Wild Turkey", "Ruffed Grouse", "Spruce Grouse", "Northern Bobwhite", "Ring-necked Pheasant"]),
+        "Wild Turkey", "Ruffed Grouse", "Spruce Grouse", "Northern Bobwhite", "Ring-necked Pheasant",
+        "Indian Peafowl"]),
     ("Grebes", [
         "Pied-billed Grebe", "Horned Grebe", "Red-necked Grebe", "Eared Grebe", "Western Grebe"]),
     ("Pigeons & Doves", [
