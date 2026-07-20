@@ -159,8 +159,8 @@
             </div>
             {% endif %}
             <div class="sp-heard">
-                <div class="row"><span>heard by ear</span><b>{{ sp.heard.count }}&times;</b></div>
-                {% if sp.heard.maxConf %}<div class="row"><span>best confidence</span><b>{{ (sp.heard.maxConf*100)|round|int }}%</b></div>{% endif %}
+                <div class="row"><span>recordings</span><b>{{ sp.heard.count }}&times;</b></div>
+                {% if sp.heard.maxConf %}<div class="row"><span>highest confidence</span><b>{{ (sp.heard.maxConf*100)|round|int }}%</b></div>{% endif %}
                 <div class="row"><span>photographed?</span><b>{{ 'yes' if sp.photographed else 'not yet' }}</b></div>
                 <a href="/birds/live?bird={{ sp.name|urlencode }}">open the live viewer &rarr;</a>
             </div>
