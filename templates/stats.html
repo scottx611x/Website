@@ -12,10 +12,10 @@
         <a class="stat-card" href="/birds"><span class="stat-num">{{ "{:,}".format(stats.photos) }}</span><span class="stat-lbl">photos</span></a>
         {% if stats.videos %}<a class="stat-card" href="/birds?media=video"><span class="stat-num">{{ stats.videos }}</span><span class="stat-lbl">videos</span></a>{% endif %}
         <a class="stat-card" href="#days"><span class="stat-num">{{ span_months }}</span><span class="stat-lbl">months tracked</span></a>
-        <a class="stat-card" href="/birds?area=elsewhere"><span class="stat-num">{{ stats.away }}</span><span class="stat-lbl">out&#8209;of&#8209;area</span></a>
+        <a class="stat-card" href="/birds?area=elsewhere"><span class="stat-num">{{ stats.away }}</span><span class="stat-lbl">out-of-area</span></a>
         {% if ear %}
         <a class="stat-card" href="/birds/live/log"><span class="stat-num">{{ "{:,}".format(ear.calls) }}</span><span class="stat-lbl">recordings</span></a>
-        <a class="stat-card" href="#ear-block"><span class="stat-num">{{ ear.heard|length }}</span><span class="stat-lbl">species heard all&#8209;time</span></a>
+        <a class="stat-card" href="#ear-block"><span class="stat-num">{{ ear.heard|length }}</span><span class="stat-lbl">species heard all-time</span></a>
         {% endif %}
     </div>
     {% if stats.first %}
@@ -138,7 +138,7 @@
                 <div class="ear-side">
                     <div class="ear-cards mono">
                         <span><b>{{ "{:,}".format(ear.calls) }}</b> recordings logged</span>
-                        <span><b>{{ ear.heard|length }}</b> species heard all&#8209;time</span>
+                        <span><b>{{ ear.heard|length }}</b> species heard all-time</span>
                         <span><b>{{ ear.shot }}</b> also photographed</span>
                         <span class="amber"><b>{{ ear.heard|length - ear.shot }}</b> heard, not photographed</span>
                     </div>

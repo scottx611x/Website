@@ -259,8 +259,8 @@
     <div class="stat-cards" id="lv-counts">
         <a class="stat-card" href="#lv-wall"><span class="stat-num">{{ sound.counts.speciesToday or 0 }}</span><span class="stat-lbl">species today</span></a>
         <a class="stat-card" href="/birds/live/log"><span class="stat-num">{{ sound.counts.callsToday or 0 }}</span><span class="stat-lbl">recordings today</span></a>
-        <a class="stat-card" href="#lv-wall"><span class="stat-num">{{ sound.counts.speciesAllTime or 0 }}</span><span class="stat-lbl">species heard all&#8209;time</span></a>
-        <a class="stat-card" href="/birds/live/log"><span class="stat-num">{{ "{:,}".format(sound.counts.callsAllTime or 0) }}</span><span class="stat-lbl">recordings all&#8209;time</span></a>
+        <a class="stat-card" href="#lv-wall"><span class="stat-num">{{ sound.counts.speciesAllTime or 0 }}</span><span class="stat-lbl">species heard all-time</span></a>
+        <a class="stat-card" href="/birds/live/log"><span class="stat-num">{{ "{:,}".format(sound.counts.callsAllTime or 0) }}</span><span class="stat-lbl">recordings all-time</span></a>
     </div>
 
     {# NOW — most recent call: the photo, and the sound itself #}
@@ -364,7 +364,7 @@
         <button class="lv-range on" data-range="7">Week</button>
         <button class="lv-range" data-range="30">Month</button>
         <button class="lv-range" data-range="365">Year</button>
-        <button class="lv-range" data-range="0">All&#8209;time</button>
+        <button class="lv-range" data-range="0">All-time</button>
       </div>
       <div class="lv-sum" id="lv-sum"></div>
       <div class="lv-chart" id="lv-chart"></div>
@@ -373,7 +373,7 @@
     </section>
 
     {% endif %}
-    <p class="lv-foot">Auto&#8209;identified by <a href="https://birdnet.cornell.edu/" rel="noopener">BirdNET</a> from a mic in the yard; confidence shown, nothing hand&#8209;verified yet.</p>
+    <p class="lv-foot">Auto-identified by <a href="https://birdnet.cornell.edu/" rel="noopener">BirdNET</a> from a mic in the yard; confidence shown, nothing hand-verified yet.</p>
 </section>
 
 <script id="lv-data" type="application/json">{{ sound|tojson }}</script>
@@ -673,8 +673,8 @@
     document.getElementById("lv-counts").innerHTML =
       '<a class="stat-card" href="#lv-wall"><span class="stat-num">' + (c.speciesToday || 0) + '</span><span class="stat-lbl">species today</span></a>' +
       '<a class="stat-card" href="/birds/live/log"><span class="stat-num">' + (c.callsToday || 0) + '</span><span class="stat-lbl">recordings today</span></a>' +
-      '<a class="stat-card" href="#lv-wall"><span class="stat-num">' + (c.speciesAllTime || 0) + '</span><span class="stat-lbl">species heard all&#8209;time</span></a>' +
-      '<a class="stat-card" href="/birds/live/log"><span class="stat-num">' + (c.callsAllTime || 0).toLocaleString() + '</span><span class="stat-lbl">recordings all&#8209;time</span></a>';
+      '<a class="stat-card" href="#lv-wall"><span class="stat-num">' + (c.speciesAllTime || 0) + '</span><span class="stat-lbl">species heard all-time</span></a>' +
+      '<a class="stat-card" href="/birds/live/log"><span class="stat-num">' + (c.callsAllTime || 0).toLocaleString() + '</span><span class="stat-lbl">recordings all-time</span></a>';
   }
   function confHTML(r) {
     return '<span class="lv-conf">conf <span class="lv-meter"><i style="width:' + Math.round(r.conf * 100) + '%"></i></span> ' + Math.round(r.conf * 100) + '%</span>';

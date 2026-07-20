@@ -57,7 +57,7 @@
                 {% if active_month %}<button type="button" class="chip" onclick="birdsGo(null,{month:''})">&#128197; every {{ active_month_display }} <span>&times;</span></button>{% endif %}
                 {% if active_loc %}<button type="button" class="chip" onclick="birdsGo(null,{loc:''})">&#128205; {{ active_loc }} <span>&times;</span></button>{% endif %}
                 {% if active_media %}<button type="button" class="chip" onclick="birdsGo(null,{media:''})">{% if active_media == 'video' %}&#9654; Videos{% else %}Photos{% endif %} <span>&times;</span></button>{% endif %}
-                {% if active_area %}<button type="button" class="chip" onclick="birdsGo(null,{area:''})">{% if active_area == 'elsewhere' %}Out&#8209;of&#8209;area &#9888;&#65039;{% else %}North Andover{% endif %} <span>&times;</span></button>{% endif %}
+                {% if active_area %}<button type="button" class="chip" onclick="birdsGo(null,{area:''})">{% if active_area == 'elsewhere' %}Out of area &#9888;&#65039;{% else %}North Andover{% endif %} <span>&times;</span></button>{% endif %}
                 {% if active_family %}<button type="button" class="chip" onclick="birdsGo(null,{family:''})">{{ active_family }} <span>&times;</span></button>{% endif %}
                 {% for b in active_birds %}<button type="button" class="chip" onclick="birdsGo(null,{removeBird:{{ b|tojson|forceescape }}})">{{ b }}{% if b in out_of_area %} &#9888;&#65039;{% endif %} <span>&times;</span></button>{% endfor %}
             </div>
