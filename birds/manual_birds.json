@@ -1704,13 +1704,12 @@
     "manual": true
   },
   {
-    "id": "manual-10ca3dac2af2",
+    "id": "manual-f4203f741123",
     "images": [
       "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/f753ad96de12.jpg",
       "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/aaadff6bd0e7.jpg",
       "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/506e710e9933.jpg",
-      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/6be81185ee62.jpg",
-      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/4ac114c93d3c.jpg"
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/6be81185ee62.jpg"
     ],
     "image_dims": [
       [
@@ -1728,28 +1727,21 @@
       [
         608,
         832
-      ],
-      [
-        1600,
-        2125
       ]
     ],
     "image_species": [
       "Great Blue Heron",
       "Great Blue Heron",
       "Great Blue Heron",
-      "Great Blue Heron",
       "Great Blue Heron"
     ],
     "image_locations": [
-      null,
-      null,
-      null,
-      null,
-      null
+      "Spot Pond",
+      "Spot Pond",
+      "Spot Pond",
+      "Spot Pond"
     ],
     "image_videos": [
-      null,
       null,
       null,
       null,
@@ -1759,14 +1751,52 @@
       0,
       1,
       2,
-      3,
-      4
+      3
     ],
     "captions": [
-      "Great Blue Heron \u00b7 Apr 10, 2016",
-      "Great Blue Heron \u00b7 Apr 10, 2016",
-      "Great Blue Heron \u00b7 Apr 10, 2016",
-      "Great Blue Heron \u00b7 Apr 10, 2016",
+      "Great Blue Heron \u00b7 Spot Pond \u00b7 Apr 10, 2016",
+      "Great Blue Heron \u00b7 Spot Pond \u00b7 Apr 10, 2016",
+      "Great Blue Heron \u00b7 Spot Pond \u00b7 Apr 10, 2016",
+      "Great Blue Heron \u00b7 Spot Pond \u00b7 Apr 10, 2016"
+    ],
+    "caption": "Great Blue Heron - Spot Pond\n\nApr 10, 2016",
+    "species": "Great Blue Heron",
+    "species_list": [
+      "Great Blue Heron"
+    ],
+    "location": "Spot Pond",
+    "locations": [
+      "Spot Pond"
+    ],
+    "date": "Apr 10, 2016",
+    "timestamp": "2016-04-10T12:00:00+0000",
+    "weight": 0.5,
+    "manual": true
+  },
+  {
+    "id": "manual-27db92cb4b0e",
+    "images": [
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/4ac114c93d3c.jpg"
+    ],
+    "image_dims": [
+      [
+        1600,
+        2125
+      ]
+    ],
+    "image_species": [
+      "Great Blue Heron"
+    ],
+    "image_locations": [
+      null
+    ],
+    "image_videos": [
+      null
+    ],
+    "image_indices": [
+      0
+    ],
+    "captions": [
       "Great Blue Heron \u00b7 Apr 10, 2016"
     ],
     "caption": "Great Blue Heron\n\nApr 10, 2016",
