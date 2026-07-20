@@ -101,7 +101,7 @@
     var LOG = {{ log|tojson }};
     var MEDIA = "https://birds-scott-ouellette.s3.amazonaws.com/birds/sounds/clips/";
   </script>
-  <script src="{{ url_for('static', filename='js/sound_log.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/sound_log.js', v=asset_v) }}"></script>
   {% endif %}
 </section>
 {% endblock %}
