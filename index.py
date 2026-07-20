@@ -283,9 +283,20 @@ def photography():
                 if key:
                     by_key[key] = g
         random.shuffle(groups)  # a fresh order each visit
+    # Per-category counts for the filter bar, and the subject/date span for the
+    # header stat strip.
+    tag_counts = {}
+    for p in photos:
+        for t in (p.get("tags") or []):
+            tag_counts[t] = tag_counts.get(t, 0) + 1
+    subjects = {(p.get("title") or p.get("species") or p.get("id") or "").strip().lower()
+                for p in photos}
+    years = sorted({(p.get("date") or "")[:4] for p in photos if (p.get("date") or "")[:4].isdigit()})
     return render_template(
         "photography.html", title="Photography", photos=groups,
-        all_tags=birds.photo_tags(photos), active_tag=tag, photo_count=len(photos),
+        all_tags=birds.photo_tags(photos), tag_counts=tag_counts, active_tag=tag,
+        photo_count=len(photos), subject_count=len(subjects),
+        year_from=years[0] if years else None, year_to=years[-1] if years else None,
         curate=_curate_on(), local=_is_local(),
     )
 

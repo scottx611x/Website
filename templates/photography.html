@@ -2,36 +2,60 @@
 
 {% block content %}
 <style>
-    .tag-row { display:flex; flex-wrap:wrap; gap:.4rem; justify-content:center; margin:.6rem auto 0; }
-    .tag-chip { font-size:.85rem; padding:.15rem .7rem; border-radius:999px; border:1px solid var(--rule,#cfcabc);
-                color:var(--ink); text-decoration:none; opacity:.75; }
-    .tag-chip.on, .tag-chip:hover { opacity:1; border-color:var(--accent,#3f6b46); }
-    .tag-chip.on { background:var(--accent,#3f6b46); color:#fff; border-color:var(--accent,#3f6b46); }
-    figcaption .meta { display:block; opacity:.7; font-size:.82rem; margin-top:.1rem; }
+    .pg-head { text-align:center; max-width:46rem; margin:0 auto; }
+    .pg-kick { font-family:var(--mono); font-size:.7rem; letter-spacing:.2em; text-transform:uppercase; color:var(--green); margin:0 0 .5rem; }
+    .pg-head h1 { margin:0; }
+    .pg-lead { color:var(--muted); font-size:1rem; line-height:1.5; margin:.8rem auto 0; max-width:34rem; }
+    .pg-stats { display:flex; flex-wrap:wrap; justify-content:center; gap:.4rem 1.3rem; margin:1.2rem 0 0; font-family:var(--mono); font-size:.76rem; color:var(--muted); }
+    .pg-stats b { color:var(--ink); font-weight:600; }
+    /* Filter: a horizontally-scrollable rail of category pills, site idiom. */
+    .pg-filter { display:flex; gap:.45rem; flex-wrap:wrap; justify-content:center; margin:1.8rem auto 0; max-width:52rem; }
+    .pg-chip { display:inline-flex; align-items:baseline; gap:.4rem; font-family:var(--mono); font-size:.76rem; padding:.35rem .85rem; border-radius:999px;
+               border:1px solid rgba(13,18,14,.16); color:var(--ink); text-decoration:none; transition:background .15s, border-color .15s, color .15s; white-space:nowrap; }
+    .pg-chip .n { font-size:.66rem; color:var(--muted); }
+    .pg-chip:hover { border-color:var(--green); }
+    .pg-chip.on { background:var(--ink); color:var(--paper); border-color:var(--ink); }
+    .pg-chip.on .n { color:rgba(244,241,233,.65); }
+    /* Card caption: subject in the display face, meta in mono; a category tag. */
+    .shot .pg-cap { position:absolute; inset:auto 0 0 0; display:flex; flex-direction:column; gap:.1rem;
+                    padding:1.4rem .8rem .7rem; color:#fff; background:linear-gradient(transparent,rgba(6,10,7,.82));
+                    opacity:0; transition:opacity .3s; }
+    .masonry .shot:hover .pg-cap, .masonry .shot:focus-visible .pg-cap { opacity:1; }
+    .shot .pg-title { font-family:var(--display); font-weight:500; font-size:1.05rem; line-height:1.15; }
+    .shot .pg-meta { font-family:var(--mono); font-size:.72rem; color:rgba(244,241,233,.82); }
+    .shot .pg-tag { position:absolute; top:.55rem; left:.55rem; font-family:var(--mono); font-size:.58rem; letter-spacing:.08em; text-transform:uppercase;
+                    padding:.16rem .5rem; border-radius:999px; background:rgba(6,10,7,.55); color:var(--neon); backdrop-filter:blur(3px);
+                    opacity:0; transition:opacity .3s; }
+    .masonry .shot:hover .pg-tag, .masonry .shot:focus-visible .pg-tag { opacity:1; }
+    .pg-empty { text-align:center; color:var(--muted); font-family:var(--mono); font-size:.9rem; padding:3rem 0; }
     .photo-edit { display:flex; flex-direction:column; gap:.3rem; padding:.5rem; }
     .photo-edit .pe-field { width:100%; font:inherit; font-size:.82rem; padding:.28rem .45rem;
-                border:1px solid var(--rule,#cfcabc); border-radius:.35rem; background:var(--paper,#fbf9f2); color:var(--ink); }
-    .photo-edit .pe-field.saved { border-color:#3f9b52; }
+                border:1px solid rgba(13,18,14,.18); border-radius:.35rem; background:var(--paper); color:var(--ink); }
+    .photo-edit .pe-field.saved { border-color:var(--green); }
     .photo-edit .pe-field.save-failed { border-color:#c0473b; }
 </style>
 <section class="page wide">
     <header class="gallery-header">
-        <p class="kicker">beyond the birds</p>
-        <h1>Photography</h1>
-        {% if photo_count %}
-        <p class="bird-stat"><strong>{{ photo_count }}</strong> photo{{ 's' if photo_count != 1 }}</p>
+        <div class="pg-head">
+            <p class="pg-kick">Field notes &middot; beyond the birds</p>
+            <h1>Photography</h1>
+            <p class="pg-lead">Everything the camera caught that wasn&rsquo;t a bird &mdash; mammals and reptiles, the odd amphibian, and whatever else held still long enough.</p>
+            {% if photo_count %}
+            <p class="pg-stats">
+                <span><b>{{ photo_count }}</b> photo{{ 's' if photo_count != 1 }}</span>
+                {% if subject_count %}<span><b>{{ subject_count }}</b> subject{{ 's' if subject_count != 1 }}</span>{% endif %}
+                {% if all_tags %}<span><b>{{ all_tags|length }}</b> categor{{ 'y' if all_tags|length == 1 else 'ies' }}</span>{% endif %}
+                {% if year_from %}<span>{{ year_from }}{% if year_to and year_to != year_from %}&ndash;{{ year_to }}{% endif %}</span>{% endif %}
+            </p>
+            {% endif %}
+        </div>
         {% if all_tags %}
-        <div class="tag-row">
-            <a href="/photography" class="tag-chip{% if not active_tag %} on{% endif %}">all</a>
+        <div class="pg-filter">
+            <a href="/photography" class="pg-chip{% if not active_tag %} on{% endif %}">all <span class="n">{{ photo_count }}</span></a>
             {% for t in all_tags %}
-            <a href="/photography?tag={{ t|urlencode }}" class="tag-chip{% if t == active_tag %} on{% endif %}">{{ t }}</a>
+            <a href="/photography?tag={{ t|urlencode }}" class="pg-chip{% if t == active_tag %} on{% endif %}">{{ t }} <span class="n">{{ tag_counts.get(t, 0) }}</span></a>
             {% endfor %}
         </div>
-        {% endif %}
-        {% else %}
-        <p class="empty" style="color:var(--ink);max-width:38rem;margin:0 auto;">
-            A wider collection: wildlife, landscapes, macro, and whatever else caught my eye.
-        </p>
         {% endif %}
     </header>
 
@@ -57,10 +81,11 @@
             <img loading="lazy" decoding="async" src="{{ p.thumb or p.image }}"
                  {% if p.w and p.h %}width="{{ p.w }}" height="{{ p.h }}"{% endif %}
                  alt="{{ p.title or p.species or 'photo' }}">
+            {% if not curate and p.tags %}<span class="pg-tag">{{ p.tags[0] }}</span>{% endif %}
             {% if grp|length > 1 %}<span class="multi-badge">&#10697; {{ grp|length }}</span>{% endif %}
-            <figcaption>
-                {% if p.title %}<span class="species">{{ p.title }}</span>{% endif %}
-                {% if meta %}<span class="meta mono">{{ meta|join('  ·  ') }}</span>{% endif %}
+            <figcaption class="pg-cap">
+                {% if p.title %}<span class="pg-title">{{ p.title }}</span>{% endif %}
+                {% if meta %}<span class="pg-meta">{{ meta|join('  ·  ') }}</span>{% endif %}
             </figcaption>
             {% if curate %}
             <div class="photo-edit" onclick="event.stopPropagation()">
@@ -82,9 +107,9 @@
     </div>
     {% if curate %}<datalist id="photoTagList">{% for t in all_tags %}<option value="{{ t }}">{% endfor %}</datalist>{% endif %}
     {% elif active_tag %}
-    <p class="empty mono" style="text-align:center;">// nothing tagged &ldquo;{{ active_tag }}&rdquo; yet.</p>
+    <p class="pg-empty">Nothing tagged &ldquo;{{ active_tag }}&rdquo; yet. <a href="/photography" style="color:var(--green)">see everything &rarr;</a></p>
     {% else %}
-    <p class="empty mono" style="text-align:center;">// coming soon.</p>
+    <p class="pg-empty">Coming soon.</p>
     {% endif %}
 </section>
 
