@@ -120,7 +120,7 @@ _TAXONOMY = [
         "Lesser Scaup", "King Eider", "Common Eider", "Harlequin Duck", "Surf Scoter",
         "White-winged Scoter", "Black Scoter", "Long-tailed Duck", "Bufflehead", "Common Goldeneye",
         "Barrow's Goldeneye", "Hooded Merganser", "Common Merganser", "Red-breasted Merganser",
-        "Ruddy Duck", "Greylag Goose", "Tufted Duck"]),
+        "Ruddy Duck", "Greylag Goose", "Tufted Duck", "Domestic Mallard"]),
     ("Turkeys & Grouse", [
         "Wild Turkey", "Ruffed Grouse", "Spruce Grouse", "Northern Bobwhite", "Ring-necked Pheasant"]),
     ("Grebes", [

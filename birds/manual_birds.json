@@ -1,5 +1,43 @@
 [
   {
+    "id": "manual-46c67823ab13",
+    "images": [
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/5ac5e3c534ca.jpg"
+    ],
+    "image_dims": [
+      [
+        1600,
+        2133
+      ]
+    ],
+    "image_species": [
+      "Wild Turkey"
+    ],
+    "image_locations": [
+      null
+    ],
+    "image_videos": [
+      null
+    ],
+    "image_indices": [
+      0
+    ],
+    "captions": [
+      "Wild Turkey \u00b7 Jul 19, 2026"
+    ],
+    "caption": "Wild Turkey\n\nJul 19, 2026",
+    "species": "Wild Turkey",
+    "species_list": [
+      "Wild Turkey"
+    ],
+    "location": null,
+    "locations": [],
+    "date": "Jul 19, 2026",
+    "timestamp": "2026-07-19T22:40:47+0000",
+    "weight": 0.5,
+    "manual": true
+  },
+  {
     "id": "manual-88977ff75197",
     "images": [
       "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/1d87a06a60e6.jpg"
@@ -33,7 +71,7 @@
     "location": null,
     "locations": [],
     "date": "Jul 19, 2026",
-    "timestamp": "2026-07-19T12:00:00+0000",
+    "timestamp": "2026-07-19T22:34:27+0000",
     "weight": 0.5,
     "manual": true
   },
@@ -109,45 +147,7 @@
     "location": null,
     "locations": [],
     "date": "Nov 4, 2024",
-    "timestamp": "2024-11-04T12:00:00+0000",
-    "weight": 0.5,
-    "manual": true
-  },
-  {
-    "id": "manual-e57b411a3d2f",
-    "images": [
-      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/76f4d70a70f8.jpg"
-    ],
-    "image_dims": [
-      [
-        1600,
-        2125
-      ]
-    ],
-    "image_species": [
-      "Downy Woodpecker"
-    ],
-    "image_locations": [
-      null
-    ],
-    "image_videos": [
-      null
-    ],
-    "image_indices": [
-      0
-    ],
-    "captions": [
-      "Downy Woodpecker \u00b7 Nov 2, 2024"
-    ],
-    "caption": "Downy Woodpecker\n\nNov 2, 2024",
-    "species": "Downy Woodpecker",
-    "species_list": [
-      "Downy Woodpecker"
-    ],
-    "location": null,
-    "locations": [],
-    "date": "Nov 2, 2024",
-    "timestamp": "2024-11-02T12:00:00+0000",
+    "timestamp": "2024-11-04T15:36:58+0000",
     "weight": 0.5,
     "manual": true
   },
@@ -185,7 +185,45 @@
     "location": null,
     "locations": [],
     "date": "Nov 2, 2024",
-    "timestamp": "2024-11-02T12:00:00+0000",
+    "timestamp": "2024-11-02T12:39:41+0000",
+    "weight": 0.5,
+    "manual": true
+  },
+  {
+    "id": "manual-e57b411a3d2f",
+    "images": [
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/76f4d70a70f8.jpg"
+    ],
+    "image_dims": [
+      [
+        1600,
+        2125
+      ]
+    ],
+    "image_species": [
+      "Downy Woodpecker"
+    ],
+    "image_locations": [
+      null
+    ],
+    "image_videos": [
+      null
+    ],
+    "image_indices": [
+      0
+    ],
+    "captions": [
+      "Downy Woodpecker \u00b7 Nov 2, 2024"
+    ],
+    "caption": "Downy Woodpecker\n\nNov 2, 2024",
+    "species": "Downy Woodpecker",
+    "species_list": [
+      "Downy Woodpecker"
+    ],
+    "location": null,
+    "locations": [],
+    "date": "Nov 2, 2024",
+    "timestamp": "2024-11-02T12:29:28+0000",
     "weight": 0.5,
     "manual": true
   },
@@ -223,45 +261,7 @@
     "location": null,
     "locations": [],
     "date": "Sep 2, 2024",
-    "timestamp": "2024-09-02T12:00:00+0000",
-    "weight": 0.5,
-    "manual": true
-  },
-  {
-    "id": "manual-3bda4da56783",
-    "images": [
-      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/38529237a418.jpg"
-    ],
-    "image_dims": [
-      [
-        1600,
-        2125
-      ]
-    ],
-    "image_species": [
-      "Eurasian Coot"
-    ],
-    "image_locations": [
-      null
-    ],
-    "image_videos": [
-      null
-    ],
-    "image_indices": [
-      0
-    ],
-    "captions": [
-      "Eurasian Coot \u00b7 Sep 1, 2024"
-    ],
-    "caption": "Eurasian Coot\n\nSep 1, 2024",
-    "species": "Eurasian Coot",
-    "species_list": [
-      "Eurasian Coot"
-    ],
-    "location": null,
-    "locations": [],
-    "date": "Sep 1, 2024",
-    "timestamp": "2024-09-01T12:00:00+0000",
+    "timestamp": "2024-09-02T15:47:51+0000",
     "weight": 0.5,
     "manual": true
   },
@@ -299,7 +299,45 @@
     "location": null,
     "locations": [],
     "date": "Sep 1, 2024",
-    "timestamp": "2024-09-01T12:00:00+0000",
+    "timestamp": "2024-09-01T13:33:51+0000",
+    "weight": 0.5,
+    "manual": true
+  },
+  {
+    "id": "manual-3bda4da56783",
+    "images": [
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/38529237a418.jpg"
+    ],
+    "image_dims": [
+      [
+        1600,
+        2125
+      ]
+    ],
+    "image_species": [
+      "Eurasian Coot"
+    ],
+    "image_locations": [
+      null
+    ],
+    "image_videos": [
+      null
+    ],
+    "image_indices": [
+      0
+    ],
+    "captions": [
+      "Eurasian Coot \u00b7 Sep 1, 2024"
+    ],
+    "caption": "Eurasian Coot\n\nSep 1, 2024",
+    "species": "Eurasian Coot",
+    "species_list": [
+      "Eurasian Coot"
+    ],
+    "location": null,
+    "locations": [],
+    "date": "Sep 1, 2024",
+    "timestamp": "2024-09-01T11:50:25+0000",
     "weight": 0.5,
     "manual": true
   },
@@ -337,7 +375,7 @@
     "location": null,
     "locations": [],
     "date": "Sep 1, 2024",
-    "timestamp": "2024-09-01T12:00:00+0000",
+    "timestamp": "2024-09-01T11:49:29+0000",
     "weight": 0.5,
     "manual": true
   },
@@ -375,7 +413,7 @@
     "location": null,
     "locations": [],
     "date": "Aug 31, 2024",
-    "timestamp": "2024-08-31T12:00:00+0000",
+    "timestamp": "2024-08-31T15:07:01+0000",
     "weight": 0.5,
     "manual": true
   },
@@ -413,14 +451,14 @@
     "location": null,
     "locations": [],
     "date": "Aug 30, 2024",
-    "timestamp": "2024-08-30T12:00:00+0000",
+    "timestamp": "2024-08-30T18:49:13+0000",
     "weight": 0.5,
     "manual": true
   },
   {
-    "id": "manual-52f72fe1b52b",
+    "id": "manual-ffc787d3e561",
     "images": [
-      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/8ebb89dd60a1.jpg"
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/3add15b5ecba.jpg"
     ],
     "image_dims": [
       [
@@ -429,7 +467,7 @@
       ]
     ],
     "image_species": [
-      "Herring Gull"
+      "Mallard"
     ],
     "image_locations": [
       null
@@ -441,17 +479,17 @@
       0
     ],
     "captions": [
-      "Herring Gull \u00b7 Aug 29, 2024"
+      "Mallard \u00b7 Aug 30, 2024"
     ],
-    "caption": "Herring Gull\n\nAug 29, 2024",
-    "species": "Herring Gull",
+    "caption": "Mallard\n\nAug 30, 2024",
+    "species": "Mallard",
     "species_list": [
-      "Herring Gull"
+      "Mallard"
     ],
     "location": null,
     "locations": [],
-    "date": "Aug 29, 2024",
-    "timestamp": "2024-08-29T12:00:00+0000",
+    "date": "Aug 30, 2024",
+    "timestamp": "2024-08-30T17:42:01+0000",
     "weight": 0.5,
     "manual": true
   },
@@ -489,7 +527,45 @@
     "location": null,
     "locations": [],
     "date": "Aug 29, 2024",
-    "timestamp": "2024-08-29T12:00:00+0000",
+    "timestamp": "2024-08-29T12:55:02+0000",
+    "weight": 0.5,
+    "manual": true
+  },
+  {
+    "id": "manual-52f72fe1b52b",
+    "images": [
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/8ebb89dd60a1.jpg"
+    ],
+    "image_dims": [
+      [
+        1600,
+        2125
+      ]
+    ],
+    "image_species": [
+      "Herring Gull"
+    ],
+    "image_locations": [
+      null
+    ],
+    "image_videos": [
+      null
+    ],
+    "image_indices": [
+      0
+    ],
+    "captions": [
+      "Herring Gull \u00b7 Aug 29, 2024"
+    ],
+    "caption": "Herring Gull\n\nAug 29, 2024",
+    "species": "Herring Gull",
+    "species_list": [
+      "Herring Gull"
+    ],
+    "location": null,
+    "locations": [],
+    "date": "Aug 29, 2024",
+    "timestamp": "2024-08-29T10:31:16+0000",
     "weight": 0.5,
     "manual": true
   },
@@ -527,7 +603,7 @@
     "location": null,
     "locations": [],
     "date": "Aug 26, 2024",
-    "timestamp": "2024-08-26T12:00:00+0000",
+    "timestamp": "2024-08-26T19:30:54+0000",
     "weight": 0.5,
     "manual": true
   },
@@ -565,7 +641,83 @@
     "location": null,
     "locations": [],
     "date": "Aug 17, 2024",
-    "timestamp": "2024-08-17T12:00:00+0000",
+    "timestamp": "2024-08-17T14:34:36+0000",
+    "weight": 0.5,
+    "manual": true
+  },
+  {
+    "id": "manual-63f647f3e409",
+    "images": [
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/56d8a97c5be3.jpg"
+    ],
+    "image_dims": [
+      [
+        1600,
+        2125
+      ]
+    ],
+    "image_species": [
+      "Mourning Dove"
+    ],
+    "image_locations": [
+      null
+    ],
+    "image_videos": [
+      null
+    ],
+    "image_indices": [
+      0
+    ],
+    "captions": [
+      "Mourning Dove \u00b7 Aug 14, 2024"
+    ],
+    "caption": "Mourning Dove\n\nAug 14, 2024",
+    "species": "Mourning Dove",
+    "species_list": [
+      "Mourning Dove"
+    ],
+    "location": null,
+    "locations": [],
+    "date": "Aug 14, 2024",
+    "timestamp": "2024-08-14T16:12:52+0000",
+    "weight": 0.5,
+    "manual": true
+  },
+  {
+    "id": "manual-9eabbfef54c2",
+    "images": [
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/1b64fc64c8a5.jpg"
+    ],
+    "image_dims": [
+      [
+        1600,
+        1205
+      ]
+    ],
+    "image_species": [
+      "Wild Turkey"
+    ],
+    "image_locations": [
+      null
+    ],
+    "image_videos": [
+      null
+    ],
+    "image_indices": [
+      0
+    ],
+    "captions": [
+      "Wild Turkey \u00b7 Jul 26, 2024"
+    ],
+    "caption": "Wild Turkey\n\nJul 26, 2024",
+    "species": "Wild Turkey",
+    "species_list": [
+      "Wild Turkey"
+    ],
+    "location": null,
+    "locations": [],
+    "date": "Jul 26, 2024",
+    "timestamp": "2024-07-26T12:32:04+0000",
     "weight": 0.5,
     "manual": true
   },
@@ -603,7 +755,7 @@
     "location": null,
     "locations": [],
     "date": "Jun 24, 2024",
-    "timestamp": "2024-06-24T12:00:00+0000",
+    "timestamp": "2024-06-24T09:06:18+0000",
     "weight": 0.5,
     "manual": true
   },
@@ -679,7 +831,131 @@
     "location": null,
     "locations": [],
     "date": "Mar 16, 2024",
-    "timestamp": "2024-03-16T12:00:00+0000",
+    "timestamp": "2024-03-16T15:17:56+0000",
+    "weight": 0.5,
+    "manual": true
+  },
+  {
+    "id": "manual-d8bb0697b613",
+    "images": [
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/e5c870f3a360.jpg"
+    ],
+    "image_dims": [
+      [
+        1600,
+        2125
+      ]
+    ],
+    "image_species": [
+      "Canada Goose"
+    ],
+    "image_locations": [
+      null
+    ],
+    "image_videos": [
+      null
+    ],
+    "image_indices": [
+      0
+    ],
+    "captions": [
+      "Canada Goose \u00b7 Feb 25, 2024"
+    ],
+    "caption": "Canada Goose\n\nFeb 25, 2024",
+    "species": "Canada Goose",
+    "species_list": [
+      "Canada Goose"
+    ],
+    "location": null,
+    "locations": [],
+    "date": "Feb 25, 2024",
+    "timestamp": "2024-02-25T10:17:46+0000",
+    "weight": 0.5,
+    "manual": true
+  },
+  {
+    "id": "manual-7d2f884d1f23",
+    "images": [
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/439128de6542.jpg"
+    ],
+    "image_dims": [
+      [
+        1600,
+        2125
+      ]
+    ],
+    "image_species": [
+      "Great Blue Heron"
+    ],
+    "image_locations": [
+      null
+    ],
+    "image_videos": [
+      null
+    ],
+    "image_indices": [
+      0
+    ],
+    "captions": [
+      "Great Blue Heron \u00b7 Feb 23, 2024"
+    ],
+    "caption": "Great Blue Heron\n\nFeb 23, 2024",
+    "species": "Great Blue Heron",
+    "species_list": [
+      "Great Blue Heron"
+    ],
+    "location": null,
+    "locations": [],
+    "date": "Feb 23, 2024",
+    "timestamp": "2024-02-23T09:08:04+0000",
+    "weight": 0.5,
+    "manual": true
+  },
+  {
+    "id": "manual-e9049e7f32cc",
+    "images": [
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/1a3c2ffde2fd.jpg",
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/5c02439b1755.jpg"
+    ],
+    "image_dims": [
+      [
+        1600,
+        2125
+      ],
+      [
+        1600,
+        1743
+      ]
+    ],
+    "image_species": [
+      "Canada Goose",
+      "Canada Goose"
+    ],
+    "image_locations": [
+      null,
+      null
+    ],
+    "image_videos": [
+      null,
+      null
+    ],
+    "image_indices": [
+      0,
+      1
+    ],
+    "captions": [
+      "Canada Goose \u00b7 Dec 8, 2023",
+      "Canada Goose \u00b7 Dec 8, 2023"
+    ],
+    "caption": "Canada Goose\n\nDec 8, 2023",
+    "species": "Canada Goose",
+    "species_list": [
+      "Canada Goose"
+    ],
+    "location": null,
+    "locations": [],
+    "date": "Dec 8, 2023",
+    "timestamp": "2023-12-08T09:56:22+0000",
     "weight": 0.5,
     "manual": true
   },
@@ -717,7 +993,45 @@
     "location": null,
     "locations": [],
     "date": "Sep 15, 2023",
-    "timestamp": "2023-09-15T12:00:00+0000",
+    "timestamp": "2023-09-15T18:36:29+0000",
+    "weight": 0.5,
+    "manual": true
+  },
+  {
+    "id": "manual-0d89b6910aad",
+    "images": [
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/7ded33313a49.jpg"
+    ],
+    "image_dims": [
+      [
+        1600,
+        2133
+      ]
+    ],
+    "image_species": [
+      "Canada Goose"
+    ],
+    "image_locations": [
+      null
+    ],
+    "image_videos": [
+      null
+    ],
+    "image_indices": [
+      0
+    ],
+    "captions": [
+      "Canada Goose \u00b7 Aug 5, 2023"
+    ],
+    "caption": "Canada Goose\n\nAug 5, 2023",
+    "species": "Canada Goose",
+    "species_list": [
+      "Canada Goose"
+    ],
+    "location": null,
+    "locations": [],
+    "date": "Aug 5, 2023",
+    "timestamp": "2023-08-05T07:38:23+0000",
     "weight": 0.5,
     "manual": true
   },
@@ -755,7 +1069,7 @@
     "location": null,
     "locations": [],
     "date": "Jun 25, 2023",
-    "timestamp": "2023-06-25T12:00:00+0000",
+    "timestamp": "2023-06-25T09:58:12+0000",
     "weight": 0.5,
     "manual": true
   },
@@ -793,7 +1107,7 @@
     "location": null,
     "locations": [],
     "date": "Jun 10, 2023",
-    "timestamp": "2023-06-10T12:00:00+0000",
+    "timestamp": "2023-06-10T15:28:02+0000",
     "weight": 0.5,
     "manual": true
   },
@@ -841,7 +1155,45 @@
     "location": null,
     "locations": [],
     "date": "May 21, 2023",
-    "timestamp": "2023-05-21T12:00:00+0000",
+    "timestamp": "2023-05-21T14:16:06+0000",
+    "weight": 0.5,
+    "manual": true
+  },
+  {
+    "id": "manual-b4ab8ce69c21",
+    "images": [
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/2b5510dbbfca.jpg"
+    ],
+    "image_dims": [
+      [
+        1600,
+        2133
+      ]
+    ],
+    "image_species": [
+      "Mallard"
+    ],
+    "image_locations": [
+      null
+    ],
+    "image_videos": [
+      null
+    ],
+    "image_indices": [
+      0
+    ],
+    "captions": [
+      "Mallard \u00b7 Feb 5, 2023"
+    ],
+    "caption": "Mallard\n\nFeb 5, 2023",
+    "species": "Mallard",
+    "species_list": [
+      "Mallard"
+    ],
+    "location": null,
+    "locations": [],
+    "date": "Feb 5, 2023",
+    "timestamp": "2023-02-05T07:53:10+0000",
     "weight": 0.5,
     "manual": true
   },
@@ -932,69 +1284,29 @@
     "manual": true
   },
   {
-    "id": "manual-f558de9a9bf4",
+    "id": "manual-8cf49778fe77",
     "images": [
-      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/1a3c2ffde2fd.jpg",
-      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/298d62a2dd82.jpg",
-      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/5c02439b1755.jpg",
-      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/7ded33313a49.jpg",
-      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/e5c870f3a360.jpg"
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/298d62a2dd82.jpg"
     ],
     "image_dims": [
       [
         1600,
-        2125
-      ],
-      [
-        1600,
         2133
-      ],
-      [
-        1600,
-        1743
-      ],
-      [
-        1600,
-        2133
-      ],
-      [
-        1600,
-        2125
       ]
     ],
     "image_species": [
-      "Canada Goose",
-      "Canada Goose",
-      "Canada Goose",
-      "Canada Goose",
       "Canada Goose"
     ],
     "image_locations": [
-      null,
-      null,
-      null,
-      null,
       null
     ],
     "image_videos": [
-      null,
-      null,
-      null,
-      null,
       null
     ],
     "image_indices": [
-      0,
-      1,
-      2,
-      3,
-      4
+      0
     ],
     "captions": [
-      "Canada Goose \u00b7 May 31, 2022",
-      "Canada Goose \u00b7 May 31, 2022",
-      "Canada Goose \u00b7 May 31, 2022",
-      "Canada Goose \u00b7 May 31, 2022",
       "Canada Goose \u00b7 May 31, 2022"
     ],
     "caption": "Canada Goose\n\nMay 31, 2022",
@@ -1005,7 +1317,7 @@
     "location": null,
     "locations": [],
     "date": "May 31, 2022",
-    "timestamp": "2022-05-31T12:00:00+0000",
+    "timestamp": "2022-05-31T18:50:17+0000",
     "weight": 0.5,
     "manual": true
   },
@@ -1058,39 +1370,29 @@
     "manual": true
   },
   {
-    "id": "manual-79abb872d07a",
+    "id": "manual-54617f98a437",
     "images": [
-      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/56d8a97c5be3.jpg",
       "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/d841850e8a02.jpg"
     ],
     "image_dims": [
-      [
-        1600,
-        2125
-      ],
       [
         1600,
         2133
       ]
     ],
     "image_species": [
-      "Mourning Dove",
       "Mourning Dove"
     ],
     "image_locations": [
-      null,
       null
     ],
     "image_videos": [
-      null,
       null
     ],
     "image_indices": [
-      0,
-      1
+      0
     ],
     "captions": [
-      "Mourning Dove \u00b7 Apr 30, 2022",
       "Mourning Dove \u00b7 Apr 30, 2022"
     ],
     "caption": "Mourning Dove\n\nApr 30, 2022",
@@ -1101,65 +1403,45 @@
     "location": null,
     "locations": [],
     "date": "Apr 30, 2022",
-    "timestamp": "2022-04-30T12:00:00+0000",
+    "timestamp": "2022-04-30T10:33:26+0000",
     "weight": 0.5,
     "manual": true
   },
   {
-    "id": "manual-4d6ed7b0fa69",
+    "id": "manual-8ffe9c8180fc",
     "images": [
-      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/2b5510dbbfca.jpg",
-      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/3add15b5ecba.jpg",
       "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/aed217503090.jpg"
     ],
     "image_dims": [
       [
         1600,
         2133
-      ],
-      [
-        1600,
-        2125
-      ],
-      [
-        1600,
-        2133
       ]
     ],
     "image_species": [
-      "Mallard",
-      "Mallard",
-      "Mallard"
+      "Domestic Mallard"
     ],
     "image_locations": [
-      null,
-      null,
       null
     ],
     "image_videos": [
-      null,
-      null,
       null
     ],
     "image_indices": [
-      0,
-      1,
-      2
+      0
     ],
     "captions": [
-      "Mallard \u00b7 Apr 10, 2022",
-      "Mallard \u00b7 Apr 10, 2022",
-      "Mallard \u00b7 Apr 10, 2022"
+      "Domestic Mallard \u00b7 Apr 10, 2022"
     ],
-    "caption": "Mallard\n\nApr 10, 2022",
-    "species": "Mallard",
+    "caption": "Domestic Mallard\n\nApr 10, 2022",
+    "species": "Domestic Mallard",
     "species_list": [
-      "Mallard"
+      "Domestic Mallard"
     ],
     "location": null,
     "locations": [],
     "date": "Apr 10, 2022",
-    "timestamp": "2022-04-10T12:00:00+0000",
+    "timestamp": "2022-04-10T09:06:09+0000",
     "weight": 0.5,
     "manual": true
   },
@@ -1245,44 +1527,110 @@
     "location": null,
     "locations": [],
     "date": "Jun 13, 2021",
-    "timestamp": "2021-06-13T12:00:00+0000",
+    "timestamp": "2021-06-13T19:38:28+0000",
     "weight": 0.5,
     "manual": true
   },
   {
-    "id": "manual-dff09fedb91a",
+    "id": "manual-89a414860b87",
     "images": [
-      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/439128de6542.jpg",
-      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/c9b36910d109.jpg"
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/2499b55e0ebf.jpg"
     ],
     "image_dims": [
-      [
-        1600,
-        2125
-      ],
       [
         1600,
         2133
       ]
     ],
     "image_species": [
-      "Great Blue Heron",
-      "Great Blue Heron"
+      "Wild Turkey"
     ],
     "image_locations": [
-      null,
       null
     ],
     "image_videos": [
-      null,
       null
     ],
     "image_indices": [
-      0,
-      1
+      0
     ],
     "captions": [
-      "Great Blue Heron \u00b7 Jul 14, 2019",
+      "Wild Turkey \u00b7 Jun 10, 2021"
+    ],
+    "caption": "Wild Turkey\n\nJun 10, 2021",
+    "species": "Wild Turkey",
+    "species_list": [
+      "Wild Turkey"
+    ],
+    "location": null,
+    "locations": [],
+    "date": "Jun 10, 2021",
+    "timestamp": "2021-06-10T07:39:06+0000",
+    "weight": 0.5,
+    "manual": true
+  },
+  {
+    "id": "manual-e4cb9f96eda0",
+    "images": [
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/746954c0f251.jpg"
+    ],
+    "image_dims": [
+      [
+        1600,
+        2133
+      ]
+    ],
+    "image_species": [
+      "Wild Turkey"
+    ],
+    "image_locations": [
+      null
+    ],
+    "image_videos": [
+      null
+    ],
+    "image_indices": [
+      0
+    ],
+    "captions": [
+      "Wild Turkey \u00b7 May 2, 2021"
+    ],
+    "caption": "Wild Turkey\n\nMay 2, 2021",
+    "species": "Wild Turkey",
+    "species_list": [
+      "Wild Turkey"
+    ],
+    "location": null,
+    "locations": [],
+    "date": "May 2, 2021",
+    "timestamp": "2021-05-02T10:55:03+0000",
+    "weight": 0.5,
+    "manual": true
+  },
+  {
+    "id": "manual-0c60d75163f9",
+    "images": [
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/c9b36910d109.jpg"
+    ],
+    "image_dims": [
+      [
+        1600,
+        2133
+      ]
+    ],
+    "image_species": [
+      "Great Blue Heron"
+    ],
+    "image_locations": [
+      null
+    ],
+    "image_videos": [
+      null
+    ],
+    "image_indices": [
+      0
+    ],
+    "captions": [
       "Great Blue Heron \u00b7 Jul 14, 2019"
     ],
     "caption": "Great Blue Heron\n\nJul 14, 2019",
@@ -1293,74 +1641,34 @@
     "location": null,
     "locations": [],
     "date": "Jul 14, 2019",
-    "timestamp": "2019-07-14T12:00:00+0000",
+    "timestamp": "2019-07-14T18:03:57+0000",
     "weight": 0.5,
     "manual": true
   },
   {
-    "id": "manual-c0642301cdd8",
+    "id": "manual-809368d639b3",
     "images": [
-      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/1b64fc64c8a5.jpg",
-      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/2499b55e0ebf.jpg",
-      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/5ac5e3c534ca.jpg",
-      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/746954c0f251.jpg",
       "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/e0beed04b09d.jpg"
     ],
     "image_dims": [
-      [
-        1600,
-        1205
-      ],
-      [
-        1600,
-        2133
-      ],
-      [
-        1600,
-        2133
-      ],
-      [
-        1600,
-        2133
-      ],
       [
         1600,
         1200
       ]
     ],
     "image_species": [
-      "Wild Turkey",
-      "Wild Turkey",
-      "Wild Turkey",
-      "Wild Turkey",
       "Wild Turkey"
     ],
     "image_locations": [
-      null,
-      null,
-      null,
-      null,
       null
     ],
     "image_videos": [
-      null,
-      null,
-      null,
-      null,
       null
     ],
     "image_indices": [
-      0,
-      1,
-      2,
-      3,
-      4
+      0
     ],
     "captions": [
-      "Wild Turkey \u00b7 Dec 29, 2018",
-      "Wild Turkey \u00b7 Dec 29, 2018",
-      "Wild Turkey \u00b7 Dec 29, 2018",
-      "Wild Turkey \u00b7 Dec 29, 2018",
       "Wild Turkey \u00b7 Dec 29, 2018"
     ],
     "caption": "Wild Turkey\n\nDec 29, 2018",
@@ -1371,7 +1679,7 @@
     "location": null,
     "locations": [],
     "date": "Dec 29, 2018",
-    "timestamp": "2018-12-29T12:00:00+0000",
+    "timestamp": "2018-12-29T10:47:16+0000",
     "weight": 0.5,
     "manual": true
   },
