@@ -145,6 +145,8 @@
     .lv-row.mr .rc{width:auto}
   }
   .lv-row{display:flex; align-items:center; gap:.65rem; padding:.48rem 0}
+  .lv-row{cursor:pointer}
+  .lv-row .rn a{cursor:pointer}
   .lv-row.flash{animation:lvIn .9s ease}
   @keyframes lvIn{from{background:rgba(56,224,138,.25)}to{background:transparent}}
   .lv-av{width:34px;height:34px;border-radius:50%;flex:0 0 auto;background-size:cover;background-position:center;border:1.5px solid rgba(13,18,14,.15)}
@@ -636,6 +638,20 @@
       playClip(r1, { needle: strip.querySelector(".lv-needle") }, frac);
       return;
     }
+    // Click a feed row's whitespace to reveal its spectrogram — accordion:
+    // opening one closes whatever was open before. (Name/play/×N handled above.)
+    var rowClick = e.target.closest("#lv-feed .lv-row");
+    if (rowClick && !e.target.closest("a, button")) {
+      var rw = rowClick.closest(".lv-rowwrap");
+      if (rw && rw.querySelector(".lv-rowspec")) {
+        var wasOpen = rw.classList.contains("open");
+        document.querySelectorAll("#lv-feed .lv-rowwrap.open").forEach(function (o) {
+          if (o !== rw) o.classList.remove("open");
+        });
+        rw.classList.toggle("open", !wasOpen);
+      }
+      return;
+    }
     var b = e.target.closest(".lv-rowplay"); if (!b) return;
     var wrap = b.closest(".lv-rowwrap"), r = findRec(b.getAttribute("data-audio"));
     if (!r) return;
@@ -643,7 +659,12 @@
       if (audio.paused) audio.play().catch(function(){}); else audio.pause();
       return;
     }
-    if (wrap && r.spec) wrap.classList.add("open"); // its own view, alongside the others
+    if (wrap && r.spec) {
+      document.querySelectorAll("#lv-feed .lv-rowwrap.open").forEach(function (o) {
+        if (o !== wrap) o.classList.remove("open");   // one spectrogram open at a time
+      });
+      wrap.classList.add("open");
+    }
     playClip(r, { needle: wrap ? wrap.querySelector(".lv-needle") : null });
   });
 
