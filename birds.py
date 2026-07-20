@@ -2662,6 +2662,13 @@ def species_profile(name, shots=None, sound=None):
         if r.get("audio") or r.get("spec"):
             recent_call = r
             break
+    # A human "when" for the latest recording (in the mic's own local time).
+    if recent_call and recent_call.get("t"):
+        try:
+            dt = datetime.datetime.fromisoformat(recent_call["t"])
+            recent_call = dict(recent_call, when=dt.strftime("%b %-d, %Y · %-I:%M %p"))
+        except (TypeError, ValueError):
+            pass
 
     if not count and not heard:
         return None  # neither photographed nor heard -> not a real page
