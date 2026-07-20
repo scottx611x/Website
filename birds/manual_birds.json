@@ -479,7 +479,7 @@
       ]
     ],
     "image_species": [
-      "Mallard"
+      "Domestic Mallard"
     ],
     "image_locations": [
       null
@@ -491,12 +491,12 @@
       0
     ],
     "captions": [
-      "Mallard \u00b7 Aug 30, 2024"
+      "Domestic Mallard \u00b7 Aug 30, 2024"
     ],
-    "caption": "Mallard\n\nAug 30, 2024",
-    "species": "Mallard",
+    "caption": "Domestic Mallard\n\nAug 30, 2024",
+    "species": "Domestic Mallard",
     "species_list": [
-      "Mallard"
+      "Domestic Mallard"
     ],
     "location": null,
     "locations": [],
@@ -1258,37 +1258,27 @@
   {
     "id": "manual-80e7186176ce",
     "images": [
-      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/04b9986d4ece.jpg",
-      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/3add15b5ecba.jpg"
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/04b9986d4ece.jpg"
     ],
     "image_dims": [
       [
         1600,
         2133
-      ],
-      [
-        1600,
-        2125
       ]
     ],
     "image_species": [
-      "Mallard",
       "Mallard"
     ],
     "image_locations": [
-      null,
       null
     ],
     "image_videos": [
-      null,
       null
     ],
     "image_indices": [
-      0,
-      1
+      0
     ],
     "captions": [
-      "Mallard \u00b7 Sep 20, 2022",
       "Mallard \u00b7 Sep 20, 2022"
     ],
     "caption": "Mallard\n\nSep 20, 2022",
