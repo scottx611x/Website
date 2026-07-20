@@ -671,10 +671,12 @@ def _live_view():
 def birds_live():
     """What the porch mic is hearing, cross-linked to the photo gallery."""
     view = _live_view()
+    curate = _curate_on()
     return render_template(
         "birds_live.html", title="Live from the yard", sound=view,
         has_data=bool(view["recent"]), generated=view["generated"],
-        curate=_curate_on(), local=_is_local())
+        suppressed=(birds.load_sound_curation()["species"] if curate else []),
+        curate=curate, local=_is_local())
 
 
 @app.route("/birds/live.json", methods=["GET"])
@@ -809,6 +811,21 @@ def curate_exclude():
         abort(400)
     birds.add_exclusion(post_id)
     return {"ok": True, "excluded": len(birds.load_excluded())}
+
+
+@app.route("/curate/sound", methods=["POST"])
+def curate_sound():
+    """Live-sound curation: suppress a species (a false positive like a dog read
+    as a Ruffed Grouse) or hide one detection. Applied at serve time."""
+    if not _curate_on():
+        abort(404)
+    data = request.get_json(silent=True) or {}
+    if data.get("species"):
+        birds.set_sound_suppress(data["species"], bool(data.get("on", True)))
+    if data.get("clip"):
+        birds.set_sound_hide(data["clip"], bool(data.get("on", True)))
+    cur = birds.load_sound_curation()
+    return {"ok": True, "suppressed": cur["species"], "hidden": len(cur["clips"])}
 
 
 @app.route("/curate/override", methods=["POST"])

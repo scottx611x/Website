@@ -145,6 +145,11 @@
     .lv-row.mr .rc{width:auto}
   }
   .lv-row{display:flex; align-items:center; gap:.65rem; padding:.48rem 0}
+  .lv-suppress{flex:0 0 auto; border:none; background:transparent; cursor:pointer; font-size:.85rem; padding:0 .1rem; opacity:.5; filter:grayscale(1)}
+  .lv-suppress:hover{opacity:1; filter:none}
+  .lv-supbar{display:flex; flex-wrap:wrap; align-items:center; gap:.5rem; margin:1rem 0 0; font-family:var(--mono); font-size:.72rem; color:var(--muted)}
+  .lv-supchip{display:inline-flex; align-items:center; gap:.35rem; padding:.2rem .6rem; border-radius:999px; border:1px solid rgba(176,125,36,.5); color:#a9761f; background:rgba(176,125,36,.08); cursor:pointer}
+  .lv-supchip:hover{background:#a9761f; color:var(--paper); border-color:#a9761f}
   .lv-row{cursor:pointer}
   .lv-row .rn a{cursor:pointer}
   .lv-row.flash{animation:lvIn .9s ease}
@@ -247,6 +252,7 @@
         <h1>Live from the yard</h1>
         {% set subnav_active = 'live' %}{% include '_birds_nav.html' %}
         <p class="lv-status mono"><span class="lv-dot"></span> <span id="lv-upd">{% if has_data %}listening &middot; North Andover, MA{% else %}mic online &middot; warming up{% endif %}</span></p>
+        {% if curate %}<div class="lv-supbar" id="lv-supbar" hidden></div>{% endif %}
     </header>
 
     {% if not has_data %}
@@ -382,6 +388,8 @@
   var root = document.getElementById("lv-root");
   var LIVE; try { LIVE = JSON.parse(document.getElementById("lv-data").textContent); } catch (_) { return; }
   var MEDIA = "https://birds-scott-ouellette.s3.amazonaws.com/birds/sounds/clips/";
+  var CURATE = {{ 'true' if curate else 'false' }};
+  var suppressed = {{ suppressed|tojson }};
   var esc = function (s) { var d = document.createElement("i"); d.textContent = s == null ? "" : s; return d.innerHTML; };
   var slugify = function (n) { return (n || "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, ""); };
   var birdHref = function (n) { return "/birds/species/" + slugify(n); };
@@ -619,6 +627,14 @@
       openZoom(ex.getAttribute("data-zoom") === "hero" ? heroClip : findRec(ex.getAttribute("data-audio")));
       return;
     }
+    var sup = e.target.closest(".lv-suppress");
+    if (sup) {
+      e.stopPropagation();
+      var spName = sup.getAttribute("data-sp");
+      if (!confirm("Suppress “" + spName + "” from the live mic? (a false positive like a dog)")) return;
+      suppressSpecies(spName, true);
+      return;
+    }
     var hide = e.target.closest(".lv-rowhide");
     if (hide) {
       e.stopPropagation();
@@ -757,6 +773,7 @@
         (n > 1 ? '<button type="button" class="lv-xn" data-key="' + esc(c.key) + '" aria-expanded="' + (xd ? 'true' : 'false') + '" title="' + n + ' recordings — tap for each one">&times;' + n + ' ' + (xd ? '&#9652;' : '&#9662;') + '</button>' : '') +
         '<span class="rt" data-t="' + esc(top.t) + '"></span>' +
         '<span class="rc"' + (n > 1 ? ' title="best of ' + n + ' recordings"' : '') + '>' + Math.round(c.best.conf * 100) + '%</span>' +
+        (CURATE ? '<button type="button" class="lv-suppress" data-sp="' + esc(c.display) + '" title="Not a bird — suppress ' + esc(c.display) + ' from the mic">&#128683;</button>' : '') +
         '</span>' +
         (bp ? '<button class="lv-rowplay" data-audio="' + esc(bp.audio) + '" aria-label="play the best recording">&#9654;</button>' : '') +
         '</div>' + (bp ? stripHTML(bp) : '') + '</div>';
@@ -995,6 +1012,36 @@
       if (m) m.scrollIntoView({ behavior: "smooth", block: "center" });
     }, 300);
   }
+
+  // ---- curate: suppress a false-positive species (dog read as a grouse) ----
+  function suppressSpecies(name, on) {
+    fetch("/curate/sound", { method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ species: name, on: on }) })
+      .then(function (r) { return r.json(); })
+      .then(function (res) {
+        suppressed = res.suppressed || [];
+        if (on) {  // drop it locally for instant feedback
+          LIVE.recent = (LIVE.recent || []).filter(function (r) { return slugify(r.display) !== slugify(name); });
+          LIVE.species = (LIVE.species || []).filter(function (r) { return slugify(r.display) !== slugify(name); });
+          apply(LIVE, true);
+        } else { poll(); }   // restore -> re-fetch to bring it back
+        renderSuppressBar();
+      }).catch(function () {});
+  }
+  function renderSuppressBar() {
+    var bar = document.getElementById("lv-supbar");
+    if (!bar) return;
+    if (!CURATE || !suppressed.length) { bar.hidden = true; bar.innerHTML = ""; return; }
+    bar.hidden = false;
+    bar.innerHTML = "🚫 suppressed &middot; " + suppressed.map(function (s) {
+      return '<button type="button" class="lv-supchip" data-restore="' + esc(s) + '">' + esc(s) + ' &#10005;</button>';
+    }).join("");
+  }
+  document.addEventListener("click", function (e) {
+    var chip = e.target.closest(".lv-supchip");
+    if (chip) suppressSpecies(chip.getAttribute("data-restore"), false);
+  });
+  renderSuppressBar();
 
   var feedEl = document.getElementById("lv-feed");
   if (feedEl) feedEl.addEventListener("scroll", feedFade, { passive: true });

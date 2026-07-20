@@ -1293,6 +1293,7 @@ EXCLUDED_FILE = os.path.join(HERE, "birds", "excluded.json")
 OVERRIDES_FILE = os.path.join(HERE, "birds", "overrides.json")
 LIFERS_FILE = os.path.join(HERE, "birds", "lifers.json")
 LOC_OVERRIDES_FILE = os.path.join(HERE, "birds", "location_overrides.json")
+SOUND_CURATION_FILE = os.path.join(HERE, "birds", "sound_curation.json")
 PROJECTS_FILE = os.path.join(HERE, "static", "projects.json")
 TAGLINES_FILE = os.path.join(HERE, "static", "taglines.json")
 FACTS_FILE = os.path.join(HERE, "static", "facts.json")
@@ -1310,6 +1311,7 @@ _CURATION_S3 = {
     EXCLUDED_FILE: "{}/excluded.json".format(S3_PREFIX),
     OVERRIDES_FILE: "{}/overrides.json".format(S3_PREFIX),
     REID_QUEUE_FILE: "{}/reid_queue.json".format(S3_PREFIX),
+    SOUND_CURATION_FILE: "{}/sounds/curation.json".format(S3_PREFIX),
     LIFERS_FILE: "{}/lifers.json".format(S3_PREFIX),
     LOC_OVERRIDES_FILE: "{}/location_overrides.json".format(S3_PREFIX),
     PROJECTS_FILE: "{}/projects.json".format(S3_PREFIX),
@@ -1442,6 +1444,92 @@ def photo_tags(photos):
 
 
 # --- Sound station: read the BirdNET-Go detection rollup the exporter writes ---
+# --- Live-sound curation: suppress a species (false positives like a dog read
+# as a Ruffed Grouse) or hide individual detections, applied at serve time. -----
+def load_sound_curation():
+    """{"species": [display names never shown from the mic],
+        "clips": [audio filenames / 'common|timestamp' keys hidden individually]}."""
+    cur = _load_curation(SOUND_CURATION_FILE, dict) or {}
+    cur.setdefault("species", [])
+    cur.setdefault("clips", [])
+    return cur
+
+
+def _sound_canon_key(name):
+    c = _canon_species(name or "")
+    return (c[0] if c else (name or "")).strip().lower()
+
+
+def set_sound_suppress(species, on=True):
+    """Suppress (or restore) a species from every live-sound view."""
+    canon = _canon_species(species or "")
+    name = canon[0] if canon else (species or "").strip()
+    if not name:
+        return
+    cur = load_sound_curation()
+    have = {s.lower() for s in cur["species"]}
+    if on and name.lower() not in have:
+        cur["species"].append(name)
+    elif not on:
+        cur["species"] = [s for s in cur["species"] if s.lower() != name.lower()]
+    _save_curation(SOUND_CURATION_FILE, cur)
+
+
+def set_sound_hide(clip, on=True):
+    """Hide (or restore) one detection by its clip key."""
+    if not clip:
+        return
+    cur = load_sound_curation()
+    if on and clip not in cur["clips"]:
+        cur["clips"].append(clip)
+    elif not on:
+        cur["clips"] = [c for c in cur["clips"] if c != clip]
+    _save_curation(SOUND_CURATION_FILE, cur)
+
+
+def _det_key(r):
+    return r.get("audio") or "%s|%s" % (r.get("common") or r.get("display") or "", r.get("t") or "")
+
+
+def apply_sound_curation(data):
+    """Filter a recent.json / log.json payload by the live-sound curation store:
+    drop suppressed species and hidden clips, and keep the counts honest."""
+    if not isinstance(data, dict):
+        return data
+    cur = load_sound_curation()
+    supp = {s.lower() for s in cur.get("species", [])}
+    hidden = set(cur.get("clips", []))
+    if not supp and not hidden:
+        return data
+    data = dict(data)
+
+    def keep(r):
+        return _det_key(r) not in hidden and _sound_canon_key(r.get("common") or r.get("display")) not in supp
+
+    # calls removed (all-time) from the per-species counts, before filtering
+    supp_calls = sum((s.get("count") or 0) for s in (data.get("species") or [])
+                     if _sound_canon_key(s.get("common") or s.get("display")) in supp)
+    for fld in ("recent", "species", "log"):
+        if isinstance(data.get(fld), list):
+            data[fld] = [r for r in data[fld] if keep(r)]
+
+    counts = dict(data.get("counts") or {})
+    if counts:
+        if "species" in data:
+            counts["speciesAllTime"] = len(data["species"])
+        if supp_calls:
+            counts["callsAllTime"] = max(0, (counts.get("callsAllTime") or 0) - supp_calls)
+        daily = data.get("daily") or []
+        if daily and isinstance(daily[-1], dict):
+            sp = daily[-1].get("sp") or {}
+            live = {k: v for k, v in sp.items() if _sound_canon_key(k) not in supp}
+            if sp:
+                counts["speciesToday"] = len(live)
+                counts["callsToday"] = max(0, sum(live.values()))
+        data["counts"] = counts
+    return data
+
+
 def load_sounds():
     """The live bird-sound rollup (birds/sounds/recent.json) the listening station
     exports to S3. None when it hasn't run yet (the /birds/live page then shows a
@@ -1452,12 +1540,12 @@ def load_sounds():
             import boto3
 
             body = boto3.client("s3").get_object(Bucket=S3_BUCKET, Key=key)["Body"].read()
-            return json.loads(body)
+            return apply_sound_curation(json.loads(body))
         except Exception:  # noqa: BLE001 - not published yet / unreachable
             return None
     try:  # local dev mirror written by sound_export.py
         with open(os.path.join(HERE, "birds", "sounds_recent.json")) as fh:
-            return json.load(fh)
+            return apply_sound_curation(json.load(fh))
     except (OSError, ValueError):
         return None
 
@@ -1471,12 +1559,12 @@ def load_sound_log():
             import boto3
 
             body = boto3.client("s3").get_object(Bucket=S3_BUCKET, Key=key)["Body"].read()
-            return json.loads(body)
+            return apply_sound_curation(json.loads(body))
         except Exception:  # noqa: BLE001 - not published yet / unreachable
             return None
     try:
         with open(os.path.join(HERE, "birds", "sounds_log.json")) as fh:
-            return json.load(fh)
+            return apply_sound_curation(json.load(fh))
     except (OSError, ValueError):
         return None
 
