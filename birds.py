@@ -120,7 +120,7 @@ _TAXONOMY = [
         "Lesser Scaup", "King Eider", "Common Eider", "Harlequin Duck", "Surf Scoter",
         "White-winged Scoter", "Black Scoter", "Long-tailed Duck", "Bufflehead", "Common Goldeneye",
         "Barrow's Goldeneye", "Hooded Merganser", "Common Merganser", "Red-breasted Merganser",
-        "Ruddy Duck"]),
+        "Ruddy Duck", "Greylag Goose", "Tufted Duck"]),
     ("Turkeys & Grouse", [
         "Wild Turkey", "Ruffed Grouse", "Spruce Grouse", "Northern Bobwhite", "Ring-necked Pheasant"]),
     ("Grebes", [
@@ -135,7 +135,8 @@ _TAXONOMY = [
         "Ruby-throated Hummingbird", "Rufous Hummingbird", "Anna's Hummingbird",
         "Black-chinned Hummingbird"]),
     ("Rails, Gallinules & Coots", [
-        "Clapper Rail", "Virginia Rail", "Sora", "Common Gallinule", "American Coot"]),
+        "Clapper Rail", "Virginia Rail", "Sora", "Common Gallinule", "American Coot",
+        "Eurasian Coot"]),
     ("Cranes", ["Sandhill Crane"]),
     ("Stilts & Avocets", ["Black-necked Stilt", "American Avocet"]),
     ("Oystercatchers", ["American Oystercatcher"]),
@@ -151,6 +152,7 @@ _TAXONOMY = [
     ("Gulls & Terns", [
         "Bonaparte's Gull", "Laughing Gull", "Ring-billed Gull", "American Herring Gull",
         "Great Black-backed Gull", "Lesser Black-backed Gull", "Iceland Gull", "Glaucous Gull",
+        "European Herring Gull",
         "Least Tern", "Caspian Tern", "Black Tern", "Common Tern", "Forster's Tern", "Royal Tern",
         "Black Skimmer"]),
     ("Loons", ["Red-throated Loon", "Common Loon"]),
@@ -183,7 +185,8 @@ _TAXONOMY = [
     ("Vireos", [
         "White-eyed Vireo", "Yellow-throated Vireo", "Blue-headed Vireo", "Warbling Vireo",
         "Philadelphia Vireo", "Red-eyed Vireo"]),
-    ("Crows & Jays", ["Blue Jay", "American Crow", "Fish Crow", "Common Raven"]),
+    ("Crows & Jays", ["Blue Jay", "American Crow", "Fish Crow", "Common Raven",
+        "Hooded Crow", "Eurasian Magpie"]),
     ("Larks", ["Horned Lark"]),
     ("Chickadees & Titmice", ["Black-capped Chickadee", "Carolina Chickadee", "Tufted Titmouse"]),
     ("Swallows", [
@@ -253,6 +256,9 @@ _SPECIES_ALIAS = {
     "cooper's hawk barred owl": "barred owl",
     "red-tailed hawk blue jay": "red-tailed hawk",
     "canadian goose": "canada goose",  # colloquial name for Canada Goose
+    "herring gull": "european herring gull",  # the ones I've shot are the European sp.
+    "rock dove": "rock pigeon",
+    "common wood pigeon": "rock pigeon",
     "not a north andover bird": None,
 }
 

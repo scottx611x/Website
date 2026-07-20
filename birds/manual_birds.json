@@ -1,5 +1,43 @@
 [
   {
+    "id": "manual-88977ff75197",
+    "images": [
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/1d87a06a60e6.jpg"
+    ],
+    "image_dims": [
+      [
+        512,
+        512
+      ]
+    ],
+    "image_species": [
+      "Northern Flicker"
+    ],
+    "image_locations": [
+      null
+    ],
+    "image_videos": [
+      null
+    ],
+    "image_indices": [
+      0
+    ],
+    "captions": [
+      "Northern Flicker \u00b7 Jul 19, 2026"
+    ],
+    "caption": "Northern Flicker\n\nJul 19, 2026",
+    "species": "Northern Flicker",
+    "species_list": [
+      "Northern Flicker"
+    ],
+    "location": null,
+    "locations": [],
+    "date": "Jul 19, 2026",
+    "timestamp": "2026-07-19T12:00:00+0000",
+    "weight": 0.5,
+    "manual": true
+  },
+  {
     "id": "manual-c125ce7fde64",
     "images": [
       "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/6826419c53c5.jpg"
@@ -38,6 +76,442 @@
     "manual": true
   },
   {
+    "id": "manual-e57b411a3d2f",
+    "images": [
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/76f4d70a70f8.jpg"
+    ],
+    "image_dims": [
+      [
+        1600,
+        2125
+      ]
+    ],
+    "image_species": [
+      "Downy Woodpecker"
+    ],
+    "image_locations": [
+      null
+    ],
+    "image_videos": [
+      null
+    ],
+    "image_indices": [
+      0
+    ],
+    "captions": [
+      "Downy Woodpecker \u00b7 Nov 2, 2024"
+    ],
+    "caption": "Downy Woodpecker\n\nNov 2, 2024",
+    "species": "Downy Woodpecker",
+    "species_list": [
+      "Downy Woodpecker"
+    ],
+    "location": null,
+    "locations": [],
+    "date": "Nov 2, 2024",
+    "timestamp": "2024-11-02T12:00:00+0000",
+    "weight": 0.5,
+    "manual": true
+  },
+  {
+    "id": "manual-d19f2612d9b8",
+    "images": [
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/a91e6dbe2c91.jpg"
+    ],
+    "image_dims": [
+      [
+        1600,
+        2125
+      ]
+    ],
+    "image_species": [
+      "Rock Pigeon"
+    ],
+    "image_locations": [
+      "Norway"
+    ],
+    "image_videos": [
+      null
+    ],
+    "image_indices": [
+      0
+    ],
+    "captions": [
+      "Rock Pigeon \u00b7 Norway \u00b7 Sep 2, 2024"
+    ],
+    "caption": "\u26a0\ufe0f Rock Pigeon - Norway\n\nSep 2, 2024",
+    "species": "Rock Pigeon",
+    "species_list": [
+      "Rock Pigeon"
+    ],
+    "location": "Norway",
+    "locations": [
+      "Norway"
+    ],
+    "date": "Sep 2, 2024",
+    "timestamp": "2024-09-02T12:00:00+0000",
+    "weight": 0.5,
+    "manual": true
+  },
+  {
+    "id": "manual-3bda4da56783",
+    "images": [
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/38529237a418.jpg"
+    ],
+    "image_dims": [
+      [
+        1600,
+        2125
+      ]
+    ],
+    "image_species": [
+      "Eurasian Coot"
+    ],
+    "image_locations": [
+      "Norway"
+    ],
+    "image_videos": [
+      null
+    ],
+    "image_indices": [
+      0
+    ],
+    "captions": [
+      "Eurasian Coot \u00b7 Norway \u00b7 Sep 1, 2024"
+    ],
+    "caption": "\u26a0\ufe0f Eurasian Coot - Norway\n\nSep 1, 2024",
+    "species": "Eurasian Coot",
+    "species_list": [
+      "Eurasian Coot"
+    ],
+    "location": "Norway",
+    "locations": [
+      "Norway"
+    ],
+    "date": "Sep 1, 2024",
+    "timestamp": "2024-09-01T12:00:00+0000",
+    "weight": 0.5,
+    "manual": true
+  },
+  {
+    "id": "manual-b1ca04aa0b02",
+    "images": [
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/a084c3244ce9.jpg"
+    ],
+    "image_dims": [
+      [
+        1600,
+        2125
+      ]
+    ],
+    "image_species": [
+      "Mute Swan"
+    ],
+    "image_locations": [
+      "Norway"
+    ],
+    "image_videos": [
+      null
+    ],
+    "image_indices": [
+      0
+    ],
+    "captions": [
+      "Mute Swan \u00b7 Norway \u00b7 Sep 1, 2024"
+    ],
+    "caption": "\u26a0\ufe0f Mute Swan - Norway\n\nSep 1, 2024",
+    "species": "Mute Swan",
+    "species_list": [
+      "Mute Swan"
+    ],
+    "location": "Norway",
+    "locations": [
+      "Norway"
+    ],
+    "date": "Sep 1, 2024",
+    "timestamp": "2024-09-01T12:00:00+0000",
+    "weight": 0.5,
+    "manual": true
+  },
+  {
+    "id": "manual-a7494c84f2f3",
+    "images": [
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/65ba588a6f51.jpg"
+    ],
+    "image_dims": [
+      [
+        1600,
+        2125
+      ]
+    ],
+    "image_species": [
+      "Tufted Duck"
+    ],
+    "image_locations": [
+      "Norway"
+    ],
+    "image_videos": [
+      null
+    ],
+    "image_indices": [
+      0
+    ],
+    "captions": [
+      "Tufted Duck \u00b7 Norway \u00b7 Sep 1, 2024"
+    ],
+    "caption": "\u26a0\ufe0f Tufted Duck - Norway\n\nSep 1, 2024",
+    "species": "Tufted Duck",
+    "species_list": [
+      "Tufted Duck"
+    ],
+    "location": "Norway",
+    "locations": [
+      "Norway"
+    ],
+    "date": "Sep 1, 2024",
+    "timestamp": "2024-09-01T12:00:00+0000",
+    "weight": 0.5,
+    "manual": true
+  },
+  {
+    "id": "manual-04e52703a4cb",
+    "images": [
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/97f103a3cb64.jpg"
+    ],
+    "image_dims": [
+      [
+        1600,
+        2125
+      ]
+    ],
+    "image_species": [
+      "Greylag Goose"
+    ],
+    "image_locations": [
+      "Norway"
+    ],
+    "image_videos": [
+      null
+    ],
+    "image_indices": [
+      0
+    ],
+    "captions": [
+      "Greylag Goose \u00b7 Norway \u00b7 Aug 31, 2024"
+    ],
+    "caption": "\u26a0\ufe0f Greylag Goose - Norway\n\nAug 31, 2024",
+    "species": "Greylag Goose",
+    "species_list": [
+      "Greylag Goose"
+    ],
+    "location": "Norway",
+    "locations": [
+      "Norway"
+    ],
+    "date": "Aug 31, 2024",
+    "timestamp": "2024-08-31T12:00:00+0000",
+    "weight": 0.5,
+    "manual": true
+  },
+  {
+    "id": "manual-6aca054da001",
+    "images": [
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/f38ffd433e64.jpg"
+    ],
+    "image_dims": [
+      [
+        1600,
+        2125
+      ]
+    ],
+    "image_species": [
+      "Great Cormorant"
+    ],
+    "image_locations": [
+      "Norway"
+    ],
+    "image_videos": [
+      null
+    ],
+    "image_indices": [
+      0
+    ],
+    "captions": [
+      "Great Cormorant \u00b7 Norway \u00b7 Aug 30, 2024"
+    ],
+    "caption": "\u26a0\ufe0f Great Cormorant - Norway\n\nAug 30, 2024",
+    "species": "Great Cormorant",
+    "species_list": [
+      "Great Cormorant"
+    ],
+    "location": "Norway",
+    "locations": [
+      "Norway"
+    ],
+    "date": "Aug 30, 2024",
+    "timestamp": "2024-08-30T12:00:00+0000",
+    "weight": 0.5,
+    "manual": true
+  },
+  {
+    "id": "manual-52f72fe1b52b",
+    "images": [
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/8ebb89dd60a1.jpg"
+    ],
+    "image_dims": [
+      [
+        1600,
+        2125
+      ]
+    ],
+    "image_species": [
+      "Herring Gull"
+    ],
+    "image_locations": [
+      "Norway"
+    ],
+    "image_videos": [
+      null
+    ],
+    "image_indices": [
+      0
+    ],
+    "captions": [
+      "Herring Gull \u00b7 Norway \u00b7 Aug 29, 2024"
+    ],
+    "caption": "\u26a0\ufe0f Herring Gull - Norway\n\nAug 29, 2024",
+    "species": "Herring Gull",
+    "species_list": [
+      "Herring Gull"
+    ],
+    "location": "Norway",
+    "locations": [
+      "Norway"
+    ],
+    "date": "Aug 29, 2024",
+    "timestamp": "2024-08-29T12:00:00+0000",
+    "weight": 0.5,
+    "manual": true
+  },
+  {
+    "id": "manual-2108cd03d3b6",
+    "images": [
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/42218f0f41a7.jpg"
+    ],
+    "image_dims": [
+      [
+        1600,
+        2125
+      ]
+    ],
+    "image_species": [
+      "Hooded Crow"
+    ],
+    "image_locations": [
+      "Norway"
+    ],
+    "image_videos": [
+      null
+    ],
+    "image_indices": [
+      0
+    ],
+    "captions": [
+      "Hooded Crow \u00b7 Norway \u00b7 Aug 29, 2024"
+    ],
+    "caption": "\u26a0\ufe0f Hooded Crow - Norway\n\nAug 29, 2024",
+    "species": "Hooded Crow",
+    "species_list": [
+      "Hooded Crow"
+    ],
+    "location": "Norway",
+    "locations": [
+      "Norway"
+    ],
+    "date": "Aug 29, 2024",
+    "timestamp": "2024-08-29T12:00:00+0000",
+    "weight": 0.5,
+    "manual": true
+  },
+  {
+    "id": "manual-6c2a3666167b",
+    "images": [
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/cb18c8629257.jpg"
+    ],
+    "image_dims": [
+      [
+        1600,
+        2125
+      ]
+    ],
+    "image_species": [
+      "Eurasian Magpie"
+    ],
+    "image_locations": [
+      "Norway"
+    ],
+    "image_videos": [
+      null
+    ],
+    "image_indices": [
+      0
+    ],
+    "captions": [
+      "Eurasian Magpie \u00b7 Norway \u00b7 Aug 26, 2024"
+    ],
+    "caption": "\u26a0\ufe0f Eurasian Magpie - Norway\n\nAug 26, 2024",
+    "species": "Eurasian Magpie",
+    "species_list": [
+      "Eurasian Magpie"
+    ],
+    "location": "Norway",
+    "locations": [
+      "Norway"
+    ],
+    "date": "Aug 26, 2024",
+    "timestamp": "2024-08-26T12:00:00+0000",
+    "weight": 0.5,
+    "manual": true
+  },
+  {
+    "id": "manual-ab0ffeee1dc3",
+    "images": [
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/080fa91f6beb.jpg"
+    ],
+    "image_dims": [
+      [
+        1600,
+        2125
+      ]
+    ],
+    "image_species": [
+      "Ruby-throated Hummingbird"
+    ],
+    "image_locations": [
+      null
+    ],
+    "image_videos": [
+      null
+    ],
+    "image_indices": [
+      0
+    ],
+    "captions": [
+      "Ruby-throated Hummingbird \u00b7 Aug 17, 2024"
+    ],
+    "caption": "Ruby-throated Hummingbird\n\nAug 17, 2024",
+    "species": "Ruby-throated Hummingbird",
+    "species_list": [
+      "Ruby-throated Hummingbird"
+    ],
+    "location": null,
+    "locations": [],
+    "date": "Aug 17, 2024",
+    "timestamp": "2024-08-17T12:00:00+0000",
+    "weight": 0.5,
+    "manual": true
+  },
+  {
     "id": "manual-f54e31250140",
     "images": [
       "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/14811e1482e6.jpg"
@@ -72,6 +546,168 @@
     "locations": [],
     "date": "May 16, 2024",
     "timestamp": "2024-05-16T12:00:00+0000",
+    "weight": 0.5,
+    "manual": true
+  },
+  {
+    "id": "manual-48ace6c61469",
+    "images": [
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/49fcb8a0b9bb.jpg"
+    ],
+    "image_dims": [
+      [
+        1600,
+        2125
+      ]
+    ],
+    "image_species": [
+      "Great Egret"
+    ],
+    "image_locations": [
+      null
+    ],
+    "image_videos": [
+      null
+    ],
+    "image_indices": [
+      0
+    ],
+    "captions": [
+      "Great Egret \u00b7 Mar 16, 2024"
+    ],
+    "caption": "Great Egret\n\nMar 16, 2024",
+    "species": "Great Egret",
+    "species_list": [
+      "Great Egret"
+    ],
+    "location": null,
+    "locations": [],
+    "date": "Mar 16, 2024",
+    "timestamp": "2024-03-16T12:00:00+0000",
+    "weight": 0.5,
+    "manual": true
+  },
+  {
+    "id": "manual-7d2f884d1f23",
+    "images": [
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/439128de6542.jpg"
+    ],
+    "image_dims": [
+      [
+        1600,
+        2125
+      ]
+    ],
+    "image_species": [
+      "Great Blue Heron"
+    ],
+    "image_locations": [
+      null
+    ],
+    "image_videos": [
+      null
+    ],
+    "image_indices": [
+      0
+    ],
+    "captions": [
+      "Great Blue Heron \u00b7 Feb 23, 2024"
+    ],
+    "caption": "Great Blue Heron\n\nFeb 23, 2024",
+    "species": "Great Blue Heron",
+    "species_list": [
+      "Great Blue Heron"
+    ],
+    "location": null,
+    "locations": [],
+    "date": "Feb 23, 2024",
+    "timestamp": "2024-02-23T12:00:00+0000",
+    "weight": 0.5,
+    "manual": true
+  },
+  {
+    "id": "manual-dc68d0c1c506",
+    "images": [
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/1073db43ed55.jpg"
+    ],
+    "image_dims": [
+      [
+        733,
+        948
+      ]
+    ],
+    "image_species": [
+      "Red-tailed Hawk"
+    ],
+    "image_locations": [
+      null
+    ],
+    "image_videos": [
+      null
+    ],
+    "image_indices": [
+      0
+    ],
+    "captions": [
+      "Red-tailed Hawk \u00b7 Jun 25, 2023"
+    ],
+    "caption": "Red-tailed Hawk\n\nJun 25, 2023",
+    "species": "Red-tailed Hawk",
+    "species_list": [
+      "Red-tailed Hawk"
+    ],
+    "location": null,
+    "locations": [],
+    "date": "Jun 25, 2023",
+    "timestamp": "2023-06-25T12:00:00+0000",
+    "weight": 0.5,
+    "manual": true
+  },
+  {
+    "id": "manual-a639307c7ad0",
+    "images": [
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/c5e852ae7cf6.jpg",
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/69d3f04b1066.jpg"
+    ],
+    "image_dims": [
+      [
+        1600,
+        2133
+      ],
+      [
+        1600,
+        2125
+      ]
+    ],
+    "image_species": [
+      "House Sparrow",
+      "House Sparrow"
+    ],
+    "image_locations": [
+      null,
+      null
+    ],
+    "image_videos": [
+      null,
+      null
+    ],
+    "image_indices": [
+      0,
+      1
+    ],
+    "captions": [
+      "House Sparrow \u00b7 Jun 10, 2023",
+      "House Sparrow \u00b7 Jun 10, 2023"
+    ],
+    "caption": "House Sparrow\n\nJun 10, 2023",
+    "species": "House Sparrow",
+    "species_list": [
+      "House Sparrow"
+    ],
+    "location": null,
+    "locations": [],
+    "date": "Jun 10, 2023",
+    "timestamp": "2023-06-10T12:00:00+0000",
     "weight": 0.5,
     "manual": true
   },
@@ -162,6 +798,84 @@
     "manual": true
   },
   {
+    "id": "manual-420ec6bb65eb",
+    "images": [
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/298d62a2dd82.jpg",
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/7ded33313a49.jpg",
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/5c02439b1755.jpg",
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/e5c870f3a360.jpg",
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/1a3c2ffde2fd.jpg"
+    ],
+    "image_dims": [
+      [
+        1600,
+        2133
+      ],
+      [
+        1600,
+        2133
+      ],
+      [
+        1600,
+        1743
+      ],
+      [
+        1600,
+        2125
+      ],
+      [
+        1600,
+        2125
+      ]
+    ],
+    "image_species": [
+      "Canada Goose",
+      "Canada Goose",
+      "Canada Goose",
+      "Canada Goose",
+      "Canada Goose"
+    ],
+    "image_locations": [
+      null,
+      null,
+      null,
+      null,
+      null
+    ],
+    "image_videos": [
+      null,
+      null,
+      null,
+      null,
+      null
+    ],
+    "image_indices": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ],
+    "captions": [
+      "Canada Goose \u00b7 May 31, 2022",
+      "Canada Goose \u00b7 May 31, 2022",
+      "Canada Goose \u00b7 May 31, 2022",
+      "Canada Goose \u00b7 May 31, 2022",
+      "Canada Goose \u00b7 May 31, 2022"
+    ],
+    "caption": "Canada Goose\n\nMay 31, 2022",
+    "species": "Canada Goose",
+    "species_list": [
+      "Canada Goose"
+    ],
+    "location": null,
+    "locations": [],
+    "date": "May 31, 2022",
+    "timestamp": "2022-05-31T12:00:00+0000",
+    "weight": 0.5,
+    "manual": true
+  },
+  {
     "id": "manual-0f2eaaee1747",
     "images": [
       "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/e5774c3c44eb.jpg",
@@ -210,6 +924,142 @@
     "manual": true
   },
   {
+    "id": "manual-2cbd6155ca1f",
+    "images": [
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/d841850e8a02.jpg",
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/56d8a97c5be3.jpg",
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/f692062f10d9.jpg",
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/213d976eac07.jpg"
+    ],
+    "image_dims": [
+      [
+        1600,
+        2133
+      ],
+      [
+        1600,
+        2125
+      ],
+      [
+        1600,
+        2125
+      ],
+      [
+        1600,
+        2125
+      ]
+    ],
+    "image_species": [
+      "Mourning Dove",
+      "Mourning Dove",
+      "Mourning Dove",
+      "Mourning Dove"
+    ],
+    "image_locations": [
+      null,
+      null,
+      null,
+      null
+    ],
+    "image_videos": [
+      null,
+      null,
+      null,
+      null
+    ],
+    "image_indices": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "captions": [
+      "Mourning Dove \u00b7 Apr 30, 2022",
+      "Mourning Dove \u00b7 Apr 30, 2022",
+      "Mourning Dove \u00b7 Apr 30, 2022",
+      "Mourning Dove \u00b7 Apr 30, 2022"
+    ],
+    "caption": "Mourning Dove\n\nApr 30, 2022",
+    "species": "Mourning Dove",
+    "species_list": [
+      "Mourning Dove"
+    ],
+    "location": null,
+    "locations": [],
+    "date": "Apr 30, 2022",
+    "timestamp": "2022-04-30T12:00:00+0000",
+    "weight": 0.5,
+    "manual": true
+  },
+  {
+    "id": "manual-df7d4af321c8",
+    "images": [
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/aed217503090.jpg",
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/2b5510dbbfca.jpg",
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/f8c46ea98364.jpg",
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/3add15b5ecba.jpg"
+    ],
+    "image_dims": [
+      [
+        1600,
+        2133
+      ],
+      [
+        1600,
+        2133
+      ],
+      [
+        1600,
+        2133
+      ],
+      [
+        1600,
+        2125
+      ]
+    ],
+    "image_species": [
+      "Mallard",
+      "Mallard",
+      "Mallard",
+      "Mallard"
+    ],
+    "image_locations": [
+      null,
+      null,
+      null,
+      null
+    ],
+    "image_videos": [
+      null,
+      null,
+      null,
+      null
+    ],
+    "image_indices": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "captions": [
+      "Mallard \u00b7 Apr 10, 2022",
+      "Mallard \u00b7 Apr 10, 2022",
+      "Mallard \u00b7 Apr 10, 2022",
+      "Mallard \u00b7 Apr 10, 2022"
+    ],
+    "caption": "Mallard\n\nApr 10, 2022",
+    "species": "Mallard",
+    "species_list": [
+      "Mallard"
+    ],
+    "location": null,
+    "locations": [],
+    "date": "Apr 10, 2022",
+    "timestamp": "2022-04-10T12:00:00+0000",
+    "weight": 0.5,
+    "manual": true
+  },
+  {
     "id": "manual-734a5fa6264d",
     "images": [
       "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/84a21c0e7ddc.jpg",
@@ -254,6 +1104,180 @@
     "locations": [],
     "date": "Nov 22, 2021",
     "timestamp": "2021-11-22T12:00:00+0000",
+    "weight": 0.5,
+    "manual": true
+  },
+  {
+    "id": "manual-fc7b2d7bff20",
+    "images": [
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/ad363e74798c.jpg"
+    ],
+    "image_dims": [
+      [
+        1600,
+        2133
+      ]
+    ],
+    "image_species": [
+      "House Finch"
+    ],
+    "image_locations": [
+      null
+    ],
+    "image_videos": [
+      null
+    ],
+    "image_indices": [
+      0
+    ],
+    "captions": [
+      "House Finch \u00b7 Jun 13, 2021"
+    ],
+    "caption": "House Finch\n\nJun 13, 2021",
+    "species": "House Finch",
+    "species_list": [
+      "House Finch"
+    ],
+    "location": null,
+    "locations": [],
+    "date": "Jun 13, 2021",
+    "timestamp": "2021-06-13T12:00:00+0000",
+    "weight": 0.5,
+    "manual": true
+  },
+  {
+    "id": "manual-4c051b613070",
+    "images": [
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/5ac5e3c534ca.jpg",
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/746954c0f251.jpg",
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/2499b55e0ebf.jpg",
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/1b64fc64c8a5.jpg"
+    ],
+    "image_dims": [
+      [
+        1600,
+        2133
+      ],
+      [
+        1600,
+        2133
+      ],
+      [
+        1600,
+        2133
+      ],
+      [
+        1600,
+        1205
+      ]
+    ],
+    "image_species": [
+      "Wild Turkey",
+      "Wild Turkey",
+      "Wild Turkey",
+      "Wild Turkey"
+    ],
+    "image_locations": [
+      null,
+      null,
+      null,
+      null
+    ],
+    "image_videos": [
+      null,
+      null,
+      null,
+      null
+    ],
+    "image_indices": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "captions": [
+      "Wild Turkey \u00b7 May 2, 2021",
+      "Wild Turkey \u00b7 May 2, 2021",
+      "Wild Turkey \u00b7 May 2, 2021",
+      "Wild Turkey \u00b7 May 2, 2021"
+    ],
+    "caption": "Wild Turkey\n\nMay 2, 2021",
+    "species": "Wild Turkey",
+    "species_list": [
+      "Wild Turkey"
+    ],
+    "location": null,
+    "locations": [],
+    "date": "May 2, 2021",
+    "timestamp": "2021-05-02T12:00:00+0000",
+    "weight": 0.5,
+    "manual": true
+  },
+  {
+    "id": "manual-d8d469ac589c",
+    "images": [
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/e0beed04b09d.jpg",
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/c9b36910d109.jpg",
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/38c2186d39bc.jpg",
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/fd6b9983c2d8.jpg"
+    ],
+    "image_dims": [
+      [
+        1600,
+        1200
+      ],
+      [
+        1600,
+        2133
+      ],
+      [
+        1600,
+        2133
+      ],
+      [
+        1600,
+        2133
+      ]
+    ],
+    "image_species": [
+      "Common Grackle",
+      "Common Grackle",
+      "Common Grackle",
+      "Common Grackle"
+    ],
+    "image_locations": [
+      null,
+      null,
+      null,
+      null
+    ],
+    "image_videos": [
+      null,
+      null,
+      null,
+      null
+    ],
+    "image_indices": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "captions": [
+      "Common Grackle \u00b7 Dec 29, 2018",
+      "Common Grackle \u00b7 Dec 29, 2018",
+      "Common Grackle \u00b7 Dec 29, 2018",
+      "Common Grackle \u00b7 Dec 29, 2018"
+    ],
+    "caption": "Common Grackle\n\nDec 29, 2018",
+    "species": "Common Grackle",
+    "species_list": [
+      "Common Grackle"
+    ],
+    "location": null,
+    "locations": [],
+    "date": "Dec 29, 2018",
+    "timestamp": "2018-12-29T12:00:00+0000",
     "weight": 0.5,
     "manual": true
   },

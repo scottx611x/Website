@@ -35,11 +35,20 @@ EXTS = {".jpg", ".jpeg", ".png", ".webp"}
 
 
 def _folder_caption(name):
-    """"Common Loon @ Sand Pond" -> ("Common Loon", "Sand Pond")."""
+    """Parse a folder name into (species, location, away).
+
+    "Common Loon"                       -> ("Common Loon", "", False)
+    "Common Loon @ Sand Pond"           -> ("Common Loon", "Sand Pond", False)
+    "Hooded Crow @ Oslo !away"          -> ("Hooded Crow", "Oslo", True)  (out-of-area)
+    """
+    away = False
+    if name.strip().endswith("!away"):
+        away = True
+        name = name.rsplit("!away", 1)[0]
     if "@" in name:
         sp, loc = name.split("@", 1)
-        return sp.strip(), loc.strip()
-    return name.strip(), ""
+        return sp.strip(), loc.strip(), away
+    return name.strip(), "", away
 
 
 def _exif_date(im, path):
@@ -90,7 +99,7 @@ def process(src_dir):
         folder = os.path.join(src_dir, entry_dir)
         if not os.path.isdir(folder):
             continue
-        species, location = _folder_caption(entry_dir)
+        species, location, away = _folder_caption(entry_dir)
         files = sorted(f for f in os.listdir(folder)
                        if os.path.splitext(f)[1].lower() in EXTS)
         if not files:
@@ -139,7 +148,10 @@ def process(src_dir):
         pretty = datetime.date.fromisoformat(date).strftime("%b %-d, %Y")
         n = len(images)
         cap_loc = " - %s" % location if location else ""
-        caption = "%s%s\n\n%s" % (species, cap_loc, pretty)
+        # A leading ⚠️ marks the whole post out-of-area (parsed + stripped by
+        # _caption_area_species, so the species name stays clean).
+        warn = "⚠️ " if away else ""
+        caption = "%s%s%s\n\n%s" % (warn, species, cap_loc, pretty)
         frame_cap = " · ".join([species] + ([location] if location else []) + [pretty])
         manual.append({
             "id": post_id,
