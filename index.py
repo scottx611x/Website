@@ -752,7 +752,8 @@ def birds_stats():
             heard.append({"name": disp, "fam": canon[1] if canon else "Other birds",
                           "n": s.get("count") or 0,
                           "img": (_stats_covers.get(disp) or [None])[0],
-                          "shot": disp in photographed})
+                          "shot": disp in photographed,
+                          "last": s.get("last") or "", "first": s.get("first") or ""})
         heard.sort(key=lambda x: (-x["n"], x["name"]))
 
         def _d(k):

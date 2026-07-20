@@ -678,20 +678,26 @@
      showing the run's best confidence; ×N expands the individual calls.
      The whole backlog scrolls; the hour strip narrows it to one hour. ---- */
   var expandedChains = {}, hourSel = -1;
+  // ONE row per species, not per contiguous run: a chatty cardinal + titmouse
+  // used to leapfrog each other down the feed and bury everything else. Each
+  // species now collapses to a single row (newest call up top, ×N expands the
+  // rest), and rows sort by each species' most-recent recording.
   function chainsOf(list) {
-    var out = [];
+    var by = {}, out = [];
     list.forEach(function (r) {
-      var last = out[out.length - 1];
-      if (last && last.display === r.display) last.calls.push(r);
-      else out.push({ display: r.display, fam: r.fam, photo: r.photo, calls: [r] });
+      var c = by[r.display];
+      if (!c) { c = by[r.display] = { display: r.display, fam: r.fam, photo: r.photo, calls: [] }; out.push(c); }
+      c.calls.push(r);
     });
     out.forEach(function (c) {
-      // the oldest call anchors the key: new calls prepend, the chain stays "the same"
-      c.key = slugify(c.display) + "|" + c.calls[c.calls.length - 1].t;
+      c.calls.sort(function (a, b) { return a.t < b.t ? 1 : a.t > b.t ? -1 : 0; }); // newest first
+      c.newest = c.calls[0].t;
+      c.key = slugify(c.display);  // stable across polls
       c.best = c.calls.reduce(function (a, x) { return x.conf > a.conf ? x : a; });
       c.bestPlay = c.calls.filter(function (x) { return x.audio; })
         .reduce(function (a, x) { return (!a || x.conf > a.conf) ? x : a; }, null);
     });
+    out.sort(function (a, b) { return a.newest < b.newest ? 1 : a.newest > b.newest ? -1 : 0; });
     return out;
   }
   function stripHTML(r) {
@@ -727,7 +733,7 @@
         '<span class="lv-av ' + (c.photo ? '' : 'miss') + '"' + (c.photo ? ' style="background-image:url(\'' + c.photo + '\')"' : '') + '></span>' +
         '<span class="rn"><a href="' + birdHref(c.display) + '">' + esc(c.display) + '</a></span>' +
         '<span class="rmeta">' +
-        (n > 1 ? '<button type="button" class="lv-xn" data-key="' + esc(c.key) + '" aria-expanded="' + (xd ? 'true' : 'false') + '" title="' + n + ' recordings in a row — tap for each one">&times;' + n + ' ' + (xd ? '&#9652;' : '&#9662;') + '</button>' : '') +
+        (n > 1 ? '<button type="button" class="lv-xn" data-key="' + esc(c.key) + '" aria-expanded="' + (xd ? 'true' : 'false') + '" title="' + n + ' recordings — tap for each one">&times;' + n + ' ' + (xd ? '&#9652;' : '&#9662;') + '</button>' : '') +
         '<span class="rt" data-t="' + esc(top.t) + '"></span>' +
         '<span class="rc"' + (n > 1 ? ' title="best of ' + n + ' recordings"' : '') + '>' + Math.round(c.best.conf * 100) + '%</span>' +
         '</span>' +

@@ -751,9 +751,21 @@ a.pheno-cell:hover, a.pheno-cell:focus-visible {
 @media (max-width: 760px) { .ear-grid { grid-template-columns: minmax(0, 1fr); } }
 .bird-avatar.ear-miss { display: flex; align-items: center; justify-content: center; font-size: 1rem; border: 1.5px dashed rgba(176, 125, 36, 0.6); }
 .bar-fill.ear { background: linear-gradient(90deg, #a9761f, var(--amber)); }
-.ear-more { font-size: 0.68rem; margin-top: 0.6rem; }
+.ear-main { min-width: 0; }
+.ear-controls { display: flex; flex-wrap: wrap; gap: 0.5rem 0.9rem; margin-bottom: 0.9rem; }
+.ear-seg { display: inline-flex; border: 1px solid rgba(13, 18, 14, 0.15); border-radius: 999px; overflow: hidden; }
+.ear-seg button { font: inherit; font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.03em; padding: 0.3rem 0.7rem; border: none; background: transparent; color: var(--muted); cursor: pointer; white-space: nowrap; }
+.ear-seg button + button { border-left: 1px solid rgba(13, 18, 14, 0.12); }
+.ear-seg button:hover { color: var(--ink); }
+.ear-seg button.on { background: var(--green); color: var(--paper); }
+#ear-bars .bar-row.rich { grid-template-columns: 2.3rem minmax(6rem, 1fr) auto 4rem 2.6rem; }
+#ear-bars .ear-last { font-size: 0.64rem; color: var(--muted); white-space: nowrap; text-align: right; }
+@media (max-width: 560px) { #ear-bars .ear-last { display: none; } }
+.ear-more { font-size: 0.68rem; margin-top: 0.7rem; min-height: 1rem; }
 .ear-more a { color: var(--green); text-decoration: none; }
 .ear-more a:hover { color: var(--neon); }
+.ear-toggle { font: inherit; font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.04em; border: none; background: transparent; color: var(--green); cursor: pointer; padding: 0.2rem 0; }
+.ear-toggle:hover { color: var(--neon); }
 .ear-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; }
 .ear-cards span { border: 1px solid rgba(13, 18, 14, 0.12); border-radius: 10px; padding: 0.55rem 0.7rem; font-size: 0.7rem; color: var(--muted); background: #fbf9f3; }
 .ear-cards b { display: block; font-family: var(--display); font-weight: 600; font-size: 1.35rem; letter-spacing: -0.02em; color: var(--ink); }

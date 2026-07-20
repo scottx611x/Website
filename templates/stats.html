@@ -111,27 +111,36 @@
             <h2>Heard from the yard</h2>
             <p class="stat-sub mono">the mic&rsquo;s side of the story{% if ear.since %}, listening since {{ ear.since }}{% endif %}. <a href="/birds/live">live &rarr;</a></p>
             <div class="ear-grid">
-                <div class="ear-bars">
+                <div class="ear-main">
+                    <div class="ear-controls mono">
+                        <div class="ear-seg ear-sort" role="group" aria-label="Sort">
+                            <button type="button" data-sort="count" class="on">most heard</button><button type="button" data-sort="recent">recently heard</button>
+                        </div>
+                        <div class="ear-seg ear-filter" role="group" aria-label="Filter">
+                            <button type="button" data-filt="all" class="on">all</button><button type="button" data-filt="shot">&#128247; photographed</button><button type="button" data-filt="ear">&#127911; not yet</button>
+                        </div>
+                    </div>
+                    <div class="ear-bars" id="ear-bars">
                     {% set emax = ear.heard[0].n or 1 %}
                     {% for h in ear.heard[:8] %}
                     <a class="bar-row rich" href="/birds/species/{{ h.name|slug }}">
                         {% if h.img %}<img class="bird-avatar" src="{{ h.img }}" alt="" loading="lazy" onerror="this.classList.add('missing')">
-                        {% else %}<span class="bird-avatar ear-miss" title="heard, never photographed">&#129718;</span>{% endif %}
-                        <span class="bar-label">{{ h.name }} <span class="bar-sub">{{ h.fam }}</span></span>
+                        {% else %}<span class="bird-avatar ear-miss" title="heard, not photographed">&#129718;</span>{% endif %}
+                        <span class="bar-label">{{ h.name }} <span class="bar-sub">{{ h.fam if h.shot else '🎧 not photographed' }}</span></span>
+                        <span class="ear-last mono"></span>
                         <span class="bar-track"><span class="bar-fill{{ ' ear' if not h.shot }}" style="width: {{ (h.n / emax * 100)|round(1) }}%"></span></span>
                         <span class="bar-val mono">{{ h.n }}&times;</span>
                     </a>
                     {% endfor %}
-                    {% if ear.heard|length > 8 %}
-                    <p class="ear-more mono"><a href="/birds/live/log">all {{ ear.heard|length }} species in the log &rarr;</a></p>
-                    {% endif %}
+                    </div>
+                    <p class="ear-more mono" id="ear-more"></p>
                 </div>
                 <div class="ear-side">
                     <div class="ear-cards mono">
                         <span><b>{{ "{:,}".format(ear.calls) }}</b> recordings logged</span>
                         <span><b>{{ ear.heard|length }}</b> species heard all&#8209;time</span>
                         <span><b>{{ ear.shot }}</b> also photographed</span>
-                        <span class="amber"><b>{{ ear.heard|length - ear.shot }}</b> ear&#8209;only</span>
+                        <span class="amber"><b>{{ ear.heard|length - ear.shot }}</b> heard, not photographed</span>
                     </div>
                     {% if ear.daily|length > 1 %}
                     <div class="ear-daily">
@@ -1309,6 +1318,82 @@
         });
     })();
 
+    // Interactive "Heard from the yard": the leaderboard re-sorts (most heard /
+    // recently heard), filters (all / photographed / not yet), shows last-heard
+    // times, and expands from top-8 to the full list — all client-side.
+    (function () {
+        var box = document.getElementById("ear-bars");
+        var moreEl = document.getElementById("ear-more");
+        var all = window.EAR_HEARD || [];
+        if (!box || !all.length) return;
+        var slugify = function (n) { return (n || "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, ""); };
+        var esc = function (s) { var d = document.createElement("i"); d.textContent = s == null ? "" : s; return d.innerHTML; };
+        function rel(iso) {
+            if (!iso) return "";
+            var s = (Date.now() - new Date(iso)) / 1000;
+            if (isNaN(s)) return "";
+            if (s < 3600) return Math.max(1, Math.floor(s / 60)) + "m ago";
+            if (s < 86400) return Math.floor(s / 3600) + "h ago";
+            var d = Math.floor(s / 86400);
+            return d < 30 ? d + "d ago" : Math.floor(d / 30) + "mo ago";
+        }
+        var sortBy = "count", filt = "all", expanded = false, CAP = 8, focusName = null;
+        function view() {
+            var v = all.filter(function (h) {
+                return filt === "all" || (filt === "shot" ? h.shot : !h.shot);
+            });
+            v.sort(sortBy === "recent"
+                ? function (a, b) { return (b.last || "") < (a.last || "") ? -1 : (b.last || "") > (a.last || "") ? 1 : 0; }
+                : function (a, b) { return b.n - a.n || (a.name < b.name ? -1 : 1); });
+            return v;
+        }
+        function render() {
+            var v = view(), max = v.reduce(function (m, h) { return Math.max(m, h.n); }, 1);
+            var shown = (expanded ? v : v.slice(0, CAP));
+            box.innerHTML = shown.map(function (h) {
+                var isF = focusName && h.name === focusName;
+                return '<a class="bar-row rich' + (isF ? ' stat-focus' : '') + '" href="/birds/species/' + slugify(h.name) + '">' +
+                    (h.img ? '<img class="bird-avatar" src="' + h.img + '" alt="" loading="lazy" onerror="this.classList.add(\'missing\')">'
+                           : '<span class="bird-avatar ear-miss" title="heard, not photographed">🪶</span>') +
+                    '<span class="bar-label">' + esc(h.name) +
+                        ' <span class="bar-sub">' + (h.shot ? esc(h.fam) : '🎧 not photographed') + '</span></span>' +
+                    '<span class="ear-last mono">' + rel(h.last) + '</span>' +
+                    '<span class="bar-track"><span class="bar-fill' + (h.shot ? '' : ' ear') + '" style="width:' + Math.max(2, Math.round(h.n / max * 100)) + '%"></span></span>' +
+                    '<span class="bar-val mono">' + h.n + '×</span></a>';
+            }).join("") || '<p class="ear-none mono">nothing matches this filter.</p>';
+            if (v.length > CAP) {
+                moreEl.hidden = false;
+                moreEl.innerHTML = '<button type="button" class="ear-toggle">' +
+                    (expanded ? '&#9652; show top ' + CAP : '&#9662; all ' + v.length + ' species') + '</button>';
+            } else { moreEl.hidden = true; }
+        }
+        box.parentElement.querySelector(".ear-sort").addEventListener("click", function (e) {
+            var b = e.target.closest("button"); if (!b) return;
+            sortBy = b.getAttribute("data-sort");
+            this.querySelectorAll("button").forEach(function (x) { x.classList.toggle("on", x === b); });
+            render();
+        });
+        box.parentElement.querySelector(".ear-filter").addEventListener("click", function (e) {
+            var b = e.target.closest("button"); if (!b) return;
+            filt = b.getAttribute("data-filt");
+            this.querySelectorAll("button").forEach(function (x) { x.classList.toggle("on", x === b); });
+            render();
+        });
+        moreEl.addEventListener("click", function (e) {
+            if (e.target.closest(".ear-toggle")) { expanded = !expanded; render(); }
+        });
+        // Focus hook for the deep-link (?bird=X): show + pulse that species.
+        window.__earFocus = function (name) {
+            if (!all.some(function (h) { return h.name === name; })) return false;
+            focusName = name; filt = "all"; expanded = true;
+            box.parentElement.querySelector('.ear-filter [data-filt="all"]').click();
+            render();
+            var el = box.querySelector(".stat-focus");
+            return el || true;
+        };
+        render();
+    })();
+
     // Deep-link focus: /birds/stats?bird=X (from a species profile) filters the
     // phenology matrix to that bird and pulses its leaderboard row.
     (function () {
@@ -1370,35 +1455,17 @@
                 }
             }
             if (row) row.classList.add("stat-focus");
-            // The mic's numbers: pulse the bird's heard-row, ghost it in when it
-            // sits below the top-8, or admit the mic hasn't caught it yet.
+            // The mic's numbers: hand off to the interactive widget, which shows
+            // + pulses the species (even below the top-8). Falls back to a note.
             var eb = document.getElementById("ear-block");
-            if (eb) {
-                var er = eb.querySelector('.bar-row[href$="/species/' + slug + '"]');
-                var bars = eb.querySelector(".ear-bars");
-                if (!er && bars) {
-                    var heard = window.EAR_HEARD || [], hi = -1;
-                    for (var j = 0; j < heard.length; j++) { if (heard[j].name === name) { hi = j; break; } }
-                    if (hi >= 0) {
-                        var h = heard[hi], hmax = (heard[0] && heard[0].n) || 1, hnm = name.replace(/[<&>]/g, "");
-                        er = document.createElement("a");
-                        er.className = "bar-row rich ghost";
-                        er.href = "/birds/species/" + slug;
-                        er.innerHTML =
-                            (h.img ? '<img class="bird-avatar" src="' + h.img + '" alt="" loading="lazy" onerror="this.classList.add(\'missing\')">'
-                                   : '<span class="bird-avatar ear-miss">🪶</span>') +
-                            '<span class="bar-label">' + hnm + ' <span class="bar-sub">#' + (hi + 1) + ' by ear</span></span>' +
-                            '<span class="bar-track"><span class="bar-fill' + (h.shot ? '' : ' ear') + '" style="width:' + Math.max(2, Math.round(h.n / hmax * 100)) + '%"></span></span>' +
-                            '<span class="bar-val mono">' + h.n + '×</span>';
-                        bars.appendChild(er);
-                    } else if (!eb.querySelector(".ear-none")) {
-                        var pn = document.createElement("p");
-                        pn.className = "ear-none mono";
-                        pn.textContent = "the mic hasn't caught this one yet.";
-                        bars.appendChild(pn);
-                    }
+            if (eb && window.__earFocus) {
+                var got = window.__earFocus(name);
+                if (!got && !eb.querySelector(".ear-none")) {
+                    var pn = document.createElement("p");
+                    pn.className = "ear-none mono";
+                    pn.textContent = "the mic hasn't caught this one yet.";
+                    eb.querySelector(".ear-bars").appendChild(pn);
                 }
-                if (er) er.classList.add("stat-focus");
             }
             // Land on the life list (the lifer view) if we could pin it there;
             // otherwise the phenology matrix we just filtered.
