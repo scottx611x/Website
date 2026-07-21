@@ -43,7 +43,7 @@
         <h1>Where the birds are</h1>
         <p class="stat-sub mono">{{ "{:,}".format(mapped) }} photos across {{ points|length }} places. Tap a pin.</p>
         {% endif %}
-        {% set subnav_active = 'map' %}{% include '_birds_nav.html' %}
+        {% set subnav_active = 'map' %}{% set nav_titled = true if (active_bird or active_family) else false %}{% include '_birds_nav.html' %}
     </header>
 
     <div class="map-toggle mono">

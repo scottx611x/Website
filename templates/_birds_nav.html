@@ -14,18 +14,28 @@
     <a href="/birds/map{{ bq }}" class="{{ 'on' if subnav_active == 'map' }}">&#128506;&#65039; Map</a>
 </nav>
 {# The chip appears on filtered views (query-param context), not on a species
-   profile — there the bird's name is already the headline. #}
-{% if request.args.get('bird') and nav_bird %}
+   profile — there the bird's name is already the headline. Pages whose TITLE
+   already names the context (focused stats/map) set nav_titled, and the chip
+   collapses to just the clear control; the gallery sets nav_chip=false because
+   it has its own richer filter chips. The name never shows twice. #}
+{% set nav_titled = nav_titled if nav_titled is defined else false %}
+{% set nav_chip = nav_chip if nav_chip is defined else true %}
+{% if not nav_chip %}
+{% elif request.args.get('bird') and nav_bird %}
 <p class="subnav-focus mono">
+    {% if not nav_titled %}
     <span class="sf-dot"></span>
     {% if ',' not in nav_bird %}<a class="sf-name" href="/birds/species/{{ nav_bird | slug }}" title="open the {{ nav_bird }} profile">{{ nav_bird }}</a>
     {% else %}<b class="sf-name">{{ nav_bird.replace(',', ' · ') }}</b>{% endif %}
+    {% elif ',' not in nav_bird %}<a class="sf-name" href="/birds/species/{{ nav_bird | slug }}">the profile &rarr;</a>{% endif %}
     <a class="sf-x" href="{{ request.path }}" aria-label="show every bird" title="show every bird">&times;</a>
 </p>
 {% elif request.args.get('family') and nav_family %}
 <p class="subnav-focus mono">
+    {% if not nav_titled %}
     <span class="sf-dot"></span>
     <b class="sf-name">{{ nav_family }}</b>
+    {% endif %}
     <a class="sf-x" href="{{ request.path }}" aria-label="show every family" title="show every family">&times;</a>
 </p>
 {% endif %}

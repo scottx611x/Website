@@ -10,7 +10,7 @@
 <section class="page wide">
     <header class="gallery-header">
         <h1>Birds of North Andover</h1>
-        {% set subnav_active = 'gallery' %}{% include '_birds_nav.html' %}
+        {% set subnav_active = 'gallery' %}{% set nav_chip = false %}{% include '_birds_nav.html' %}
         {% if species_groups %}
         <div class="bird-filter">
             <p class="bird-stat">

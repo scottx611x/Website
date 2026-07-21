@@ -11,7 +11,7 @@
         {# Focused, the title IS the context ("Osprey, by the numbers") — no
            more doubling the active "By the numbers" pill right below it. #}
         <h1>{{ (focus.bird or focus.family) ~ ', by the numbers' if focus else 'Birds, by the numbers' }}</h1>
-        {% set subnav_active = 'stats' %}{% include '_birds_nav.html' %}
+        {% set subnav_active = 'stats' %}{% set nav_titled = true if focus else false %}{% include '_birds_nav.html' %}
     </header>
 
     <div class="stat-cards">
