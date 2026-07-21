@@ -758,6 +758,9 @@
     feed.querySelectorAll(".lv-rowwrap.open").forEach(function (w) { open[w.getAttribute("data-audio")] = true; });
     if (current && !current.isHero && current.needle) needleAt = current.needle.style.left;
     var shown = list.filter(function (r) { return !isHeroRec(r); });
+    // Focus mode FILTERS the feed to the bird/family — a page of dimmed
+    // other-species rows read as broken, not focused.
+    if (focusSlug || focusFam) shown = shown.filter(matchesFocus);
     if (hourSel >= 0) {
       var todayKey = new Date().toDateString();
       shown = shown.filter(function (r) {
@@ -793,7 +796,11 @@
         }).join("") + '</div>';
       }
       return '<div class="lv-chain' + (xd ? ' x' : '') + '" data-key="' + esc(c.key) + '" data-fam="' + esc(c.fam || '') + '">' + main + sub + '</div>';
-    }).join("") || '<p class="lv-nofeed">nothing logged in this hour (yet)</p>';
+    }).join("") || ((focusSlug || focusFam)
+      ? '<p class="lv-nofeed">nothing else recent from ' + esc(focusName || focusFam) + ' — the hero above is the latest.' +
+        (focusName ? ' <a href="/birds/species/' + focusSlug + '">every recording &rarr;</a>' : '') +
+        ' <a href="/birds/live/log">browse by day &rarr;</a></p>'
+      : '<p class="lv-nofeed">nothing logged in this hour (yet)</p>');
     // Re-point the live needle at the rebuilt strip for whatever's playing.
     if (current && !current.isHero) {
       var w = feed.querySelector('.lv-rowwrap[data-audio="' + current.audio + '"]');
@@ -806,6 +813,7 @@
   function renderHourStrip() {
     var wrap = document.getElementById("lv-hstrip"), hours = LIVE.hours || [];
     var any = hours.some(function (n) { return n; });
+    if (focusSlug || focusFam) { wrap.hidden = true; return; }  // all-species hours are noise under focus
     wrap.hidden = !any;
     if (!any) { hourSel = -1; return; }
     var hm = Math.max.apply(null, hours);
@@ -1004,28 +1012,12 @@
           : c.getAttribute("data-fam") === focusFam);
       });
     }
-    var feed = document.getElementById("lv-feed");
-    if (feed) {
-      feed.classList.add("focusing");
-      feed.querySelectorAll(".lv-chain").forEach(function (w) {
-        var a = w.querySelector(".rn a");
-        w.classList.toggle("lv-match", focusSlug
-          ? (!!a && (a.getAttribute("href") || "").endsWith("/species/" + focusSlug))
-          : w.getAttribute("data-fam") === focusFam);
-      });
-    }
+    // (The feed itself is FILTERED to the focus in renderFeed — no dimming there.)
   }
 
   apply(LIVE, true);
-
-  if (focusName || focusFam) {
-    // (The shared subnav focus chip names + clears the context now.)
-    setTimeout(function () {
-      applyFocus();
-      var m = document.querySelector('#lv-wall .lv-chip.lv-match') || document.getElementById("lv-wall");
-      if (m) m.scrollIntoView({ behavior: "smooth", block: "center" });
-    }, 300);
-  }
+  // No auto-scroll in focus mode: the hero at the top IS the focused bird;
+  // yanking the page down to the wall on load read as broken.
 
   // ---- curate: suppress a false-positive species (dog read as a grouse) ----
   function suppressSpecies(name, on) {
