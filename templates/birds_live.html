@@ -733,6 +733,10 @@
       c.best = c.calls.reduce(function (a, x) { return x.conf > a.conf ? x : a; });
       c.bestPlay = c.calls.filter(function (x) { return x.audio; })
         .reduce(function (a, x) { return (!a || x.conf > a.conf) ? x : a; }, null);
+      // Favor recency: the row features the NEWEST playable clip (calls are
+      // newest-first), not the highest-confidence one — "just heard" should
+      // surface the most recent owl, not an earlier louder one.
+      c.recentPlay = c.calls.filter(function (x) { return x.audio; })[0] || null;
     });
     out.sort(function (a, b) { return a.newest < b.newest ? 1 : a.newest > b.newest ? -1 : 0; });
     return out;
@@ -762,7 +766,7 @@
       });
     }
     feed.innerHTML = chainsOf(shown).map(function (c, i) {
-      var n = c.calls.length, top = c.calls[0], bp = c.bestPlay;
+      var n = c.calls.length, top = c.calls[0], bp = c.recentPlay;
       var xd = n > 1 && expandedChains[c.key];
       var main =
         '<div class="lv-rowwrap' + (bp && open[bp.audio] ? ' open' : '') + '"' + (bp ? ' data-audio="' + esc(bp.audio) + '"' : '') + '>' +
@@ -772,10 +776,10 @@
         '<span class="rmeta">' +
         (n > 1 ? '<button type="button" class="lv-xn" data-key="' + esc(c.key) + '" aria-expanded="' + (xd ? 'true' : 'false') + '" title="' + n + ' recordings — tap for each one">&times;' + n + ' ' + (xd ? '&#9652;' : '&#9662;') + '</button>' : '') +
         '<span class="rt" data-t="' + esc(top.t) + '"></span>' +
-        '<span class="rc"' + (n > 1 ? ' title="best of ' + n + ' recordings"' : '') + '>' + Math.round(c.best.conf * 100) + '%</span>' +
+        '<span class="rc"' + (n > 1 ? ' title="most recent of ' + n + ' recordings"' : '') + '>' + Math.round((bp || top).conf * 100) + '%</span>' +
         (CURATE ? '<button type="button" class="lv-suppress" data-sp="' + esc(c.display) + '" title="Not a bird — suppress ' + esc(c.display) + ' from the mic">&#128683;</button>' : '') +
         '</span>' +
-        (bp ? '<button class="lv-rowplay" data-audio="' + esc(bp.audio) + '" aria-label="play the best recording">&#9654;</button>' : '') +
+        (bp ? '<button class="lv-rowplay" data-audio="' + esc(bp.audio) + '" aria-label="play the most recent recording">&#9654;</button>' : '') +
         '</div>' + (bp ? stripHTML(bp) : '') + '</div>';
       var sub = "";
       if (n > 1) {

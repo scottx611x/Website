@@ -65,7 +65,7 @@
       s.best = s.recs.reduce(function (a, x) { return x.e.conf > a.e.conf ? x : a; }, s.recs[0]);
       s.earliest = s.recs.reduce(function (m, x) { return x.e.t < m ? x.e.t : m; }, s.recs[0].e.t);
       s.recs.sort(sortMode === "chrono"
-        ? function (a, b) { return a.e.t < b.e.t ? -1 : a.e.t > b.e.t ? 1 : 0; }   // the day in order
+        ? function (a, b) { return a.e.t < b.e.t ? 1 : a.e.t > b.e.t ? -1 : 0; }   // newest first
         : function (a, b) { return b.e.conf - a.e.conf; });                        // highest confidence first
     });
     order.sort(sortMode === "chrono"
