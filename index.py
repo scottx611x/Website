@@ -658,7 +658,14 @@ def _live_view():
         view["daily"] = data.get("daily", [])
         view["hours"] = data.get("hours", [])
         view["recent"] = [enrich(r) for r in data.get("recent", [])]
-        view["species"] = sorted((enrich(s) for s in data.get("species", [])),
+        # Give each species its full photo pool (best-first, capped) so the "just
+        # heard" hero can pick a fresh portrait each page load instead of the one
+        # per-day cover — variety on refresh without flickering across polls.
+        def with_pool(s):
+            e = enrich(s)
+            e["photos"] = (covers.get(e["display"]) or [])[:12]
+            return e
+        view["species"] = sorted((with_pool(s) for s in data.get("species", [])),
                                  key=lambda s: s.get("last") or "", reverse=True)
         miss = [s for s in view["species"] if not s["shot"]]
         view["missing"] = miss

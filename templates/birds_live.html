@@ -699,12 +699,24 @@
   function confHTML(r) {
     return '<span class="lv-conf">conf <span class="lv-meter"><i style="width:' + Math.round(r.conf * 100) + '%"></i></span> ' + Math.round(r.conf * 100) + '%</span>';
   }
+  // The hero portrait draws a random shot from the species' pool, chosen once
+  // per species per page load — so a plain refresh brings a fresh photo, but the
+  // 60s polls don't swap it out from under you mid-listen.
+  var heroPicks = {};
+  function heroPhoto(r) {
+    var pool = null, sp = (LIVE.species || []);
+    for (var i = 0; i < sp.length; i++) { if (sp[i].display === r.display) { pool = sp[i].photos; break; } }
+    if (!pool || !pool.length) return r.photo || null;
+    if (!(r.display in heroPicks)) heroPicks[r.display] = pool[Math.floor(Math.random() * pool.length)];
+    return heroPicks[r.display];
+  }
   function renderHero(r) {
     var h = document.getElementById("lv-hero");
-    var tags = (r.photo ? '<span class="lv-tag">&#10003; in the gallery</span>' : '') +
+    var photo = heroPhoto(r);
+    var tags = (photo ? '<span class="lv-tag">&#10003; in the gallery</span>' : '') +
                (r.new ? '<span class="lv-tag new">first recording</span>' : '');
-    if (r.photo) {
-      h.innerHTML = '<div class="lv-portrait" style="background-image:url(\'' + r.photo + '\')"><div class="lv-body">' +
+    if (photo) {
+      h.innerHTML = '<div class="lv-portrait" style="background-image:url(\'' + photo + '\')"><div class="lv-body">' +
         '<div class="lv-when" data-t="' + esc(r.t) + '" data-lead="' + esc(r.fam) + '"></div>' +
         '<div class="lv-nm"><a href="' + birdHref(r.display) + '">' + esc(r.display) + '</a></div>' +
         '<div class="lv-meta">' + tags + confHTML(r) + '</div></div></div>';
