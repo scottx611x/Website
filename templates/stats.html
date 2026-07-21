@@ -22,14 +22,14 @@
         {% if focus.videos %}<a class="stat-card" href="/birds?{{ fq }}&media=video"><span class="stat-num">{{ focus.videos }}</span><span class="stat-lbl">{{ 'video' if focus.videos == 1 else 'videos' }}</span></a>{% endif %}
         {% if focus.active_months %}<a class="stat-card" href="#days"><span class="stat-num">{{ focus.active_months }}</span><span class="stat-lbl">{{ 'month photographed' if focus.active_months == 1 else 'months photographed' }}</span></a>{% endif %}
         {% if focus.places %}<a class="stat-card" href="/birds/map?{{ fq }}"><span class="stat-num">{{ focus.places }}</span><span class="stat-lbl">{{ 'place' if focus.places == 1 else 'places' }}</span></a>{% endif %}
-        {% if focus.away %}<a class="stat-card" href="/birds?{{ fq }}&area=elsewhere"><span class="stat-num">{{ focus.away }}</span><span class="stat-lbl">out-of-area</span></a>{% endif %}
+        {% if focus.away %}<a class="stat-card" href="/birds?{{ fq }}&area=elsewhere"><span class="stat-num">{{ focus.away }}</span><span class="stat-lbl">{{ 'photo taken elsewhere' if focus.away == 1 else 'photos taken elsewhere' }} &#9888;&#65039;</span></a>{% endif %}
         {% if focus.recordings %}<a class="stat-card" href="/birds/live?{{ fq }}"><span class="stat-num">{{ "{:,}".format(focus.recordings) }}</span><span class="stat-lbl">{{ 'recording heard' if focus.recordings == 1 else 'recordings heard' }}</span></a>{% endif %}
     {% else %}
         <a class="stat-card" href="/birds"><span class="stat-num">{{ stats.species }}</span><span class="stat-lbl">species</span></a>
         <a class="stat-card" href="/birds"><span class="stat-num">{{ "{:,}".format(stats.photos) }}</span><span class="stat-lbl">photos</span></a>
         {% if stats.videos %}<a class="stat-card" href="/birds?media=video"><span class="stat-num">{{ stats.videos }}</span><span class="stat-lbl">videos</span></a>{% endif %}
         <a class="stat-card" href="#days"><span class="stat-num">{{ span_months }}</span><span class="stat-lbl">months tracked</span></a>
-        <a class="stat-card" href="/birds?area=elsewhere"><span class="stat-num">{{ stats.away }}</span><span class="stat-lbl">out-of-area</span></a>
+        <a class="stat-card" href="/birds?area=elsewhere"><span class="stat-num">{{ stats.away }}</span><span class="stat-lbl">photos taken elsewhere &#9888;&#65039;</span></a>
         {% if ear %}
         <a class="stat-card" href="/birds/live/log"><span class="stat-num">{{ "{:,}".format(ear.calls) }}</span><span class="stat-lbl">recordings</span></a>
         <a class="stat-card" href="/birds/heard"><span class="stat-num">{{ ear.heard|length }}</span><span class="stat-lbl">species heard all-time</span></a>
