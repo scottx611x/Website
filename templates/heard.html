@@ -2,17 +2,7 @@
 
 {% block head %}
 <style>
-  .heard-hero{margin:1.4rem 0 1.8rem}
-  .heard-hero .hn{font-family:var(--display); font-size:clamp(2.6rem,9vw,4.2rem); line-height:.95; letter-spacing:-.03em; font-weight:600; color:var(--green)}
-  .heard-hero .hl{font-family:var(--display); font-size:clamp(1.1rem,3.4vw,1.5rem); margin-top:.2rem}
-  .heard-hero .hs{font-family:var(--mono); font-size:.8rem; color:var(--muted); margin-top:.5rem; max-width:40rem}
-  .heard-hero .hs a{color:var(--green)}
-
-  .heard-trio{display:grid; grid-template-columns:repeat(3,1fr); gap:.8rem; margin-bottom:1.6rem}
-  .heard-stat{border:1px solid rgba(13,18,14,.12); border-radius:12px; padding:.9rem 1.1rem; background:#fbf9f3}
-  .heard-stat .big{font-family:var(--display); font-size:2.1rem; line-height:1; letter-spacing:-.03em; font-weight:600}
-  .heard-stat.accent .big{color:var(--green)} .heard-stat.amber .big{color:#a9761f}
-  .heard-stat .l{color:var(--muted); font-size:.78rem; margin-top:.3rem}
+  .stat-cards{margin-bottom:1.6rem}
 
   .heard-controls{display:flex; flex-wrap:wrap; gap:.9rem; align-items:center; margin-bottom:1.2rem}
   .heard-seg{display:inline-flex; border:1px solid rgba(13,18,14,.18); border-radius:999px; overflow:hidden}
@@ -45,19 +35,16 @@
     <header class="gallery-header">
         <h1>Heard from the yard</h1>
         {% set subnav_active = 'live' %}{% include '_birds_nav.html' %}
+        {% if has_data %}
+        <p class="stat-sub mono">Every bird a mic on the porch has picked out{% if since %}, listening since {{ since }}{% endif %}. Auto&#8209;identified by <a href="https://birdnet.cornell.edu/" rel="noopener">BirdNET</a>, nothing hand&#8209;verified. <a href="/birds/live">the live feed &rarr;</a></p>
+        {% endif %}
     </header>
 
     {% if has_data %}
-    <div class="heard-hero">
-        <div class="hn">{{ sound.hv.heard }}</div>
-        <div class="hl">species heard, all&#8209;time</div>
-        <p class="hs">Every bird a mic on the porch has picked out{% if since %}, listening since {{ since }}{% endif %}. Auto&#8209;identified by <a href="https://birdnet.cornell.edu/" rel="noopener">BirdNET</a> — confidence shown, nothing hand&#8209;verified. <a href="/birds/live">the live feed &rarr;</a></p>
-    </div>
-
-    <div class="heard-trio">
-        <div class="heard-stat accent"><div class="big">{{ sound.hv.heard }}</div><div class="l">species heard</div></div>
-        <div class="heard-stat"><div class="big">{{ sound.hv.shot }}</div><div class="l">also in the gallery</div></div>
-        <div class="heard-stat amber"><div class="big">{{ sound.hv.miss }}</div><div class="l">heard, never photographed</div></div>
+    <div class="stat-cards">
+        <div class="stat-card"><span class="stat-num">{{ sound.hv.heard }}</span><span class="stat-lbl">species heard</span></div>
+        <div class="stat-card"><span class="stat-num">{{ sound.hv.shot }}</span><span class="stat-lbl">also in the gallery</span></div>
+        <div class="stat-card"><span class="stat-num amber">{{ sound.hv.miss }}</span><span class="stat-lbl">not photographed</span></div>
     </div>
 
     <div class="heard-controls mono">

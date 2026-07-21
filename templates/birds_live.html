@@ -164,17 +164,6 @@
   .lv-rowwrap.open .lv-rowspec{display:block}
   .lv-rowwrap.playing .lv-needle{opacity:1}
 
-  .lv-trio{display:grid; grid-template-columns:repeat(3,1fr); gap:.8rem; margin-bottom:1.2rem}
-  @media(max-width:560px){
-    .lv-trio{gap:.5rem}
-    .lv-stat{padding:.7rem .6rem; text-align:center}
-    .lv-stat .big{font-size:1.5rem}
-    .lv-stat .l{font-size:.62rem}
-  }
-  .lv-stat{border:1px solid rgba(13,18,14,.12); border-radius:12px; padding:.9rem 1.1rem; background:#fbf9f3}
-  .lv-stat .big{font-family:var(--display); font-size:2.1rem; line-height:1; letter-spacing:-.03em; font-weight:600}
-  .lv-stat.accent .big{color:var(--green)} .lv-stat.amber .big{color:#a9761f}
-  .lv-stat .l{color:var(--muted); font-size:.78rem; margin-top:.3rem}
   .lv-wall{display:grid; grid-template-columns:repeat(auto-fill,minmax(92px,1fr)); gap:.55rem}
   .lv-chip{position:relative; aspect-ratio:1/1; border-radius:10px; overflow:hidden; background-size:cover; background-position:center; border:1px solid rgba(13,18,14,.12); text-decoration:none}
   .lv-chip .cl{position:absolute;left:0;right:0;bottom:0;font-size:.6rem;line-height:1.1;padding:.5rem .3rem .3rem;background:linear-gradient(transparent,rgba(6,10,7,.9));color:var(--paper)}
@@ -341,10 +330,10 @@
     {# HEARD VS PHOTOGRAPHED #}
     <section>
       <p class="lv-kick">Heard vs shot</p>
-      <div class="lv-trio">
-        <div class="lv-stat accent"><div class="big">{{ sound.hv.heard }}</div><div class="l">species heard</div></div>
-        <div class="lv-stat"><div class="big">{{ sound.hv.shot }}</div><div class="l">also in the gallery</div></div>
-        <div class="lv-stat amber"><div class="big">{{ sound.hv.miss }}</div><div class="l">heard, never photographed</div></div>
+      <div class="stat-cards">
+        <div class="stat-card"><span class="stat-num">{{ sound.hv.heard }}</span><span class="stat-lbl">species heard</span></div>
+        <div class="stat-card"><span class="stat-num">{{ sound.hv.shot }}</span><span class="stat-lbl">also in the gallery</span></div>
+        <div class="stat-card"><span class="stat-num amber">{{ sound.hv.miss }}</span><span class="stat-lbl">not photographed</span></div>
       </div>
       <div class="lv-wall" id="lv-wall">
         {% for s in sound.species %}
