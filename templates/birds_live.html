@@ -16,10 +16,12 @@
   .lv-now{display:grid; grid-template-columns:minmax(0,1.45fr) minmax(0,1fr); gap:1.2rem; align-items:start}
   .lv-now > *{min-width:0}
   @media(max-width:860px){.lv-now{grid-template-columns:minmax(0,1fr)}}
-  .lv-portrait{position:relative; aspect-ratio:3/2; border-radius:16px; overflow:hidden; border:1px solid rgba(13,18,14,.12); background-size:cover; background-position:center; box-shadow:0 10px 30px -18px rgba(13,18,14,.45)}
-  .lv-portrait::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 30%,rgba(6,10,7,.55) 62%,rgba(6,10,7,.94))}
+  /* One "just heard" object: the bird's portrait and its actual voice, one card. */
+  .lv-herocard{position:relative; border-radius:16px; overflow:hidden; border:1px solid rgba(13,18,14,.12); background:var(--ink); box-shadow:0 14px 38px -20px rgba(13,18,14,.55)}
+  .lv-portrait{position:relative; aspect-ratio:3/2; overflow:hidden; background-size:cover; background-position:center}
+  .lv-portrait::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 24%,rgba(6,10,7,.5) 58%,rgba(6,10,7,.92))}
   .lv-portrait .lv-body{text-shadow:0 1px 10px rgba(6,10,7,.65)}
-  .lv-ghostcard{position:relative; aspect-ratio:3/2; border-radius:16px; border:1.5px dashed rgba(176,125,36,.55); background:var(--paper-2); display:flex; align-items:flex-end}
+  .lv-ghostcard{position:relative; aspect-ratio:3/2; background:var(--paper-2); display:flex; align-items:flex-end}
   .lv-ghostcard .feather{position:absolute;inset:0;background:no-repeat center 38%/30%;opacity:.2}
   .lv-body{position:absolute; z-index:2; left:0; right:0; bottom:0; padding:1rem 1.2rem}
   .lv-portrait .lv-body,.lv-portrait .lv-body a{color:var(--paper)}
@@ -39,7 +41,9 @@
   .lv-meter>i{display:block;height:100%;background:linear-gradient(90deg,var(--green),var(--neon))}
 
   /* The sound itself: BirdNET's real spectrogram as the scrubber. */
-  .lv-player{border:1px solid rgba(13,18,14,.12); border-radius:14px; background:#fbf9f3; overflow:hidden}
+  /* The voice: integrated as a band under the portrait, not a separate card. */
+  .lv-player{position:relative; border:none; border-radius:0; background:var(--ink); overflow:hidden}
+  .lv-player::before{content:"";position:absolute;top:0;left:0;right:0;height:1px;z-index:5;background:linear-gradient(90deg,transparent,rgba(56,224,138,.65),transparent)}
   .lv-spec{position:relative; cursor:pointer; background:var(--ink); min-height:74px}
   /* fill, not cover: the strip is a scrubber, so the whole call must be on
      screen — cropping the time axis makes the needle and seek positions lie. */
@@ -88,13 +92,15 @@
   .lv-ztxt .sub{display:block; font-family:var(--mono); font-size:.66rem; color:rgba(244,241,233,.6); letter-spacing:.04em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
   .lv-ztime{font-family:var(--mono); font-size:.72rem; color:var(--neon)}
   .lv-player.playing .lv-needle{opacity:1}
-  .lv-pctl{display:flex; align-items:center; gap:.7rem; padding:.55rem .8rem}
-  .lv-playbtn{flex:0 0 auto; width:38px;height:38px;border-radius:50%;border:none;background:var(--ink);color:var(--neon);font-size:.9rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:transform .12s}
-  .lv-playbtn:hover{transform:scale(1.07)}
-  .lv-ptxt{flex:1; min-width:0}
+  /* Controls float on the voiceprint; the play button is the focal "listen". */
+  .lv-pctl{position:absolute; z-index:6; left:0; right:0; bottom:0; display:flex; align-items:center; gap:.7rem; padding:.6rem .85rem; background:linear-gradient(transparent,rgba(6,10,7,.6)); pointer-events:none}
+  .lv-pctl>*{pointer-events:auto}
+  .lv-playbtn{flex:0 0 auto; width:48px;height:48px;border-radius:50%;border:none;background:var(--neon);color:var(--ink);font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:transform .12s;box-shadow:0 4px 18px rgba(56,224,138,.5)}
+  .lv-playbtn:hover{transform:scale(1.08)}
+  .lv-ptxt{display:none}
   .lv-pname{font-family:var(--display); font-size:1rem; line-height:1.15; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
   .lv-psub{font-family:var(--mono); font-size:.68rem; color:var(--muted)}
-  .lv-ptime{font-family:var(--mono); font-size:.7rem; color:var(--green)}
+  .lv-ptime{margin-left:auto; font-family:var(--mono); font-size:.74rem; color:var(--neon); text-shadow:0 1px 6px rgba(6,10,7,.8)}
   .no-media .lv-player{display:none}
   .no-media .lv-rowplay{display:none}
 
@@ -258,6 +264,7 @@
     <section>
       <p class="lv-kick">Just heard</p>
       <div class="lv-now">
+        <div class="lv-herocard">
         <div id="lv-hero">
           {% if r0.photo %}
           <div class="lv-portrait" style="background-image:url('{{ r0.photo }}')">
@@ -286,7 +293,6 @@
           {% endif %}
         </div>
 
-        <div>
           <div class="lv-player" id="lv-player" hidden>
             <div class="lv-spec" id="lv-spec" title="the recording, as a spectrogram — click to seek">
               <img id="lv-specimg" alt="spectrogram of the recording">
@@ -306,6 +312,8 @@
               <span class="lv-ptime" id="lv-ptime">0:00</span>
             </div>
           </div>
+        </div>
+        <div class="lv-side">
           <div id="lv-hstrip" hidden>
             <p class="lv-hkick mono">today by hour &middot; tap a bar to filter the feed</p>
             <div class="lv-hbars" id="lv-hbars"></div>
