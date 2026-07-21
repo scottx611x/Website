@@ -11,6 +11,7 @@
   var prevEl = document.getElementById("dl-prev");
   var nextEl = document.getElementById("dl-next");
   var searchEl = document.getElementById("dl-search");
+  var sortEl = document.getElementById("dl-sort");
 
   var DAYNAMES = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
   var MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -45,6 +46,10 @@
   days.sort(); days.reverse();                 // newest first
   var cur = 0;                                 // index into days
   dateEl.min = days[days.length - 1]; dateEl.max = days[0];
+  // Order the day: "most heard" (by activity) or "chronological" (as it unfolded).
+  // The choice sticks, so a preferred order becomes the default on the next visit.
+  var sortMode = "active";
+  try { sortMode = localStorage.getItem("dl-sort") || "active"; } catch (_) {}
 
   // Consolidate a day's detections into one entry per species.
   function speciesOf(recs) {
@@ -55,11 +60,17 @@
       by[k].recs.push(r);
     });
     order.forEach(function (s) {
-      s.recs.sort(function (a, b) { return b.e.conf - a.e.conf; });   // highest confidence first
       s.count = s.recs.length;
-      s.best = s.recs[0];
+      // The collapsed row always shows the clearest clip + its confidence.
+      s.best = s.recs.reduce(function (a, x) { return x.e.conf > a.e.conf ? x : a; }, s.recs[0]);
+      s.earliest = s.recs.reduce(function (m, x) { return x.e.t < m ? x.e.t : m; }, s.recs[0].e.t);
+      s.recs.sort(sortMode === "chrono"
+        ? function (a, b) { return a.e.t < b.e.t ? -1 : a.e.t > b.e.t ? 1 : 0; }   // the day in order
+        : function (a, b) { return b.e.conf - a.e.conf; });                        // highest confidence first
     });
-    order.sort(function (a, b) { return b.count - a.count || (a.name < b.name ? -1 : 1); });
+    order.sort(sortMode === "chrono"
+      ? function (a, b) { return a.earliest < b.earliest ? -1 : a.earliest > b.earliest ? 1 : 0; }  // by first heard
+      : function (a, b) { return b.count - a.count || (a.name < b.name ? -1 : 1); });
     return order;
   }
 
@@ -154,6 +165,20 @@
     }
   });
   var st; searchEl.addEventListener("input", function () { clearTimeout(st); st = setTimeout(render, 120); });
+  // Order toggle: most-heard vs chronological; the pick is remembered.
+  function syncSort() {
+    if (!sortEl) return;
+    sortEl.querySelectorAll("button").forEach(function (b) {
+      b.classList.toggle("on", b.getAttribute("data-dlsort") === sortMode);
+    });
+  }
+  if (sortEl) sortEl.addEventListener("click", function (ev) {
+    var b = ev.target.closest("button"); if (!b) return;
+    sortMode = b.getAttribute("data-dlsort");
+    try { localStorage.setItem("dl-sort", sortMode); } catch (_) {}
+    syncSort(); render();
+  });
+  syncSort();
   document.addEventListener("keydown", function (e) {
     if (e.target === searchEl || (e.target.tagName === "INPUT")) return;
     if (e.key === "ArrowLeft" && cur < days.length - 1) { cur++; render(); }

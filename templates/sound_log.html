@@ -22,6 +22,11 @@
   .dl-jump input{font-family:var(--mono); font-size:.74rem; color:var(--ink); background:var(--paper); border:1px solid rgba(13,18,14,.18); border-radius:999px; padding:.3rem .6rem; color-scheme:light}
 
   .dl-search{display:block; margin:1.4rem auto .2rem; font-family:var(--mono); font-size:.82rem; color:var(--ink); background:var(--paper); border:1px solid rgba(13,18,14,.18); border-radius:999px; padding:.5rem 1.1rem; min-width:min(16rem,80vw); -webkit-appearance:none; appearance:none}
+  .dl-sort{display:flex; justify-content:center; margin:.8rem auto 0}
+  .dl-sort{border:1px solid rgba(13,18,14,.18); border-radius:999px; overflow:hidden; width:max-content}
+  .dl-sort button{font-family:var(--mono); font-size:.68rem; letter-spacing:.03em; padding:.35rem .9rem; border:none; background:transparent; color:var(--ink); cursor:pointer}
+  .dl-sort button+button{border-left:1px solid rgba(13,18,14,.12)}
+  .dl-sort button.on{background:var(--green); color:#fff}
 
   /* Species-of-the-day rows (one row per species, expandable to its recordings). */
   .dl-splist{margin-top:1.4rem}
@@ -99,6 +104,10 @@
   </div>
 
   <input class="dl-search mono" id="dl-search" type="search" placeholder="filter this day's species…" aria-label="Filter species">
+
+  <div class="dl-sort" id="dl-sort" role="group" aria-label="Order the day">
+    <button type="button" data-dlsort="active">most heard</button><button type="button" data-dlsort="chrono">chronological</button>
+  </div>
 
   <div class="dl-splist" id="dl-list"></div>
 
