@@ -299,8 +299,9 @@ def build(s3=None):
     first_by_sp = {}
     for s in species:
         fh = (s.get("first_heard") or "")[:10]
-        if fh:
-            first_by_sp[s["common_name"]] = fh
+        cn = s.get("common_name")
+        if fh and cn:
+            first_by_sp[cn] = fh
     days = sorted(per_day)[-DAILY_DAYS:]
     seen, daily = set(), []
     for day in days:
@@ -309,11 +310,14 @@ def build(s3=None):
                 seen.add(sp)
         daily.append({"d": day, "n": per_day[day], "cum": len(seen), "sp": day_sp[day]})
 
+    # BirdNET-Go's summary can carry an entry with no species_code (an unmapped /
+    # non-bird class) — read every field with .get() so one odd row can't crash
+    # the whole export (it did: KeyError froze the live feed until patched).
     sp_out = [{
-        "common": s["common_name"], "sci": s["scientific_name"], "code": s["species_code"],
-        "count": s["count"], "first": s["first_heard"], "last": s["last_heard"],
+        "common": s.get("common_name"), "sci": s.get("scientific_name"), "code": s.get("species_code"),
+        "count": s.get("count") or 0, "first": s.get("first_heard"), "last": s.get("last_heard"),
         "maxConf": round(s.get("max_confidence", 0), 3),
-    } for s in species]
+    } for s in species if s.get("common_name")]
 
     today_sp = sorted(day_sp.get(today, {}))
 
