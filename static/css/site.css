@@ -591,6 +591,9 @@ a.stat-card:hover { border-color: var(--green); }
 .river-stage { position: relative; margin-top: 0.6rem;
     -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent; }
 .river-stage #river-chart { width: 100%; }
+.river-span { font-family: var(--mono); font-size: 0.74rem; color: var(--muted); background: transparent;
+    border: none; cursor: pointer; white-space: nowrap; padding: 0; }
+.river-span:hover { color: var(--green); }
 .river-readout, .river-hint { -webkit-tap-highlight-color: transparent; }
 .river-band { transition: opacity 0.14s ease; }
 .river-season-lab { font-family: var(--mono); font-size: 10px; letter-spacing: 0.14em;

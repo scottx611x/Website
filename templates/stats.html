@@ -194,7 +194,10 @@
 
         <!-- The river: touch a species' current, meet the bird -->
         <div class="stat-block stat-span-2 river-block">
-            <h2>The river</h2>
+            <div class="sp-sec-h" style="margin-bottom:.4rem">
+                <h2>The river</h2>
+                <button type="button" id="river-span" class="river-span mono">full history &rarr;</button>
+            </div>
             <p class="stat-sub mono">every species I&rsquo;ve photographed, flowing through the seasons.</p>
             <div class="river-stage">
                 <div id="river-chart" class="d3-chart" tabindex="0" role="application"
@@ -210,6 +213,8 @@
     (function () {
         var S = {{ series|tojson }};
         var RIVER = {{ river|tojson }};
+        var RIVER_WIN = "year";           // default view: last ~13 months; toggle to "all"
+        var RIVER_YEARN = 13;
         window.SPECIES_PLACES = {{ species_places|tojson }};  // read by the deep-link focus (outside this IIFE)
         window.SPECIES_RANKED = {{ species_ranked|tojson }};  // [name, count] all species, for the leaderboard ghost
         window.EAR_HEARD = {{ (ear.heard if ear else [])|tojson }};  // every species the mic has heard, for the ear-block ghost
@@ -853,8 +858,23 @@
             // Every species flows — even the hair-thin ones. Selection is by exact
             // fill hit-test (isPointInFill), so the thinnest slice is still
             // catchable, and the chosen current is outlined to make it pop.
-            var S2 = RIVER.series;
-            var months = RIVER.months, N = months.length;
+            // Default to the last ~year so the currents are readable; the toggle
+            // opens the full multi-year window (species with no activity in the
+            // window are dropped so the stack isn't padded with dead bands).
+            var S2 = RIVER.series, months = RIVER.months;
+            if (RIVER_WIN === "year" && months.length > RIVER_YEARN) {
+                var start = months.length - RIVER_YEARN;
+                months = months.slice(start);
+                S2 = RIVER.series
+                    .map(function (s) {
+                        var vals = s.values.slice(start);
+                        return vals.some(function (v) { return v; })
+                            ? Object.assign({}, s, { values: vals }) : null;
+                    })
+                    .filter(Boolean);
+            }
+            var N = months.length;
+            if (!S2.length) { S2 = RIVER.series; months = RIVER.months; N = months.length; }
             var H = narrow ? 400 : 460, m = { t: 30, r: 8, b: 40, l: 8 };
             var rows = months.map(function (mo, i) {
                 var row = {}; S2.forEach(function (s) { row[s.name] = s.values[i]; }); return row;
@@ -1256,6 +1276,18 @@
         }
 
         renderRiver();
+        // River time-span toggle: past year <-> full history.
+        (function () {
+            var btn = document.getElementById("river-span");
+            if (!btn) return;
+            if (RIVER.months.length <= RIVER_YEARN) { btn.hidden = true; return; }
+            btn.addEventListener("click", function () {
+                RIVER_WIN = RIVER_WIN === "year" ? "all" : "year";
+                btn.innerHTML = RIVER_WIN === "year" ? "full history &rarr;" : "&larr; past year";
+                renderRiver();
+                if (window.__statsRefocus) window.__statsRefocus();
+            });
+        })();
         renderAccum();
         renderPheno();
         renderCal();
