@@ -1553,12 +1553,7 @@
         if (!m) return;
         var name = decodeURIComponent(m[1].replace(/\+/g, " "));
         var slug = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
-        // A banner names the focus and clears it (a fresh load resets every chart).
-        var bar = document.createElement("div");
-        bar.className = "stat-focusbar mono";
-        bar.innerHTML = '📊 focused on <b>' + name.replace(/[<&]/g, "") + '</b> &middot; <a href="/birds/stats">show everything</a>';
-        var hdr = document.querySelector(".stats .gallery-header") || document.querySelector(".gallery-header");
-        if (hdr) hdr.appendChild(bar);
+        // (The shared subnav focus chip names + clears the context now.)
 
         function runFocus() {
             var onLifeList = window.lvFocusLifer && window.lvFocusLifer(name);

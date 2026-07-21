@@ -119,7 +119,7 @@
   .lv-nofeed{font-size:.78rem; color:var(--muted); padding:1rem 0}
 
   /* The feed scrolls the whole backlog; a bottom fade hints there's more. */
-  .lv-feed{margin-top:.9rem; max-height:min(52vh,430px); overflow-y:auto; overscroll-behavior:contain; scrollbar-width:thin; scrollbar-color:rgba(13,18,14,.25) transparent; padding-right:.3rem}
+  .lv-feed{margin-top:.9rem; max-height:min(52vh,430px); overflow-y:auto; scrollbar-width:thin; scrollbar-color:rgba(13,18,14,.25) transparent; padding-right:.3rem} /* no overscroll-behavior:contain — reaching the list's end must hand the scroll back to the page */
   .lv-feed.scrolly{-webkit-mask-image:linear-gradient(180deg,#000 calc(100% - 30px),transparent); mask-image:linear-gradient(180deg,#000 calc(100% - 30px),transparent)}
   .lv-chain{border-top:1px solid rgba(13,18,14,.09)}
   .lv-chain:first-child{border-top:none}
@@ -1006,11 +1006,7 @@
   apply(LIVE, true);
 
   if (focusName) {
-    var bar = document.createElement("div");
-    bar.className = "lv-focusbar";
-    bar.innerHTML = '🔴 focused on <b>' + esc(focusName) + '</b> &middot; <a href="/birds/live">show everything</a>';
-    var hdr = root.querySelector(".gallery-header");
-    if (hdr) hdr.appendChild(bar);
+    // (The shared subnav focus chip names + clears the context now.)
     setTimeout(function () {
       applyFocus();
       var m = document.querySelector('#lv-wall .lv-chip.lv-match') || document.getElementById("lv-wall");

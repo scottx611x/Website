@@ -5,6 +5,8 @@
 {% block content %}
 <style>
   .sppage .sp-eyebrow{font-family:var(--mono); font-size:.72rem; letter-spacing:.15em; text-transform:uppercase; color:var(--green); margin:0 0 .3rem}
+  .sppage .sp-eyebrow a{color:inherit; text-decoration:none; border-bottom:1px dotted rgba(47,125,79,.5)}
+  .sppage .sp-eyebrow a:hover{border-bottom-style:solid}
   .sppage h1{margin-bottom:.7rem}
   /* A tappable STAT line, deliberately unlike the pill subnav above it (no
      borders, number-forward, muted labels) so the two rows don't read alike. */
@@ -107,9 +109,9 @@
 
 <section class="page wide sppage">
     <header class="gallery-header">
-        <p class="sp-eyebrow">{{ sp.family }}{% if sp.rank %} &middot; #{{ sp.rank }} lifer of {{ sp.total_lifers }}{% endif %}</p>
+        <p class="sp-eyebrow"><a href="/birds?family={{ sp.family|urlencode }}" title="every {{ sp.family }} in the gallery">{{ sp.family }}</a>{% if sp.rank %} &middot; #{{ sp.rank }} lifer of {{ sp.total_lifers }}{% endif %}</p>
         <h1>{{ sp.name }}</h1>
-        {% set subnav_active = 'gallery' %}{% include '_birds_nav.html' %}
+        {% set subnav_active = 'gallery' %}{% set nav_bird = sp.name %}{% include '_birds_nav.html' %}
         <div class="sp-chips">
             {% if sp.count %}<a class="sp-chip" href="/birds?bird={{ sp.name|urlencode }}">&#128247; <b>{{ sp.count }}</b> photo{{ '' if sp.count == 1 else 's' }}</a>{% endif %}
             {% if sp.rank %}<a class="sp-chip" href="/birds/stats?bird={{ sp.name|urlencode }}">&#128202; <b>#{{ sp.rank }}</b> lifer</a>{% endif %}

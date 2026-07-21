@@ -576,8 +576,11 @@ def images_filtered(shots, bird=None, family=None, area=None, ooa_only=(), media
             if month_key and month_key not in (frame.get("_sort") or ""):
                 continue
             if has_area:
-                is_elsewhere = all(nm in ooa_lower for nm in names)
-                if is_elsewhere != want_elsewhere:
+                # Per-FRAME area: "North Andover" means photos taken locally,
+                # not "species that occur locally" — a travel shot of a local
+                # species must not leak into the local view (and vice versa).
+                frame_away = (frame.get("image_areas") or ["local"])[0] == "away"
+                if frame_away != want_elsewhere:
                     continue
             if want_video and not frame["image_videos"][0]:
                 continue
@@ -610,6 +613,7 @@ def media_counts(shots, bird=None, family=None, area=None, ooa_only=(), month=No
                 continue
         isp = shot.get("image_species") or []
         vids = shot.get("image_videos") or []
+        areas = shot.get("image_areas") or []
         for i in range(len(shot.get("images") or [])):
             raw = isp[i] if i < len(isp) and isp[i] else shot.get("species")
             canons = _canon_species_list(raw)
@@ -620,8 +624,10 @@ def media_counts(shots, bird=None, family=None, area=None, ooa_only=(), month=No
                 continue
             if fam and not any(c[1] == fam for c in canons):
                 continue
-            if has_area and (all(n in ooa_lower for n in names) != want_elsewhere):
-                continue
+            if has_area:  # per-frame, matching images_filtered
+                frame_away = (areas[i] if i < len(areas) else "local") == "away"
+                if frame_away != want_elsewhere:
+                    continue
             if i < len(vids) and vids[i]:
                 videos += 1
             else:
