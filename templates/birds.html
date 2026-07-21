@@ -14,7 +14,7 @@
         {% if species_groups %}
         <div class="bird-filter">
             <p class="bird-stat">
-                <a href="/birds?area=local" class="bird-stat-link{% if active_area == 'local' %} is-active{% endif %}" onclick="return birdsGo(event,{area:'local'})"><strong>{{ local_count }}</strong> species here</a>{% if away_count %} &middot; <a href="/birds?area=elsewhere" class="bird-stat-link bird-stat-away{% if active_area == 'elsewhere' %} is-active{% endif %}" onclick="return birdsGo(event,{area:'elsewhere'})">{{ away_count }} spotted elsewhere&nbsp;&#9888;&#65039;</a>{% endif %}
+                <a href="/birds?area=local" class="bird-stat-link{% if active_area == 'local' %} is-active{% endif %}" onclick="return birdsGo(event,{area:'local'})"><strong>{{ local_count }}</strong> species here</a>{% if away_count %} &middot; <a href="/birds?area=elsewhere" class="bird-stat-link bird-stat-away{% if active_area == 'elsewhere' %} is-active{% endif %}" onclick="return birdsGo(event,{area:'elsewhere'})">{{ away_count }} outside North Andover&nbsp;&#9888;&#65039;</a>{% endif %}
             </p>
             <div class="filter-controls">
                 <div class="filter-search">
