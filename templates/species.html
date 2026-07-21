@@ -35,6 +35,10 @@
   .sp-ptxt{flex:1; min-width:0; color:var(--paper)}
   .sp-ptxt b{display:block; font-family:var(--mono); font-size:.7rem; letter-spacing:.1em; text-transform:uppercase; color:var(--neon)}
   .sp-ptxt span{font-family:var(--mono); font-size:.68rem; color:rgba(244,241,233,.7)}
+  .sp-toggle{flex:0 0 auto; display:inline-flex; border:1px solid rgba(244,241,233,.28); border-radius:999px; overflow:hidden}
+  .sp-toggle button{font-family:var(--mono); font-size:.6rem; letter-spacing:.05em; text-transform:uppercase; padding:.28rem .6rem; border:none; background:transparent; color:rgba(244,241,233,.7); cursor:pointer}
+  .sp-toggle button+button{border-left:1px solid rgba(244,241,233,.18)}
+  .sp-toggle button.on{background:var(--neon); color:var(--ink)}
   .sp-expand{position:absolute; top:.5rem; right:.5rem; z-index:3; width:30px; height:30px; border-radius:50%; border:none; background:rgba(6,10,7,.6); color:var(--neon); font-size:.8rem; cursor:pointer; display:flex; align-items:center; justify-content:center}
   .sp-expand:hover{background:rgba(6,10,7,.9)}
   /* Full-screen call viewer, same idiom as the live page. */
@@ -152,9 +156,15 @@
                 <div class="sp-pbar">
                     {% if sp.recent_call.audio %}<button type="button" class="sp-play" id="sp-play" aria-label="play the recording">&#9654;</button>{% endif %}
                     <div class="sp-ptxt">
-                        <b>Latest recording</b>
+                        <b id="sp-plabel">Latest recording</b>
                         <span id="sp-ptime">{% if sp.recent_call.when %}{{ sp.recent_call.when }} &middot; {% endif %}{{ (sp.recent_call.conf*100)|round|int }}% confident</span>
                     </div>
+                    {% if sp.best_call and sp.best_call.audio %}
+                    <div class="sp-toggle" id="sp-toggle" role="group" aria-label="Choose recording">
+                        <button type="button" class="on" data-clip="latest">latest</button>
+                        <button type="button" data-clip="best">clearest</button>
+                    </div>
+                    {% endif %}
                 </div>
             </div>
             {% endif %}
@@ -215,8 +225,25 @@
   var btn = document.getElementById("sp-play");
   if (!wrap || !btn) return;
   var MEDIA = "https://birds-scott-ouellette.s3.amazonaws.com/birds/sounds/clips/";
-  var audio = new Audio(MEDIA + wrap.getAttribute("data-audio"));
-  var spec = wrap.getAttribute("data-spec");
+  // The profile offers the latest recording and (when it's a different clip) the
+  // clearest — highest confidence. The toggle swaps the audio, spectrogram + label.
+  var CLIPS = {
+    latest: {
+      audio: {{ sp.recent_call.audio|tojson }},
+      spec: {{ ((MEDIA ~ sp.recent_call.spec) if sp.recent_call.spec else None)|tojson }},
+      label: "Latest recording",
+      meta: {{ (((sp.recent_call.when ~ " · ") if sp.recent_call.when else "") ~ ((sp.recent_call.conf * 100)|round|int|string) ~ "% confident")|tojson }}
+    }{% if sp.best_call and sp.best_call.audio %},
+    best: {
+      audio: {{ sp.best_call.audio|tojson }},
+      spec: {{ ((MEDIA ~ sp.best_call.spec) if sp.best_call.spec else None)|tojson }},
+      label: "Clearest recording",
+      meta: {{ (((sp.best_call.when ~ " · ") if sp.best_call.when else "") ~ ((sp.best_call.conf * 100)|round|int|string) ~ "% confident")|tojson }}
+    }{% endif %}
+  };
+  var curKey = "latest";
+  var audio = new Audio(MEDIA + CLIPS.latest.audio);
+  var spec = CLIPS.latest.spec;
   var raf = null, zoom = null;
   function fmtT(s) { s = Math.floor(s || 0); return Math.floor(s / 60) + ":" + ("0" + (s % 60)).slice(-2); }
   function paint() {
@@ -230,6 +257,35 @@
   }
   function toggle() { if (audio.paused) audio.play().catch(function () {}); else audio.pause(); }
   btn.addEventListener("click", toggle);
+  // Swap between the latest and clearest clip without leaving the page.
+  function loadClip(key) {
+    var c = CLIPS[key];
+    if (!c || key === curKey) return;
+    curKey = key;
+    var wasPlaying = !audio.paused;
+    audio.pause();
+    audio.src = MEDIA + c.audio;
+    audio.currentTime = 0;
+    spec = c.spec;
+    var se = wrap.querySelector(".sp-spec");
+    if (se && c.spec) se.style.backgroundImage = "url('" + c.spec + "')";
+    var lbl = document.getElementById("sp-plabel"); if (lbl) lbl.textContent = c.label;
+    var tm = document.getElementById("sp-ptime"); if (tm) tm.textContent = c.meta;
+    wrap.style.setProperty("--p", 0);
+    if (zoom) {
+      var zi = zoom.querySelector(".sp-zwrap img"); if (zi && c.spec) zi.src = c.spec;
+      var zl = zoom.querySelector(".sp-zbar b"); if (zl) zl.textContent = c.label;
+      var zs = zoom.querySelector(".sp-zbar .sub"); if (zs) zs.textContent = c.meta;
+      zoom.querySelector(".sp-zwrap").style.setProperty("--zp", 0);
+    }
+    if (wasPlaying) audio.play().catch(function () {});
+  }
+  var toggleEl = document.getElementById("sp-toggle");
+  if (toggleEl) toggleEl.addEventListener("click", function (e) {
+    var b = e.target.closest("button"); if (!b) return;
+    loadClip(b.getAttribute("data-clip"));
+    toggleEl.querySelectorAll("button").forEach(function (x) { x.classList.toggle("on", x === b); });
+  });
   function setPlaying(on) {
     wrap.classList.toggle("playing", on);
     btn.innerHTML = on ? "&#10074;&#10074;" : "&#9654;";
@@ -263,7 +319,7 @@
       '<div class="sp-zwrap"><img src="' + spec + '" alt="spectrogram"><div class="zneedle"></div></div>' +
       '<div class="sp-zbar">' +
         '<button type="button" class="sp-zplay" aria-label="play">' + (audio.paused ? "&#9654;" : "&#10074;&#10074;") + '</button>' +
-        '<div><b>Latest recording</b><span class="sub">' + (document.getElementById("sp-ptime") ? document.getElementById("sp-ptime").textContent : "") + '</span></div>' +
+        '<div><b>' + CLIPS[curKey].label + '</b><span class="sub">' + CLIPS[curKey].meta + '</span></div>' +
         '<span class="sp-ztime">' + fmtT(audio.currentTime) + '</span>' +
       '</div>';
     document.body.appendChild(zoom);

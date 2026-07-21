@@ -2732,31 +2732,47 @@ def species_profile(name, shots=None, sound=None):
             break
     places = map_points(shots, species_filter=canon)
 
-    heard = recent_call = None
+    heard = recent_call = best_call = None
     for s in (sound or {}).get("species", []):
         c = _canon_species(s.get("common") or "")
         if c and c[0] == canon:
             heard = s
             break
-    # Latest recording WITH media: the newest feed entry can predate its clip's
-    # publication, which left the profile player as an empty dark box. Search
-    # the recent feed and then the full log, newest first, for one that plays.
+    # Two recordings WITH media, from the recent feed + full log: the LATEST that
+    # plays (a fresh feed entry can predate its clip's publication) and the
+    # CLEAREST (highest confidence). The profile offers both — recency and the
+    # best example of the call. They're often the same clip; the page hides the
+    # toggle when they are.
     log = load_sound_log() if heard else None
     cands = list((sound or {}).get("recent", [])) + list((log or {}).get("log", []))
     cands = [r for r in cands
              if (_canon_species(r.get("common") or "") or ("",))[0] == canon]
-    cands.sort(key=lambda r: r.get("t") or "", reverse=True)
+    seen_audio, playable = set(), []
     for r in cands:
-        if r.get("audio") or r.get("spec"):
-            recent_call = r
-            break
-    # A human "when" for the latest recording (in the mic's own local time).
-    if recent_call and recent_call.get("t"):
-        try:
-            dt = datetime.datetime.fromisoformat(recent_call["t"])
-            recent_call = dict(recent_call, when=dt.strftime("%b %-d, %Y · %-I:%M %p"))
-        except (TypeError, ValueError):
-            pass
+        if not (r.get("audio") or r.get("spec")):
+            continue
+        key = r.get("audio") or r.get("spec")
+        if key in seen_audio:
+            continue
+        seen_audio.add(key)
+        playable.append(r)
+
+    def _with_when(r):
+        if r and r.get("t"):
+            try:
+                dt = datetime.datetime.fromisoformat(r["t"])
+                return dict(r, when=dt.strftime("%b %-d, %Y · %-I:%M %p"))
+            except (TypeError, ValueError):
+                pass
+        return r
+
+    if playable:
+        recent_call = _with_when(max(playable, key=lambda r: r.get("t") or ""))
+        best_call = _with_when(max(playable, key=lambda r: r.get("conf") or 0))
+        # Only a distinct "clearest" is worth a toggle.
+        if best_call.get("audio") == recent_call.get("audio") and \
+           best_call.get("spec") == recent_call.get("spec"):
+            best_call = None
 
     if not count and not heard:
         return None  # neither photographed nor heard -> not a real page
@@ -2776,6 +2792,7 @@ def species_profile(name, shots=None, sound=None):
         "mapped": sum(p["count"] for p in places),
         "heard": heard,
         "recent_call": recent_call,
+        "best_call": best_call,
     }
 
 
