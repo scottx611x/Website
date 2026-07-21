@@ -182,7 +182,7 @@
                 <a href="/birds?area=local"><span class="dot dot-local"></span>{{ "{:,}".format(stats.local) }} local</a>
                 &nbsp;&nbsp;
                 <a href="/birds?area=elsewhere"><span class="dot dot-away"></span>{{ stats.away }} away &#9888;&#65039;</a>
-                &nbsp;&middot;&nbsp; dot size &prop; photos
+                &nbsp;&middot;&nbsp; pin size &prop; photos
             </p>
             <div class="places-grid">
                 <div id="places-map" class="places-map" aria-label="Map of every place I photograph birds"></div>
@@ -241,11 +241,16 @@
         var byName = {}, ll = [], localLL = [];
         PTS.forEach(function (p) {
             var away = p.area === "away";
-            var d = Math.round(12 + 20 * Math.sqrt(p.count / mx));   // 12..32px by count
-            var m = L.marker([p.lat, p.lng], {
-                icon: L.divIcon({ className: "places-pin" + (away ? " away" : ""), iconSize: [d, d], iconAnchor: [d / 2, d / 2], popupAnchor: [0, -d / 2] }),
-                riseOnHover: true
-            }).addTo(map);
+            // Each pin wears the best photo taken there (like the full map); a bare
+            // dot only when a place has no image. Sized by photo count.
+            var d = p.img ? Math.round(28 + 22 * Math.sqrt(p.count / mx))    // 28..50px photo pins
+                          : Math.round(12 + 12 * Math.sqrt(p.count / mx));   // 12..24px dots
+            var icon = p.img
+                ? L.divIcon({ className: "places-photopin" + (away ? " away" : ""),
+                    html: '<span class="pp" style="background-image:url(\'' + p.img + '\')"></span>',
+                    iconSize: [d, d], iconAnchor: [d / 2, d / 2], popupAnchor: [0, -d / 2] })
+                : L.divIcon({ className: "places-pin" + (away ? " away" : ""), iconSize: [d, d], iconAnchor: [d / 2, d / 2], popupAnchor: [0, -d / 2] });
+            var m = L.marker([p.lat, p.lng], { icon: icon, riseOnHover: true }).addTo(map);
             var noun = p.count === 1 ? "photo" : "photos";
             m.bindPopup('<strong>' + (away ? "⚠️ " : "") + esc(p.name) + '</strong><br>' +
                 p.count + ' ' + noun + ' · ' + p.species + ' species<br>' +

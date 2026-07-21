@@ -826,6 +826,15 @@ a.ear-daily:hover .ear-day:not(.zero) { filter: brightness(1.08); }
     box-shadow: 0 2px 7px rgba(13, 18, 14, 0.4); transition: transform 0.18s, box-shadow 0.18s; }
 .places-pin.away { background: #d9863b; }
 .places-pin.lift { transform: scale(1.4); box-shadow: 0 4px 14px rgba(13, 18, 14, 0.5); z-index: 1000 !important; }
+/* Photo pins: each place wears its best shot, home green / away amber ring. */
+.places-photopin { background: none; border: none; }
+.places-photopin .pp { display: block; width: 100%; height: 100%; border-radius: 50%;
+    background-size: cover; background-position: center; background-color: #e9e4d7;
+    border: 2.5px solid var(--green); box-shadow: 0 2px 8px rgba(13, 18, 14, 0.42);
+    transition: transform 0.18s, box-shadow 0.18s; }
+.places-photopin.away .pp { border-color: #d9863b; }
+.places-photopin.lift .pp { transform: scale(1.32); box-shadow: 0 5px 16px rgba(13, 18, 14, 0.5); }
+.places-photopin.lift { z-index: 1000 !important; }
 @media (max-width: 720px) {
     .places-grid { grid-template-columns: 1fr; }
     .places-map { height: 240px; }
