@@ -8,19 +8,22 @@
 {% block content %}
 <section class="page wide stats">
     <header class="gallery-header">
-        <h1>Birds, by the numbers</h1>
+        {# Focused, the title IS the context ("Osprey, by the numbers") — no
+           more doubling the active "By the numbers" pill right below it. #}
+        <h1>{{ (focus.bird or focus.family) ~ ', by the numbers' if focus else 'Birds, by the numbers' }}</h1>
         {% set subnav_active = 'stats' %}{% include '_birds_nav.html' %}
     </header>
 
     <div class="stat-cards">
     {% if focus %}
-        {% set fb = focus.bird|urlencode %}
-        {% if focus.photographed %}<a class="stat-card" href="/birds?bird={{ fb }}"><span class="stat-num">{{ "{:,}".format(focus.photos) }}</span><span class="stat-lbl">{{ 'photo' if focus.photos == 1 else 'photos' }}</span></a>{% endif %}
-        {% if focus.videos %}<a class="stat-card" href="/birds?bird={{ fb }}&media=video"><span class="stat-num">{{ focus.videos }}</span><span class="stat-lbl">{{ 'video' if focus.videos == 1 else 'videos' }}</span></a>{% endif %}
+        {% set fq = ('bird=' ~ focus.bird|urlencode) if focus.bird else ('family=' ~ focus.family|urlencode) %}
+        {% if focus.species %}<a class="stat-card" href="/birds?{{ fq }}"><span class="stat-num">{{ focus.species }}</span><span class="stat-lbl">{{ 'species' }}</span></a>{% endif %}
+        {% if focus.photographed %}<a class="stat-card" href="/birds?{{ fq }}"><span class="stat-num">{{ "{:,}".format(focus.photos) }}</span><span class="stat-lbl">{{ 'photo' if focus.photos == 1 else 'photos' }}</span></a>{% endif %}
+        {% if focus.videos %}<a class="stat-card" href="/birds?{{ fq }}&media=video"><span class="stat-num">{{ focus.videos }}</span><span class="stat-lbl">{{ 'video' if focus.videos == 1 else 'videos' }}</span></a>{% endif %}
         {% if focus.active_months %}<a class="stat-card" href="#days"><span class="stat-num">{{ focus.active_months }}</span><span class="stat-lbl">{{ 'month photographed' if focus.active_months == 1 else 'months photographed' }}</span></a>{% endif %}
-        {% if focus.places %}<a class="stat-card" href="/birds/map?bird={{ fb }}"><span class="stat-num">{{ focus.places }}</span><span class="stat-lbl">{{ 'place' if focus.places == 1 else 'places' }}</span></a>{% endif %}
-        {% if focus.away %}<a class="stat-card" href="/birds?bird={{ fb }}&area=elsewhere"><span class="stat-num">{{ focus.away }}</span><span class="stat-lbl">out-of-area</span></a>{% endif %}
-        {% if focus.recordings %}<a class="stat-card" href="/birds/live?bird={{ fb }}"><span class="stat-num">{{ "{:,}".format(focus.recordings) }}</span><span class="stat-lbl">{{ 'recording heard' if focus.recordings == 1 else 'recordings heard' }}</span></a>{% endif %}
+        {% if focus.places %}<a class="stat-card" href="/birds/map?{{ fq }}"><span class="stat-num">{{ focus.places }}</span><span class="stat-lbl">{{ 'place' if focus.places == 1 else 'places' }}</span></a>{% endif %}
+        {% if focus.away %}<a class="stat-card" href="/birds?{{ fq }}&area=elsewhere"><span class="stat-num">{{ focus.away }}</span><span class="stat-lbl">out-of-area</span></a>{% endif %}
+        {% if focus.recordings %}<a class="stat-card" href="/birds/live?{{ fq }}"><span class="stat-num">{{ "{:,}".format(focus.recordings) }}</span><span class="stat-lbl">{{ 'recording heard' if focus.recordings == 1 else 'recordings heard' }}</span></a>{% endif %}
     {% else %}
         <a class="stat-card" href="/birds"><span class="stat-num">{{ stats.species }}</span><span class="stat-lbl">species</span></a>
         <a class="stat-card" href="/birds"><span class="stat-num">{{ "{:,}".format(stats.photos) }}</span><span class="stat-lbl">photos</span></a>

@@ -32,6 +32,13 @@
             &nbsp;&middot;&nbsp; <a href="/birds/species/{{ active_bird|slug }}">the {{ active_bird }} profile</a>
             &nbsp;&middot;&nbsp; <a href="/birds?bird={{ active_bird|urlencode }}">the gallery</a>
         </p>
+        {% elif active_family %}
+        <h1>Where I find {{ active_family }}</h1>
+        <p class="stat-sub mono">
+            {{ "{:,}".format(mapped) }} photo{{ "" if mapped == 1 else "s" }} across
+            {{ points|length }} place{{ "" if points|length == 1 else "s" }}. Tap a pin.
+            &nbsp;&middot;&nbsp; <a href="/birds?family={{ active_family|urlencode }}">the {{ active_family }} gallery</a>
+        </p>
         {% else %}
         <h1>Where the birds are</h1>
         <p class="stat-sub mono">{{ "{:,}".format(mapped) }} photos across {{ points|length }} places. Tap a pin.</p>
@@ -63,6 +70,7 @@
     (function () {
         var points = {{ points|tojson }};
         var activeBird = {{ active_bird|tojson }};
+        var activeFamily = {{ active_family|tojson }};
         var map = L.map("sightings-map", { scrollWheelZoom: false });
         L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png", {
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
@@ -91,6 +99,10 @@
                 // species + place gallery filter.
                 href = "/birds?bird=" + encodeURIComponent(activeBird) + "&loc=" + encodeURIComponent(p.name);
                 body = p.count + ' ' + esc(activeBird) + ' ' + noun + ' here';
+            } else if (activeFamily) {
+                href = "/birds?family=" + encodeURIComponent(activeFamily) + "&loc=" + encodeURIComponent(p.name);
+                body = p.count + ' ' + noun + ' · ' + p.species + ' species<br>' +
+                    '<span class="pop-top">' + esc(p.top.join(", ")) + '</span>';
             } else {
                 href = "/birds?loc=" + encodeURIComponent(p.name);
                 body = p.count + ' ' + noun + ' · ' + p.species + ' species<br>' +

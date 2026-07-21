@@ -2388,12 +2388,12 @@ def _match_place(loc, alias_index):
     return None
 
 
-def map_points(shots, places=None, species_filter=None):
+def map_points(shots, places=None, species_filter=None, family_filter=None):
     """Aggregate every frame onto its geocoded place: count, species set, and
     top species per pin. Frames whose location isn't in locations.json are
     skipped (they still show in the gallery, just not on the map). Pass
-    ``species_filter`` to keep only frames of one species — the map then shows
-    exactly where that bird turns up."""
+    ``species_filter`` (one species) or ``family_filter`` (one Merlin group) to
+    keep only those frames — the map then shows exactly where they turn up."""
     import collections
     places = places if places is not None else load_locations()
     idx = _place_index(places)
@@ -2416,8 +2416,11 @@ def map_points(shots, places=None, species_filter=None):
             if not place:
                 continue
             raw = isp[i] if i < len(isp) and isp[i] else shot.get("species")
-            names = [c[0] for c in _canon_species_list(raw)]
+            canons = _canon_species_list(raw)
+            names = [c[0] for c in canons]
             if species_filter and species_filter not in names:
+                continue
+            if family_filter and not any(c[1] == family_filter for c in canons):
                 continue
             counts[place["name"]] += 1
             if ym:
@@ -2526,12 +2529,14 @@ def location_places(shots):
     return out
 
 
-def species_stats(shots, canon):
-    """The headline numbers filtered to one species — photos/videos, out-of-area,
-    places, and the date span — for the stats page's single-species focus. Counts
-    only the frames that actually are that species (a post can hold several)."""
+def species_stats(shots, canon, family=None):
+    """The headline numbers filtered to one species (``canon``) or one family
+    (``family``) — photos/videos, out-of-area, places, and the date span — for
+    the stats page's focus views. Counts only the frames that actually are that
+    bird/family (a post can hold several species)."""
     photos = videos = away = 0
     dates, places = [], set()
+    species_seen = set()
     for shot in shots:
         images = shot.get("images") or []
         isp = shot.get("image_species") or []
@@ -2541,7 +2546,15 @@ def species_stats(shots, canon):
         d = _shot_capture_date(shot)
         for i in range(len(images)):
             raw = isp[i] if i < len(isp) and isp[i] else shot.get("species")
-            if canon not in [c[0] for c in _canon_species_list(raw)]:
+            canons = _canon_species_list(raw)
+            if canon:
+                if canon not in [c[0] for c in canons]:
+                    continue
+            elif family:
+                if not any(c[1] == family for c in canons):
+                    continue
+                species_seen.update(c[0] for c in canons if c[1] == family)
+            else:
                 continue
             if i < len(vids) and vids[i]:
                 videos += 1
@@ -2559,7 +2572,8 @@ def species_stats(shots, canon):
     # which the date range already shows and which "months seen" misreads as).
     active_months = len({(d.year, d.month) for d in dates})
     return {"photos": photos, "videos": videos, "away": away, "places": len(places),
-            "first": first, "last": last, "active_months": active_months}
+            "first": first, "last": last, "active_months": active_months,
+            "species": len(species_seen)}
 
 
 def gallery_stats(shots):

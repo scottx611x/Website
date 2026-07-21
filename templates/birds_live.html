@@ -346,9 +346,9 @@
       <div class="lv-wall" id="lv-wall">
         {% for s in sound.species %}
           {% if s.photo %}
-          <a class="lv-chip" data-slug="{{ s.display|slug }}" href="/birds/species/{{ s.display|slug }}" style="background-image:url('{{ s.photo }}')" title="{{ s.display }} &middot; {{ s.count }}&times;"><span class="cl">{{ s.display }}</span></a>
+          <a class="lv-chip" data-slug="{{ s.display|slug }}" data-fam="{{ s.fam }}" href="/birds/species/{{ s.display|slug }}" style="background-image:url('{{ s.photo }}')" title="{{ s.display }} &middot; {{ s.count }}&times;"><span class="cl">{{ s.display }}</span></a>
           {% else %}
-          <span class="lv-chip miss" data-slug="{{ s.display|slug }}" title="{{ s.display }} &middot; heard, not photographed">{{ feather('%23a9761f') }}<span class="cl">{{ s.display }}</span></span>
+          <span class="lv-chip miss" data-slug="{{ s.display|slug }}" data-fam="{{ s.fam }}" title="{{ s.display }} &middot; heard, not photographed">{{ feather('%23a9761f') }}<span class="cl">{{ s.display }}</span></span>
           {% endif %}
         {% endfor %}
       </div>
@@ -792,7 +792,7 @@
             '</div>' + stripHTML(x) + '</div>';
         }).join("") + '</div>';
       }
-      return '<div class="lv-chain' + (xd ? ' x' : '') + '" data-key="' + esc(c.key) + '">' + main + sub + '</div>';
+      return '<div class="lv-chain' + (xd ? ' x' : '') + '" data-key="' + esc(c.key) + '" data-fam="' + esc(c.fam || '') + '">' + main + sub + '</div>';
     }).join("") || '<p class="lv-nofeed">nothing logged in this hour (yet)</p>';
     // Re-point the live needle at the rebuilt strip for whatever's playing.
     if (current && !current.isHero) {
@@ -948,10 +948,10 @@
     // in the recent feed (last heard days ago), build a hero from the species
     // rollup so it still leads, with its real last-heard time.
     var hero = data.recent[0];
-    if (focusSlug) {
-      hero = data.recent.filter(function (r) { return slugify(r.display) === focusSlug; })[0];
+    if (focusSlug || focusFam) {
+      hero = data.recent.filter(matchesFocus)[0];
       if (!hero) {
-        var sp = (data.species || []).filter(function (s) { return slugify(s.display) === focusSlug; })[0];
+        var sp = (data.species || []).filter(matchesFocus)[0];
         if (sp) hero = { display: sp.display, photo: sp.photo, fam: sp.fam, shot: sp.shot,
                          t: sp.last, conf: sp.maxConf || 0, new: false };
       }
@@ -966,7 +966,7 @@
     stampTimes();
     // The hero player belongs to that hero call. Don't steal focus mid-listen:
     // only (re)load on first paint or when the hero call changes.
-    var top = focusSlug ? (hero && hero.audio ? hero : null) : playable(data.recent)[0];
+    var top = (focusSlug || focusFam) ? (hero && hero.audio ? hero : null) : playable(data.recent)[0];
     if (top && (isFirst || newTop)) loadHero(top);
     applyFocus();  // the feed just re-rendered — keep the deep-link focus on
   }
@@ -977,20 +977,31 @@
     }).catch(function () {});
   }
 
-  // ---- Deep-link focus: /birds/live?bird=X (from a species profile) puts the
-  // page in a persistent focus mode — that bird lit up in the wall and the feed,
-  // everything else dimmed, with a banner to clear it. Re-applied after every
-  // poll so the feed re-render keeps the focus. ----
+  // ---- Deep-link focus: /birds/live?bird=X or ?family=F (from a species
+  // profile / the family eyebrow) puts the page in a persistent focus mode —
+  // that bird (or every bird in the family) lit up in the wall and the feed,
+  // everything else dimmed. Re-applied after every poll so the feed re-render
+  // keeps the focus. The shared subnav chip names + clears it. ----
   var focusM = /[?&]bird=([^&]+)/.exec(location.search);
   var focusName = focusM ? decodeURIComponent(focusM[1].replace(/\+/g, " ")) : null;
   var focusSlug = focusName ? slugify(focusName) : null;
+  var famM = !focusSlug && /[?&]family=([^&]+)/.exec(location.search);
+  var focusFam = famM ? decodeURIComponent(famM[1].replace(/\+/g, " ")) : null;
+  function matchesFocus(e) {
+    if (!e) return false;
+    if (focusSlug) return slugify(e.display) === focusSlug;
+    if (focusFam) return e.fam === focusFam;
+    return false;
+  }
   function applyFocus() {
-    if (!focusSlug) return;
+    if (!focusSlug && !focusFam) return;
     var wall = document.getElementById("lv-wall");
     if (wall) {
       wall.classList.add("focusing");
       wall.querySelectorAll(".lv-chip").forEach(function (c) {
-        c.classList.toggle("lv-match", c.getAttribute("data-slug") === focusSlug);
+        c.classList.toggle("lv-match", focusSlug
+          ? c.getAttribute("data-slug") === focusSlug
+          : c.getAttribute("data-fam") === focusFam);
       });
     }
     var feed = document.getElementById("lv-feed");
@@ -998,14 +1009,16 @@
       feed.classList.add("focusing");
       feed.querySelectorAll(".lv-chain").forEach(function (w) {
         var a = w.querySelector(".rn a");
-        w.classList.toggle("lv-match", !!a && (a.getAttribute("href") || "").endsWith("/species/" + focusSlug));
+        w.classList.toggle("lv-match", focusSlug
+          ? (!!a && (a.getAttribute("href") || "").endsWith("/species/" + focusSlug))
+          : w.getAttribute("data-fam") === focusFam);
       });
     }
   }
 
   apply(LIVE, true);
 
-  if (focusName) {
+  if (focusName || focusFam) {
     // (The shared subnav focus chip names + clears the context now.)
     setTimeout(function () {
       applyFocus();

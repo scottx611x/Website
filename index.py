@@ -611,13 +611,18 @@ def birds_map():
     # species/gallery view); it resolves against the same species index.
     groups = birds.species_groups(shots)
     bird = birds.resolve_species(request.args.get("bird") or "", groups)
-    points = birds.map_points(shots, species_filter=bird or None)
+    fam = (request.args.get("family") or "").strip()
+    if bird or fam not in birds._FAMILY_ORDER:
+        fam = ""
+    points = birds.map_points(shots, species_filter=bird or None,
+                              family_filter=fam or None)
     return render_template(
         "map.html",
-        title="Bird sightings map",
+        title=("Where I find " + (bird or fam)) if (bird or fam) else "Bird sightings map",
         points=points,
         mapped=sum(p["count"] for p in points),
         active_bird=bird,
+        active_family=fam,
         local=_is_local(),
         curate=_curate_on(),
     )
@@ -807,11 +812,15 @@ def birds_stats():
                "since": _d(daily[0]["d"]) if daily else None,
                "busiest": {"d": _d(busiest["d"]), "n": busiest.get("n") or 0} if busiest else None,
                "daily": [{"d": _d(d.get("d")), "n": d.get("n") or 0} for d in daily[-30:]]}
-    # Single-species focus (?bird=X, deep-linked from a profile): the headline
-    # numbers filter to that bird so "by the numbers" actually means its numbers,
-    # while the charts below still show it in the context of the whole collection.
+    # Single-species OR single-family focus (?bird=X / ?family=F, deep-linked
+    # from a profile or the family eyebrow): the headline numbers filter to that
+    # context so "by the numbers" actually means ITS numbers, while the charts
+    # below still show it against the whole collection.
     focus = None
     fbird = birds.resolve_species(request.args.get("bird") or "", birds.species_groups(shots))
+    ffam = (request.args.get("family") or "").strip()
+    if ffam not in birds._FAMILY_ORDER:
+        ffam = ""
     if fbird:
         fs = birds.species_stats(shots, fbird)
         rec = next((h for h in (ear["heard"] if ear else []) if h["name"] == fbird), None)
@@ -820,9 +829,18 @@ def birds_stats():
                  "first": fs["first"], "last": fs["last"],
                  "photographed": (fs["photos"] + fs["videos"]) > 0,
                  "recordings": (rec or {}).get("n") or 0}
+    elif ffam:
+        fs = birds.species_stats(shots, None, family=ffam)
+        recs = sum((h.get("n") or 0) for h in (ear["heard"] if ear else []) if h.get("fam") == ffam)
+        focus = {"family": ffam, "species": fs["species"],
+                 "photos": fs["photos"], "videos": fs["videos"],
+                 "active_months": fs["active_months"], "away": fs["away"], "places": fs["places"],
+                 "first": fs["first"], "last": fs["last"],
+                 "photographed": (fs["photos"] + fs["videos"]) > 0,
+                 "recordings": recs}
     return render_template(
         "stats.html",
-        title="Birds by the numbers",
+        title=((focus.get("bird") or focus.get("family")) + " by the numbers") if focus else "Birds by the numbers",
         stats=stats,
         focus=focus,
         loc_area=loc_area,
