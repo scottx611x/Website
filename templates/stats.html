@@ -13,6 +13,15 @@
     </header>
 
     <div class="stat-cards">
+    {% if focus %}
+        {% set fb = focus.bird|urlencode %}
+        {% if focus.photographed %}<a class="stat-card" href="/birds?bird={{ fb }}"><span class="stat-num">{{ "{:,}".format(focus.photos) }}</span><span class="stat-lbl">photos</span></a>{% endif %}
+        {% if focus.videos %}<a class="stat-card" href="/birds?bird={{ fb }}&media=video"><span class="stat-num">{{ focus.videos }}</span><span class="stat-lbl">videos</span></a>{% endif %}
+        {% if focus.months %}<a class="stat-card" href="#days"><span class="stat-num">{{ focus.months }}</span><span class="stat-lbl">months seen</span></a>{% endif %}
+        {% if focus.places %}<a class="stat-card" href="/birds/map?bird={{ fb }}"><span class="stat-num">{{ focus.places }}</span><span class="stat-lbl">places</span></a>{% endif %}
+        {% if focus.away %}<a class="stat-card" href="/birds?bird={{ fb }}&area=elsewhere"><span class="stat-num">{{ focus.away }}</span><span class="stat-lbl">out-of-area</span></a>{% endif %}
+        {% if focus.recordings %}<a class="stat-card" href="/birds/live?bird={{ fb }}"><span class="stat-num">{{ "{:,}".format(focus.recordings) }}</span><span class="stat-lbl">recordings heard</span></a>{% endif %}
+    {% else %}
         <a class="stat-card" href="/birds"><span class="stat-num">{{ stats.species }}</span><span class="stat-lbl">species</span></a>
         <a class="stat-card" href="/birds"><span class="stat-num">{{ "{:,}".format(stats.photos) }}</span><span class="stat-lbl">photos</span></a>
         {% if stats.videos %}<a class="stat-card" href="/birds?media=video"><span class="stat-num">{{ stats.videos }}</span><span class="stat-lbl">videos</span></a>{% endif %}
@@ -22,9 +31,11 @@
         <a class="stat-card" href="/birds/live/log"><span class="stat-num">{{ "{:,}".format(ear.calls) }}</span><span class="stat-lbl">recordings</span></a>
         <a class="stat-card" href="/birds/heard"><span class="stat-num">{{ ear.heard|length }}</span><span class="stat-lbl">species heard all-time</span></a>
         {% endif %}
+    {% endif %}
     </div>
-    {% if stats.first %}
-    <p class="stat-span mono">{{ stats.first.strftime('%b %-d, %Y') }} &rarr; {{ stats.last.strftime('%b %-d, %Y') }}</p>
+    {% set fd = focus if (focus and focus.first) else (stats if stats.first else None) %}
+    {% if fd %}
+    <p class="stat-span mono">{{ fd.first.strftime('%b %-d, %Y') }} &rarr; {{ fd.last.strftime('%b %-d, %Y') }}</p>
     {% endif %}
 
     <div class="stat-grid">

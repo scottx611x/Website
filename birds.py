@@ -2520,6 +2520,40 @@ def location_places(shots):
     return out
 
 
+def species_stats(shots, canon):
+    """The headline numbers filtered to one species — photos/videos, out-of-area,
+    places, and the date span — for the stats page's single-species focus. Counts
+    only the frames that actually are that species (a post can hold several)."""
+    photos = videos = away = 0
+    dates, places = [], set()
+    for shot in shots:
+        images = shot.get("images") or []
+        isp = shot.get("image_species") or []
+        iloc = shot.get("image_locations") or []
+        areas = shot.get("image_areas") or []
+        vids = shot.get("image_videos") or []
+        d = _shot_capture_date(shot)
+        for i in range(len(images)):
+            raw = isp[i] if i < len(isp) and isp[i] else shot.get("species")
+            if canon not in [c[0] for c in _canon_species_list(raw)]:
+                continue
+            if i < len(vids) and vids[i]:
+                videos += 1
+            else:
+                photos += 1
+            if (areas[i] if i < len(areas) else "local") == "away":
+                away += 1
+            loc = iloc[i] if i < len(iloc) and iloc[i] else shot.get("location")
+            if loc and canonical_location(loc):
+                places.add(canonical_location(loc))
+            if d:
+                dates.append(d)
+    first, last = (min(dates), max(dates)) if dates else (None, None)
+    months = ((last.year - first.year) * 12 + last.month - first.month + 1) if first else 0
+    return {"photos": photos, "videos": videos, "away": away, "places": len(places),
+            "first": first, "last": last, "months": months}
+
+
 def gallery_stats(shots):
     """Aggregate numbers for the 'by the numbers' page: counts, families, top
     species/locations, seasonal activity, and the date span. Derived entirely

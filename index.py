@@ -807,10 +807,24 @@ def birds_stats():
                "since": _d(daily[0]["d"]) if daily else None,
                "busiest": {"d": _d(busiest["d"]), "n": busiest.get("n") or 0} if busiest else None,
                "daily": [{"d": _d(d.get("d")), "n": d.get("n") or 0} for d in daily[-30:]]}
+    # Single-species focus (?bird=X, deep-linked from a profile): the headline
+    # numbers filter to that bird so "by the numbers" actually means its numbers,
+    # while the charts below still show it in the context of the whole collection.
+    focus = None
+    fbird = birds.resolve_species(request.args.get("bird") or "", birds.species_groups(shots))
+    if fbird:
+        fs = birds.species_stats(shots, fbird)
+        rec = next((h for h in (ear["heard"] if ear else []) if h["name"] == fbird), None)
+        focus = {"bird": fbird, "photos": fs["photos"], "videos": fs["videos"],
+                 "months": fs["months"], "away": fs["away"], "places": fs["places"],
+                 "first": fs["first"], "last": fs["last"],
+                 "photographed": (fs["photos"] + fs["videos"]) > 0,
+                 "recordings": (rec or {}).get("n") or 0}
     return render_template(
         "stats.html",
         title="Birds by the numbers",
         stats=stats,
+        focus=focus,
         loc_area=loc_area,
         series=birds.stats_series(shots),
         river=birds.activity_river(shots),
