@@ -15,12 +15,12 @@
     <div class="stat-cards">
     {% if focus %}
         {% set fb = focus.bird|urlencode %}
-        {% if focus.photographed %}<a class="stat-card" href="/birds?bird={{ fb }}"><span class="stat-num">{{ "{:,}".format(focus.photos) }}</span><span class="stat-lbl">photos</span></a>{% endif %}
-        {% if focus.videos %}<a class="stat-card" href="/birds?bird={{ fb }}&media=video"><span class="stat-num">{{ focus.videos }}</span><span class="stat-lbl">videos</span></a>{% endif %}
-        {% if focus.months %}<a class="stat-card" href="#days"><span class="stat-num">{{ focus.months }}</span><span class="stat-lbl">months seen</span></a>{% endif %}
-        {% if focus.places %}<a class="stat-card" href="/birds/map?bird={{ fb }}"><span class="stat-num">{{ focus.places }}</span><span class="stat-lbl">places</span></a>{% endif %}
+        {% if focus.photographed %}<a class="stat-card" href="/birds?bird={{ fb }}"><span class="stat-num">{{ "{:,}".format(focus.photos) }}</span><span class="stat-lbl">{{ 'photo' if focus.photos == 1 else 'photos' }}</span></a>{% endif %}
+        {% if focus.videos %}<a class="stat-card" href="/birds?bird={{ fb }}&media=video"><span class="stat-num">{{ focus.videos }}</span><span class="stat-lbl">{{ 'video' if focus.videos == 1 else 'videos' }}</span></a>{% endif %}
+        {% if focus.active_months %}<a class="stat-card" href="#days"><span class="stat-num">{{ focus.active_months }}</span><span class="stat-lbl">{{ 'month photographed' if focus.active_months == 1 else 'months photographed' }}</span></a>{% endif %}
+        {% if focus.places %}<a class="stat-card" href="/birds/map?bird={{ fb }}"><span class="stat-num">{{ focus.places }}</span><span class="stat-lbl">{{ 'place' if focus.places == 1 else 'places' }}</span></a>{% endif %}
         {% if focus.away %}<a class="stat-card" href="/birds?bird={{ fb }}&area=elsewhere"><span class="stat-num">{{ focus.away }}</span><span class="stat-lbl">out-of-area</span></a>{% endif %}
-        {% if focus.recordings %}<a class="stat-card" href="/birds/live?bird={{ fb }}"><span class="stat-num">{{ "{:,}".format(focus.recordings) }}</span><span class="stat-lbl">recordings heard</span></a>{% endif %}
+        {% if focus.recordings %}<a class="stat-card" href="/birds/live?bird={{ fb }}"><span class="stat-num">{{ "{:,}".format(focus.recordings) }}</span><span class="stat-lbl">{{ 'recording heard' if focus.recordings == 1 else 'recordings heard' }}</span></a>{% endif %}
     {% else %}
         <a class="stat-card" href="/birds"><span class="stat-num">{{ stats.species }}</span><span class="stat-lbl">species</span></a>
         <a class="stat-card" href="/birds"><span class="stat-num">{{ "{:,}".format(stats.photos) }}</span><span class="stat-lbl">photos</span></a>
@@ -257,7 +257,17 @@
         });
         // Default to the home cluster (most shots) so local spots stay legible;
         // away pins live off-frame until you zoom out or open the full map.
+        map.invalidateSize(false);
         map.fitBounds(L.latLngBounds(localLL.length ? localLL : ll), { padding: [30, 30], maxZoom: 13 });
+        // The mini-map sits below the fold; on mobile its container can still be
+        // settling its size at first paint, which throws off fitBounds. Re-sync
+        // when it scrolls into view.
+        if ("IntersectionObserver" in window) {
+            var io = new IntersectionObserver(function (es) {
+                if (es.some(function (e) { return e.isIntersecting; })) { map.invalidateSize(false); io.disconnect(); }
+            });
+            io.observe(el);
+        }
         // Ranked list <-> map: hovering a row lifts its pin; clicking a row's
         // number focuses the pin instead of navigating (the name still links out).
         document.querySelectorAll(".places-rank-row").forEach(function (row, i) {
@@ -275,7 +285,12 @@
                 if (keep[p.name]) { m.addTo(map); shown.push([p.lat, p.lng]); }
                 else { map.removeLayer(m); }
             });
-            if (shown.length) map.fitBounds(L.latLngBounds(shown), { padding: [30, 30], maxZoom: 12 });
+            if (shown.length) {
+                var b = L.latLngBounds(shown);
+                var fit = function () { map.invalidateSize(false); map.fitBounds(b, { padding: [26, 26], maxZoom: 12, animate: false }); };
+                fit();
+                setTimeout(fit, 300);   // re-fit once mobile layout has settled
+            }
             return shown.length;
         };
     })();

@@ -816,7 +816,7 @@ def birds_stats():
         fs = birds.species_stats(shots, fbird)
         rec = next((h for h in (ear["heard"] if ear else []) if h["name"] == fbird), None)
         focus = {"bird": fbird, "photos": fs["photos"], "videos": fs["videos"],
-                 "months": fs["months"], "away": fs["away"], "places": fs["places"],
+                 "active_months": fs["active_months"], "away": fs["away"], "places": fs["places"],
                  "first": fs["first"], "last": fs["last"],
                  "photographed": (fs["photos"] + fs["videos"]) > 0,
                  "recordings": (rec or {}).get("n") or 0}

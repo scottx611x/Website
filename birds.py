@@ -2549,9 +2549,11 @@ def species_stats(shots, canon):
             if d:
                 dates.append(d)
     first, last = (min(dates), max(dates)) if dates else (None, None)
-    months = ((last.year - first.year) * 12 + last.month - first.month + 1) if first else 0
+    # Distinct calendar months actually photographed in (not the first→last span,
+    # which the date range already shows and which "months seen" misreads as).
+    active_months = len({(d.year, d.month) for d in dates})
     return {"photos": photos, "videos": videos, "away": away, "places": len(places),
-            "first": first, "last": last, "months": months}
+            "first": first, "last": last, "active_months": active_months}
 
 
 def gallery_stats(shots):
