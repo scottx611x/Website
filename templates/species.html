@@ -39,6 +39,26 @@
   .sp-toggle button{font-family:var(--mono); font-size:.6rem; letter-spacing:.05em; text-transform:uppercase; padding:.28rem .6rem; border:none; background:transparent; color:rgba(244,241,233,.7); cursor:pointer}
   .sp-toggle button+button{border-left:1px solid rgba(244,241,233,.18)}
   .sp-toggle button.on{background:var(--neon); color:var(--ink)}
+  /* Browse every recording for this species: a sortable list that loads into the player. */
+  .sp-recs{margin-top:1rem}
+  .sp-recs-bar{display:flex; align-items:center; gap:.9rem; flex-wrap:wrap}
+  .sp-recs-toggle{font-family:var(--mono); font-size:.72rem; letter-spacing:.05em; color:var(--green); background:none; border:none; cursor:pointer; padding:.2rem 0}
+  .sp-recs-sort{display:inline-flex; border:1px solid rgba(13,18,14,.18); border-radius:999px; overflow:hidden}
+  .sp-recs-sort button{font-family:var(--mono); font-size:.62rem; letter-spacing:.03em; padding:.25rem .65rem; border:none; background:transparent; color:var(--ink); cursor:pointer}
+  .sp-recs-sort button+button{border-left:1px solid rgba(13,18,14,.12)}
+  .sp-recs-sort button.on{background:var(--green); color:#fff}
+  .sp-recs-list{margin-top:.7rem; display:flex; flex-direction:column; max-height:300px; overflow-y:auto; border:1px solid rgba(13,18,14,.1); border-radius:10px; scrollbar-width:thin}
+  .sp-recrow{display:flex; align-items:center; gap:.7rem; padding:.5rem .7rem; background:none; border:none; border-bottom:1px solid rgba(13,18,14,.06); cursor:pointer; text-align:left; width:100%}
+  .sp-recrow:last-child{border-bottom:none}
+  .sp-recrow:hover{background:rgba(47,125,79,.06)}
+  .sp-recrow.on{background:rgba(47,125,79,.1)}
+  .sp-recrow .rp{flex:0 0 auto; width:26px; height:26px; border-radius:50%; background:var(--green); color:#fff; display:flex; align-items:center; justify-content:center; font-size:.58rem}
+  .sp-recrow.on .rp{background:var(--ink)}
+  .sp-recrow .rw{flex:1; font-family:var(--mono); font-size:.72rem; color:var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+  .sp-recrow .rc{flex:0 0 auto; font-family:var(--mono); font-size:.62rem; font-weight:600; padding:.1rem .42rem; border-radius:999px}
+  .sp-recrow .rc.hi{background:rgba(47,125,79,.15); color:var(--green)}
+  .sp-recrow .rc.mid{background:rgba(13,18,14,.07); color:var(--ink)}
+  .sp-recrow .rc.lo{background:rgba(169,118,31,.16); color:#a9761f}
   .sp-expand{position:absolute; top:.5rem; right:.5rem; z-index:3; width:30px; height:30px; border-radius:50%; border:none; background:rgba(6,10,7,.6); color:var(--neon); font-size:.8rem; cursor:pointer; display:flex; align-items:center; justify-content:center}
   .sp-expand:hover{background:rgba(6,10,7,.9)}
   /* Full-screen call viewer, same idiom as the live page. */
@@ -175,6 +195,17 @@
                 <a href="/birds/live?bird={{ sp.name|urlencode }}">open the live viewer &rarr;</a>
             </div>
         </div>
+        {% if sp.all_calls %}
+        <div class="sp-recs" id="sp-recs">
+            <div class="sp-recs-bar mono">
+                <button type="button" class="sp-recs-toggle" id="sp-recs-toggle" aria-expanded="false">&#9662; browse recordings</button>
+                <div class="sp-recs-sort" id="sp-recs-sort" role="group" aria-label="Sort recordings" hidden>
+                    <button type="button" class="on" data-rsort="conf">clearest</button><button type="button" data-rsort="latest">latest</button>
+                </div>
+            </div>
+            <div class="sp-recs-list" id="sp-recs-list" hidden></div>
+        </div>
+        {% endif %}
     </section>
     {% endif %}
 
@@ -257,16 +288,14 @@
   }
   function toggle() { if (audio.paused) audio.play().catch(function () {}); else audio.pause(); }
   btn.addEventListener("click", toggle);
-  // Swap between the latest and clearest clip without leaving the page.
-  function loadClip(key) {
-    var c = CLIPS[key];
-    if (!c || key === curKey) return;
-    curKey = key;
+  // Swap the player to any clip — the toggle picks latest/clearest, the list any.
+  var curClip = CLIPS.latest;
+  function applyClip(c) {
     var wasPlaying = !audio.paused;
     audio.pause();
     audio.src = MEDIA + c.audio;
     audio.currentTime = 0;
-    spec = c.spec;
+    spec = c.spec; curClip = c;
     var se = wrap.querySelector(".sp-spec");
     if (se && c.spec) se.style.backgroundImage = "url('" + c.spec + "')";
     var lbl = document.getElementById("sp-plabel"); if (lbl) lbl.textContent = c.label;
@@ -278,14 +307,77 @@
       var zs = zoom.querySelector(".sp-zbar .sub"); if (zs) zs.textContent = c.meta;
       zoom.querySelector(".sp-zwrap").style.setProperty("--zp", 0);
     }
-    if (wasPlaying) audio.play().catch(function () {});
+    return wasPlaying;
+  }
+  function loadClip(key) {
+    var c = CLIPS[key];
+    if (!c || key === curKey) return;
+    curKey = key;
+    if (applyClip(c)) audio.play().catch(function () {});
   }
   var toggleEl = document.getElementById("sp-toggle");
   if (toggleEl) toggleEl.addEventListener("click", function (e) {
     var b = e.target.closest("button"); if (!b) return;
     loadClip(b.getAttribute("data-clip"));
     toggleEl.querySelectorAll("button").forEach(function (x) { x.classList.toggle("on", x === b); });
+    var lst = document.getElementById("sp-recs-list");
+    if (lst) lst.querySelectorAll(".sp-recrow.on").forEach(function (r) { r.classList.remove("on"); });
   });
+
+  // Browse every recording: a sortable list; clicking a row loads + plays it.
+  var ALL = {{ (sp.all_calls or [])|tojson }};
+  if (ALL.length) (function () {
+    var listEl = document.getElementById("sp-recs-list"),
+        sortEl = document.getElementById("sp-recs-sort"),
+        tgl = document.getElementById("sp-recs-toggle");
+    var esc = function (s) { var d = document.createElement("i"); d.textContent = s == null ? "" : s; return d.innerHTML; };
+    var rsort = "conf", open = false;
+    function rows() {
+      var v = ALL.slice();
+      v.sort(rsort === "latest"
+        ? function (a, b) { return (b.t || "") < (a.t || "") ? -1 : (b.t || "") > (a.t || "") ? 1 : 0; }
+        : function (a, b) { return (b.conf || 0) - (a.conf || 0); });
+      return v;
+    }
+    function render() {
+      listEl.innerHTML = rows().map(function (r) {
+        var pct = Math.round((r.conf || 0) * 100),
+            cc = pct >= 90 ? "hi" : pct >= 75 ? "mid" : "lo",
+            on = curClip && curClip.audio === r.audio;
+        return '<button type="button" class="sp-recrow' + (on ? " on" : "") + '" data-audio="' + esc(r.audio) + '">' +
+          '<span class="rp">&#9654;</span>' +
+          '<span class="rw">' + esc(r.when || "") + '</span>' +
+          '<span class="rc ' + cc + '">' + pct + '%</span></button>';
+      }).join("");
+    }
+    tgl.addEventListener("click", function () {
+      open = !open;
+      listEl.hidden = !open; sortEl.hidden = !open;
+      tgl.setAttribute("aria-expanded", open ? "true" : "false");
+      tgl.innerHTML = (open ? "&#9652;" : "&#9662;") + " browse recordings";
+      if (open && !listEl.childElementCount) render();
+    });
+    sortEl.addEventListener("click", function (e) {
+      var b = e.target.closest("button"); if (!b) return;
+      rsort = b.getAttribute("data-rsort");
+      sortEl.querySelectorAll("button").forEach(function (x) { x.classList.toggle("on", x === b); });
+      render();
+    });
+    listEl.addEventListener("click", function (e) {
+      var row = e.target.closest(".sp-recrow"); if (!row) return;
+      var r = ALL.filter(function (x) { return x.audio === row.getAttribute("data-audio"); })[0];
+      if (!r) return;
+      curKey = null;
+      if (toggleEl) toggleEl.querySelectorAll("button").forEach(function (x) { x.classList.remove("on"); });
+      var pct = Math.round((r.conf || 0) * 100);
+      applyClip({ audio: r.audio, spec: r.spec ? MEDIA + r.spec : null, label: "Recording",
+                  meta: (r.when ? r.when + " · " : "") + pct + "% confident" });
+      listEl.querySelectorAll(".sp-recrow.on").forEach(function (x) { x.classList.remove("on"); });
+      row.classList.add("on");
+      audio.play().catch(function () {});
+      wrap.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    });
+  })();
   function setPlaying(on) {
     wrap.classList.toggle("playing", on);
     btn.innerHTML = on ? "&#10074;&#10074;" : "&#9654;";
@@ -319,7 +411,7 @@
       '<div class="sp-zwrap"><img src="' + spec + '" alt="spectrogram"><div class="zneedle"></div></div>' +
       '<div class="sp-zbar">' +
         '<button type="button" class="sp-zplay" aria-label="play">' + (audio.paused ? "&#9654;" : "&#10074;&#10074;") + '</button>' +
-        '<div><b>' + CLIPS[curKey].label + '</b><span class="sub">' + CLIPS[curKey].meta + '</span></div>' +
+        '<div><b>' + curClip.label + '</b><span class="sub">' + curClip.meta + '</span></div>' +
         '<span class="sp-ztime">' + fmtT(audio.currentTime) + '</span>' +
       '</div>';
     document.body.appendChild(zoom);

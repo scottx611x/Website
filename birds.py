@@ -2766,6 +2766,7 @@ def species_profile(name, shots=None, sound=None):
                 pass
         return r
 
+    all_calls = []
     if playable:
         recent_call = _with_when(max(playable, key=lambda r: r.get("t") or ""))
         best_call = _with_when(max(playable, key=lambda r: r.get("conf") or 0))
@@ -2773,6 +2774,14 @@ def species_profile(name, shots=None, sound=None):
         if best_call.get("audio") == recent_call.get("audio") and \
            best_call.get("spec") == recent_call.get("spec"):
             best_call = None
+        # The full archive for this species — every playable recording, so the
+        # profile can offer more than the latest + clearest two. Capped; the page
+        # sorts client-side (clearest first, or latest).
+        if len(playable) > 2:
+            for r in sorted(playable, key=lambda x: x.get("conf") or 0, reverse=True)[:40]:
+                all_calls.append({"audio": r.get("audio"), "spec": r.get("spec"),
+                                  "conf": r.get("conf") or 0, "t": r.get("t"),
+                                  "when": _with_when(r).get("when")})
 
     if not count and not heard:
         return None  # neither photographed nor heard -> not a real page
@@ -2793,6 +2802,7 @@ def species_profile(name, shots=None, sound=None):
         "heard": heard,
         "recent_call": recent_call,
         "best_call": best_call,
+        "all_calls": all_calls,
     }
 
 

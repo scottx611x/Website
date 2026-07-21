@@ -22,9 +22,15 @@
   .heard-card .rank{position:absolute; top:.4rem; left:.4rem; font-family:var(--mono); font-size:.6rem; color:var(--paper); background:rgba(6,10,7,.55); border-radius:999px; padding:.1rem .45rem}
   .heard-card .nm{font-family:var(--display); font-size:.92rem; line-height:1.15; padding:.55rem .6rem .1rem}
   .heard-card.miss:hover{border-color:#a9761f}
-  .heard-meta{font-family:var(--mono); font-size:.66rem; color:var(--muted); padding:.15rem .6rem .6rem; display:flex; gap:.5rem; flex-wrap:wrap}
+  .heard-meta{font-family:var(--mono); font-size:.66rem; color:var(--muted); padding:.15rem .6rem .6rem; display:flex; align-items:center; gap:.45rem; white-space:nowrap}
   .heard-meta .n{color:var(--green); font-weight:600}
   .heard-card.miss .heard-meta .n{color:#a9761f}
+  .heard-meta .ago{overflow:hidden; text-overflow:ellipsis}
+  /* Confidence reads as a score, not another gray number: a colour-coded chip, pushed right. */
+  .heard-meta .hc{margin-left:auto; flex:0 0 auto; padding:.1rem .42rem; border-radius:999px; font-weight:600; letter-spacing:.01em}
+  .heard-meta .hc.hi{background:rgba(47,125,79,.15); color:var(--green)}
+  .heard-meta .hc.mid{background:rgba(13,18,14,.07); color:var(--ink)}
+  .heard-meta .hc.lo{background:rgba(169,118,31,.16); color:#a9761f}
   .heard-none{font-family:var(--mono); font-size:.8rem; color:#a9761f; padding:1.5rem 0}
   .heard-foot{color:var(--muted); font-size:.74rem; margin-top:2.6rem}
 </style>
@@ -94,9 +100,11 @@
             var v = view();
             grid.innerHTML = v.map(function (s, i) {
                 var slug = slugify(s.display), miss = !s.shot;
+                var conf = s.maxConf ? Math.round(s.maxConf * 100) : null;
+                var cc = conf == null ? '' : conf >= 90 ? ' hi' : conf >= 75 ? ' mid' : ' lo';
                 var meta = '<span class="n">' + (s.count || 0) + '&times;</span>' +
-                    (s.last ? '<span>' + rel(s.last) + '</span>' : '') +
-                    (s.maxConf ? '<span>' + Math.round(s.maxConf * 100) + '%</span>' : '');
+                    (s.last ? '<span class="ago">' + rel(s.last) + '</span>' : '') +
+                    (conf != null ? '<span class="hc' + cc + '" title="highest confidence">' + conf + '%</span>' : '');
                 var rank = sortBy === "count" ? '<span class="rank">#' + (i + 1) + '</span>' : '';
                 var tile = miss
                     ? '<div class="tile">' + rank + '</div>'
