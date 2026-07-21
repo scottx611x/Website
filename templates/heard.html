@@ -1,0 +1,137 @@
+{% extends 'base.html' %}
+
+{% block head %}
+<style>
+  .heard-hero{margin:1.4rem 0 1.8rem}
+  .heard-hero .hn{font-family:var(--display); font-size:clamp(2.6rem,9vw,4.2rem); line-height:.95; letter-spacing:-.03em; font-weight:600; color:var(--green)}
+  .heard-hero .hl{font-family:var(--display); font-size:clamp(1.1rem,3.4vw,1.5rem); margin-top:.2rem}
+  .heard-hero .hs{font-family:var(--mono); font-size:.8rem; color:var(--muted); margin-top:.5rem; max-width:40rem}
+  .heard-hero .hs a{color:var(--green)}
+
+  .heard-trio{display:grid; grid-template-columns:repeat(3,1fr); gap:.8rem; margin-bottom:1.6rem}
+  .heard-stat{border:1px solid rgba(13,18,14,.12); border-radius:12px; padding:.9rem 1.1rem; background:#fbf9f3}
+  .heard-stat .big{font-family:var(--display); font-size:2.1rem; line-height:1; letter-spacing:-.03em; font-weight:600}
+  .heard-stat.accent .big{color:var(--green)} .heard-stat.amber .big{color:#a9761f}
+  .heard-stat .l{color:var(--muted); font-size:.78rem; margin-top:.3rem}
+
+  .heard-controls{display:flex; flex-wrap:wrap; gap:.9rem; align-items:center; margin-bottom:1.2rem}
+  .heard-seg{display:inline-flex; border:1px solid rgba(13,18,14,.18); border-radius:999px; overflow:hidden}
+  .heard-seg button{font-family:var(--mono); font-size:.7rem; letter-spacing:.03em; padding:.4rem .8rem; border:none; background:transparent; color:var(--ink); cursor:pointer; white-space:nowrap}
+  .heard-seg button+button{border-left:1px solid rgba(13,18,14,.12)}
+  .heard-seg button.on{background:var(--green); color:var(--paper)}
+  .heard-count{font-family:var(--mono); font-size:.74rem; color:var(--muted); margin-left:auto}
+
+  .heard-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:.9rem}
+  @media(max-width:560px){ .heard-grid{grid-template-columns:repeat(auto-fill,minmax(120px,1fr)); gap:.6rem} .heard-trio{gap:.5rem} .heard-stat{padding:.7rem .6rem; text-align:center} .heard-stat .big{font-size:1.5rem} }
+  .heard-card{display:flex; flex-direction:column; text-decoration:none; color:var(--ink); border-radius:12px; overflow:hidden; border:1px solid rgba(13,18,14,.12); background:#fbf9f3; transition:transform .15s, box-shadow .15s, border-color .15s}
+  .heard-card:hover{transform:translateY(-2px); box-shadow:0 6px 18px rgba(13,18,14,.1); border-color:var(--green)}
+  .heard-card .tile{position:relative; aspect-ratio:1/1; background-size:cover; background-position:center; background-color:#e9e4d7}
+  .heard-card.miss .tile{background:var(--paper-2); border-bottom:1px dashed rgba(176,125,36,.5)}
+  .heard-card.miss .tile::after{content:""; position:absolute; inset:0; opacity:.3;
+    background:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23a9761f"><path d="M23 6c-1 0-1.8.3-2.5.9C19 5.6 16.8 4.7 14 5.2c-4 .7-5.6 4-9 4.3-2 .2-3.3-.6-3.3-.6S2 12 6 12.6c-.7 1-2 1.7-3.5 1.9 0 0 1.2 1.5 3.6 1.1-.5.9-1.6 2-3.6 2.4 0 0 3.4 1.6 6.9-.6 2.9-1.8 4-4.8 6.1-6.9C22.5 9.4 24 8 23 6z"/></svg>') no-repeat center 42%/40%}
+  .heard-card .rank{position:absolute; top:.4rem; left:.4rem; font-family:var(--mono); font-size:.6rem; color:var(--paper); background:rgba(6,10,7,.55); border-radius:999px; padding:.1rem .45rem}
+  .heard-card .nm{font-family:var(--display); font-size:.92rem; line-height:1.15; padding:.55rem .6rem .1rem}
+  .heard-card.miss:hover{border-color:#a9761f}
+  .heard-meta{font-family:var(--mono); font-size:.66rem; color:var(--muted); padding:.15rem .6rem .6rem; display:flex; gap:.5rem; flex-wrap:wrap}
+  .heard-meta .n{color:var(--green); font-weight:600}
+  .heard-card.miss .heard-meta .n{color:#a9761f}
+  .heard-none{font-family:var(--mono); font-size:.8rem; color:#a9761f; padding:1.5rem 0}
+  .heard-foot{color:var(--muted); font-size:.74rem; margin-top:2.6rem}
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="page wide">
+    <header class="gallery-header">
+        <h1>Heard from the yard</h1>
+        {% set subnav_active = 'live' %}{% include '_birds_nav.html' %}
+    </header>
+
+    {% if has_data %}
+    <div class="heard-hero">
+        <div class="hn">{{ sound.hv.heard }}</div>
+        <div class="hl">species heard, all&#8209;time</div>
+        <p class="hs">Every bird a mic on the porch has picked out{% if since %}, listening since {{ since }}{% endif %}. Auto&#8209;identified by <a href="https://birdnet.cornell.edu/" rel="noopener">BirdNET</a> — confidence shown, nothing hand&#8209;verified. <a href="/birds/live">the live feed &rarr;</a></p>
+    </div>
+
+    <div class="heard-trio">
+        <div class="heard-stat accent"><div class="big">{{ sound.hv.heard }}</div><div class="l">species heard</div></div>
+        <div class="heard-stat"><div class="big">{{ sound.hv.shot }}</div><div class="l">also in the gallery</div></div>
+        <div class="heard-stat amber"><div class="big">{{ sound.hv.miss }}</div><div class="l">heard, never photographed</div></div>
+    </div>
+
+    <div class="heard-controls mono">
+        <div class="heard-seg" role="group" aria-label="Sort">
+            <button type="button" data-sort="count" class="on">most heard</button><button type="button" data-sort="recent">recently heard</button><button type="button" data-sort="az">A&ndash;Z</button>
+        </div>
+        <div class="heard-seg" role="group" aria-label="Filter">
+            <button type="button" data-filt="all" class="on">all</button><button type="button" data-filt="shot">&#128247; photographed</button><button type="button" data-filt="miss">&#127911; not yet</button>
+        </div>
+        <span class="heard-count" id="heard-count"></span>
+    </div>
+
+    <div class="heard-grid" id="heard-grid"></div>
+    <p class="heard-foot">One mic, one yard. The gallery is what I&rsquo;ve managed to photograph; this is everything I&rsquo;ve only heard so far.</p>
+    {% else %}
+    <p class="empty">The mic hasn&rsquo;t logged anything yet.</p>
+    {% endif %}
+</section>
+
+{% if has_data %}
+<script>
+    (function () {
+        var SP = {{ sound.species|tojson }};
+        var grid = document.getElementById("heard-grid"), countEl = document.getElementById("heard-count");
+        var sortBy = "count", filt = "all";
+        function esc(s) { var d = document.createElement("i"); d.textContent = s == null ? "" : s; return d.innerHTML; }
+        function slugify(n) { return (n || "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, ""); }
+        function rel(iso) {
+            if (!iso) return "";
+            var s = (Date.now() - new Date(iso)) / 1000;
+            if (isNaN(s)) return "";
+            if (s < 3600) return Math.max(1, Math.floor(s / 60)) + "m ago";
+            if (s < 86400) return Math.floor(s / 3600) + "h ago";
+            var d = Math.floor(s / 86400);
+            return d < 30 ? d + "d ago" : Math.floor(d / 30) + "mo ago";
+        }
+        function view() {
+            var v = SP.filter(function (s) { return filt === "all" || (filt === "shot" ? s.shot : !s.shot); });
+            v.sort(sortBy === "recent"
+                ? function (a, b) { return (b.last || "") < (a.last || "") ? -1 : (b.last || "") > (a.last || "") ? 1 : 0; }
+                : sortBy === "az"
+                ? function (a, b) { return (a.display || "") < (b.display || "") ? -1 : 1; }
+                : function (a, b) { return (b.count || 0) - (a.count || 0) || (a.display < b.display ? -1 : 1); });
+            return v;
+        }
+        function render() {
+            var v = view();
+            grid.innerHTML = v.map(function (s, i) {
+                var slug = slugify(s.display), miss = !s.shot;
+                var meta = '<span class="n">' + (s.count || 0) + '&times;</span>' +
+                    (s.last ? '<span>' + rel(s.last) + '</span>' : '') +
+                    (s.maxConf ? '<span>' + Math.round(s.maxConf * 100) + '%</span>' : '');
+                var rank = sortBy === "count" ? '<span class="rank">#' + (i + 1) + '</span>' : '';
+                var tile = miss
+                    ? '<div class="tile">' + rank + '</div>'
+                    : '<div class="tile" style="background-image:url(\'' + s.photo + '\')">' + rank + '</div>';
+                return '<a class="heard-card' + (miss ? ' miss' : '') + '" href="/birds/species/' + slug + '">' +
+                    tile +
+                    '<div class="nm">' + esc(s.display) + '</div>' +
+                    '<div class="heard-meta">' + meta + '</div></a>';
+            }).join("") || '<p class="heard-none">nothing matches this filter.</p>';
+            countEl.textContent = v.length + " species";
+        }
+        document.querySelectorAll(".heard-seg").forEach(function (seg) {
+            seg.addEventListener("click", function (e) {
+                var b = e.target.closest("button"); if (!b) return;
+                if (b.hasAttribute("data-sort")) sortBy = b.getAttribute("data-sort");
+                else filt = b.getAttribute("data-filt");
+                seg.querySelectorAll("button").forEach(function (x) { x.classList.toggle("on", x === b); });
+                render();
+            });
+        });
+        render();
+    })();
+</script>
+{% endif %}
+{% endblock %}

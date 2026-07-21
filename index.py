@@ -88,7 +88,7 @@ def robots():
 @app.route("/sitemap.xml")
 def sitemap():
     paths = ["/", "/projects", "/birds", "/birds/stats", "/birds/live",
-             "/birds/live/log", "/birds/map"]
+             "/birds/live/log", "/birds/heard", "/birds/map"]
     if "photography" not in HIDDEN_PAGES:
         paths.append("/photography")
     if "blog" not in HIDDEN_PAGES:
@@ -692,6 +692,24 @@ def birds_live_json():
     resp = app.json.response(_live_view())
     resp.cache_control.max_age = 30
     return resp
+
+
+@app.route("/birds/heard", methods=["GET"])
+def birds_heard():
+    """Every species the porch mic has ever heard — the all-time roll, its own
+    page so 'species heard all-time' leads somewhere that says exactly that."""
+    view = _live_view()
+    daily = view.get("daily") or []
+    since = None
+    if daily:
+        try:
+            since = datetime.datetime.strptime(daily[0]["d"], "%Y-%m-%d").strftime("%b %-d, %Y")
+        except (ValueError, KeyError, TypeError):
+            since = None
+    return render_template(
+        "heard.html", title="Every species heard from the yard",
+        sound=view, has_data=bool(view["species"]), since=since,
+        local=_is_local())
 
 
 def _log_view():
