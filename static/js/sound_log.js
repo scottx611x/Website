@@ -48,8 +48,8 @@
   dateEl.min = days[days.length - 1]; dateEl.max = days[0];
   // Order the day: "most heard" (by activity) or "chronological" (as it unfolded).
   // The choice sticks, so a preferred order becomes the default on the next visit.
-  var sortMode = "active";
-  try { sortMode = localStorage.getItem("dl-sort") || "active"; } catch (_) {}
+  var sortMode = "chrono";
+  try { sortMode = localStorage.getItem("dl-sort") || "chrono"; } catch (_) {}
 
   // Consolidate a day's detections into one entry per species.
   function speciesOf(recs) {
