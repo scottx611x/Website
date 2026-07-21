@@ -795,6 +795,7 @@ def birds_stats():
              for _, sp in birds.species_groups(shots) for nm, c in sp),
             key=lambda kv: -kv[1]),
         loc_place=loc_place,
+        map_points=birds.map_points(shots),
         span_months=span_months,
         ear=ear,
         local=_is_local(),

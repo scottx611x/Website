@@ -1,5 +1,10 @@
 {% extends 'base.html' %}
 
+{% block head %}
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+          integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+{% endblock %}
+
 {% block content %}
 <section class="page wide stats">
     <header class="gallery-header">
@@ -137,18 +142,18 @@
                 </div>
                 <div class="ear-side">
                     <div class="ear-cards mono">
-                        <span><b>{{ "{:,}".format(ear.calls) }}</b> recordings logged</span>
-                        <span><b>{{ ear.heard|length }}</b> species heard all-time</span>
-                        <span><b>{{ ear.shot }}</b> also photographed</span>
-                        <span class="amber"><b>{{ ear.heard|length - ear.shot }}</b> heard, not photographed</span>
+                        <a class="ear-card" href="/birds/live/log"><b>{{ "{:,}".format(ear.calls) }}</b> recordings logged</a>
+                        <a class="ear-card" href="/birds/live"><b>{{ ear.heard|length }}</b> species heard all-time</a>
+                        <button type="button" class="ear-card" data-earfilt="shot"><b>{{ ear.shot }}</b> also photographed</button>
+                        <button type="button" class="ear-card amber" data-earfilt="ear"><b>{{ ear.heard|length - ear.shot }}</b> heard, not photographed</button>
                     </div>
                     {% if ear.daily|length > 1 %}
-                    <div class="ear-daily">
+                    <a class="ear-daily" href="/birds/live/log" title="browse recordings by day">
                         {% set dmax = ear.daily|map(attribute='n')|max or 1 %}
                         {% for d in ear.daily %}
                         <span class="ear-day{{ ' zero' if not d.n }}" style="height:{{ [6, (d.n / dmax * 100)|round|int]|max }}%" title="{{ d.d }} &middot; {{ d.n }} recording{{ 's' if d.n != 1 }}"></span>
                         {% endfor %}
-                    </div>
+                    </a>
                     <p class="ear-dailyax mono"><span>{{ ear.daily[0].d }}</span><span>recordings per day{% if ear.busiest %} &middot; busiest {{ ear.busiest.d }} ({{ ear.busiest.n }}){% endif %}</span><span>{{ ear.daily[-1].d }}</span></p>
                     {% endif %}
                 </div>
@@ -156,39 +161,36 @@
         </div>
         {% endif %}
 
-        <!-- Where I find them — led by the home-turf vs. away summary -->
+        <!-- Where I find them — a map of every spot, with the ranked list beside it -->
         <div class="stat-block stat-span-2" id="places-block">
-            <h2>Where I find them</h2>
-            <p class="stat-sub mono">North Andover vs. away, then every spot.</p>
-            {% set tot = stats.local + stats.away %}
-            <div class="split-bar">
-                <span class="split-local" style="width: {{ (stats.local / tot * 100)|round(1) if tot else 100 }}%"></span>
-                <span class="split-away" style="width: {{ (stats.away / tot * 100)|round(1) if tot else 0 }}%"></span>
+            <div class="sp-sec-h" style="margin-bottom:.4rem">
+                <h2>Where I find them</h2>
+                <a href="/birds/map" class="river-span mono">full map &rarr;</a>
             </div>
-            <p class="split-legend mono">
+            <p class="stat-sub mono">
                 <a href="/birds?area=local"><span class="dot dot-local"></span>{{ "{:,}".format(stats.local) }} local</a>
                 &nbsp;&nbsp;
                 <a href="/birds?area=elsewhere"><span class="dot dot-away"></span>{{ stats.away }} away &#9888;&#65039;</a>
+                &nbsp;&middot;&nbsp; dot size &prop; photos
             </p>
-            <div class="places-list">
-            {% set lmax = stats.top_locations[0][1] %}
-            {% for loc, count in stats.top_locations %}
-            {% set away = loc_area.get(loc) == 'away' %}
-            {% if loc_place.get(loc) %}
-            <a class="bar-row" href="/birds?loc={{ loc_place[loc]|urlencode }}">
-                <span class="bar-label">&#128205; {{ loc }}<span class="loc-warn">{% if away %} &#9888;&#65039;{% endif %}</span></span>
-                <span class="bar-track"><span class="bar-fill {{ 'warm' if away else 'loc' }}" style="width: {{ (count / lmax * 100)|round(1) }}%"></span></span>
-                <span class="bar-val mono">{{ count }}</span>
-                {% if curate %}<span class="loc-area-btn mono" role="button" tabindex="0" data-loc="{{ loc_place[loc] }}" data-area="{{ 'away' if away else 'local' }}" title="flip local / away">&#8646;</span>{% endif %}
-            </a>
-            {% else %}
-            <div class="bar-row static">
-                <span class="bar-label">{{ loc }}</span>
-                <span class="bar-track"><span class="bar-fill {{ 'warm' if away else 'loc' }}" style="width: {{ (count / lmax * 100)|round(1) }}%"></span></span>
-                <span class="bar-val mono">{{ count }}</span>
-            </div>
-            {% endif %}
-            {% endfor %}
+            <div class="places-grid">
+                <div id="places-map" class="places-map" aria-label="Map of every place I photograph birds"></div>
+                <div class="places-top">
+                    <p class="places-top-h mono">top spots</p>
+                    <ol class="places-rank">
+                    {% for p in map_points[:9] %}
+                    {% set away = p.area == 'away' %}
+                    <li>
+                        <a class="places-rank-row{{ ' away' if away }}" href="/birds?loc={{ p.name|urlencode }}" data-lat="{{ p.lat }}" data-lng="{{ p.lng }}">
+                            <span class="places-rank-dot{{ ' away' if away }}"></span>
+                            <span class="places-rank-name">{{ p.name.split(',')[0] }}{% if away %} <span class="loc-warn">&#9888;&#65039;</span>{% endif %}</span>
+                            <span class="places-rank-n mono">{{ p.count }}</span>
+                            {% if curate %}<span class="loc-area-btn mono" role="button" tabindex="0" data-loc="{{ p.name }}" data-area="{{ 'away' if away else 'local' }}" title="flip local / away">&#8646;</span>{% endif %}
+                        </a>
+                    </li>
+                    {% endfor %}
+                    </ol>
+                </div>
             </div>
         </div>
 
@@ -208,6 +210,65 @@
         </div>
     </div>
 </section>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script>
+    // Where I find them: a compact map of every spot, dot size by photo count,
+    // home green / away amber. The ranked list beside it hover-links to its pin.
+    (function () {
+        var el = document.getElementById("places-map");
+        if (!el || typeof L === "undefined") return;
+        var PTS = {{ map_points|tojson }};
+        if (!PTS.length) return;
+        var map = L.map(el, { scrollWheelZoom: false, zoomControl: false, attributionControl: false });
+        L.control.zoom({ position: "bottomright" }).addTo(map);
+        L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png", {
+            attribution: '&copy; OpenStreetMap &copy; CARTO', maxZoom: 19
+        }).addTo(map);
+        function esc(s) { var d = document.createElement("i"); d.textContent = s == null ? "" : s; return d.innerHTML; }
+        var mx = PTS.reduce(function (m, p) { return Math.max(m, p.count); }, 1);
+        var byName = {}, ll = [], localLL = [];
+        PTS.forEach(function (p) {
+            var away = p.area === "away";
+            var d = Math.round(12 + 20 * Math.sqrt(p.count / mx));   // 12..32px by count
+            var m = L.marker([p.lat, p.lng], {
+                icon: L.divIcon({ className: "places-pin" + (away ? " away" : ""), iconSize: [d, d], iconAnchor: [d / 2, d / 2], popupAnchor: [0, -d / 2] }),
+                riseOnHover: true
+            }).addTo(map);
+            var noun = p.count === 1 ? "photo" : "photos";
+            m.bindPopup('<strong>' + (away ? "⚠️ " : "") + esc(p.name) + '</strong><br>' +
+                p.count + ' ' + noun + ' · ' + p.species + ' species<br>' +
+                '<a href="/birds?loc=' + encodeURIComponent(p.name) + '">see the shots &rarr;</a>');
+            m.bindTooltip(esc(p.name.split(",")[0]) + " (" + p.count + ")", { direction: "top", offset: [0, -d / 2 - 2] });
+            byName[p.name] = m;
+            ll.push([p.lat, p.lng]);
+            if (!away) localLL.push([p.lat, p.lng]);
+        });
+        // Default to the home cluster (most shots) so local spots stay legible;
+        // away pins live off-frame until you zoom out or open the full map.
+        map.fitBounds(L.latLngBounds(localLL.length ? localLL : ll), { padding: [30, 30], maxZoom: 13 });
+        // Ranked list <-> map: hovering a row lifts its pin; clicking a row's
+        // number focuses the pin instead of navigating (the name still links out).
+        document.querySelectorAll(".places-rank-row").forEach(function (row, i) {
+            var m = byName[PTS[i] && PTS[i].name];
+            if (!m) return;
+            row.addEventListener("mouseenter", function () { var e = m.getElement(); if (e) e.classList.add("lift"); });
+            row.addEventListener("mouseleave", function () { var e = m.getElement(); if (e) e.classList.remove("lift"); });
+        });
+        // Deep-link focus (?bird=X): show only that bird's spots, refit the map.
+        window.placesFocus = function (spots) {
+            var keep = {}; spots.forEach(function (s) { keep[s[0]] = 1; });
+            var shown = [];
+            PTS.forEach(function (p) {
+                var m = byName[p.name]; if (!m) return;
+                if (keep[p.name]) { m.addTo(map); shown.push([p.lat, p.lng]); }
+                else { map.removeLayer(m); }
+            });
+            if (shown.length) map.fitBounds(L.latLngBounds(shown), { padding: [30, 30], maxZoom: 12 });
+            return shown.length;
+        };
+    })();
+</script>
 <script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
 <script>
     (function () {
@@ -875,6 +936,24 @@
             }
             var N = months.length;
             if (!S2.length) { S2 = RIVER.series; months = RIVER.months; N = months.length; }
+            // Trim near-empty months off both ends so the stream fills the frame
+            // instead of emerging from a long sparse flatline (early months with a
+            // stray shot or two, before the collection really got going).
+            (function () {
+                var tot = months.map(function (_, i) {
+                    return S2.reduce(function (a, s) { return a + (s.values[i] || 0); }, 0);
+                });
+                var peak = tot.reduce(function (m, v) { return Math.max(m, v); }, 0);
+                var thresh = Math.max(1, peak * 0.05);   // <5% of the busiest month = dead lead/tail
+                var lo = 0, hi = N - 1;
+                while (lo < hi && tot[lo] < thresh) lo++;
+                while (hi > lo && tot[hi] < thresh) hi--;
+                if (lo > 0 || hi < N - 1) {
+                    months = months.slice(lo, hi + 1);
+                    S2 = S2.map(function (s) { return Object.assign({}, s, { values: s.values.slice(lo, hi + 1) }); });
+                    N = months.length;
+                }
+            })();
             var H = narrow ? 400 : 460, m = { t: 30, r: 8, b: 40, l: 8 };
             var rows = months.map(function (mo, i) {
                 var row = {}; S2.forEach(function (s) { row[s.name] = s.values[i]; }); return row;
@@ -1311,12 +1390,13 @@
                     body: JSON.stringify({ name: btn.dataset.loc, area: next })
                 }).then(function (r) { return r.json(); }).then(function () {
                     btn.dataset.area = next;
-                    var row = btn.closest(".bar-row");
-                    var fill = row.querySelector(".bar-fill");
-                    fill.classList.toggle("warm", next === "away");
-                    fill.classList.toggle("loc", next !== "away");
-                    var warn = row.querySelector(".loc-warn");
-                    if (warn) warn.innerHTML = next === "away" ? " ⚠️" : "";
+                    var row = btn.closest(".places-rank-row"), away = next === "away";
+                    row.classList.toggle("away", away);
+                    var dot = row.querySelector(".places-rank-dot");
+                    if (dot) dot.classList.toggle("away", away);
+                    var nameEl = row.querySelector(".places-rank-name"), warn = row.querySelector(".loc-warn");
+                    if (away && !warn && nameEl) nameEl.insertAdjacentHTML("beforeend", ' <span class="loc-warn">⚠️</span>');
+                    else if (!away && warn) warn.remove();
                     btn.classList.add("flash");
                     setTimeout(function () { btn.classList.remove("flash"); }, 600);
                 });
@@ -1414,6 +1494,15 @@
         moreEl.addEventListener("click", function (e) {
             if (e.target.closest(".ear-toggle")) { expanded = !expanded; render(); }
         });
+        // Side stat cards drive the leaderboard filter (photographed / not yet).
+        var cards = document.querySelector(".ear-cards");
+        if (cards) cards.addEventListener("click", function (e) {
+            var c = e.target.closest("[data-earfilt]"); if (!c) return;
+            var want = c.getAttribute("data-earfilt");
+            var btn = box.parentElement.querySelector('.ear-filter [data-filt="' + want + '"]');
+            if (btn) btn.click();
+            box.parentElement.scrollIntoView({ behavior: "smooth", block: "nearest" });
+        });
         // Focus hook for the deep-link (?bird=X): show + pulse that species.
         window.__earFocus = function (name) {
             if (!all.some(function (h) { return h.name === name; })) return false;
@@ -1447,22 +1536,21 @@
             var fam = window.lvFocusRiver && window.lvFocusRiver(name);
             if (fam && window.lvFocusFam) window.lvFocusFam(fam);
             if (window.lvFocusCal) window.lvFocusCal(name);
-            // Where I find them -> just this bird's spots (swap the global top-list).
-            var spots = (window.SPECIES_PLACES || {})[name], list = document.querySelector("#places-block .places-list");
-            if (spots && spots.length && list) {
-                var lmax = spots[0][1] || 1;
-                list.innerHTML = spots.map(function (p) {
-                    var away = p[2] === "away", nm = String(p[0]).replace(/[<&>]/g, "");
-                    return '<a class="bar-row" href="/birds?bird=' + encodeURIComponent(name) + '&loc=' + encodeURIComponent(p[0]) + '">' +
-                        '<span class="bar-label">📍 ' + nm + (away ? ' ⚠️' : '') + '</span>' +
-                        '<span class="bar-track"><span class="bar-fill ' + (away ? 'warm' : 'loc') + '" style="width:' + Math.round(p[1] / lmax * 100) + '%"></span></span>' +
-                        '<span class="bar-val mono">' + p[1] + '</span></a>';
+            // Where I find them -> just this bird's spots (rebuild the ranked list
+            // and filter the map to its pins).
+            var spots = (window.SPECIES_PLACES || {})[name];
+            var rank = document.querySelector("#places-block .places-rank");
+            if (spots && spots.length && rank) {
+                rank.innerHTML = spots.map(function (p) {
+                    var away = p[2] === "away", nm = String(p[0]).split(",")[0].replace(/[<&>]/g, "");
+                    return '<li><a class="places-rank-row' + (away ? ' away' : '') + '" href="/birds?bird=' + encodeURIComponent(name) + '&loc=' + encodeURIComponent(p[0]) + '">' +
+                        '<span class="places-rank-dot' + (away ? ' away' : '') + '"></span>' +
+                        '<span class="places-rank-name">' + nm + (away ? ' ⚠️' : '') + '</span>' +
+                        '<span class="places-rank-n mono">' + p[1] + '</span></a></li>';
                 }).join("");
-                var sub = document.querySelector("#places-block .stat-sub");
-                if (sub) sub.textContent = "every spot I've found " + name + ".";
-                ["#places-block .split-bar", "#places-block .split-legend"].forEach(function (s) {
-                    var el = document.querySelector(s); if (el) el.style.display = "none";  // whole-collection summary; hide when focused
-                });
+                var h = document.querySelector("#places-block .places-top-h");
+                if (h) h.textContent = "where I find this bird";
+                if (window.placesFocus) window.placesFocus(spots);
             }
             var search = document.getElementById("pheno-search");
             if (search) { search.value = name; search.dispatchEvent(new Event("input", { bubbles: true })); }

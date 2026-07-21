@@ -65,9 +65,6 @@
   .lv-expand::after,.lv-rowplay::after,.lv-rowhide::after{content:""; position:absolute; inset:-9px} /* thumb-sized hit area behind the small glyph */
   .lv-rowhide{position:absolute; top:.35rem; left:.35rem; z-index:2; width:26px; height:26px; border-radius:50%; border:none; background:rgba(6,10,7,.65); color:var(--paper); font-size:.8rem; line-height:1; cursor:pointer; display:flex; align-items:center; justify-content:center}
   .lv-rowhide:hover{background:rgba(6,10,7,.9); color:var(--neon)}
-  /* Tiny label so the dark strip reads as a spectrogram at a glance, not an empty box. */
-  .lv-speclabel{position:absolute; left:.55rem; bottom:.4rem; z-index:1; font-family:var(--mono); font-size:.55rem; letter-spacing:.2em; text-transform:uppercase; color:rgba(56,224,138,.68); pointer-events:none; text-shadow:0 1px 3px rgba(6,10,7,.95); transition:opacity .3s}
-  .lv-player.playing .lv-speclabel,.lv-rowwrap.playing .lv-speclabel{opacity:.35}
 
   /* Full-screen call viewer: the spectrogram with its needle, seek and play —
      the whole instrument, not just a bigger picture. */
@@ -311,7 +308,6 @@
               <div class="lv-needle" id="lv-needle"></div>
               <div class="lv-ghost"></div>
               <div class="lv-htip"></div>
-              <div class="lv-speclabel">spectrogram</div>
               <button type="button" class="lv-expand" data-zoom="hero" aria-label="enlarge spectrogram">&#8599;</button>
             </div>
             <div class="lv-pctl">
@@ -426,6 +422,14 @@
      first one's picture. ---- */
   var audio = new Audio(), current = null; // {audio, needle, isHero}
   var player = document.getElementById("lv-player"), heroClip = null;
+  // The featured hero IS the newest detection; the feed drops that exact clip so
+  // the same recording never shows twice (hero + first row).
+  var curHero = null;
+  function isHeroRec(r) {
+    if (!curHero || !r) return false;
+    return (curHero.audio && r.audio) ? r.audio === curHero.audio
+         : (r.t === curHero.t && r.display === curHero.display);
+  }
   function playable(list) { return (list || []).filter(function (r) { return r.audio; }); }
   function findRec(name) {
     return (LIVE.recent || []).filter(function (x) { return x.audio === name; })[0];
@@ -739,7 +743,7 @@
   }
   function stripHTML(r) {
     if (!r.spec) return "";
-    return '<div class="lv-rowspec" title="this recording — click to seek"><img src="' + MEDIA + esc(r.spec) + '" alt="spectrogram of the ' + esc(r.display) + ' recording" loading="lazy"><div class="lv-wash"></div><div class="lv-veil"></div><div class="lv-needle"></div><div class="lv-ghost"></div><div class="lv-htip"></div><div class="lv-speclabel">spectrogram</div><button type="button" class="lv-rowhide" aria-label="hide spectrogram">&times;</button><button type="button" class="lv-expand" data-audio="' + esc(r.audio || '') + '" aria-label="enlarge spectrogram">&#8599;</button></div>';
+    return '<div class="lv-rowspec" title="this recording — click to seek"><img src="' + MEDIA + esc(r.spec) + '" alt="spectrogram of the ' + esc(r.display) + ' recording" loading="lazy"><div class="lv-wash"></div><div class="lv-veil"></div><div class="lv-needle"></div><div class="lv-ghost"></div><div class="lv-htip"></div><button type="button" class="lv-rowhide" aria-label="hide spectrogram">&times;</button><button type="button" class="lv-expand" data-audio="' + esc(r.audio || '') + '" aria-label="enlarge spectrogram">&#8599;</button></div>';
   }
   function hlabel(h) { return ((h % 12) || 12) + (h < 12 ? "a" : "p"); }
   function feedFade() {
@@ -753,10 +757,10 @@
     var open = {}, needleAt = null;
     feed.querySelectorAll(".lv-rowwrap.open").forEach(function (w) { open[w.getAttribute("data-audio")] = true; });
     if (current && !current.isHero && current.needle) needleAt = current.needle.style.left;
-    var shown = list;
+    var shown = list.filter(function (r) { return !isHeroRec(r); });
     if (hourSel >= 0) {
       var todayKey = new Date().toDateString();
-      shown = list.filter(function (r) {
+      shown = shown.filter(function (r) {
         var d = new Date(r.t);
         return d.toDateString() === todayKey && d.getHours() === hourSel;
       });
@@ -954,6 +958,7 @@
       hero = hero || data.recent[0];
     }
     renderCounts(data.counts || {});
+    curHero = hero;   // feed excludes this exact clip so it isn't shown twice
     renderHero(hero);
     renderHourStrip();
     renderFeed(data.recent, newTop);
