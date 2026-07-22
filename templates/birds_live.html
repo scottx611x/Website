@@ -833,11 +833,24 @@
     syncViews();
   }
   function renderHourStrip() {
-    var wrap = document.getElementById("lv-hstrip"), hours = LIVE.hours || [];
-    var any = hours.some(function (n) { return n; });
+    var wrap = document.getElementById("lv-hstrip");
     if (focusSlug || focusFam) { wrap.hidden = true; return; }  // all-species hours are noise under focus
+    // Count the FEED's OWN recordings by hour (today, hero excluded) — the bars
+    // must only ever promise recordings the feed can actually show. The full-day
+    // rollup (LIVE.hours) counts detections that have aged out of the recent
+    // window or were curated, so its bars claimed rows the feed didn't have.
+    var todayKey = new Date().toDateString();
+    var hours = [];
+    for (var hz = 0; hz < 24; hz++) hours[hz] = 0;
+    (LIVE.recent || []).forEach(function (r) {
+      if (isHeroRec(r)) return;
+      var dt = new Date(r.t);
+      if (dt.toDateString() === todayKey) hours[dt.getHours()]++;
+    });
+    var any = hours.some(function (n) { return n; });
     wrap.hidden = !any;
     if (!any) { hourSel = -1; return; }
+    if (hourSel >= 0 && !hours[hourSel]) hourSel = -1;   // the selected hour emptied out
     var hm = Math.max.apply(null, hours);
     document.getElementById("lv-hbars").innerHTML = hours.map(function (n, h) {
       return '<button type="button" class="lv-hb' + (n ? '' : ' zero') + (h === hourSel ? ' sel' : '') + '" data-h="' + h + '"' +
