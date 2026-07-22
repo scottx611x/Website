@@ -87,6 +87,8 @@
   .lv-zplay:active{transform:scale(.92)}
   .lv-zrate{flex:0 0 auto; font-family:var(--mono); font-size:.7rem; letter-spacing:.02em; padding:.32rem .55rem; border-radius:999px; border:1px solid rgba(244,241,233,.3); background:transparent; color:var(--paper); cursor:pointer}
   .lv-zrate.on{background:var(--neon); color:var(--ink); border-color:var(--neon)}
+  .lv-zshare{flex:0 0 auto; width:38px; height:38px; border-radius:50%; border:1px solid rgba(244,241,233,.3); background:transparent; color:var(--paper); font-size:.85rem; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:border-color .15s, color .15s}
+  .lv-zshare:hover,.lv-zshare.on{border-color:var(--neon); color:var(--neon)}
   .lv-ztxt{flex:1; min-width:0; line-height:1.3}
   .lv-ztxt b{display:block; font-family:var(--display); font-weight:600; font-size:1.05rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
   .lv-ztxt .sub{display:block; font-family:var(--mono); font-size:.66rem; color:rgba(244,241,233,.6); letter-spacing:.04em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
@@ -572,6 +574,7 @@
         '<div class="lv-ztxt"><b>' + esc(r.display) + '</b><span class="sub">' + clock(r.t) + ' &middot; ' + Math.round(r.conf * 100) + '%' + (r.audio ? ' &middot; tap to seek' : '') + '</span></div>' +
         (r.audio ? '<button type="button" class="lv-zrate" aria-label="playback speed">1&times;</button>' : '') +
         (r.audio ? '<span class="lv-ztime">0:00</span>' : '') +
+        ((r.audio || r.spec) ? '<button type="button" class="lv-zshare" aria-label="copy a link to this recording" title="Copy a link to this recording">&#128279;</button>' : '') +
       '</div>';
     document.body.appendChild(zoom);
     document.body.style.overflow = "hidden";
@@ -598,6 +601,25 @@
         if (current && current.audio === zoomRec.audio) {
           if (audio.paused) audio.play().catch(function () {}); else audio.pause();
         } else playClip(zoomRec, zoomCtx(zoomRec));
+        return;
+      }
+      var shareB = e.target.closest(".lv-zshare");
+      if (shareB && zoomRec) {
+        var tok = (zoomRec.audio || zoomRec.spec || "").split("/").pop().replace(/\.[a-z0-9]+$/i, "") ||
+                  (slugify(zoomRec.display || "") + "-" + (zoomRec.t || "").replace(/[^0-9]/g, "").slice(0, 14));
+        var url = location.origin + "/birds/live/log#rec-" + tok;
+        var done = function (ok) {
+          shareB.innerHTML = ok ? "&#10003;" : "&#10007;"; shareB.classList.toggle("on", ok);
+          setTimeout(function () { shareB.innerHTML = "&#128279;"; shareB.classList.remove("on"); }, 1400);
+        };
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(url).then(function () { done(true); }, function () { done(false); });
+        } else {
+          var ta = document.createElement("textarea"); ta.value = url; ta.style.position = "fixed"; ta.style.opacity = "0";
+          document.body.appendChild(ta); ta.select();
+          try { document.execCommand("copy"); done(true); } catch (_) { done(false); }
+          document.body.removeChild(ta);
+        }
         return;
       }
       if (e.target.closest(".lv-zrate")) {

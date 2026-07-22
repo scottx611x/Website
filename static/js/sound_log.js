@@ -79,6 +79,16 @@
       (r.e.spec ? '<img loading="lazy" decoding="async" src="' + MEDIA + esc(r.e.spec) + '" alt="">' : '') +
       '<span class="dl-needle"></span><span class="dl-ico">&#9654;</span></button>';
   }
+  // A stable, shareable token for one recording — the clip filename (already
+  // unique), so /birds/live/log#rec-<token> permalinks straight to it.
+  function recTokenOf(e) {
+    var a = (e.audio || e.spec || "").split("/").pop().replace(/\.[a-z0-9]+$/i, "");
+    return a || ((e.slug || "") + "-" + (e.t || "").replace(/[^0-9]/g, "").slice(0, 14));
+  }
+  function shareBtn(e) {
+    return '<button type="button" class="dl-share" data-token="' + esc(recTokenOf(e)) +
+      '" title="Copy a link to this recording" aria-label="Copy a link to this recording">&#128279;</button>';
+  }
 
   function render() {
     stopAudio();
@@ -101,8 +111,9 @@
         : '<span class="dl-nm">' + esc(s.name) + '</span>';
       var tag = s.shot ? '<span class="dl-tag">&#10003; gallery</span>' : '<span class="dl-tag ear">not photographed</span>';
       var subs = s.recs.map(function (r) {
-        return '<div class="dl-sub"><span class="st">' + esc(timeLabel(r.p)) + '</span>' +
-          '<span class="sc">' + Math.round(r.e.conf * 100) + '%</span>' + playBtn(r, s.name + ' at ' + timeLabel(r.p)) + '</div>';
+        return '<div class="dl-sub" data-audio="' + esc(r.e.audio) + '"><span class="st">' + esc(timeLabel(r.p)) + '</span>' +
+          '<span class="sc">' + Math.round(r.e.conf * 100) + '%</span>' +
+          shareBtn(r.e) + playBtn(r, s.name + ' at ' + timeLabel(r.p)) + '</div>';
       }).join("");
       return '<div class="dl-sprow" data-name="' + esc(s.name) + '">' +
         '<div class="dl-sphead">' +
@@ -111,7 +122,7 @@
             '<span class="dl-spmeta"><span class="dl-fam">' + esc(s.fam || "") + '</span>' + tag +
             (s.count > 1 ? '<button type="button" class="dl-count" aria-label="Show all ' + s.count + ' recordings, highest confidence first">&times;' + s.count + ' recordings</button>' : '') +
             '<span class="dl-hi mono" title="highest confidence">' + conf + '%</span></span></span>' +
-          '<span class="dl-spright">' + playBtn(s.best, s.name) + '</span>' +
+          '<span class="dl-spright">' + shareBtn(s.best.e) + playBtn(s.best, s.name) + '</span>' +
         '</div>' +
         (s.count > 1 ? '<div class="dl-subs">' + subs + '</div>' : '') +
       '</div>';
@@ -151,6 +162,56 @@
     if (!raf) raf = requestAnimationFrame(tick);
   });
 
+  // ---- share: copy a permalink to one recording (mirrors the photo lightbox) ----
+  listEl.addEventListener("click", function (ev) {
+    var btn = ev.target.closest(".dl-share"); if (!btn) return;
+    ev.stopPropagation();
+    var url = location.origin + "/birds/live/log#rec-" + btn.getAttribute("data-token");
+    function flash(msg) {
+      var prev = btn.getAttribute("data-ok") || btn.innerHTML;
+      btn.setAttribute("data-ok", prev); btn.classList.add("ok"); btn.innerHTML = msg;
+      setTimeout(function () { btn.innerHTML = prev; btn.classList.remove("ok"); }, 1400);
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(url).then(function () { flash("&#10003;"); }, function () { flash("&#10007;"); });
+    } else {
+      var ta = document.createElement("textarea"); ta.value = url; ta.style.position = "fixed"; ta.style.opacity = "0";
+      document.body.appendChild(ta); ta.select();
+      try { document.execCommand("copy"); flash("&#10003;"); } catch (_) { flash("&#10007;"); }
+      document.body.removeChild(ta);
+    }
+  });
+  // ---- deep-link: /birds/live/log#rec-<clip> opens that day + recording, plays it ----
+  function openFromRecHash() {
+    var m = /^#rec-(.+)$/.exec(location.hash || "");
+    if (!m) return false;
+    var token = m[1], found = null, foundDay = null;
+    for (var i = 0; i < days.length && !found; i++) {
+      var recs = byDay[days[i]].recs;
+      for (var j = 0; j < recs.length; j++) {
+        if (recTokenOf(recs[j].e) === token) { found = recs[j]; foundDay = days[i]; break; }
+      }
+    }
+    if (!found) return false;
+    cur = days.indexOf(foundDay);
+    searchEl.value = "";
+    render();
+    var name = found.e.display || found.e.common || "";
+    var esel = window.CSS && CSS.escape ? CSS.escape : function (s) { return s.replace(/["\\]/g, "\\$&"); };
+    var row = listEl.querySelector('.dl-sprow[data-name="' + esel(name) + '"]');
+    if (row && row.querySelector(".dl-subs")) row.classList.add("open");
+    var target = (found.e.audio && listEl.querySelector('.dl-sub[data-audio="' + esel(found.e.audio) + '"]')) || row;
+    var btn = (found.e.audio && listEl.querySelector('.dl-play[data-audio="' + esel(found.e.audio) + '"]'));
+    if (target) {
+      target.classList.add("dl-flash");
+      setTimeout(function () { target.classList.remove("dl-flash"); }, 2200);
+      target.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+    if (btn) setTimeout(function () { btn.click(); }, 450);
+    return true;
+  }
+  addEventListener("hashchange", openFromRecHash);
+
   // ---- day navigation ----
   prevEl.addEventListener("click", function () { if (cur < days.length - 1) { cur++; render(); } });
   nextEl.addEventListener("click", function () { if (cur > 0) { cur--; render(); } });
@@ -185,5 +246,6 @@
     if (e.key === "ArrowRight" && cur > 0) { cur--; render(); }
   });
 
-  render();
+  // A #rec-<clip> permalink jumps straight to that recording; else the newest day.
+  if (!openFromRecHash()) render();
 })();

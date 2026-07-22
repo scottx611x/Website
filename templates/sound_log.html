@@ -61,10 +61,17 @@
 
   .dl-subs{display:none; padding:0 .2rem .6rem 3.4rem}
   .dl-sprow.open .dl-subs{display:block}
-  .dl-sub{display:grid; grid-template-columns:5rem auto 1fr; gap:.7rem; align-items:center; padding:.32rem 0; border-top:1px solid rgba(13,18,14,.05)}
+  .dl-sub{display:grid; grid-template-columns:5rem auto auto 1fr; gap:.7rem; align-items:center; padding:.32rem 0; border-top:1px solid rgba(13,18,14,.05)}
   .dl-sub .st{font-family:var(--mono); font-size:.72rem; color:var(--muted); white-space:nowrap}
   .dl-sub .sc{font-family:var(--mono); font-size:.68rem; color:var(--green)}
   .dl-sub .dl-play{justify-self:end}
+  /* Copy-a-permalink to one recording (mirrors the photo lightbox's share). */
+  .dl-share{flex:0 0 auto; width:34px; height:34px; border-radius:8px; border:1px solid rgba(13,18,14,.14); background:transparent; color:var(--muted); cursor:pointer; font-size:.82rem; margin-right:.45rem; display:flex; align-items:center; justify-content:center; transition:color .15s, border-color .15s}
+  .dl-share:hover{color:var(--green); border-color:var(--green)}
+  .dl-share.ok{color:var(--green); border-color:var(--green)}
+  .dl-sub .dl-share{width:28px; height:28px; font-size:.72rem; margin-right:0; justify-self:end}
+  .dl-flash{border-radius:10px; animation:dlFlash 2.2s ease}
+  @keyframes dlFlash{0%,100%{background:transparent}10%,30%{background:rgba(56,224,138,.16)}}
   @media(max-width:560px){
     .dl-daytitle{font-size:1.25rem}
     .dl-sphead{grid-template-columns:2.4rem minmax(0,1fr); grid-template-rows:auto auto; gap:.3rem .7rem}
