@@ -127,7 +127,7 @@
             <p class="sp-kick">In the gallery</p>
             <a class="sp-more" href="/birds?bird={{ sp.name|urlencode }}">all {{ sp.count }} &rarr;</a>
         </div>
-        <div class="masonry">
+        <div class="masonry" data-mobile-cap="5">
             {% for shot in sp.frames[:12] %}
             <figure class="shot"
                 data-id="{{ shot.id }}"{% if shot.post_id %} data-post-id="{{ shot.post_id }}"{% endif %}

@@ -560,8 +560,14 @@
                     grid._cards = Array.prototype.slice.call(grid.querySelectorAll(".shot"));
                 }
                 var n = columnsFor(window.innerWidth);
-                if (grid._cols === n) return;
-                grid._cols = n;
+                // A grid can cap how many it shows on phones (data-mobile-cap) —
+                // e.g. a species page keeps its photo strip short, "all N →" for
+                // the rest. Only the first `cap` are laid out; the rest sit out.
+                var cap = (grid.dataset.mobileCap && window.innerWidth <= 560)
+                    ? parseInt(grid.dataset.mobileCap, 10) : 0;
+                var key = n + ":" + (cap || 0);
+                if (grid._key === key) return;
+                grid._key = key;
                 grid.innerHTML = "";
                 var cols = [];
                 for (var i = 0; i < n; i++) {
@@ -570,7 +576,8 @@
                     grid.appendChild(c);
                     cols.push(c);
                 }
-                grid._cards.forEach(function (card, i) { cols[i % n].appendChild(card); });
+                var cards = cap ? grid._cards.slice(0, cap) : grid._cards;
+                cards.forEach(function (card, i) { cols[i % n].appendChild(card); });
             }
             function layoutAll() { document.querySelectorAll(".masonry").forEach(layout); }
             layoutAll();
