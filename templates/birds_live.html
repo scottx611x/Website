@@ -162,7 +162,8 @@
   .lv-row .rn{flex:1; min-width:0; font-family:var(--display); font-size:1rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
   .lv-row .rn a{text-decoration:none} .lv-row .rn a:hover{color:var(--green)}
   .lv-row .rt{font-family:var(--mono); font-size:.7rem; color:var(--muted); white-space:nowrap}
-  .lv-row .rc{font-family:var(--mono); font-size:.7rem; color:var(--green); width:2.5rem; text-align:right}
+  .lv-row .rc{font-family:var(--mono); font-size:.7rem; color:var(--green); text-align:right; white-space:nowrap}
+  .lv-row .rc .cl{color:var(--muted); font-size:.82em; letter-spacing:.02em; margin-right:.12em}
   .lv-rowplay{position:relative; flex:0 0 auto; width:26px;height:26px;border-radius:50%;border:1px solid rgba(13,18,14,.2);background:transparent;color:var(--ink);font-size:.6rem;cursor:pointer;display:flex;align-items:center;justify-content:center}
   .lv-rowplay:hover{background:var(--ink);color:var(--neon);border-color:var(--ink)}
   .lv-rowplay.on{background:var(--ink);color:var(--neon);border-color:var(--ink)}
@@ -753,12 +754,10 @@
       c.newest = c.calls[0].t;
       c.key = slugify(c.display);  // stable across polls
       c.best = c.calls.reduce(function (a, x) { return x.conf > a.conf ? x : a; });
+      // The collapsed row features the CLEAREST playable clip (highest conf);
+      // the ×N group lists them chronologically with that best one flagged.
       c.bestPlay = c.calls.filter(function (x) { return x.audio; })
         .reduce(function (a, x) { return (!a || x.conf > a.conf) ? x : a; }, null);
-      // Favor recency: the row features the NEWEST playable clip (calls are
-      // newest-first), not the highest-confidence one — "just heard" should
-      // surface the most recent owl, not an earlier louder one.
-      c.recentPlay = c.calls.filter(function (x) { return x.audio; })[0] || null;
     });
     out.sort(function (a, b) { return a.newest < b.newest ? 1 : a.newest > b.newest ? -1 : 0; });
     return out;
@@ -791,7 +790,7 @@
       });
     }
     feed.innerHTML = chainsOf(shown).map(function (c, i) {
-      var n = c.calls.length, top = c.calls[0], bp = c.recentPlay;
+      var n = c.calls.length, top = c.calls[0], bp = c.bestPlay;
       var xd = n > 1 && expandedChains[c.key];
       var main =
         '<div class="lv-rowwrap' + (bp && open[bp.audio] ? ' open' : '') + '"' + (bp ? ' data-audio="' + esc(bp.audio) + '"' : '') + '>' +
@@ -801,10 +800,10 @@
         '<span class="rmeta">' +
         (n > 1 ? '<button type="button" class="lv-xn" data-key="' + esc(c.key) + '" aria-expanded="' + (xd ? 'true' : 'false') + '" title="' + n + ' recordings — tap for each one">&times;' + n + ' ' + (xd ? '&#9652;' : '&#9662;') + '</button>' : '') +
         '<span class="rt" data-t="' + esc(top.t) + '"></span>' +
-        '<span class="rc"' + (n > 1 ? ' title="most recent of ' + n + ' recordings"' : '') + '>' + Math.round((bp || top).conf * 100) + '%</span>' +
+        '<span class="rc"' + (n > 1 ? ' title="clearest of ' + n + ' recordings"' : '') + '><span class="cl">conf</span> ' + Math.round((bp || c.best).conf * 100) + '%</span>' +
         (CURATE ? '<button type="button" class="lv-suppress" data-sp="' + esc(c.display) + '" title="Not a bird — suppress ' + esc(c.display) + ' from the mic">&#128683;</button>' : '') +
         '</span>' +
-        (bp ? '<button class="lv-rowplay" data-audio="' + esc(bp.audio) + '" aria-label="play the most recent recording">&#9654;</button>' : '') +
+        (bp ? '<button class="lv-rowplay" data-audio="' + esc(bp.audio) + '" aria-label="play the clearest recording">&#9654;</button>' : '') +
         '</div>' + (bp ? stripHTML(bp) : '') + '</div>';
       var sub = "";
       if (n > 1) {
