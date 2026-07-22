@@ -50,6 +50,8 @@
   .sp-recs-sort button+button{border-left:1px solid rgba(13,18,14,.12)}
   .sp-recs-sort button.on{background:var(--green); color:#fff}
   .sp-recs-list{margin-top:.7rem; display:flex; flex-direction:column; max-height:300px; overflow-y:auto; border:1px solid rgba(13,18,14,.1); border-radius:10px; scrollbar-width:thin}
+  /* the class display: must not win over the hidden attribute (drawer stayed open) */
+  .sp-recs-sort[hidden],.sp-recs-list[hidden]{display:none}
   .sp-recrow{display:flex; align-items:center; gap:.7rem; padding:.5rem .7rem; background:none; border:none; border-bottom:1px solid rgba(13,18,14,.06); cursor:pointer; text-align:left; width:100%}
   .sp-recrow:last-child{border-bottom:none}
   .sp-recrow:hover{background:rgba(47,125,79,.06)}
