@@ -109,6 +109,13 @@
   /* Today-by-hour strip: each bar is a filter on the feed below it. */
   #lv-hstrip{margin-top:1.1rem}
   .lv-hkick{font-size:.62rem; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); margin:0 0 .35rem}
+  .lv-hbarwrap{position:relative}
+  .lv-hmarks{position:absolute; inset:0; pointer-events:none}
+  /* Sunrise/sunset: a faint dotted line up the strip with a tiny dot at the top. */
+  .lv-hmk{position:absolute; top:-3px; bottom:0; width:0; border-left:1px dotted rgba(13,18,14,.28)}
+  .lv-hmk::before{content:""; position:absolute; top:-2px; left:-3px; width:6px; height:6px; border-radius:50%}
+  .lv-hmk.sunrise::before{background:var(--amber); box-shadow:0 0 5px 1px rgba(232,176,75,.5)}
+  .lv-hmk.sunset::before{background:#6f7b8a}
   .lv-hbars{display:flex; align-items:flex-end; gap:2px; height:38px}
   .lv-hb{flex:1; min-width:2px; border:none; padding:0; background:linear-gradient(180deg,var(--amber),rgba(232,176,75,.3)); border-radius:2px 2px 0 0; cursor:pointer}
   .lv-hb.zero{background:rgba(13,18,14,.08); height:3px !important; cursor:default}
@@ -319,7 +326,10 @@
         <div class="lv-side">
           <div id="lv-hstrip" hidden>
             <p class="lv-hkick mono">today by hour &middot; tap a bar to filter the feed</p>
-            <div class="lv-hbars" id="lv-hbars"></div>
+            <div class="lv-hbarwrap">
+              <div class="lv-hbars" id="lv-hbars"></div>
+              <div class="lv-hmarks" id="lv-hmarks" aria-hidden="true"></div>
+            </div>
             <div class="lv-hax mono"><span>12a</span><span>6a</span><span>12p</span><span>6p</span><span>11p</span></div>
           </div>
           <p class="lv-feednote mono" id="lv-feednote" hidden></p>
@@ -411,7 +421,16 @@
       } else { el.textContent = narrow ? rel(t) : clock(t) + " · " + rel(t); }
     });
     var upd = document.getElementById("lv-upd");
-    if (upd && LIVE.generated) upd.textContent = "listening · North Andover, MA · updated " + rel(LIVE.generated);
+    if (upd && LIVE.generated) upd.textContent = "listening · North Andover, MA · updated " + rel(LIVE.generated) + weatherBit();
+  }
+  // Ambient weather garnish: the next sun event, and rain when it's raining.
+  function weatherBit() {
+    var w = LIVE.weather; if (!w) return "";
+    var s = "", now = Date.now(),
+        sr = w.sunrise ? +new Date(w.sunrise) : 0, ss = w.sunset ? +new Date(w.sunset) : 0;
+    if (sr && ss) s += (now >= sr && now < ss) ? " · sunset " + clock(w.sunset) : " · sunrise " + clock(w.sunrise);
+    if (w.raining) s += " · raining";
+    return s;
   }
 
   /* ---- the sound itself: one audio pipe, but every call keeps its own view.
@@ -857,6 +876,14 @@
         ' style="height:' + Math.max(4, Math.round(n / hm * 100)) + '%" aria-label="' + hlabel(h) + ', ' + n + ' recordings"' +
         ' title="' + hlabel(h) + ' · ' + n + ' recording' + (n === 1 ? '' : 's') + (n ? ' — tap to filter' : '') + '"></button>';
     }).join("");
+    // Subtle sunrise/sunset marks so the dawn chorus lines up with the sun.
+    var marks = document.getElementById("lv-hmarks"), w = LIVE.weather;
+    function mk(iso, cls, label) {
+      var d = new Date(iso), frac = (d.getHours() + d.getMinutes() / 60) / 24;
+      return '<span class="lv-hmk ' + cls + '" style="left:' + (frac * 100).toFixed(2) + '%" title="' + label + ' ' + clock(iso) + '"></span>';
+    }
+    marks.innerHTML = (w && w.sunrise ? mk(w.sunrise, "sunrise", "sunrise") : "") +
+                      (w && w.sunset ? mk(w.sunset, "sunset", "sunset") : "");
     var note = document.getElementById("lv-feednote");
     if (hourSel >= 0) {
       note.hidden = false;

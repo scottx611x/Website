@@ -50,6 +50,24 @@ def api(path):
         return json.load(r)
 
 
+def fetch_weather():
+    """Today's sunrise/sunset + whether it's currently raining, for the live
+    page's ambient context. Best-effort — weather is a garnish, never fatal."""
+    try:
+        w = api("/api/v2/weather/latest") or {}
+    except Exception:
+        return None
+    daily, hourly = w.get("daily") or {}, w.get("hourly") or {}
+    main = (hourly.get("weather_main") or "").lower()
+    wet = ("rain" in main or "drizzle" in main or "thunder" in main
+           or (hourly.get("precipitation") or 0) > 0)
+    if not (daily.get("sunrise") or daily.get("sunset") or main):
+        return None
+    return {"sunrise": daily.get("sunrise"), "sunset": daily.get("sunset"),
+            "raining": bool(wet), "condition": hourly.get("weather_main"),
+            "night": w.get("time_of_day") == "night"}
+
+
 def fetch_detections():
     """All detections, paged by offset (the API caps a single page)."""
     out, offset, page = [], 0, 500
@@ -325,6 +343,7 @@ def build(s3=None):
     return {
         "generated": generated,
         "station": {"source": (dets[0]["source"]["displayName"] if dets else "BirdPi Mic")},
+        "weather": fetch_weather(),
         "recent": [det(d) for d in dets[:RECENT_N]],
         "species": sp_out,
         "today": today_sp,

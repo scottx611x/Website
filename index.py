@@ -655,10 +655,11 @@ def _live_view():
         return out
 
     view = {"station": {}, "recent": [], "species": [], "counts": {},
-            "daily": [], "hours": [], "missing": [], "generated": None}
+            "daily": [], "hours": [], "missing": [], "generated": None, "weather": None}
     if data:
         view["generated"] = data.get("generated")
         view["station"] = data.get("station", {})
+        view["weather"] = data.get("weather")
         view["counts"] = data.get("counts", {})
         view["daily"] = data.get("daily", [])
         view["hours"] = data.get("hours", [])
