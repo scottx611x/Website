@@ -107,21 +107,15 @@ def sitemap():
 
 @app.after_request
 def _page_cache(resp):
-    """Data-derived pages (stats, map) revalidate against the backing data
-    instead of caching for a fixed window: the ETag folds in the manifest
-    version + asset version, and `no-cache` makes the browser check every time.
-    An unchanged page comes back as a tiny 304; the instant a sync changes the
-    manifest, the ETag changes and the page busts. No stale numbers, no lag."""
-    if (request.endpoint in ("birds_stats", "birds_map") and resp.status_code == 200
-            and not _is_local() and request.method == "GET"):
-        resp.set_etag("{}-{}".format(birds.data_version(), ASSET_V))
-        resp.headers["Cache-Control"] = "no-cache"
-        return resp.make_conditional(request)
-    if (request.endpoint == "projects" and resp.status_code == 200
-            and not _is_local() and request.method == "GET"):
-        # A live curate edit rewrites the project list, so revalidate against a
-        # hash of the rendered body — an unchanged page is a 304, an edited one
-        # busts on the next load instead of serving a stale cached copy.
+    """Every HTML page revalidates against a body-hash ETag instead of being
+    heuristically cached by the browser. `no-cache` means the browser always
+    checks; an unchanged page comes back as a tiny 304, but the instant a deploy
+    bumps the asset version (new css/js ?v=) or a sync/curate edit changes the
+    numbers, the body hash changes and the page busts. This is what stops
+    browsers from serving stale HTML that still points at last deploy's assets."""
+    if (resp.status_code == 200 and request.method == "GET" and not _is_local()
+            and not resp.direct_passthrough
+            and (resp.content_type or "").startswith("text/html")):
         resp.set_etag(hashlib.md5(resp.get_data()).hexdigest())
         resp.headers["Cache-Control"] = "no-cache"
         return resp.make_conditional(request)
