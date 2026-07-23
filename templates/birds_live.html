@@ -128,7 +128,7 @@
   .lv-nofeed{font-size:.78rem; color:var(--muted); padding:1rem 0}
 
   /* The feed scrolls the whole backlog; a bottom fade hints there's more. */
-  .lv-feed{margin-top:.9rem; max-height:min(52vh,430px); overflow-y:auto; scrollbar-width:thin; scrollbar-color:rgba(13,18,14,.25) transparent; padding-right:.3rem} /* no overscroll-behavior:contain — reaching the list's end must hand the scroll back to the page */
+  .lv-feed{margin-top:.9rem; max-height:min(52vh,430px); overflow-y:auto; scrollbar-width:thin; scrollbar-color:rgba(13,18,14,.25) transparent; padding-right:.3rem; container-type:inline-size} /* no overscroll-behavior:contain — reaching the list's end must hand the scroll back to the page. container-type: the row layout keys off the feed COLUMN width, not the viewport (the feed is a narrow column even on desktop). */
   .lv-feed.scrolly{-webkit-mask-image:linear-gradient(180deg,#000 calc(100% - 30px),transparent); mask-image:linear-gradient(180deg,#000 calc(100% - 30px),transparent)}
   .lv-chain{border-top:1px solid rgba(13,18,14,.09)}
   .lv-chain:first-child{border-top:none}
@@ -145,7 +145,7 @@
   /* Desktop: the meta wrapper is invisible to layout; phones re-grid the row so
      the species name gets the full line and the meta drops underneath. */
   .rmeta{display:contents}
-  @media(max-width:560px){
+  @container (max-width:600px){
     .lv-sub{margin-left:1.2rem}
     .lv-row.mr{display:grid; grid-template-columns:34px minmax(0,1fr) auto; column-gap:.65rem; row-gap:.12rem; align-items:center}
     .lv-row.mr .lv-av{grid-row:1/3}
@@ -797,9 +797,10 @@
     var open = {}, needleAt = null;
     feed.querySelectorAll(".lv-rowwrap.open").forEach(function (w) { open[w.getAttribute("data-audio")] = true; });
     if (current && !current.isHero && current.needle) needleAt = current.needle.style.left;
-    // With an hour selected, draw from the WHOLE day (dayrecs), so tapping 6am
-    // shows those recordings even though they've long left the recent window.
-    var base = (hourSel >= 0 && LIVE.dayrecs && LIVE.dayrecs.length) ? LIVE.dayrecs : list;
+    // Draw the feed from the WHOLE day (dayrecs) so you can scroll every species
+    // heard today — and their per-species counts span the day — instead of just
+    // the recent window. Falls back to the passed list when today has nothing.
+    var base = (LIVE.dayrecs && LIVE.dayrecs.length) ? LIVE.dayrecs : list;
     var shown = base.filter(function (r) { return !isHeroRec(r); });
     // Focus mode FILTERS the feed to the bird/family — a page of dimmed
     // other-species rows read as broken, not focused.
