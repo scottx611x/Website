@@ -474,7 +474,11 @@
   }
   function playable(list) { return (list || []).filter(function (r) { return r.audio; }); }
   function findRec(name) {
-    return (LIVE.recent || []).filter(function (x) { return x.audio === name; })[0];
+    // The feed is drawn from dayrecs (the whole day), so a featured/expanded clip
+    // can be one that has aged out of the recent window — search both pools or the
+    // play button no-ops on those older-but-still-shown recordings.
+    return (LIVE.recent || []).filter(function (x) { return x.audio === name; })[0] ||
+           (LIVE.dayrecs || []).filter(function (x) { return x.audio === name; })[0];
   }
   function loadHero(r) {
     if (!player || !r || !r.audio) return;
@@ -849,17 +853,20 @@
     // heard today — and their per-species counts span the day — instead of just
     // the recent window. Falls back to the passed list when today has nothing.
     var base = (LIVE.dayrecs && LIVE.dayrecs.length) ? LIVE.dayrecs : list;
-    var shown = base.filter(function (r) { return !isHeroRec(r); });
+    // Scope the feed to the ACTIVE DAY. dayrecs spans ~30h (to cover any viewer
+    // timezone), so it carries last night's recordings — which inflated the ×N
+    // counts (16 vs today's 7) and made the featured clip an older/higher-conf one
+    // from a previous night. Keep only the viewer's current calendar day.
+    var todayKey = new Date().toDateString();
+    var shown = base.filter(function (r) {
+      return !isHeroRec(r) && new Date(r.t).toDateString() === todayKey;
+    });
     // Focus mode FILTERS the feed to the bird/family — a page of dimmed
     // other-species rows read as broken, not focused.
     if (focusSlug || focusFam) shown = shown.filter(matchesFocus);
     if (MULTI && nodeSel) shown = shown.filter(function (r) { return r.node === nodeSel; });
     if (hourSel >= 0) {
-      var todayKey = new Date().toDateString();
-      shown = shown.filter(function (r) {
-        var d = new Date(r.t);
-        return d.toDateString() === todayKey && d.getHours() === hourSel;
-      });
+      shown = shown.filter(function (r) { return new Date(r.t).getHours() === hourSel; });
     }
     feed.innerHTML = chainsOf(shown).map(function (c, i) {
       var n = c.calls.length, top = c.calls[0], bp = c.bestPlay;
@@ -900,7 +907,7 @@
       ? '<p class="lv-nofeed">nothing else recent from ' + esc(focusName || focusFam) + ' — the hero above is the latest.' +
         (focusName ? ' <a href="/birds/species/' + focusSlug + '">every recording &rarr;</a>' : '') +
         ' <a href="/birds/live/log">browse by day &rarr;</a></p>'
-      : '<p class="lv-nofeed">nothing logged in this hour (yet)</p>');
+      : '<p class="lv-nofeed">' + (hourSel >= 0 ? 'nothing logged in this hour (yet)' : 'nothing heard yet today &mdash; <a href="/birds/live/log">browse past days &rarr;</a>') + '</p>');
     // Re-point the live needle at the rebuilt strip for whatever's playing.
     if (current && !current.isHero) {
       var w = feed.querySelector('.lv-rowwrap[data-audio="' + current.audio + '"]');
