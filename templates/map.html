@@ -22,6 +22,7 @@
 {% endblock %}
 
 {% block content %}
+{% from '_icons.html' import icon %}
 <section class="page wide">
     <header class="gallery-header">
         {% if active_bird %}
@@ -59,7 +60,7 @@
     </div>
     <p class="map-legend mono">
         <span class="dot dot-local"></span> North Andover
-        &nbsp;&nbsp;<span class="dot dot-away"></span> outside North Andover &#9888;&#65039;
+        &nbsp;&nbsp;<span class="dot dot-away"></span> outside North Andover {{ icon('alert') }}
         &nbsp;&nbsp;pin size &prop; photos
     </p>
 </section>

@@ -784,7 +784,16 @@
   function renderWall() {
     var wall = document.getElementById("lv-wall");
     if (!wall) return;
-    var list = LIVE.speciesToday || [];
+    // Today's heard species = distinct species in today's VISIBLE recordings.
+    // dayrecs is the curated log (hidden clips gone) and hideClip prunes it
+    // locally, so hiding every clip of a species drops it from the wall at once.
+    var todayKey = new Date().toDateString(), heard = {}, meta = {};
+    (LIVE.dayrecs || []).forEach(function (r) {
+      if (new Date(r.t).toDateString() === todayKey) heard[slugify(r.display)] = true;
+    });
+    (LIVE.species || []).forEach(function (s) { meta[slugify(s.display)] = s; });
+    var list = Object.keys(heard).map(function (sl) { return meta[sl]; }).filter(Boolean)
+      .sort(function (a, b) { return (a.last || "") < (b.last || "") ? 1 : (a.last || "") > (b.last || "") ? -1 : 0; });
     wall.innerHTML = list.map(function (s) {
       var slug = slugify(s.display), fam = esc(s.fam || "");
       if (s.photo) {

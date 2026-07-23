@@ -36,6 +36,8 @@
     {% if not nav_titled %}
     <span class="sf-dot"></span>
     <b class="sf-name">{{ nav_family }}</b>
+    {% else %}
+    <a class="sf-name" href="/birds?family={{ nav_family|urlencode }}">the gallery &rarr;</a>
     {% endif %}
     <a class="sf-x" href="{{ request.path }}" aria-label="show every family" title="show every family">&times;</a>
 </p>

@@ -673,23 +673,11 @@ def _live_view():
         view["missing"] = miss
         n = len(view["species"])
         view["hv"] = {"heard": n, "shot": n - len(miss), "miss": len(miss)}
-        # The "heard vs shot" wall is scoped to the active day: only species heard
-        # today, so it matches the page's live/today framing rather than dumping the
-        # whole all-time life list. Derive today's species from the last daily
-        # rollup entry's per-species breakdown — the same source the "species today"
-        # stat counts, and already curation-filtered by apply_sound_curation.
-        _daily = data.get("daily") or []
-        _today_sp = (_daily[-1].get("sp") or {}) if (_daily and isinstance(_daily[-1], dict)) else {}
-        today_names = {birds._sound_canon_key(x) for x in _today_sp}
-        today_sp = [s for s in view["species"]
-                    if birds._sound_canon_key(s.get("display") or s.get("common")) in today_names]
-        miss_t = [s for s in today_sp if not s["shot"]]
-        view["speciesToday"] = today_sp
-        view["hvToday"] = {"heard": len(today_sp), "shot": len(today_sp) - len(miss_t), "miss": len(miss_t)}
         # The full day's recordings (curated log, last ~30h so the viewer's local
         # "today" is covered in any tz), so the live page's hour strip shows the
         # WHOLE day — not just the recent window — and tapping any hour (even 6am,
-        # long aged out of `recent`) shows those recordings inline.
+        # long aged out of `recent`) shows those recordings inline. This is the
+        # curated log, so hidden clips are already dropped.
         log = birds.load_sound_log() or {}
         cutoff = datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(hours=30)
         dayrecs = []  # NB: not `day` — that name is the date seed enrich() closes over
@@ -700,6 +688,19 @@ def _live_view():
             except (KeyError, ValueError, TypeError):
                 continue
         view["dayrecs"] = dayrecs
+        # The "heard vs shot" wall is scoped to the active day AND clip-hide-aware:
+        # derive today's species from the day's VISIBLE recordings (dayrecs is the
+        # curated log, so hidden clips are gone), not the raw daily rollup. Hiding
+        # every clip of a species therefore drops it from the wall too.
+        _daily = data.get("daily") or []
+        station_today = (_daily[-1].get("d") if (_daily and isinstance(_daily[-1], dict)) else None)
+        today_keys = {birds._sound_canon_key(r.get("display") or r.get("common"))
+                      for r in dayrecs if station_today and (r.get("t") or "")[:10] == station_today}
+        today_sp = [s for s in view["species"]
+                    if birds._sound_canon_key(s.get("display") or s.get("common")) in today_keys]
+        miss_t = [s for s in today_sp if not s["shot"]]
+        view["speciesToday"] = today_sp
+        view["hvToday"] = {"heard": len(today_sp), "shot": len(today_sp) - len(miss_t), "miss": len(miss_t)}
     return view
 
 

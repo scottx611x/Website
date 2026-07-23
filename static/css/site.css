@@ -545,6 +545,12 @@ body.home .site-nav { z-index: 0; }
     height: min(72vh, 760px); border-radius: 12px; z-index: 1;
     border: 1px solid rgba(13, 18, 14, 0.12); box-shadow: 0 10px 30px -18px rgba(13, 18, 14, 0.35);
 }
+/* Phones: size the map to the space left under the header/toggle so the whole
+   thing — map + legend — fits without scrolling. svh (small viewport) keeps it
+   fitting even while the browser chrome is showing. */
+@media (max-width: 640px) {
+    #sightings-map { height: calc(100svh - 23rem); min-height: 280px; }
+}
 .map-toggle { display: flex; gap: 0.5rem; justify-content: center; margin: 0 0 1rem; }
 .map-legend { text-align: center; color: var(--muted); font-size: 0.76rem; margin-top: 0.9rem; }
 /* time scrubber */
@@ -977,6 +983,7 @@ a.ear-daily:hover .ear-day:not(.zero) { filter: brightness(1.08); }
 .cap-away { display: inline-flex; margin-right: 0.3rem; }
 .cap-away .ic, .lightbox-area .ic { color: #f2b544; width: 0.95rem; height: 0.95rem; }
 .filter-chips .chip .ic { color: inherit; vertical-align: -0.16em; }
+.stats .stat-lbl .ic, .map-legend .ic { color: #d9863b; width: 0.82rem; height: 0.82rem; vertical-align: -0.12em; }
 .away-badge::after {
     content: attr(data-note); position: absolute; top: calc(100% + 0.4rem); right: 0;
     width: max-content; max-width: 15rem; z-index: 5;
