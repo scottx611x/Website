@@ -863,6 +863,12 @@ a.ear-daily:hover .ear-day:not(.zero) { filter: brightness(1.08); }
 .places-grid { display: grid; grid-template-columns: 1fr 15rem; gap: 1.1rem; align-items: stretch; margin-top: 0.4rem; }
 .places-map { height: 340px; border-radius: 12px; overflow: hidden; z-index: 0;
     border: 1px solid rgba(13, 18, 14, 0.12); background: #eae6da; }
+/* Phones: stack the map above the ranked list — the 2-col grid squeezed the map
+   to a ~100px sliver beside the 15rem list, which read as "no map". */
+@media (max-width: 640px) {
+    .places-grid { grid-template-columns: 1fr; }
+    .places-map { height: 300px; }
+}
 .places-top { display: flex; flex-direction: column; min-width: 0; }
 .places-top-h { text-transform: uppercase; letter-spacing: 0.08em; font-size: 0.62rem;
     color: var(--muted); margin: 0.1rem 0 0.5rem; }
