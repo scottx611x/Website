@@ -7,11 +7,12 @@
 {% set nav_bird = nav_bird if nav_bird is defined and nav_bird else (request.args.get('bird') or '') %}
 {% set nav_family = nav_family if nav_family is defined and nav_family else (request.args.get('family') or '') %}
 {% set bq = ('?bird=' ~ (nav_bird | urlencode)) if nav_bird else (('?family=' ~ (nav_family | urlencode)) if nav_family else '') %}
+{% from '_icons.html' import icon %}
 <nav class="birds-subnav mono" aria-label="Bird pages">
-    <a href="/birds{{ bq }}" class="{{ 'on' if subnav_active == 'gallery' }}">&#128247; Gallery</a>
-    <a href="/birds/stats{{ bq }}" class="{{ 'on' if subnav_active == 'stats' }}">&#128202; By the numbers</a>
-    <a href="/birds/live{{ bq }}" class="{{ 'on' if subnav_active == 'live' }}">&#128308; Live</a>
-    <a href="/birds/map{{ bq }}" class="{{ 'on' if subnav_active == 'map' }}">&#128506;&#65039; Map</a>
+    <a href="/birds{{ bq }}" class="{{ 'on' if subnav_active == 'gallery' }}">{{ icon('camera') }} Gallery</a>
+    <a href="/birds/stats{{ bq }}" class="{{ 'on' if subnav_active == 'stats' }}">{{ icon('chart') }} By the numbers</a>
+    <a href="/birds/live{{ bq }}" class="{{ 'on' if subnav_active == 'live' }}">{{ icon('wave') }} Live</a>
+    <a href="/birds/map{{ bq }}" class="{{ 'on' if subnav_active == 'map' }}">{{ icon('pin') }} Map</a>
 </nav>
 {# The chip appears on filtered views (query-param context), not on a species
    profile — there the bird's name is already the headline. Pages whose TITLE

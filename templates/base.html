@@ -78,7 +78,7 @@
     <span class="curate-chip">
         <a class="curate-toggle{% if curate %} on{% endif %}"
            href="/curate/toggle?next={{ request.full_path|urlencode }}"
-           title="Pause or resume curate mode (stays logged in)">{% if curate %}&#10003; Curating{% else %}&#9998; Curate{% endif %}</a>
+           title="Pause or resume curate mode (stays logged in)">{% if curate %}{{ icon('check') }} Curating{% else %}{{ icon('pencil') }} Curate{% endif %}</a>
         {% if curate_authed %}<a class="curate-logout" href="/curate/logout" title="Log out of curate on this device">log&nbsp;out</a>{% endif %}
     </span>{% endif %}
 
