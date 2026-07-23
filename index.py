@@ -677,6 +677,20 @@ def _live_view():
         view["missing"] = miss
         n = len(view["species"])
         view["hv"] = {"heard": n, "shot": n - len(miss), "miss": len(miss)}
+        # The full day's recordings (curated log, last ~30h so the viewer's local
+        # "today" is covered in any tz), so the live page's hour strip shows the
+        # WHOLE day — not just the recent window — and tapping any hour (even 6am,
+        # long aged out of `recent`) shows those recordings inline.
+        log = birds.load_sound_log() or {}
+        cutoff = datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(hours=30)
+        dayrecs = []  # NB: not `day` — that name is the date seed enrich() closes over
+        for r in (log.get("log") or []):
+            try:
+                if datetime.datetime.fromisoformat(r["t"]) >= cutoff:
+                    dayrecs.append(enrich(r))
+            except (KeyError, ValueError, TypeError):
+                continue
+        view["dayrecs"] = dayrecs
     return view
 
 

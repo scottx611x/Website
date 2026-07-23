@@ -797,7 +797,10 @@
     var open = {}, needleAt = null;
     feed.querySelectorAll(".lv-rowwrap.open").forEach(function (w) { open[w.getAttribute("data-audio")] = true; });
     if (current && !current.isHero && current.needle) needleAt = current.needle.style.left;
-    var shown = list.filter(function (r) { return !isHeroRec(r); });
+    // With an hour selected, draw from the WHOLE day (dayrecs), so tapping 6am
+    // shows those recordings even though they've long left the recent window.
+    var base = (hourSel >= 0 && LIVE.dayrecs && LIVE.dayrecs.length) ? LIVE.dayrecs : list;
+    var shown = base.filter(function (r) { return !isHeroRec(r); });
     // Focus mode FILTERS the feed to the bird/family — a page of dimmed
     // other-species rows read as broken, not focused.
     if (focusSlug || focusFam) shown = shown.filter(matchesFocus);
@@ -860,7 +863,9 @@
     var todayKey = new Date().toDateString();
     var hours = [];
     for (var hz = 0; hz < 24; hz++) hours[hz] = 0;
-    (LIVE.recent || []).forEach(function (r) {
+    // The WHOLE day (dayrecs = today's full curated log), not just the recent
+    // window — so the morning shows even after it's scrolled out of the feed.
+    (LIVE.dayrecs || LIVE.recent || []).forEach(function (r) {
       if (isHeroRec(r)) return;
       var dt = new Date(r.t);
       if (dt.toDateString() === todayKey) hours[dt.getHours()]++;
