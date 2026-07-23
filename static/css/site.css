@@ -61,13 +61,14 @@ a { color: inherit; text-decoration: none; }
     gap: 0.55rem;
 }
 .brand-dot {
-    width: 11px; height: 11px; border-radius: 50%; flex: 0 0 auto;
+    /* A static brand accent, NOT a status light — the glow/breath is reserved for
+       the actual "live/listening" dot on the sound pages, so it means something
+       where it appears instead of pinging on every page. */
+    width: 10px; height: 10px; border-radius: 50%; flex: 0 0 auto;
     background: var(--neon);
-    box-shadow: 0 0 5px 1px rgba(56,224,138,0.45);
-    animation: dotGlow 3.4s ease-in-out infinite;
 }
-/* A calm glow breath, shared by every "live" dot (brand, listening status).
-   Replaces the old expanding radar-ping — alive without the nagging pulse. */
+/* A calm glow breath for the real "live" dots (listening status on the sound
+   pages). Replaces the old expanding radar-ping — alive without the nagging pulse. */
 @keyframes dotGlow {
     0%, 100% { box-shadow: 0 0 4px 0 rgba(56,224,138,0.30); }
     50%      { box-shadow: 0 0 9px 2px rgba(56,224,138,0.62); }
