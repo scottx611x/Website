@@ -5,9 +5,8 @@
 {% from '_icons.html' import icon %}
 <style>
   .dlog .mono{font-family:var(--mono); font-variant-numeric:tabular-nums}
-  .dl-status{display:flex; justify-content:center; align-items:center; gap:.55rem; color:var(--muted); font-size:.78rem; margin:.9rem 0 0}
-  .dl-dot{width:9px;height:9px;border-radius:50%;background:var(--neon);box-shadow:0 0 0 0 rgba(56,224,138,.55);animation:dlPulse 2.4s infinite}
-  @keyframes dlPulse{70%{box-shadow:0 0 0 9px rgba(56,224,138,0)}100%{box-shadow:0 0 0 0 rgba(56,224,138,0)}}
+  .dl-status{display:flex; justify-content:center; align-items:flex-start; gap:.5rem; color:var(--muted); font-size:.78rem; margin:.9rem 0 0}
+  .dl-dot{width:9px;height:9px;border-radius:50%;flex:0 0 auto;margin-top:.26rem;background:var(--neon);box-shadow:0 0 4px 0 rgba(56,224,138,.4);animation:dotGlow 3.4s ease-in-out infinite}
   .dl-back{display:inline-flex; align-items:center; gap:.4rem; font-family:var(--mono); font-size:.72rem; text-transform:uppercase; letter-spacing:.1em; color:var(--green); text-decoration:none; margin-top:.5rem}
   .dl-back:hover{color:var(--neon)}
 

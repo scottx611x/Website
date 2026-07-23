@@ -8,9 +8,8 @@
   .livewire .mono{font-family:var(--mono); font-variant-numeric:tabular-nums}
   .livewire .lv-kick{font-family:var(--mono); font-size:.7rem; text-transform:uppercase; letter-spacing:.16em; color:var(--green); margin:0 0 1rem}
   .livewire section{margin-top:3.2rem}
-  .lv-status{display:flex; justify-content:center; align-items:center; gap:.55rem; color:var(--muted); font-size:.78rem; margin:.9rem 0 0}
-  .lv-dot{width:9px;height:9px;border-radius:50%;background:var(--neon);box-shadow:0 0 0 0 rgba(56,224,138,.55);animation:lvPulse 2.4s infinite}
-  @keyframes lvPulse{70%{box-shadow:0 0 0 9px rgba(56,224,138,0)}100%{box-shadow:0 0 0 0 rgba(56,224,138,0)}}
+  .lv-status{display:flex; justify-content:center; align-items:flex-start; gap:.5rem; color:var(--muted); font-size:.78rem; margin:.9rem 0 0}
+  .lv-dot{width:9px;height:9px;border-radius:50%;flex:0 0 auto;margin-top:.26rem;background:var(--neon);box-shadow:0 0 4px 0 rgba(56,224,138,.4);animation:dotGlow 3.4s ease-in-out infinite}
 
   /* minmax(0,…): grid items default to min-width:auto, and the feed's nowrap
      timestamps were silently stretching the whole page past the viewport. */
