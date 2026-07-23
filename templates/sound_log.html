@@ -2,6 +2,7 @@
 {% block meta_description %}Browse past days of bird recordings from the yard microphone in North Andover, MA — one day at a time, by species, with audio and spectrograms.{% endblock %}
 
 {% block content %}
+{% from '_icons.html' import icon %}
 <style>
   .dlog .mono{font-family:var(--mono); font-variant-numeric:tabular-nums}
   .dl-status{display:flex; justify-content:center; align-items:center; gap:.55rem; color:var(--muted); font-size:.78rem; margin:.9rem 0 0}
@@ -36,6 +37,8 @@
   @media(hover:hover){.dl-sphead:hover{background:rgba(47,125,79,.04)}}
   .dl-av{width:2.6rem; height:2.6rem; border-radius:50%; object-fit:cover; background:var(--paper-2); border:1.5px solid rgba(47,125,79,.35)}
   .dl-av.ear{display:flex; align-items:center; justify-content:center; font-size:1rem; border:1.5px dashed rgba(176,125,36,.55)}
+  .dl-av.ear .ic{width:1.35rem; height:1.35rem; color:#a9761f}
+  .dl-share .ic{width:1rem; height:1rem}
   .dl-spmain{min-width:0}
   .dl-nm{font-family:var(--display); font-size:1.12rem; line-height:1.12; text-decoration:none; color:var(--ink)}
   .dl-nm:hover{color:var(--green)}
@@ -118,12 +121,17 @@
     <button type="button" data-dlsort="active">most heard</button><button type="button" data-dlsort="chrono">chronological</button>
   </div>
 
+  <div class="node-filter" id="dl-nodes" hidden></div>
+
   <div class="dl-splist" id="dl-list"></div>
 
   <script>
     var LOG = {{ log|tojson }};
+    var LOG_NODES = {{ nodes|tojson }};
+    var ICONS = { link: '{{ icon('link') }}', ear: '{{ icon('wave') }}' };
     var MEDIA = "https://birds-scott-ouellette.s3.amazonaws.com/birds/sounds/clips/";
   </script>
+  <script src="{{ url_for('static', filename='js/nodes.js', v=asset_v) }}"></script>
   <script src="{{ url_for('static', filename='js/sound_log.js', v=asset_v) }}"></script>
   {% endif %}
 </section>

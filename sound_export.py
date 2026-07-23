@@ -295,6 +295,9 @@ def build(s3=None):
             "code": d.get("speciesCode"), "t": d.get("timestamp"),
             "conf": round(d.get("confidence", 0), 3),
             "new": bool(d.get("isNewSpecies")), "verified": d.get("verified"),
+            # Which listening node heard it (BirdNET-Go source displayName) — the
+            # site shows/filters by node only when there's more than one.
+            "node": (d.get("source") or {}).get("displayName"),
         }
         out.update(media.get(d.get("clipName"), {}))
         return out
@@ -339,10 +342,26 @@ def build(s3=None):
 
     today_sp = sorted(day_sp.get(today, {}))
 
+    # Listening nodes: distinct source names with lifetime + today counts, newest
+    # first, so the site can label + filter by node (only when there's >1).
+    node_ct, node_today, node_last = {}, {}, {}
+    for d in dets:
+        nm = (d.get("source") or {}).get("displayName")
+        if not nm:
+            continue
+        node_ct[nm] = node_ct.get(nm, 0) + 1
+        node_last[nm] = max(node_last.get(nm, ""), d.get("timestamp") or "")
+        if (d.get("timestamp") or "")[:10] == today:
+            node_today[nm] = node_today.get(nm, 0) + 1
+    nodes = [{"name": nm, "count": node_ct[nm], "today": node_today.get(nm, 0),
+              "last": node_last.get(nm)}
+             for nm in sorted(node_ct, key=lambda n: node_last.get(n, ""), reverse=True)]
+
     generated = dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds")
     return {
         "generated": generated,
         "station": {"source": (dets[0]["source"]["displayName"] if dets else "BirdPi Mic")},
+        "nodes": nodes,
         "weather": fetch_weather(),
         "recent": [det(d) for d in dets[:RECENT_N]],
         "species": sp_out,

@@ -3,6 +3,7 @@
 {% block og_image %}{% if sp.cover and sp.cover.images %}{{ sp.cover.images[0] }}{% else %}{{ site_url }}{{ url_for('static', filename='img/fall.jpg') }}{% endif %}{% endblock %}
 
 {% block content %}
+{% from '_icons.html' import icon %}
 <style>
   .sppage .sp-eyebrow{font-family:var(--mono); font-size:.72rem; letter-spacing:.15em; text-transform:uppercase; color:var(--green); margin:0 0 .3rem}
   .sppage .sp-eyebrow a{color:inherit; text-decoration:none; border-bottom:1px dotted rgba(47,125,79,.5)}
@@ -11,7 +12,8 @@
   /* A tappable STAT line, deliberately unlike the pill subnav above it (no
      borders, number-forward, muted labels) so the two rows don't read alike. */
   .sp-chips{display:flex; flex-wrap:wrap; justify-content:center; align-items:center; gap:.5rem 1.6rem; margin-top:1.7rem}
-  .sp-chip{font-family:var(--mono); font-size:.82rem; text-decoration:none; color:var(--muted); display:inline-flex; align-items:baseline; gap:.35rem; white-space:nowrap; transition:color .15s ease}
+  .sp-chip{font-family:var(--mono); font-size:.82rem; text-decoration:none; color:var(--muted); display:inline-flex; align-items:center; gap:.4rem; white-space:nowrap; transition:color .15s ease}
+  .sp-chip .ic{color:var(--green); opacity:.9}
   .sp-chip b{font-weight:600; color:var(--ink); font-size:1.05rem; letter-spacing:-.01em}
   .sp-chip:hover{color:var(--green)} .sp-chip:hover b{color:var(--green)}
   @media(hover:hover){.sp-chip{border-bottom:1px dotted transparent} .sp-chip:hover{border-color:var(--green)}}
@@ -84,6 +86,10 @@
   .sp-heard .row{display:flex; justify-content:space-between; align-items:baseline; font-size:.86rem; color:var(--muted)}
   .sp-heard .row b{font-family:var(--display); font-size:1.15rem; color:var(--ink); font-weight:600}
   .sp-heard a{font-family:var(--mono); font-size:.74rem; color:var(--green); text-decoration:none; margin-top:.2rem}
+  .sp-heard .sp-heardon{align-items:center}
+  .sp-nodes{display:flex; flex-wrap:wrap; gap:.55rem; justify-content:flex-end}
+  .sp-nodetag{display:inline-flex; align-items:center; gap:.32rem; font-family:var(--mono); font-size:.74rem; color:var(--ink)}
+  .sp-recrow .node-dot{margin:0 .1rem}
 
   /* Seasonal rhythm */
   .sp-year{display:flex; align-items:flex-end; gap:.4rem; height:108px}
@@ -103,7 +109,8 @@
   .sp-place .nm{flex:1; font-family:var(--display); font-size:1rem}
   .sp-place:hover .nm{color:var(--green)}
   .sp-place .ct{font-family:var(--mono); font-size:.72rem; color:var(--muted)}
-  .sp-place .aw{font-size:.7rem}
+  .sp-place .aw{font-size:.7rem; display:inline-flex}
+  .sp-place .aw .ic{width:.9rem; height:.9rem; color:#d9863b}
 </style>
 
 {% set mo_names = ['J','F','M','A','M','J','J','A','S','O','N','D'] %}
@@ -115,10 +122,10 @@
         <h1>{{ sp.name }}</h1>
         {% set subnav_active = 'gallery' %}{% set nav_bird = sp.name %}{% include '_birds_nav.html' %}
         <div class="sp-chips">
-            {% if sp.count %}<a class="sp-chip" href="/birds?bird={{ sp.name|urlencode }}">&#128247; <b>{{ sp.count }}</b> photo{{ '' if sp.count == 1 else 's' }}</a>{% endif %}
-            {% if sp.rank %}<a class="sp-chip" href="/birds/stats?bird={{ sp.name|urlencode }}">&#128202; <b>#{{ sp.rank }}</b> lifer</a>{% endif %}
-            {% if sp.heard %}<a class="sp-chip" href="/birds/live?bird={{ sp.name|urlencode }}">&#128308; heard <b>{{ sp.heard.count }}&times;</b></a>{% endif %}
-            {% if sp.places %}<a class="sp-chip" href="/birds/map?bird={{ sp.name|urlencode }}">&#128506;&#65039; <b>{{ sp.places|length }}</b> place{{ '' if sp.places|length == 1 else 's' }}</a>{% endif %}
+            {% if sp.count %}<a class="sp-chip" href="/birds?bird={{ sp.name|urlencode }}">{{ icon('camera') }} <b>{{ sp.count }}</b> photo{{ '' if sp.count == 1 else 's' }}</a>{% endif %}
+            {% if sp.rank %}<a class="sp-chip" href="/birds/stats?bird={{ sp.name|urlencode }}">{{ icon('trophy') }} <b>#{{ sp.rank }}</b> lifer</a>{% endif %}
+            {% if sp.heard %}<a class="sp-chip" href="/birds/live?bird={{ sp.name|urlencode }}">{{ icon('wave') }} heard <b>{{ sp.heard.count }}&times;</b></a>{% endif %}
+            {% if sp.places %}<a class="sp-chip" href="/birds/map?bird={{ sp.name|urlencode }}">{{ icon('pin') }} <b>{{ sp.places|length }}</b> place{{ '' if sp.places|length == 1 else 's' }}</a>{% endif %}
         </div>
     </header>
 
@@ -148,10 +155,10 @@
                 <img loading="lazy" decoding="async" src="{{ shot.images[0]|thumb }}"
                      {% if dm %}width="{{ dm[0] }}" height="{{ dm[1] }}"{% endif %} alt="{{ sp.name }}">
                 {% if shot.image_videos and shot.image_videos[0] %}<span class="play-badge" aria-hidden="true">&#9654;</span>{% endif %}
-                {% if shot.image_areas and shot.image_areas[0] == 'away' %}<span class="away-badge"><span class="away-badge-mark">&#9888;&#65039;</span></span>{% endif %}
+                {% if shot.image_areas and shot.image_areas[0] == 'away' %}<span class="away-badge">{{ icon('alert') }}</span>{% endif %}
                 {% if shot.location or shot.date %}
                 <figcaption>
-                    <span class="species">{{ shot.location or '' }}</span>
+                    {% if shot.location %}<a class="species cap-loc" href="/birds?bird={{ sp.name|urlencode }}&loc={{ shot.location|urlencode }}" title="every {{ sp.name }} at {{ shot.location }}">{{ shot.location }}</a>{% else %}<span class="species"></span>{% endif %}
                     {% if shot.date %}<span class="shot-date">{{ shot.date }}</span>{% endif %}
                 </figcaption>
                 {% endif %}
@@ -196,6 +203,9 @@
                 <div class="row"><span>recordings</span><b>{{ sp.heard.count }}&times;</b></div>
                 {% if sp.heard.maxConf %}<div class="row"><span>highest confidence</span><b>{{ (sp.heard.maxConf*100)|round|int }}%</b></div>{% endif %}
                 <div class="row"><span>photographed?</span><b>{{ 'yes' if sp.photographed else 'not yet' }}</b></div>
+                {% if sp.heard_nodes and sp.heard_nodes|length > 1 %}
+                <div class="row sp-heardon"><span>heard on</span><span class="sp-nodes" id="sp-nodes"></span></div>
+                {% endif %}
                 <a href="/birds/live?bird={{ sp.name|urlencode }}">open the live viewer &rarr;</a>
             </div>
         </div>
@@ -244,7 +254,7 @@
             {% for p in sp.places %}
             <a class="sp-place {{ 'away' if p.area == 'away' }}" href="/birds?bird={{ sp.name|urlencode }}&loc={{ p.name|urlencode }}">
                 <span class="pin"{% if p.img %} style="background-image:url('{{ p.img }}')"{% endif %}></span>
-                <span class="nm">{% if p.area == 'away' %}<span class="aw">&#9888;&#65039;</span> {% endif %}{{ p.name }}</span>
+                <span class="nm">{% if p.area == 'away' %}<span class="aw">{{ icon('alert') }}</span> {% endif %}{{ p.name }}</span>
                 <span class="ct">{{ p.count }} photo{{ '' if p.count == 1 else 's' }}</span>
             </a>
             {% endfor %}
@@ -254,11 +264,25 @@
 </section>
 
 {% if sp.heard and sp.recent_call and sp.recent_call.audio %}
+<script src="{{ url_for('static', filename='js/nodes.js', v=asset_v) }}"></script>
 <script>
 (function () {
   var wrap = document.getElementById("sp-player");
   var btn = document.getElementById("sp-play");
   if (!wrap || !btn) return;
+  // Listening nodes: only surface which mic(s) heard this bird when there's more
+  // than one. With a single mic MULTI is false and nothing below shows.
+  var HEARD_NODES = {{ (sp.heard_nodes or [])|tojson }};
+  var MULTI = HEARD_NODES.length > 1 && window.NodeUI;
+  function nodeDot(name) { return (MULTI && name) ? window.NodeUI.dot(name) : ""; }
+  (function () {
+    var nx = document.getElementById("sp-nodes");
+    if (!nx || !MULTI) return;
+    nx.innerHTML = HEARD_NODES.map(function (n) {
+      var i = document.createElement("i"); i.textContent = n;
+      return '<span class="sp-nodetag">' + window.NodeUI.dot(n) + i.innerHTML + '</span>';
+    }).join("");
+  })();
   var MEDIA = "https://birds-scott-ouellette.s3.amazonaws.com/birds/sounds/clips/";
   // The profile offers the latest recording and (when it's a different clip) the
   // clearest — highest confidence. The toggle swaps the audio, spectrogram + label.
@@ -351,6 +375,7 @@
         return '<button type="button" class="sp-recrow' + (on ? " on" : "") + '" data-audio="' + esc(r.audio) + '">' +
           '<span class="rp">&#9654;</span>' +
           '<span class="rw">' + esc(r.when || "") + '</span>' +
+          nodeDot(r.node) +
           '<span class="rc ' + cc + '">' + pct + '%</span></button>';
       }).join("");
     }

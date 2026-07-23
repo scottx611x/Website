@@ -12,6 +12,30 @@
   var nextEl = document.getElementById("dl-next");
   var searchEl = document.getElementById("dl-search");
   var sortEl = document.getElementById("dl-sort");
+  var nodesEl = document.getElementById("dl-nodes");
+
+  // Listening nodes: stay invisible until a second mic exists. nodeSel filters
+  // every day to one mic; the dots (via the shared NodeUI helper) mark where a
+  // recording was heard. With one node MULTI is false and this all no-ops.
+  var NODES = (typeof LOG_NODES !== "undefined" ? LOG_NODES : []).filter(function (n) { return n && n.name; });
+  var MULTI = NODES.length > 1 && window.NodeUI;
+  var nodeSel = null;
+  function nodeDot(name) { return (MULTI && name) ? window.NodeUI.dot(name) : ""; }
+  function renderNodes() {
+    if (!nodesEl) return;
+    if (!MULTI) { nodesEl.hidden = true; return; }
+    var html = '<button type="button" class="node-chip all' + (nodeSel == null ? " on" : "") +
+      '" data-node=""><span class="node-dot"></span>all mics</button>';
+    html += NODES.map(function (n) { return window.NodeUI.chip(n.name, nodeSel === n.name); }).join("");
+    nodesEl.innerHTML = html;
+    nodesEl.hidden = false;
+  }
+  if (nodesEl) nodesEl.addEventListener("click", function (ev) {
+    var b = ev.target.closest(".node-chip"); if (!b) return;
+    var nm = b.getAttribute("data-node") || "";
+    nodeSel = (!nm || nodeSel === nm) ? null : nm;
+    renderNodes(); render();
+  });
 
   var DAYNAMES = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
   var MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -87,7 +111,7 @@
   }
   function shareBtn(e) {
     return '<button type="button" class="dl-share" data-token="' + esc(recTokenOf(e)) +
-      '" title="Copy a link to this recording" aria-label="Copy a link to this recording">&#128279;</button>';
+      '" title="Copy a link to this recording" aria-label="Copy a link to this recording">' + ICONS.link + '</button>';
   }
 
   function render() {
@@ -98,11 +122,15 @@
     dateEl.value = days[cur];
     prevEl.disabled = cur >= days.length - 1;   // older = higher index
     nextEl.disabled = cur <= 0;
-    var sp = speciesOf(day.recs);
+    // The mic filter scopes every number and row on the day to one node.
+    var recs = (MULTI && nodeSel)
+      ? day.recs.filter(function (r) { return r.e.node === nodeSel; })
+      : day.recs;
+    var sp = speciesOf(recs);
     if (q) sp = sp.filter(function (s) { return (s.name || "").toLowerCase().indexOf(q) !== -1; });
-    var totalRecs = day.recs.length;
+    var totalRecs = recs.length;
     sumEl.textContent = totalRecs + " recording" + (totalRecs !== 1 ? "s" : "") + " · " +
-      speciesOf(day.recs).length + " species";
+      speciesOf(recs).length + " species";
 
     listEl.innerHTML = sp.map(function (s) {
       var conf = Math.round(s.best.e.conf * 100);
@@ -115,16 +143,22 @@
         ? '<a class="dl-nm" href="/birds/species/' + encodeURIComponent(s.slug) + '">' + esc(s.name) + '</a>'
         : '<span class="dl-nm">' + esc(s.name) + '</span>';
       var tag = s.shot ? '<span class="dl-tag">&#10003; gallery</span>' : '<span class="dl-tag ear">not photographed</span>';
+      // Which mic: the featured clip's node, unless the day's calls span mics —
+      // then the ×N rows carry the per-recording dots instead of implying one.
+      var chainNode = s.best.e.node;
+      var mixedNode = MULTI && s.recs.some(function (r) { return r.e.node && r.e.node !== chainNode; });
       var subs = s.recs.map(function (r) {
         return '<div class="dl-sub" data-audio="' + esc(r.e.audio) + '"><span class="st">' + esc(timeLabel(r.p)) + '</span>' +
           '<span class="sc">' + Math.round(r.e.conf * 100) + '%</span>' +
+          (mixedNode ? nodeDot(r.e.node) : "") +
           shareBtn(r.e) + playBtn(r, s.name + ' at ' + timeLabel(r.p)) + '</div>';
       }).join("");
       return '<div class="dl-sprow" data-name="' + esc(s.name) + '">' +
         '<div class="dl-sphead">' +
-          (s.photo ? '<img class="dl-av" loading="lazy" src="' + esc(s.photo) + '" alt="">' : '<span class="dl-av ear">&#129718;</span>') +
+          (s.photo ? '<img class="dl-av" loading="lazy" src="' + esc(s.photo) + '" alt="">' : '<span class="dl-av ear">' + ICONS.ear + '</span>') +
           '<span class="dl-spmain">' + nameHtml +
             '<span class="dl-spmeta"><span class="dl-time mono">' + when + '</span>' +
+            (mixedNode ? "" : nodeDot(chainNode)) +
             '<span class="dl-fam">' + esc(s.fam || "") + '</span>' + tag +
             (s.count > 1 ? '<button type="button" class="dl-count" aria-label="Show all ' + s.count + ' recordings, highest confidence first">&times;' + s.count + ' recordings</button>' : '') +
             '<span class="dl-hi mono" title="highest confidence">' + (s.count > 1 ? 'best ' : '') + '<span class="cl">conf</span> ' + conf + '%</span></span></span>' +
@@ -252,6 +286,7 @@
     if (e.key === "ArrowRight" && cur > 0) { cur--; render(); }
   });
 
+  renderNodes();
   // A #rec-<clip> permalink jumps straight to that recording; else the newest day.
   if (!openFromRecHash()) render();
 })();

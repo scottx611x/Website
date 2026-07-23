@@ -2,6 +2,7 @@
 {% block meta_description %}Live bird sounds identified in real time from a microphone in North Andover, MA — cross-referenced with what I've photographed.{% endblock %}
 
 {% block content %}
+{% from '_icons.html' import icon %}
 <style>
   /* Light like every other bird page; ink on paper, green accents, neon fills. */
   .livewire .mono{font-family:var(--mono); font-variant-numeric:tabular-nums}
@@ -169,6 +170,7 @@
   .lv-row .rn{flex:1; min-width:0; font-family:var(--display); font-size:1rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
   .lv-row .rn a{text-decoration:none} .lv-row .rn a:hover{color:var(--green)}
   .lv-row .rt{font-family:var(--mono); font-size:.7rem; color:var(--muted); white-space:nowrap}
+  .rfam{font-family:var(--mono); font-size:.6rem; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0}
   .lv-row .rc{font-family:var(--mono); font-size:.7rem; color:var(--green); text-align:right; white-space:nowrap}
   .lv-row .rc .cl{color:var(--muted); font-size:.82em; letter-spacing:.02em; margin-right:.12em}
   .lv-rowplay{position:relative; flex:0 0 auto; width:26px;height:26px;border-radius:50%;border:1px solid rgba(13,18,14,.2);background:transparent;color:var(--ink);font-size:.6rem;cursor:pointer;display:flex;align-items:center;justify-content:center}
@@ -324,6 +326,7 @@
           </div>
         </div>
         <div class="lv-side">
+          <div class="node-filter" id="lv-nodes" hidden></div>
           <div id="lv-hstrip" hidden>
             <p class="lv-hkick mono">today by hour &middot; tap a bar to filter the feed</p>
             <div class="lv-hbarwrap">
@@ -343,7 +346,7 @@
             </div>
             {% endfor %}
           </div>
-          <a class="lv-logmore mono" href="/birds/live/log">&#128197; Browse past recordings by day &rarr;</a>
+          <a class="lv-logmore mono" href="/birds/live/log">{{ icon('calendar') }} Browse past recordings by day &rarr;</a>
         </div>
       </div>
     </section>
@@ -387,6 +390,7 @@
 </section>
 
 <script id="lv-data" type="application/json">{{ sound|tojson }}</script>
+<script src="{{ url_for('static', filename='js/nodes.js', v=asset_v) }}"></script>
 <script>
 (function () {
   var root = document.getElementById("lv-root");
@@ -397,6 +401,24 @@
   var esc = function (s) { var d = document.createElement("i"); d.textContent = s == null ? "" : s; return d.innerHTML; };
   var slugify = function (n) { return (n || "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, ""); };
   var birdHref = function (n) { return "/birds/species/" + slugify(n); };
+
+  /* ---- listening nodes: a per-mic identity that stays invisible until there's
+     genuinely more than one mic. With a single node, MULTI is false and every
+     dot/chip/filter below no-ops, so the page looks exactly as it always has. ---- */
+  var NODES = (LIVE.nodes || []).filter(function (n) { return n && n.name; });
+  var MULTI = NODES.length > 1 && window.NodeUI;
+  var nodeSel = null;  // null = all mics
+  function nodeDot(name) { return (MULTI && name) ? window.NodeUI.dot(name) : ""; }
+  function renderNodes() {
+    var el = document.getElementById("lv-nodes");
+    if (!el) return;
+    if (!MULTI) { el.hidden = true; return; }
+    var html = '<button type="button" class="node-chip all' + (nodeSel == null ? " on" : "") +
+      '" data-node=""><span class="node-dot"></span>all mics</button>';
+    html += NODES.map(function (n) { return window.NodeUI.chip(n.name, nodeSel === n.name); }).join("");
+    el.innerHTML = html;
+    el.hidden = false;
+  }
 
   /* ---- times: everything renders in the viewer's clock ---- */
   function clock(iso) {
@@ -594,7 +616,7 @@
         '<div class="lv-ztxt"><b>' + esc(r.display) + '</b><span class="sub">' + clock(r.t) + ' &middot; ' + Math.round(r.conf * 100) + '%' + (r.audio ? ' &middot; tap to seek' : '') + '</span></div>' +
         (r.audio ? '<button type="button" class="lv-zrate" aria-label="playback speed">1&times;</button>' : '') +
         (r.audio ? '<span class="lv-ztime">0:00</span>' : '') +
-        ((r.audio || r.spec) ? '<button type="button" class="lv-zshare" aria-label="copy a link to this recording" title="Copy a link to this recording">&#128279;</button>' : '') +
+        ((r.audio || r.spec) ? '<button type="button" class="lv-zshare" aria-label="copy a link to this recording" title="Copy a link to this recording">{{ icon('link') }}</button>' : '') +
       '</div>';
     document.body.appendChild(zoom);
     document.body.style.overflow = "hidden";
@@ -630,7 +652,7 @@
         var url = location.origin + "/birds/live/log#rec-" + tok;
         var done = function (ok) {
           shareB.innerHTML = ok ? "&#10003;" : "&#10007;"; shareB.classList.toggle("on", ok);
-          setTimeout(function () { shareB.innerHTML = "&#128279;"; shareB.classList.remove("on"); }, 1400);
+          setTimeout(function () { shareB.innerHTML = '{{ icon('link') }}'; shareB.classList.remove("on"); }, 1400);
         };
         if (navigator.clipboard && navigator.clipboard.writeText) {
           navigator.clipboard.writeText(url).then(function () { done(true); }, function () { done(false); });
@@ -745,12 +767,12 @@
       h.innerHTML = '<div class="lv-portrait" style="background-image:url(\'' + photo + '\')"><div class="lv-body">' +
         '<div class="lv-when" data-t="' + esc(r.t) + '" data-lead="' + esc(r.fam) + '"></div>' +
         '<div class="lv-nm"><a href="' + birdHref(r.display) + '">' + esc(r.display) + '</a></div>' +
-        '<div class="lv-meta">' + tags + confHTML(r) + '</div></div></div>';
+        '<div class="lv-meta">' + tags + confHTML(r) + nodeDot(r.node) + '</div></div></div>';
     } else {
       h.innerHTML = '<div class="lv-ghostcard"><div class="lv-body">' +
         '<div class="lv-when" data-t="' + esc(r.t) + '" data-lead="heard, not photographed"></div>' +
         '<div class="lv-nm">' + esc(r.display) + '</div>' +
-        '<div class="lv-meta">' + tags + confHTML(r) + '</div></div></div>';
+        '<div class="lv-meta">' + tags + confHTML(r) + nodeDot(r.node) + '</div></div></div>';
     }
   }
   /* ---- the feed: contiguous same-species calls fold into one chain row
@@ -805,6 +827,7 @@
     // Focus mode FILTERS the feed to the bird/family — a page of dimmed
     // other-species rows read as broken, not focused.
     if (focusSlug || focusFam) shown = shown.filter(matchesFocus);
+    if (MULTI && nodeSel) shown = shown.filter(function (r) { return r.node === nodeSel; });
     if (hourSel >= 0) {
       var todayKey = new Date().toDateString();
       shown = shown.filter(function (r) {
@@ -815,16 +838,22 @@
     feed.innerHTML = chainsOf(shown).map(function (c, i) {
       var n = c.calls.length, top = c.calls[0], bp = c.bestPlay;
       var xd = n > 1 && expandedChains[c.key];
+      // Where this species' featured recording was heard — a bare dot, tooltip names it.
+      var chainNode = (bp && bp.node) || top.node;
+      // If a chain spans mics, don't imply a single one — the ×N rows carry the detail.
+      var mixedNode = MULTI && c.calls.some(function (x) { return x.node && x.node !== chainNode; });
       var main =
         '<div class="lv-rowwrap' + (bp && open[bp.audio] ? ' open' : '') + '"' + (bp ? ' data-audio="' + esc(bp.audio) + '"' : '') + '>' +
         '<div class="lv-row mr' + (flashTop && i === 0 ? ' flash' : '') + '">' +
         '<span class="lv-av ' + (c.photo ? '' : 'miss') + '"' + (c.photo ? ' style="background-image:url(\'' + c.photo + '\')"' : '') + '></span>' +
         '<span class="rn"><a href="' + birdHref(c.display) + '">' + esc(c.display) + '</a></span>' +
         '<span class="rmeta">' +
+        (c.fam ? '<span class="rfam mono">' + esc(c.fam) + '</span>' : '') +
         (n > 1 ? '<button type="button" class="lv-xn" data-key="' + esc(c.key) + '" aria-expanded="' + (xd ? 'true' : 'false') + '" title="' + n + ' recordings — tap for each one">&times;' + n + ' ' + (xd ? '&#9652;' : '&#9662;') + '</button>' : '') +
+        (mixedNode ? "" : nodeDot(chainNode)) +
         '<span class="rt" data-t="' + esc(top.t) + '"></span>' +
         '<span class="rc"' + (n > 1 ? ' title="clearest of ' + n + ' recordings"' : '') + '><span class="cl">conf</span> ' + Math.round((bp || c.best).conf * 100) + '%</span>' +
-        (CURATE ? '<button type="button" class="lv-suppress" data-sp="' + esc(c.display) + '" title="Not a bird — suppress ' + esc(c.display) + ' from the mic">&#128683;</button>' : '') +
+        (CURATE ? '<button type="button" class="lv-suppress" data-sp="' + esc(c.display) + '" title="Not a bird — suppress ' + esc(c.display) + ' from the mic">{{ icon('ban') }}</button>' : '') +
         '</span>' +
         (bp ? '<button class="lv-rowplay" data-audio="' + esc(bp.audio) + '" aria-label="play the clearest recording">&#9654;</button>' : '') +
         '</div>' + (bp ? stripHTML(bp) : '') + '</div>';
@@ -834,6 +863,7 @@
           return '<div class="lv-rowwrap' + (x.audio && open[x.audio] ? ' open' : '') + '"' + (x.audio ? ' data-audio="' + esc(x.audio) + '"' : '') + '>' +
             '<div class="lv-row">' +
             '<span class="rt2">' + clock(x.t) + (x === c.best ? ' <span class="bb">· best</span>' : '') + '</span>' +
+            (mixedNode ? nodeDot(x.node) : "") +
             '<span class="rc">' + Math.round(x.conf * 100) + '%</span>' +
             (x.audio ? '<button class="lv-rowplay" data-audio="' + esc(x.audio) + '" aria-label="play this recording">&#9654;</button>' : '') +
             '</div>' + stripHTML(x) + '</div>';
@@ -868,6 +898,7 @@
     // window — so the morning shows even after it's scrolled out of the feed.
     (LIVE.dayrecs || LIVE.recent || []).forEach(function (r) {
       if (isHeroRec(r)) return;
+      if (MULTI && nodeSel && r.node !== nodeSel) return;  // strip follows the mic filter
       var dt = new Date(r.t);
       if (dt.toDateString() === todayKey) hours[dt.getHours()]++;
     });
@@ -971,6 +1002,14 @@
 
   }
   document.addEventListener("click", function (e) {
+    // node filter: a chip narrows every feed control to one mic (or back to all)
+    var nc = e.target.closest(".node-chip");
+    if (nc && document.getElementById("lv-nodes").contains(nc)) {
+      var nm = nc.getAttribute("data-node") || "";
+      nodeSel = (!nm || nodeSel === nm) ? null : nm;
+      renderNodes(); renderHourStrip(); renderFeed(LIVE.recent, false); stampTimes();
+      return;
+    }
     // hour strip: a bar toggles the feed to just that hour
     var hb = e.target.closest(".lv-hb");
     if (hb && !hb.classList.contains("zero")) {
@@ -1016,6 +1055,11 @@
   function apply(data, isFirst) {
     var prevTop = LIVE.recent && LIVE.recent[0] && LIVE.recent[0].t;
     LIVE = data;
+    // Nodes can appear/vanish between polls (a second mic comes online) — recompute
+    // so MULTI, the filter, and every dot track the live roster.
+    NODES = (data.nodes || []).filter(function (n) { return n && n.name; });
+    MULTI = NODES.length > 1 && window.NodeUI;
+    if (nodeSel && !NODES.some(function (n) { return n.name === nodeSel; })) nodeSel = null;
     if (!(data.recent || []).length) return;
     var newTop = data.recent[0].t !== prevTop && !isFirst;
     // In focus mode the hero is the FOCUSED bird, not the overall most-recent —
@@ -1035,6 +1079,7 @@
     renderCounts(data.counts || {});
     curHero = hero;   // feed excludes this exact clip so it isn't shown twice
     renderHero(hero);
+    renderNodes();
     renderHourStrip();
     renderFeed(data.recent, newTop);
     renderHistory();
@@ -1106,7 +1151,7 @@
     if (!bar) return;
     if (!CURATE || !suppressed.length) { bar.hidden = true; bar.innerHTML = ""; return; }
     bar.hidden = false;
-    bar.innerHTML = "🚫 suppressed &middot; " + suppressed.map(function (s) {
+    bar.innerHTML = '{{ icon('ban') }} suppressed &middot; ' + suppressed.map(function (s) {
       return '<button type="button" class="lv-supchip" data-restore="' + esc(s) + '">' + esc(s) + ' &#10005;</button>';
     }).join("");
   }

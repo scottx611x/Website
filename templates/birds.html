@@ -3,6 +3,7 @@
 {% block meta_description %}{{ species_count }} bird species photographed around North Andover, MA. Hawks, owls, warblers, and more, with photos and videos.{% endblock %}
 
 {% block content %}
+{% from '_icons.html' import icon %}
 <script>
     // The gallery always uses the full screen width.
     document.body.classList.add("birds-fill");
@@ -52,14 +53,14 @@
         {% if active_bird or active_family or active_area or active_media or active_loc or active_on or active_posted or active_month %}
         <div class="bird-active">
             <div class="filter-chips">
-                {% if active_on %}<button type="button" class="chip" onclick="birdsGo(null,{on:''})">&#128197; sighted {{ active_on_display }} <span>&times;</span></button>{% endif %}
-                {% if active_posted %}<button type="button" class="chip" onclick="birdsGo(null,{posted:''})">&#128228; posted {{ active_posted_display }} <span>&times;</span></button>{% endif %}
-                {% if active_month %}<button type="button" class="chip" onclick="birdsGo(null,{month:''})">&#128197; every {{ active_month_display }} <span>&times;</span></button>{% endif %}
-                {% if active_loc %}<button type="button" class="chip" onclick="birdsGo(null,{loc:''})">&#128205; {{ active_loc }} <span>&times;</span></button>{% endif %}
-                {% if active_media %}<button type="button" class="chip" onclick="birdsGo(null,{media:''})">{% if active_media == 'video' %}&#9654; Videos{% else %}Photos{% endif %} <span>&times;</span></button>{% endif %}
-                {% if active_area %}<button type="button" class="chip" onclick="birdsGo(null,{area:''})">{% if active_area == 'elsewhere' %}Out of area &#9888;&#65039;{% else %}North Andover{% endif %} <span>&times;</span></button>{% endif %}
+                {% if active_on %}<button type="button" class="chip" onclick="birdsGo(null,{on:''})">{{ icon('calendar') }} sighted {{ active_on_display }} <span>&times;</span></button>{% endif %}
+                {% if active_posted %}<button type="button" class="chip" onclick="birdsGo(null,{posted:''})">{{ icon('inbox') }} posted {{ active_posted_display }} <span>&times;</span></button>{% endif %}
+                {% if active_month %}<button type="button" class="chip" onclick="birdsGo(null,{month:''})">{{ icon('calendar') }} every {{ active_month_display }} <span>&times;</span></button>{% endif %}
+                {% if active_loc %}<button type="button" class="chip" onclick="birdsGo(null,{loc:''})">{{ icon('pin') }} {{ active_loc }} <span>&times;</span></button>{% endif %}
+                {% if active_media %}<button type="button" class="chip" onclick="birdsGo(null,{media:''})">{% if active_media == 'video' %}{{ icon('play') }} Videos{% else %}Photos{% endif %} <span>&times;</span></button>{% endif %}
+                {% if active_area %}<button type="button" class="chip" onclick="birdsGo(null,{area:''})">{% if active_area == 'elsewhere' %}Out of area {{ icon('alert') }}{% else %}North Andover{% endif %} <span>&times;</span></button>{% endif %}
                 {% if active_family %}<button type="button" class="chip" onclick="birdsGo(null,{family:''})">{{ active_family }} <span>&times;</span></button>{% endif %}
-                {% for b in active_birds %}<button type="button" class="chip" onclick="birdsGo(null,{removeBird:{{ b|tojson|forceescape }}})">{{ b }}{% if b in out_of_area %} &#9888;&#65039;{% endif %} <span>&times;</span></button>{% endfor %}
+                {% for b in active_birds %}<button type="button" class="chip" onclick="birdsGo(null,{removeBird:{{ b|tojson|forceescape }}})">{{ b }}{% if b in out_of_area %} {{ icon('alert') }}{% endif %} <span>&times;</span></button>{% endfor %}
             </div>
             <p class="bird-active-meta">
                 {% if active_birds|length == 1 %}{{ bird_family }} &middot; {% endif %}{% set noun = 'video' if active_media == 'video' else 'photo' %}{{ shots|length }} {{ noun }}{{ 's' if shots|length != 1 }}

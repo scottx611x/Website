@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+{% from '_icons.html' import icon %}
 <html lang="en">
 <head>
     <meta charset="utf-8">
@@ -83,7 +84,7 @@
 
     <div id="lightbox" class="lightbox" hidden>
         <button class="lightbox-close" aria-label="Close">&times;</button>
-        <button type="button" class="lightbox-share" id="lightbox-share" title="Copy a link to this photo" aria-label="Copy a link to this photo">&#128279;&nbsp;<span class="lightbox-share-txt">Copy link</span></button>
+        <button type="button" class="lightbox-share" id="lightbox-share" title="Copy a link to this photo" aria-label="Copy a link to this photo">{{ icon('link') }}&nbsp;<span class="lightbox-share-txt">Copy link</span></button>
         <button class="lightbox-nav lightbox-prev" aria-label="Previous">&#8249;</button>
         <button class="lightbox-nav lightbox-next" aria-label="Next">&#8250;</button>
         <figure class="lightbox-figure">
@@ -97,7 +98,7 @@
                 <input type="text" id="lightbox-location" class="lightbox-species lightbox-location" placeholder="location" aria-label="Edit this photo's location">
                 <label class="lightbox-datefield"><span>taken</span><input type="date" id="lightbox-date" aria-label="Edit this photo's capture date" title="Capture date"></label>
                 <label class="lightbox-datefield"><span>posted</span><input type="date" id="lightbox-posted" aria-label="Edit this photo's posted date" title="Posted date"></label>
-                <button type="button" id="lightbox-area" class="lightbox-area" aria-pressed="false" title="Mark this photo as spotted outside North Andover">&#9888;&#65039; out of area</button>
+                <button type="button" id="lightbox-area" class="lightbox-area" aria-pressed="false" title="Mark this photo as spotted outside North Andover">{{ icon('alert') }} out of area</button>
                 <button type="button" id="lightbox-reid" class="lightbox-reid" hidden></button>
                 <button type="button" id="lightbox-remove" class="lightbox-remove" title="Hide just this photo from the gallery">&times; hide photo</button>
             </div>
@@ -142,6 +143,8 @@
                 suggest = document.getElementById("lightbox-suggest"),
                 shareBtn = document.getElementById("lightbox-share"),
                 frames = [], idx = -1;
+            var ICONS = { alert: '{{ icon('alert') }}' };
+            function awayIcon() { var s = document.createElement("span"); s.className = "cap-away"; s.innerHTML = ICONS.alert; return s; }
             function frameToken(f) { return f.postId + "." + f.origIndex; }
             function renderSuggest(f) {
                 if (!suggest) return;
@@ -190,7 +193,7 @@
                     });
                     if (f.location) {
                         sep();
-                        if (f.away) cap.appendChild(document.createTextNode("⚠️ "));
+                        if (f.away) cap.appendChild(awayIcon());
                         var place = (window.LOC_PLACE || {})[f.location];
                         if (place) cap.appendChild(capLink("/birds?loc=" + encodeURIComponent(place), f.location));
                         else cap.appendChild(document.createTextNode(f.location));
@@ -201,9 +204,9 @@
                         else cap.appendChild(document.createTextNode(f.date));
                     }
                 } else if (f.caption) {
+                    if (f.away) cap.appendChild(awayIcon());
                     var base = f.caption;
                     if (f.date) base += "  ·  " + f.date;
-                    if (f.away) base = "⚠️ " + base;
                     cap.appendChild(document.createTextNode(base.trim()));
                 }
                 if (f.posted) {
@@ -280,7 +283,7 @@
                 if (areaBtn) {
                     areaBtn.classList.toggle("on", !!f.away);
                     areaBtn.setAttribute("aria-pressed", f.away ? "true" : "false");
-                    areaBtn.innerHTML = f.away ? "⚠️ out of area ✓" : "⚠️ out of area";
+                    areaBtn.innerHTML = ICONS.alert + (f.away ? " out of area ✓" : " out of area");
                 }
                 if (removeBtn) removeBtn.innerHTML = window.CURATE_HIDDEN_VIEW ? "↩ un-hide" : "× hide photo";
                 box.hidden = false;
@@ -295,7 +298,7 @@
             document.addEventListener("click", function (e) {
                 // Curate controls (hide / edit / flag) are handled separately —
                 // a click on any of them must not open the lightbox.
-                if (e.target.closest(".curate-x, .species-edit, .flag-badge")) return;
+                if (e.target.closest(".curate-x, .species-edit, .flag-badge, .cap-loc")) return;
                 var card = e.target.closest("[data-images]");
                 if (card) { e.preventDefault(); build(); show(card._frameStart || 0); return; }
                 if (e.target.closest(".lightbox-next")) { e.stopPropagation(); show(idx + 1); return; }
@@ -450,7 +453,7 @@
                     f.away = (next === "away");
                     areaBtn.classList.toggle("on", f.away);
                     areaBtn.setAttribute("aria-pressed", f.away ? "true" : "false");
-                    areaBtn.innerHTML = f.away ? "⚠️ out of area ✓" : "⚠️ out of area";
+                    areaBtn.innerHTML = ICONS.alert + (f.away ? " out of area ✓" : " out of area");
                     renderLabel(f);
                     syncCardAttr(f, "data-image-areas", next);
                   }).catch(function () {})

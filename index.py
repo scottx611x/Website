@@ -651,14 +651,16 @@ def _live_view():
         if isinstance(entry, dict):
             out.update({k: entry[k] for k in
                         ("t", "conf", "new", "count", "first", "last", "maxConf",
-                         "audio", "spec") if k in entry})
+                         "audio", "spec", "node") if k in entry})
         return out
 
     view = {"station": {}, "recent": [], "species": [], "counts": {},
-            "daily": [], "hours": [], "missing": [], "generated": None, "weather": None}
+            "daily": [], "hours": [], "missing": [], "generated": None,
+            "weather": None, "nodes": []}
     if data:
         view["generated"] = data.get("generated")
         view["station"] = data.get("station", {})
+        view["nodes"] = data.get("nodes") or []
         view["weather"] = data.get("weather")
         view["counts"] = data.get("counts", {})
         view["daily"] = data.get("daily", [])
@@ -749,14 +751,22 @@ def _log_view():
                "fam": canon[1] if canon else "Other birds",
                "photo": birds.pick_cover(covers.get(disp), disp),
                "shot": disp in photographed}
-        for k in ("t", "conf", "new", "audio", "spec", "sci"):
+        for k in ("t", "conf", "new", "audio", "spec", "sci", "node"):
             if k in entry:
                 out[k] = entry[k]
         return out
 
     log = data.get("log", []) if data else []
+    enriched = [enrich(e) for e in log]
+    # Distinct nodes seen in the log, newest first — so the log can filter by node.
+    seen, nodes = set(), []
+    for e in enriched:
+        nm = e.get("node")
+        if nm and nm not in seen:
+            seen.add(nm)
+            nodes.append(nm)
     return {"generated": (data or {}).get("generated"),
-            "log": [enrich(e) for e in log]}
+            "log": enriched, "nodes": nodes}
 
 
 @app.route("/birds/live/log", methods=["GET"])
@@ -765,7 +775,7 @@ def birds_live_log():
     view = _log_view()
     return render_template(
         "sound_log.html", title="Detection log", log=view["log"],
-        generated=view["generated"], has_data=bool(view["log"]),
+        nodes=view["nodes"], generated=view["generated"], has_data=bool(view["log"]),
         curate=_curate_on(), local=_is_local())
 
 

@@ -118,6 +118,30 @@ body.has-effect .site-footer { position: relative; z-index: 1; }
 @media (prefers-reduced-motion: reduce) {
     #bg-effect img.back { animation: none; }
 }
+
+/* Inline line-icons (see _icons.html): sized in em so they track the text/chip
+   they sit in, colored by currentColor so each chip's own color carries through. */
+.ic { width: 1.05em; height: 1.05em; display: inline-block; vertical-align: -0.15em; flex: 0 0 auto; }
+
+/* Soft-tactile press: a light spring/squish on interactive controls, borrowed
+   from jelly-ui's soft-body feel but kept restrained and CSS-only. The overshoot
+   easing on release gives the "settle" without cartoon bounce. */
+.spring, button, .chip, .sp-chip, .node-chip, .lv-range, .dl-arrow, .dl-sort button,
+.sp-recs-sort button, .lv-hb, .filter-chips .chip, .chip-toggle {
+    transition: transform 0.24s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.2s, border-color 0.2s, color 0.2s;
+}
+.spring:active, button:active, .chip:active, .sp-chip:active, .node-chip:active,
+.lv-range:active, .dl-arrow:active:not(:disabled), .dl-sort button:active,
+.sp-recs-sort button:active, .filter-chips .chip:active, .chip-toggle:active {
+    transform: scale(0.93);
+    transition-duration: 0.06s;
+    transition-timing-function: ease-out;
+}
+@media (prefers-reduced-motion: reduce) {
+    .spring:active, button:active, .chip:active, .sp-chip:active, .node-chip:active,
+    .lv-range:active, .dl-arrow:active, .dl-sort button:active, .sp-recs-sort button:active,
+    .filter-chips .chip:active, .chip-toggle:active { transform: none; }
+}
 .bg-scrim {
     position: absolute; inset: 0; z-index: 1;
     background:
@@ -473,6 +497,18 @@ body.home .site-nav { z-index: 0; }
 .proj-link.is-repo { color: var(--ink); border-color: rgba(13,18,14,0.25); }
 .proj-link.is-repo:hover { background: var(--ink); color: var(--paper); border-color: var(--ink); }
 .proj-year { color: var(--muted); font-size: 0.72rem; margin-left: auto; }
+
+/* Listening nodes: a quiet per-mic identity, shared across the listening pages. */
+.node-dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; flex: 0 0 auto;
+    vertical-align: middle; }
+.node-filter { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.4rem; margin: 0.7rem auto 0; }
+.node-chip { display: inline-flex; align-items: center; gap: 0.4rem; font-family: var(--mono); font-size: 0.7rem;
+    padding: 0.28rem 0.7rem; border-radius: 999px; border: 1px solid rgba(13, 18, 14, 0.18); background: transparent;
+    color: var(--ink); cursor: pointer; transition: border-color 0.15s, background 0.15s; }
+.node-chip:hover { border-color: var(--muted); }
+.node-chip.on { background: rgba(13, 18, 14, 0.05); border-width: 1.5px; font-weight: 600; }
+.node-chip.all { }
+.node-chip.all .node-dot { background: linear-gradient(90deg, #2a9d9c, #7c6bd0); }
 
 /* Bird section sub-nav (gallery / map / stats) */
 .birds-subnav { display: flex; justify-content: center; flex-wrap: wrap; gap: 0.5rem; margin-top: 1.1rem; }
@@ -948,6 +984,14 @@ a.ear-daily:hover .ear-day:not(.zero) { filter: brightness(1.08); }
     box-shadow: 0 1px 4px rgba(0,0,0,0.4); outline: none;
 }
 .away-badge-mark { font-size: 0.95rem; line-height: 1; filter: saturate(1.3); }
+.away-badge .ic { width: 0.95rem; height: 0.95rem; color: #f2b544; }
+/* Clickable photo-caption location — reads as a link on the dark caption scrim. */
+.shot figcaption .cap-loc { color: #fff; text-decoration: none; border-bottom: 1px dotted rgba(255,255,255,0.55); transition: color 0.15s, border-color 0.15s; }
+.shot figcaption .cap-loc:hover { color: var(--neon); border-color: var(--neon); }
+/* Away marker inside lightbox captions / buttons — amber, sits with the text. */
+.cap-away { display: inline-flex; margin-right: 0.3rem; }
+.cap-away .ic, .lightbox-area .ic { color: #f2b544; width: 0.95rem; height: 0.95rem; }
+.filter-chips .chip .ic { color: inherit; vertical-align: -0.16em; }
 .away-badge::after {
     content: attr(data-note); position: absolute; top: calc(100% + 0.4rem); right: 0;
     width: max-content; max-width: 15rem; z-index: 5;
