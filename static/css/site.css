@@ -123,25 +123,8 @@ body.has-effect .site-footer { position: relative; z-index: 1; }
    they sit in, colored by currentColor so each chip's own color carries through. */
 .ic { width: 1.05em; height: 1.05em; display: inline-block; vertical-align: -0.15em; flex: 0 0 auto; }
 
-/* Soft-tactile press: a light spring/squish on interactive controls, borrowed
-   from jelly-ui's soft-body feel but kept restrained and CSS-only. The overshoot
-   easing on release gives the "settle" without cartoon bounce. */
-.spring, button, .chip, .sp-chip, .node-chip, .lv-range, .dl-arrow, .dl-sort button,
-.sp-recs-sort button, .lv-hb, .filter-chips .chip, .chip-toggle {
-    transition: transform 0.24s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.2s, border-color 0.2s, color 0.2s;
-}
-.spring:active, button:active, .chip:active, .sp-chip:active, .node-chip:active,
-.lv-range:active, .dl-arrow:active:not(:disabled), .dl-sort button:active,
-.sp-recs-sort button:active, .filter-chips .chip:active, .chip-toggle:active {
-    transform: scale(0.93);
-    transition-duration: 0.06s;
-    transition-timing-function: ease-out;
-}
-@media (prefers-reduced-motion: reduce) {
-    .spring:active, button:active, .chip:active, .sp-chip:active, .node-chip:active,
-    .lv-range:active, .dl-arrow:active, .dl-sort button:active, .sp-recs-sort button:active,
-    .filter-chips .chip:active, .chip-toggle:active { transform: none; }
-}
+/* Soft-tactile press lives at the very end of this file (search "SOFT-PRESS")
+   so its transform transition wins source-order over component transitions. */
 .bg-scrim {
     position: absolute; inset: 0; z-index: 1;
     background:
@@ -1272,4 +1255,48 @@ a.ear-daily:hover .ear-day:not(.zero) { filter: brightness(1.08); }
 @media (prefers-reduced-motion: reduce) {
     .reveal { opacity: 1; transform: none; }
     .ticker-track, .brand-dot, .scroll-cue span, .cursor, .blink::before { animation: none; }
+}
+
+/* ============================================================================
+   SOFT-PRESS — one uniform tactile squish on EVERY pressable control, site-wide.
+   Kept at end-of-file on purpose: for equal-specificity class selectors this
+   rule wins on source order, so its transform transition isn't clobbered by a
+   component's own `transition:` (which is what made the effect fire on some
+   controls and not others). <button>/[role=button] cover most; the rest are the
+   link- and span-based controls (sub-nav pills, chips, cards, toggles).
+   Borrowed from jelly-ui's soft-body feel; restrained, CSS-only.
+   ============================================================================ */
+button, [role="button"]:not(.shot), summary,
+.birds-subnav a, .subnav-focus .sf-x,
+.sp-chip, .sp-more, .sp-recs-toggle, .sp-place,
+.lv-chip, .lv-logmore,
+.dl-back,
+a.stat-card, .bird-stat-link,
+.ear-card, .ear-daily,
+.cal-day, .loc-area-btn,
+.curate-toggle, .curate-logout, .ticker-bird {
+    transition: transform 0.24s cubic-bezier(0.34, 1.56, 0.64, 1),
+                background-color 0.18s, border-color 0.18s, color 0.18s, opacity 0.18s;
+}
+button:active:not(:disabled), [role="button"]:not(.shot):active, summary:active,
+.birds-subnav a:active, .subnav-focus .sf-x:active,
+.sp-chip:active, .sp-more:active, .sp-recs-toggle:active, .sp-place:active,
+.lv-chip:active, .lv-logmore:active,
+.dl-back:active,
+a.stat-card:active, .bird-stat-link:active,
+.ear-card:active, .ear-daily:active,
+.cal-day:active, .loc-area-btn:active,
+.curate-toggle:active, .curate-logout:active, .ticker-bird:active {
+    transform: scale(0.93);
+    transition-duration: 0.06s;
+    transition-timing-function: ease-out;
+}
+@media (prefers-reduced-motion: reduce) {
+    button:active, [role="button"]:active, summary:active,
+    .birds-subnav a:active, .subnav-focus .sf-x:active,
+    .sp-chip:active, .sp-more:active, .sp-recs-toggle:active, .sp-place:active,
+    .lv-chip:active, .lv-logmore:active, .dl-back:active,
+    a.stat-card:active, .bird-stat-link:active, .ear-card:active, .ear-daily:active,
+    .cal-day:active, .loc-area-btn:active, .curate-toggle:active,
+    .curate-logout:active, .ticker-bird:active { transform: none; }
 }
