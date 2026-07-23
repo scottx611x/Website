@@ -157,6 +157,13 @@
   .lv-row{display:flex; align-items:center; gap:.65rem; padding:.48rem 0}
   .lv-suppress{flex:0 0 auto; border:none; background:transparent; cursor:pointer; font-size:.85rem; padding:0 .1rem; opacity:.5; filter:grayscale(1)}
   .lv-suppress:hover{opacity:1; filter:none}
+  .lv-hide{flex:0 0 auto; border:none; background:transparent; cursor:pointer; padding:0 .15rem; color:var(--muted); opacity:.55; display:inline-flex; align-items:center}
+  .lv-hide:hover{opacity:1; color:#c2554e}
+  .lv-hide .ic{width:1rem; height:1rem}
+  .lv-toast{position:fixed; left:50%; bottom:1.4rem; transform:translateX(-50%); z-index:60; display:flex; align-items:center; gap:.9rem; background:var(--ink); color:var(--paper); padding:.6rem .7rem .6rem 1rem; border-radius:10px; box-shadow:0 6px 24px rgba(0,0,0,.25); font-size:.82rem}
+  .lv-toast[hidden]{display:none}
+  .lv-toast-undo{border:none; background:rgba(255,255,255,.14); color:var(--neon); font-family:var(--mono); font-size:.74rem; padding:.3rem .7rem; border-radius:7px; cursor:pointer}
+  .lv-toast-undo:hover{background:rgba(255,255,255,.24)}
   .lv-supbar{display:flex; flex-wrap:wrap; align-items:center; gap:.5rem; margin:1rem 0 0; font-family:var(--mono); font-size:.72rem; color:var(--muted)}
   .lv-supchip{display:inline-flex; align-items:center; gap:.35rem; padding:.2rem .6rem; border-radius:999px; border:1px solid rgba(176,125,36,.5); color:#a9761f; background:rgba(176,125,36,.08); cursor:pointer}
   .lv-supchip:hover{background:#a9761f; color:var(--paper); border-color:#a9761f}
@@ -255,7 +262,8 @@
         <h1>Live from the yard</h1>
         {% set subnav_active = 'live' %}{% include '_birds_nav.html' %}
         <p class="lv-status mono"><span class="lv-dot"></span> <span id="lv-upd">{% if has_data %}listening &middot; North Andover, MA{% else %}mic online &middot; warming up{% endif %}</span></p>
-        {% if curate %}<div class="lv-supbar" id="lv-supbar" hidden></div>{% endif %}
+        {% if curate %}<div class="lv-supbar" id="lv-supbar" hidden></div>
+        <div class="lv-toast" id="lv-toast" hidden></div>{% endif %}
     </header>
 
     {% if not has_data %}
@@ -404,6 +412,14 @@
   var slugify = function (n) { return (n || "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, ""); };
   var birdHref = function (n) { return "/birds/species/" + slugify(n); };
   var FEATHER = {{ feather('%23a9761f')|string|tojson }};  // not-photographed chip glyph
+  var ICON_HIDE = {{ icon('eyeoff')|string|tojson }};      // curate: hide one recording
+  // A per-recording hide button (curate mode only) — hides just this clip, not the
+  // whole species. The endpoint already accepts { clip } and apply_sound_curation
+  // drops hidden clips at serve time.
+  function hideBtn(audio) {
+    return (CURATE && audio) ? '<button type="button" class="lv-hide" data-clip="' + esc(audio) +
+      '" title="Hide this recording (not the species)" aria-label="Hide this recording">' + ICON_HIDE + '</button>' : '';
+  }
 
   /* ---- listening nodes: a per-mic identity that stays invisible until there's
      genuinely more than one mic. With a single node, MULTI is false and every
@@ -697,12 +713,10 @@
       openZoom(ex.getAttribute("data-zoom") === "hero" ? heroClip : findRec(ex.getAttribute("data-audio")));
       return;
     }
-    var sup = e.target.closest(".lv-suppress");
-    if (sup) {
+    var hid = e.target.closest(".lv-hide");
+    if (hid) {
       e.stopPropagation();
-      var spName = sup.getAttribute("data-sp");
-      if (!confirm("Suppress “" + spName + "” from the live mic? (a false positive like a dog)")) return;
-      suppressSpecies(spName, true);
+      hideClip(hid.getAttribute("data-clip"));
       return;
     }
     var strip = e.target.closest(".lv-rowspec");
@@ -886,7 +900,7 @@
         (mixedNode ? "" : nodeDot(chainNode)) +
         '<span class="rt" data-t="' + esc(top.t) + '"></span>' +
         '<span class="rc"' + (n > 1 ? ' title="clearest of ' + n + ' recordings"' : '') + '><span class="cl">conf</span> ' + Math.round((bp || c.best).conf * 100) + '%</span>' +
-        (CURATE ? '<button type="button" class="lv-suppress" data-sp="' + esc(c.display) + '" title="Not a bird — suppress ' + esc(c.display) + ' from the mic">{{ icon('ban') }}</button>' : '') +
+        (bp ? hideBtn(bp.audio) : '') +
         '</span>' +
         (bp ? '<button class="lv-rowplay" data-audio="' + esc(bp.audio) + '" aria-label="play the clearest recording">&#9654;</button>' : '') +
         '</div>' + (bp ? stripHTML(bp) : '') + '</div>';
@@ -898,6 +912,7 @@
             '<span class="rt2">' + clock(x.t) + (x === c.best ? ' <span class="bb">· best</span>' : '') + '</span>' +
             (mixedNode ? nodeDot(x.node) : "") +
             '<span class="rc">' + Math.round(x.conf * 100) + '%</span>' +
+            hideBtn(x.audio) +
             (x.audio ? '<button class="lv-rowplay" data-audio="' + esc(x.audio) + '" aria-label="play this recording">&#9654;</button>' : '') +
             '</div>' + stripHTML(x) + '</div>';
         }).join("") + '</div>';
@@ -1164,6 +1179,34 @@
   apply(LIVE, true);
   // No auto-scroll in focus mode: the hero at the top IS the focused bird;
   // yanking the page down to the wall on load read as broken.
+
+  // ---- curate: hide ONE recording (not the whole species) ----
+  function hideClip(clip) {
+    if (!clip) return;
+    fetch("/curate/sound", { method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ clip: clip, on: true }) })
+      .then(function (r) { return r.json(); })
+      .then(function () {
+        LIVE.recent = (LIVE.recent || []).filter(function (r) { return r.audio !== clip; });
+        LIVE.dayrecs = (LIVE.dayrecs || []).filter(function (r) { return r.audio !== clip; });
+        apply(LIVE, true);
+        showToast("Recording hidden", function () {  // undo -> un-hide + re-fetch
+          fetch("/curate/sound", { method: "POST", headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ clip: clip, on: false }) })
+            .then(function () { poll(); }).catch(function () {});
+        });
+      }).catch(function () {});
+  }
+  var toastTimer = null;
+  function showToast(msg, onUndo) {
+    var t = document.getElementById("lv-toast");
+    if (!t) return;
+    t.innerHTML = '<span>' + esc(msg) + '</span><button type="button" class="lv-toast-undo">Undo</button>';
+    t.hidden = false;
+    t.querySelector(".lv-toast-undo").onclick = function () { t.hidden = true; if (onUndo) onUndo(); };
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { t.hidden = true; }, 5000);
+  }
 
   // ---- curate: suppress a false-positive species (dog read as a grouse) ----
   function suppressSpecies(name, on) {
