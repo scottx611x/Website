@@ -106,6 +106,11 @@
 
     listEl.innerHTML = sp.map(function (s) {
       var conf = Math.round(s.best.e.conf * 100);
+      // When: a single time, or the first→last span for a species heard repeatedly.
+      var t0 = s.recs.reduce(function (m, r) { return r.e.t < m.e.t ? r : m; }, s.recs[0]);
+      var t1 = s.recs.reduce(function (m, r) { return r.e.t > m.e.t ? r : m; }, s.recs[0]);
+      var when = (s.count > 1 && timeLabel(t0.p) !== timeLabel(t1.p))
+        ? timeLabel(t0.p) + "&ndash;" + timeLabel(t1.p) : timeLabel(s.best.p);
       var nameHtml = s.slug
         ? '<a class="dl-nm" href="/birds/species/' + encodeURIComponent(s.slug) + '">' + esc(s.name) + '</a>'
         : '<span class="dl-nm">' + esc(s.name) + '</span>';
@@ -119,9 +124,10 @@
         '<div class="dl-sphead">' +
           (s.photo ? '<img class="dl-av" loading="lazy" src="' + esc(s.photo) + '" alt="">' : '<span class="dl-av ear">&#129718;</span>') +
           '<span class="dl-spmain">' + nameHtml +
-            '<span class="dl-spmeta"><span class="dl-fam">' + esc(s.fam || "") + '</span>' + tag +
+            '<span class="dl-spmeta"><span class="dl-time mono">' + when + '</span>' +
+            '<span class="dl-fam">' + esc(s.fam || "") + '</span>' + tag +
             (s.count > 1 ? '<button type="button" class="dl-count" aria-label="Show all ' + s.count + ' recordings, highest confidence first">&times;' + s.count + ' recordings</button>' : '') +
-            '<span class="dl-hi mono" title="highest confidence">' + conf + '%</span></span></span>' +
+            '<span class="dl-hi mono" title="highest confidence">' + (s.count > 1 ? 'best ' : '') + '<span class="cl">conf</span> ' + conf + '%</span></span></span>' +
           '<span class="dl-spright">' + shareBtn(s.best.e) + playBtn(s.best, s.name) + '</span>' +
         '</div>' +
         (s.count > 1 ? '<div class="dl-subs">' + subs + '</div>' : '') +
