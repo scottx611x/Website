@@ -10,7 +10,7 @@
 {% from '_icons.html' import icon %}
 <nav class="birds-subnav mono" aria-label="Bird pages">
     <a href="/birds{{ bq }}" class="{{ 'on' if subnav_active == 'gallery' }}">{{ icon('camera') }} Gallery</a>
-    <a href="/birds/stats{{ bq }}" class="{{ 'on' if subnav_active == 'stats' }}">{{ icon('chart') }} By the numbers</a>
+    <a href="/birds/stats{{ bq }}" class="{{ 'on' if subnav_active == 'stats' }}">{{ icon('chart') }} <span class="sn-lg">By the numbers</span><span class="sn-sm">Numbers</span></a>
     <a href="/birds/live{{ bq }}" class="{{ 'on' if subnav_active == 'live' }}">{{ icon('wave') }} Live</a>
     <a href="/birds/map{{ bq }}" class="{{ 'on' if subnav_active == 'map' }}">{{ icon('pin') }} Map</a>
 </nav>

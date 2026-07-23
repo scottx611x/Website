@@ -504,6 +504,7 @@ body.home .site-nav { z-index: 0; }
 }
 .birds-subnav a:hover { border-color: var(--green); color: var(--green); }
 .birds-subnav a.on { background: var(--green); border-color: var(--green); color: #fff; }
+.birds-subnav .sn-sm { display: none; }  /* desktop shows the full "By the numbers"; phones swap to "Numbers" */
 /* Focus chip under the pills: names the species/family context the sub-nav is
    carrying, links to the profile, and clears with the ×. One chip for every
    page (the per-page focus banners are gone). */
@@ -525,7 +526,10 @@ body.home .site-nav { z-index: 0; }
     .birds-subnav { flex-wrap: nowrap; justify-content: flex-start; overflow-x: auto;
         -webkit-overflow-scrolling: touch; scrollbar-width: none; margin-top: 0.8rem; padding: 0 0.1rem 0.3rem; }
     .birds-subnav::-webkit-scrollbar { display: none; }
-    .birds-subnav a { flex: 0 0 auto; font-size: 0.72rem; padding: 0.3rem 0.75rem; }
+    .birds-subnav a { flex: 0 0 auto; font-size: 0.72rem; padding: 0.3rem 0.72rem; }
+    /* Short "Numbers" on phones so all four pills fit without Map spilling off. */
+    .birds-subnav .sn-lg { display: none; }
+    .birds-subnav .sn-sm { display: inline; }
     /* the gallery's filter stack, tightened */
     .bird-filter { margin-top: 1rem; }
     .bird-stat { font-size: 0.78rem; margin-bottom: 0.7rem; }
@@ -989,7 +993,7 @@ a.ear-daily:hover .ear-day:not(.zero) { filter: brightness(1.08); }
 .cap-away { display: inline-flex; margin-right: 0.3rem; }
 .cap-away .ic, .lightbox-area .ic { color: #f2b544; width: 0.95rem; height: 0.95rem; }
 .filter-chips .chip .ic { color: inherit; vertical-align: -0.16em; }
-.stats .stat-lbl .ic, .map-legend .ic { color: #d9863b; width: 0.82rem; height: 0.82rem; vertical-align: -0.12em; }
+.stats .stat-lbl .ic, .map-legend .ic, .bird-stat-away .ic { color: #d9863b; width: 0.82rem; height: 0.82rem; vertical-align: -0.12em; }
 .away-badge::after {
     content: attr(data-note); position: absolute; top: calc(100% + 0.4rem); right: 0;
     width: max-content; max-width: 15rem; z-index: 5;
