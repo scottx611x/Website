@@ -182,6 +182,8 @@
   .lv-rowwrap.playing .lv-needle{opacity:1}
 
   .lv-wall{display:grid; grid-template-columns:repeat(auto-fill,minmax(92px,1fr)); gap:.55rem}
+  .lv-wall-empty{text-align:center; color:var(--muted); font-size:.8rem; padding:1.4rem 0 .4rem}
+  .lv-wall-empty[hidden]{display:none}
   .lv-chip{position:relative; aspect-ratio:1/1; border-radius:10px; overflow:hidden; background-size:cover; background-position:center; border:1px solid rgba(13,18,14,.12); text-decoration:none}
   .lv-chip .cl{position:absolute;left:0;right:0;bottom:0;font-size:.6rem;line-height:1.1;padding:.5rem .3rem .3rem;background:linear-gradient(transparent,rgba(6,10,7,.9));color:var(--paper)}
   .lv-chip.miss{border:1.5px dashed rgba(176,125,36,.55);background:var(--paper-2)}
@@ -350,16 +352,16 @@
       </div>
     </section>
 
-    {# HEARD VS PHOTOGRAPHED #}
+    {# HEARD TODAY VS PHOTOGRAPHED — scoped to the active day #}
     <section>
-      <p class="lv-kick">Heard vs shot</p>
+      <p class="lv-kick">Heard today vs shot</p>
       <div class="stat-cards">
-        <div class="stat-card"><span class="stat-num">{{ sound.hv.heard }}</span><span class="stat-lbl">species heard</span></div>
-        <div class="stat-card"><span class="stat-num">{{ sound.hv.shot }}</span><span class="stat-lbl">also in the gallery</span></div>
-        <div class="stat-card"><span class="stat-num amber">{{ sound.hv.miss }}</span><span class="stat-lbl">not photographed</span></div>
+        <div class="stat-card"><span class="stat-num" id="lv-hvt-heard">{{ sound.hvToday.heard }}</span><span class="stat-lbl">species today</span></div>
+        <div class="stat-card"><span class="stat-num" id="lv-hvt-shot">{{ sound.hvToday.shot }}</span><span class="stat-lbl">also in the gallery</span></div>
+        <div class="stat-card"><span class="stat-num amber" id="lv-hvt-miss">{{ sound.hvToday.miss }}</span><span class="stat-lbl">not photographed</span></div>
       </div>
       <div class="lv-wall" id="lv-wall">
-        {% for s in sound.species %}
+        {% for s in sound.speciesToday %}
           {% if s.photo %}
           <a class="lv-chip" data-slug="{{ s.display|slug }}" data-fam="{{ s.fam }}" href="/birds/species/{{ s.display|slug }}" style="background-image:url('{{ s.photo }}')" title="{{ s.display }} &middot; {{ s.count }}&times;"><span class="cl">{{ s.display }}</span></a>
           {% else %}
@@ -367,6 +369,7 @@
           {% endif %}
         {% endfor %}
       </div>
+      <p class="lv-wall-empty mono" id="lv-wall-empty"{% if sound.speciesToday %} hidden{% endif %}>Nothing heard yet today &mdash; check back after dawn.</p>
     </section>
 
     {# HISTORY — the same strip through four lenses #}
@@ -400,6 +403,7 @@
   var esc = function (s) { var d = document.createElement("i"); d.textContent = s == null ? "" : s; return d.innerHTML; };
   var slugify = function (n) { return (n || "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, ""); };
   var birdHref = function (n) { return "/birds/species/" + slugify(n); };
+  var FEATHER = {{ feather('%23a9761f')|string|tojson }};  // not-photographed chip glyph
 
   /* ---- listening nodes: a per-mic identity that stays invisible until there's
      genuinely more than one mic. With a single node, MULTI is false and every
@@ -757,6 +761,29 @@
     if (!(r.display in heroPicks)) heroPicks[r.display] = pool[Math.floor(Math.random() * pool.length)];
     return heroPicks[r.display];
   }
+  /* The heard-vs-shot wall is scoped to TODAY and rebuilt on each poll so a
+     newly-heard species shows up without a reload. */
+  function renderWall() {
+    var wall = document.getElementById("lv-wall");
+    if (!wall) return;
+    var list = LIVE.speciesToday || [];
+    wall.innerHTML = list.map(function (s) {
+      var slug = slugify(s.display), fam = esc(s.fam || "");
+      if (s.photo) {
+        return '<a class="lv-chip" data-slug="' + slug + '" data-fam="' + fam + '" href="' + birdHref(s.display) +
+          '" style="background-image:url(\'' + s.photo + '\')" title="' + esc(s.display) + ' · ' + (s.count || 0) + '×">' +
+          '<span class="cl">' + esc(s.display) + '</span></a>';
+      }
+      return '<span class="lv-chip miss" data-slug="' + slug + '" data-fam="' + fam +
+        '" title="' + esc(s.display) + ' · heard, not photographed">' + FEATHER + '<span class="cl">' + esc(s.display) + '</span></span>';
+    }).join("");
+    var empty = document.getElementById("lv-wall-empty");
+    if (empty) empty.hidden = list.length > 0;
+    var shot = 0; list.forEach(function (s) { if (s.shot) shot++; });
+    var set = function (id, v) { var el = document.getElementById(id); if (el) el.textContent = v; };
+    set("lv-hvt-heard", list.length); set("lv-hvt-shot", shot); set("lv-hvt-miss", list.length - shot);
+    applyFocus();
+  }
   function renderHero(r) {
     var h = document.getElementById("lv-hero");
     var photo = heroPhoto(r);
@@ -1081,6 +1108,7 @@
     renderNodes();
     renderHourStrip();
     renderFeed(data.recent, newTop);
+    renderWall();
     renderHistory();
     stampTimes();
     // The hero player belongs to that hero call. Don't steal focus mid-listen:
@@ -1140,6 +1168,7 @@
         if (on) {  // drop it locally for instant feedback
           LIVE.recent = (LIVE.recent || []).filter(function (r) { return slugify(r.display) !== slugify(name); });
           LIVE.species = (LIVE.species || []).filter(function (r) { return slugify(r.display) !== slugify(name); });
+          LIVE.speciesToday = (LIVE.speciesToday || []).filter(function (r) { return slugify(r.display) !== slugify(name); });
           apply(LIVE, true);
         } else { poll(); }   // restore -> re-fetch to bring it back
         renderSuppressBar();

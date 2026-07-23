@@ -1519,19 +1519,37 @@ def apply_sound_curation(data):
         if isinstance(data.get(fld), list):
             data[fld] = [r for r in data[fld] if keep(r)]
 
+    # The per-day History rollup (daily[].sp / .n) and the "today" species list are
+    # pre-aggregated by the exporter from RAW detections — they still carry
+    # suppressed species. Filter them here too, so the History chart and the today
+    # wall match the feed/log (a suppressed owl must not surface in any of them).
+    if isinstance(data.get("today"), list):
+        data["today"] = [s for s in data["today"] if _sound_canon_key(s) not in supp]
+    daily = data.get("daily")
+    if isinstance(daily, list) and supp:
+        fdaily = []
+        for d in daily:
+            if not isinstance(d, dict):
+                fdaily.append(d)
+                continue
+            sp = d.get("sp") or {}
+            removed = sum(v for k, v in sp.items() if _sound_canon_key(k) in supp)
+            d = dict(d)
+            d["sp"] = {k: v for k, v in sp.items() if _sound_canon_key(k) not in supp}
+            d["n"] = max(0, (d.get("n") or 0) - removed)
+            fdaily.append(d)
+        data["daily"] = daily = fdaily
+
     counts = dict(data.get("counts") or {})
     if counts:
         if "species" in data:
             counts["speciesAllTime"] = len(data["species"])
         if supp_calls:
             counts["callsAllTime"] = max(0, (counts.get("callsAllTime") or 0) - supp_calls)
-        daily = data.get("daily") or []
-        if daily and isinstance(daily[-1], dict):
+        if isinstance(daily, list) and daily and isinstance(daily[-1], dict):
             sp = daily[-1].get("sp") or {}
-            live = {k: v for k, v in sp.items() if _sound_canon_key(k) not in supp}
-            if sp:
-                counts["speciesToday"] = len(live)
-                counts["callsToday"] = max(0, sum(live.values()))
+            counts["speciesToday"] = len(sp)
+            counts["callsToday"] = max(0, sum(sp.values()))
         data["counts"] = counts
     return data
 
