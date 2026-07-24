@@ -523,7 +523,9 @@ body.home .site-nav { z-index: 0; }
 @media (max-width: 560px) {
     .gallery-header { margin-bottom: 1.5rem; }
     .page .gallery-header h1 { font-size: clamp(1.9rem, 8.5vw, 2.6rem); margin-bottom: 0.4rem; }
-    .birds-subnav { flex-wrap: nowrap; justify-content: flex-start; overflow-x: auto;
+    /* safe center: centered when the pills fit, but falls back to flex-start if
+       they ever overflow, so nothing gets pushed off-screen and unreachable. */
+    .birds-subnav { flex-wrap: nowrap; justify-content: safe center; overflow-x: auto;
         -webkit-overflow-scrolling: touch; scrollbar-width: none; margin-top: 0.8rem; padding: 0 0.1rem 0.3rem; }
     .birds-subnav::-webkit-scrollbar { display: none; }
     .birds-subnav a { flex: 0 0 auto; font-size: 0.72rem; padding: 0.3rem 0.72rem; }
