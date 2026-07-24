@@ -289,6 +289,14 @@ def build(s3=None):
     now = dt.datetime.now().astimezone()
     today = now.date().isoformat()
 
+    # Consolidate a physical mic's historical source-display-names (e.g. from
+    # before it was renamed) to one stable node label, so the site shows a single
+    # node per mic instead of a split across old + new names.
+    NODE_ALIASES = {"Yard Mic": "Back Yard", "BirdPi Mic": "Back Yard"}
+    def node_of(d):
+        nm = (d.get("source") or {}).get("displayName")
+        return NODE_ALIASES.get(nm, nm)
+
     def det(d):
         out = {
             "common": d.get("commonName"), "sci": d.get("scientificName"),
@@ -297,7 +305,7 @@ def build(s3=None):
             "new": bool(d.get("isNewSpecies")), "verified": d.get("verified"),
             # Which listening node heard it (BirdNET-Go source displayName) — the
             # site shows/filters by node only when there's more than one.
-            "node": (d.get("source") or {}).get("displayName"),
+            "node": node_of(d),
         }
         out.update(media.get(d.get("clipName"), {}))
         return out
@@ -346,7 +354,7 @@ def build(s3=None):
     # first, so the site can label + filter by node (only when there's >1).
     node_ct, node_today, node_last = {}, {}, {}
     for d in dets:
-        nm = (d.get("source") or {}).get("displayName")
+        nm = node_of(d)
         if not nm:
             continue
         node_ct[nm] = node_ct.get(nm, 0) + 1
@@ -360,7 +368,7 @@ def build(s3=None):
     generated = dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds")
     return {
         "generated": generated,
-        "station": {"source": (dets[0]["source"]["displayName"] if dets else "BirdPi Mic")},
+        "station": {"source": (node_of(dets[0]) if dets else "Back Yard")},
         "nodes": nodes,
         "weather": fetch_weather(),
         "recent": [det(d) for d in dets[:RECENT_N]],
