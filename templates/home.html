@@ -178,8 +178,8 @@
                 </a>
             </div>
         </div>
-        {% if shots %}
-        {% set preview = shots[:5] %}
+        {% if home_preview %}
+        {% set preview = home_preview %}
         {% set start_tokens = [] %}
         {% for s in preview %}{% set _ = start_tokens.append(s.id ~ '.' ~ (s.image_indices[0] if s.image_indices else 0)) %}{% endfor %}
         {% set start_ids = start_tokens|join(',') %}

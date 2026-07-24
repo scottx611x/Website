@@ -185,6 +185,18 @@ def _home_context():
         wildlife.append(p)
         if len(wildlife) >= 5:
             break
+    # The home page is "favorite shots from around my hometown", so keep
+    # out-of-area birds (e.g. a Hooded Crow photographed while traveling) off it.
+    # The featured grid needs a LOCAL cover frame; the species ticker keeps any
+    # bird with at least one North Andover photo (drops travel-only species).
+    def _local_cover(s):
+        areas = s.get("image_areas") or []
+        return not areas or areas[0] != "away"
+    def _has_local(s):
+        areas = s.get("image_areas")
+        return not areas or any(a != "away" for a in areas)
+    home_preview = [s for s in shots if _local_cover(s)][:5]
+    local_shots = [s for s in shots if _has_local(s)]
     return {
         "title": TITLE,
         "bird_stats": {
@@ -195,11 +207,12 @@ def _home_context():
         "background_image": random.choice(load_backgrounds()),
         "posts": [] if "blog" in HIDDEN_PAGES else blog.list_posts()[:3],
         "shots": shots,
+        "home_preview": home_preview,
         "wildlife": wildlife,
         "wildlife_count": len(all_photos),
         "projects": load_projects(),
         "taglines": load_taglines(),
-        "species": birds.ticker_species(shots),
+        "species": birds.ticker_species(local_shots),
         "curate": _curate_on(),
         "local": _is_local(),
     }
