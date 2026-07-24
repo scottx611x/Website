@@ -281,8 +281,41 @@ def publish_media(dets, s3):
     return index
 
 
+SIDEYARD_FILE = os.path.expanduser(os.environ.get("SY_DETECTIONS", "~/sideyard/detections.jsonl"))
+
+
+def load_sideyard():
+    """Store-and-forward Side Yard detections (a separate BirdNET pass over the
+    segments the Zero shipped). Shaped like BirdNET-Go API rows so they merge into
+    the same pipeline; their clips are already published to S3 (_sy_media)."""
+    rows = []
+    try:
+        fh = open(SIDEYARD_FILE)
+    except OSError:
+        return rows
+    with fh:
+        for line in fh:
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                r = json.loads(line)
+            except ValueError:
+                continue
+            rows.append({
+                "commonName": r.get("common"), "scientificName": r.get("sci"),
+                "speciesCode": None, "timestamp": r.get("t"),
+                "confidence": r.get("conf") or 0, "isNewSpecies": False,
+                "verified": "unverified", "clipName": None,
+                "source": {"displayName": r.get("node") or "Side Yard"},
+                "_sy_media": {"audio": r.get("audio"), "spec": r.get("spec")},
+            })
+    return rows
+
+
 def build(s3=None):
     dets = fetch_detections()
+    dets += load_sideyard()  # merge store-and-forward Side Yard detections
     dets.sort(key=lambda d: d.get("timestamp", ""), reverse=True)  # newest first
     species = api("/api/v2/analytics/species/summary")  # all-time, with names
     media = publish_media(dets, s3)
@@ -307,7 +340,10 @@ def build(s3=None):
             # site shows/filters by node only when there's more than one.
             "node": node_of(d),
         }
-        out.update(media.get(d.get("clipName"), {}))
+        if d.get("_sy_media"):  # Side Yard clips are already in S3
+            out.update({k: v for k, v in d["_sy_media"].items() if v})
+        else:
+            out.update(media.get(d.get("clipName"), {}))
         return out
 
     # local-day call counts (+ per-species) and hour-of-day rhythm for today
