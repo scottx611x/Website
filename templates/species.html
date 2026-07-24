@@ -273,6 +273,7 @@
   // Listening nodes: only surface which mic(s) heard this bird when there's more
   // than one. With a single mic MULTI is false and nothing below shows.
   var HEARD_NODES = {{ (sp.heard_nodes or [])|tojson }};
+  if (window.NodeUI) window.NodeUI.assign({{ (sp.all_nodes or [])|tojson }});  // full roster -> colors match the feed
   var MULTI = HEARD_NODES.length > 1 && window.NodeUI;
   function nodeDot(name) { return (MULTI && name) ? window.NodeUI.dot(name) : ""; }
   (function () {

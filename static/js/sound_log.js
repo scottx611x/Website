@@ -18,6 +18,7 @@
   // every day to one mic; the dots (via the shared NodeUI helper) mark where a
   // recording was heard. With one node MULTI is false and this all no-ops.
   var NODES = (typeof LOG_NODES !== "undefined" ? LOG_NODES : []).filter(function (n) { return n && n.name; });
+  if (window.NodeUI) window.NodeUI.assign(NODES.map(function (n) { return n.name; }));
   var MULTI = NODES.length > 1 && window.NodeUI;
   var nodeSel = null;
   function nodeDot(name) { return (MULTI && name) ? window.NodeUI.dot(name) : ""; }

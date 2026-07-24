@@ -2856,12 +2856,14 @@ def species_profile(name, shots=None, sound=None):
                 all_calls.append({"audio": r.get("audio"), "spec": r.get("spec"),
                                   "conf": r.get("conf") or 0, "t": r.get("t"),
                                   "when": _with_when(r).get("when"), "node": r.get("node")})
-    # Which listening node(s) have heard this bird (for the multi-node label).
+    # Which listening node(s) have heard this bird (for the multi-node label),
+    # plus the full node roster so the page colors match the feed/day-log.
     heard_nodes = []
     for r in cands:
         nm = r.get("node")
         if nm and nm not in heard_nodes:
             heard_nodes.append(nm)
+    all_nodes = [n.get("name") for n in (sound.get("nodes") or []) if n.get("name")]
 
     if not count and not heard:
         return None  # neither photographed nor heard -> not a real page
@@ -2884,6 +2886,7 @@ def species_profile(name, shots=None, sound=None):
         "best_call": best_call,
         "all_calls": all_calls,
         "heard_nodes": heard_nodes,
+        "all_nodes": all_nodes,
     }
 
 

@@ -425,6 +425,7 @@
      genuinely more than one mic. With a single node, MULTI is false and every
      dot/chip/filter below no-ops, so the page looks exactly as it always has. ---- */
   var NODES = (LIVE.nodes || []).filter(function (n) { return n && n.name; });
+  if (window.NodeUI) window.NodeUI.assign(NODES.map(function (n) { return n.name; }));
   var MULTI = NODES.length > 1 && window.NodeUI;
   var nodeSel = null;  // null = all mics
   function nodeDot(name) { return (MULTI && name) ? window.NodeUI.dot(name) : ""; }
@@ -1115,6 +1116,7 @@
     // Nodes can appear/vanish between polls (a second mic comes online) — recompute
     // so MULTI, the filter, and every dot track the live roster.
     NODES = (data.nodes || []).filter(function (n) { return n && n.name; });
+    if (window.NodeUI) window.NodeUI.assign(NODES.map(function (n) { return n.name; }));
     MULTI = NODES.length > 1 && window.NodeUI;
     if (nodeSel && !NODES.some(function (n) { return n.name === nodeSel; })) nodeSel = null;
     if (!(data.recent || []).length) return;
