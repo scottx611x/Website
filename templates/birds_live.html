@@ -820,12 +820,12 @@
       h.innerHTML = '<div class="lv-portrait" style="background-image:url(\'' + photo + '\')"><div class="lv-body">' +
         '<div class="lv-when" data-t="' + esc(r.t) + '" data-lead="' + esc(r.fam) + '"></div>' +
         '<div class="lv-nm"><a href="' + birdHref(r.display) + '">' + esc(r.display) + '</a></div>' +
-        '<div class="lv-meta">' + tags + confHTML(r) + nodeDot(r.node) + '</div></div></div>';
+        '<div class="lv-meta">' + tags + confHTML(r) + nodeDot(r.node) + ((CURATE && r.audio) ? hideBtn(r.audio) : '') + '</div></div></div>';
     } else {
       h.innerHTML = '<div class="lv-ghostcard"><div class="lv-body">' +
         '<div class="lv-when" data-t="' + esc(r.t) + '" data-lead="heard, not photographed"></div>' +
         '<div class="lv-nm">' + esc(r.display) + '</div>' +
-        '<div class="lv-meta">' + tags + confHTML(r) + nodeDot(r.node) + '</div></div></div>';
+        '<div class="lv-meta">' + tags + confHTML(r) + nodeDot(r.node) + ((CURATE && r.audio) ? hideBtn(r.audio) : '') + '</div></div></div>';
     }
   }
   /* ---- the feed: contiguous same-species calls fold into one chain row
