@@ -1614,6 +1614,26 @@ def load_patterns():
         return None
 
 
+def load_species_clips():
+    """Per-species top recordings by confidence (birds/sounds/species_clips.json),
+    across the whole clip-retention window — the archive the species page browses.
+    Returns {common_name: [{audio, spec, conf, t, node}, ...]} (empty when absent)."""
+    key = "{}/sounds/species_clips.json".format(S3_PREFIX)
+    if os.environ.get("BIRDS_USE_S3"):
+        try:
+            import boto3
+
+            body = boto3.client("s3").get_object(Bucket=S3_BUCKET, Key=key)["Body"].read()
+            return json.loads(body).get("clips", {})
+        except Exception:  # noqa: BLE001 - not published yet / unreachable
+            return {}
+    try:
+        with open(os.path.join(HERE, "birds", "sounds_species_clips.json")) as fh:
+            return json.load(fh).get("clips", {})
+    except (OSError, ValueError):
+        return {}
+
+
 def species_covers(shots):
     """Every grid thumbnail per canonical species (best-weight first, de-duped) —
     the pool the /birds/live viewer draws from when it hears a species you've also
@@ -2861,22 +2881,26 @@ def species_profile(name, shots=None, sound=None):
                 pass
         return r
 
+    # The browsable archive: this species' top recordings by confidence across the
+    # WHOLE clip-retention window (species_clips.json), not just the few days the
+    # recent+log pool covers. Falls back to that pool when the archive isn't built.
+    archive = (load_species_clips().get(canon) or []) if heard else []
     all_calls = []
     if playable:
         recent_call = _with_when(max(playable, key=lambda r: r.get("t") or ""))
-        best_call = _with_when(max(playable, key=lambda r: r.get("conf") or 0))
-        # Only a distinct "clearest" is worth a toggle.
-        if best_call.get("audio") == recent_call.get("audio") and \
+        pool = archive or (sorted(playable, key=lambda x: x.get("conf") or 0, reverse=True)
+                           if len(playable) > 2 else [])
+        for r in pool[:40]:
+            all_calls.append({"audio": r.get("audio"), "spec": r.get("spec"),
+                              "conf": r.get("conf") or 0, "t": r.get("t"),
+                              "when": _with_when(r).get("when"), "node": r.get("node")})
+        # "clearest" featured toggle = the top of that pool, when it's a different
+        # recording than the latest.
+        best_call = all_calls[0] if all_calls else \
+            _with_when(max(playable, key=lambda r: r.get("conf") or 0))
+        if best_call and best_call.get("audio") == recent_call.get("audio") and \
            best_call.get("spec") == recent_call.get("spec"):
             best_call = None
-        # The full archive for this species — every playable recording, so the
-        # profile can offer more than the latest + clearest two. Capped; the page
-        # sorts client-side (clearest first, or latest).
-        if len(playable) > 2:
-            for r in sorted(playable, key=lambda x: x.get("conf") or 0, reverse=True)[:40]:
-                all_calls.append({"audio": r.get("audio"), "spec": r.get("spec"),
-                                  "conf": r.get("conf") or 0, "t": r.get("t"),
-                                  "when": _with_when(r).get("when"), "node": r.get("node")})
     # Which listening node(s) have heard this bird (for the multi-node label),
     # plus the full node roster so the page colors match the feed/day-log.
     heard_nodes = []

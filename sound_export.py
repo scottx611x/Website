@@ -38,6 +38,7 @@ CLIPS_DIR = os.path.expanduser(os.environ.get("BNG_CLIPS_DIR", "~/birdnet-go/dat
 KEY = "birds/sounds/recent.json"
 LOG_KEY = "birds/sounds/log.json"    # the full browsable detection log (its own file)
 PATTERNS_KEY = "birds/sounds/patterns.json"  # all-time aggregates: daily rhythm + yard geography
+SPECIES_CLIPS_KEY = "birds/sounds/species_clips.json"  # per-species top clips by confidence
 CLIP_PREFIX = "birds/sounds/clips/"
 RECENT_N = 80         # feed backlog: the live page consolidates + scrolls these
 LOG_N = 1500          # detections in the log page's backlog
@@ -385,19 +386,35 @@ def build(s3=None):
         "maxConf": round(s.get("max_confidence", 0), 3),
     } for s in species if s.get("common_name")]
 
-    # Attach each species' MOST RECENT published clip (dets are newest-first), so a
-    # focused live view or species page can always play the latest call — even for
-    # a bird last heard days ago, not just today's feed.
-    sp_last_media = {}
+    # One pass over the (newest-first) detections that still have playable media,
+    # within the clip-retention window, to build two things:
+    #   * each species' MOST RECENT clip -> attached to its rollup, so a focused
+    #     live view can always play the latest call even for a bird last heard days
+    #     ago (not just today's feed);
+    #   * each species' TOP clips BY CONFIDENCE -> its own file, so the species page
+    #     can browse the clearest calls across the whole window, not just the log.
+    clip_cutoff = now - dt.timedelta(days=58)  # clips lifecycle off S3 at 60d
+    sp_clips, sp_last = {}, {}
     for d in dets:
         cn = d.get("commonName")
-        if not cn or cn in sp_last_media:
+        ts = d.get("timestamp")
+        if not cn or not ts:
+            continue
+        try:
+            if local(ts) < clip_cutoff:
+                break  # dets are newest-first — everything past here is older
+        except (ValueError, TypeError):
             continue
         m = d.get("_sy_media") or media.get(d.get("clipName")) or {}
-        if m.get("audio"):
-            sp_last_media[cn] = {"audio": m.get("audio"), "spec": m.get("spec")}
+        if not m.get("audio"):
+            continue
+        entry = {"audio": m.get("audio"), "spec": m.get("spec"),
+                 "conf": round(d.get("confidence", 0), 3), "t": ts, "node": node_of(d)}
+        sp_clips.setdefault(cn, []).append(entry)
+        sp_last.setdefault(cn, entry)  # newest-first: first seen is the most recent
+    sp_clips = {cn: sorted(v, key=lambda r: -r["conf"])[:40] for cn, v in sp_clips.items()}
     for s in sp_out:
-        lm = sp_last_media.get(s["common"])
+        lm = sp_last.get(s["common"])
         if lm:
             s["audio"] = lm["audio"]
             if lm.get("spec"):
@@ -457,6 +474,7 @@ def build(s3=None):
     return {
         "generated": generated,
         "patterns": patterns,
+        "speciesClips": sp_clips,
         "station": {"source": (node_of(dets[0]) if dets else "Back Yard")},
         "nodes": nodes,
         "weather": fetch_weather(),
@@ -490,9 +508,11 @@ def main():
     log_payload = {"generated": payload["generated"], "log": log}
     patterns = payload.pop("patterns", {})
     patterns["generated"] = payload["generated"]
+    species_clips = {"generated": payload["generated"], "clips": payload.pop("speciesClips", {})}
     body = json.dumps(payload, separators=(",", ":")).encode()
     log_body = json.dumps(log_payload, separators=(",", ":")).encode()
     patterns_body = json.dumps(patterns, separators=(",", ":")).encode()
+    species_clips_body = json.dumps(species_clips, separators=(",", ":")).encode()
     # local copy for debugging / commit-as-mirror
     here = os.path.dirname(os.path.abspath(__file__))
     local_path = os.path.join(here, "birds", "sounds_recent.json")
@@ -501,6 +521,8 @@ def main():
         fh.write(body)
     with open(os.path.join(here, "birds", "sounds_patterns.json"), "wb") as fh:
         fh.write(patterns_body)
+    with open(os.path.join(here, "birds", "sounds_species_clips.json"), "wb") as fh:
+        fh.write(species_clips_body)
     with_audio = sum(1 for r in payload["recent"] if r.get("audio"))
     print("built: %d species, %d recent (%d w/audio), %d log entries, %d calls today (%d+%d bytes)" % (
         payload["counts"]["speciesAllTime"], len(payload["recent"]), with_audio,
@@ -518,7 +540,10 @@ def main():
     s3.put_object(
         Bucket=BUCKET, Key=PATTERNS_KEY, Body=patterns_body,
         ContentType="application/json", CacheControl="max-age=300")
-    print("uploaded s3://%s/%s, %s and %s" % (BUCKET, KEY, LOG_KEY, PATTERNS_KEY))
+    s3.put_object(
+        Bucket=BUCKET, Key=SPECIES_CLIPS_KEY, Body=species_clips_body,
+        ContentType="application/json", CacheControl="max-age=300")
+    print("uploaded %s, %s, %s and %s" % (KEY, LOG_KEY, PATTERNS_KEY, SPECIES_CLIPS_KEY))
 
 
 if __name__ == "__main__":

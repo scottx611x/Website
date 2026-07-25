@@ -380,13 +380,13 @@
           '<span class="rc ' + cc + '">' + pct + '%</span></button>';
       }).join("");
     }
-    tgl.addEventListener("click", function () {
-      open = !open;
+    function syncRecs() {
       listEl.hidden = !open; sortEl.hidden = !open;
       tgl.setAttribute("aria-expanded", open ? "true" : "false");
-      tgl.innerHTML = (open ? "&#9652;" : "&#9662;") + " browse recordings";
-      if (open && !listEl.childElementCount) render();
-    });
+      tgl.innerHTML = (open ? "&#9652;" : "&#9662;") + " " + ALL.length + " recordings, clearest first";
+      if (open) render();
+    }
+    tgl.addEventListener("click", function () { open = !open; syncRecs(); });
     sortEl.addEventListener("click", function (e) {
       var b = e.target.closest("button"); if (!b) return;
       rsort = b.getAttribute("data-rsort");
@@ -407,6 +407,7 @@
       audio.play().catch(function () {});
       wrap.scrollIntoView({ behavior: "smooth", block: "nearest" });
     });
+    open = ALL.length > 0; syncRecs();  // archive is open by default — one glance, not a click
   })();
   function setPlaying(on) {
     wrap.classList.toggle("playing", on);
