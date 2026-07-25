@@ -109,7 +109,7 @@
         <!-- Calendar heatmap: every day is a door into that day's photos -->
         <div class="stat-block stat-span-2" id="days">
             <h2>Shooting days</h2>
-            <p class="stat-sub mono">the last 12 months. tap a day for its photos.</p>
+            <p class="stat-sub mono">the last 12 months &mdash; bigger dot, more photos. tap a day for its shots.</p>
             <div class="cal-chips mono" id="cal-chips"></div>
             <div id="cal-chart" class="d3-chart cal-scroll"></div>
         </div>
@@ -889,33 +889,37 @@
             var weeks = d3.timeSunday.count(start, end) + 1;
             var W = left + weeks * (cell + gap), H = top + 7 * (cell + gap) + 4;
             var peak = d3.max(inWindow, function (k) { return S.per_day[k].n; }) || 1;
-            var color = d3.scaleQuantize([1, Math.max(peak, RAMP.length)], RAMP);
+            // Punchcard, not heatmap: each day is a DOT sized by that day's photo
+            // count (one accent), so it reads distinctly from the filled color-grid
+            // of the phenology matrix above.
+            var rMax = cell / 2, isToday = function (d) { return fmt(d) === fmt(end); };
+            var rScale = d3.scaleSqrt().domain([1, peak]).range([2, rMax]);
             var svg = d3.select(el).append("svg").attr("width", W).attr("height", H);
             d3.timeDay.range(start, d3.timeDay.offset(end, 1)).forEach(function (d) {
                 var wk = d3.timeSunday.count(start, d), dow = d.getDay();
                 var key = fmt(d), day = S.per_day[key];
+                var cx = left + wk * (cell + gap) + cell / 2, cy = top + dow * (cell + gap) + cell / 2;
+                if (!day) {   // empty day: a faint tick; today keeps its amber ring
+                    svg.append("circle").attr("cx", cx).attr("cy", cy)
+                        .attr("r", isToday(d) ? rMax : 1).attr("fill", "none")
+                        .attr("stroke", isToday(d) ? "#e8b04b" : "rgba(13,18,14,0.16)")
+                        .attr("stroke-width", isToday(d) ? 1.5 : 1);
+                    return;
+                }
                 // Days with photos are real links (keyboard / middle-click friendly).
-                var parent = day ? svg.append("a").attr("href", "/birds?on=" + key)
-                                        .attr("aria-label", key + ", " + day.n + " photos")
-                                 : svg;
-                var rect = parent.append("rect")
-                    .attr("x", left + wk * (cell + gap)).attr("y", top + dow * (cell + gap))
-                    .attr("width", cell).attr("height", cell).attr("rx", 3)
-                    .attr("fill", day ? color(day.n) : ZERO);
-                if (fmt(d) === fmt(end)) {   // today gets the amber "now" ring
-                    rect.attr("stroke", "#e8b04b").attr("stroke-width", 1.5);
-                }
-                if (day) {
-                    rect.attr("class", "cal-day").attr("data-key", key)
-                        .on("pointermove", function (ev) {
-                            var sp = day.sp.slice(0, 3).join(", ") +
-                                     (day.sp.length > 3 ? " +" + (day.sp.length - 3) + " more" : "");
-                            tipShow(ev, [d3.timeFormat("%a, %b %-d, %Y")(d),
-                                         day.n + (day.n === 1 ? " photo" : " photos"),
-                                         sp, "click for the photos →"], day.img);
-                        })
-                        .on("pointerleave", tipHide);
-                }
+                var parent = svg.append("a").attr("href", "/birds?on=" + key)
+                                 .attr("aria-label", key + ", " + day.n + " photos");
+                var dot = parent.append("circle").attr("class", "cal-day").attr("data-key", key)
+                    .attr("cx", cx).attr("cy", cy).attr("r", rScale(day.n)).attr("fill", "#2f7d4f");
+                if (isToday(d)) dot.attr("stroke", "#e8b04b").attr("stroke-width", 1.5);
+                dot.on("pointermove", function (ev) {
+                        var sp = day.sp.slice(0, 3).join(", ") +
+                                 (day.sp.length > 3 ? " +" + (day.sp.length - 3) + " more" : "");
+                        tipShow(ev, [d3.timeFormat("%a, %b %-d, %Y")(d),
+                                     day.n + (day.n === 1 ? " photo" : " photos"),
+                                     sp, "click for the photos →"], day.img);
+                    })
+                    .on("pointerleave", tipHide);
             });
             d3.timeMonth.range(d3.timeMonth.ceil(start), end).forEach(function (d) {
                 svg.append("text").attr("x", left + d3.timeSunday.count(start, d) * (cell + gap))
@@ -929,7 +933,7 @@
             // A /birds/stats?bird=X deep-link outlines the days I shot that bird.
             window.lvFocusCal = function (name) {
                 var found = false;
-                el.querySelectorAll("rect.cal-day").forEach(function (r) {
+                el.querySelectorAll("circle.cal-day").forEach(function (r) {
                     var k = r.getAttribute("data-key");
                     var has = name && k && S.per_day[k] && S.per_day[k].sp.indexOf(name) >= 0;
                     r.classList.toggle("cal-match", !!has);
