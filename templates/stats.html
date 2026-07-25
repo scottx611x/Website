@@ -193,34 +193,30 @@
         {% if rhythm and rhythm.species %}
         <div class="stat-block stat-span-2" id="rhythm-block">
             <h2>The daily rhythm</h2>
-            <p class="stat-sub mono">when each species sings, hour by hour. every row glows against <em>its own</em> busiest hour, so this is the <em>shape</em> of the day &mdash; earliest risers up top. tap a bird for its photos.</p>
-            <div class="rhythm-scroll">
-                <div class="rhythm-grid">
-                    <div class="rhythm-row axis" aria-hidden="true">
-                        <span class="rhythm-head"></span>
-                        <span class="rhythm-cells">
-                            {% for h in range(24) %}<span class="rhythm-tot" style="--i: {{ (rhythm.hourTotals[h] / rhythm.hourMax)|round(3) }}" title="{{ rhythm.hourTotals[h] }} calls at {{ '%02d:00'|format(h) }}"></span>{% endfor %}
-                        </span>
-                    </div>
-                    {% for r in rhythm.species %}
-                    <a class="rhythm-row" href="/birds/species/{{ r.name|slug }}">
-                        <span class="rhythm-head">
-                            {% if r.img %}<img class="bird-avatar sm" src="{{ r.img }}" alt="" loading="lazy" onerror="this.classList.add('missing')">
-                            {% else %}<span class="bird-avatar sm ear-miss" title="heard, not photographed">&#129718;</span>{% endif %}
-                            <span class="rhythm-name">{{ r.name }}</span>
-                        </span>
-                        <span class="rhythm-cells">
-                            {% for c in r.cells %}<span class="rhythm-cell" style="--i: {{ c.i }}" title="{{ r.name }} &middot; {{ c.c }} call{{ 's' if c.c != 1 }} at {{ '%02d:00'|format(loop.index0) }}"></span>{% endfor %}
-                        </span>
-                    </a>
-                    {% endfor %}
-                    <div class="rhythm-row foot mono" aria-hidden="true">
-                        <span class="rhythm-head"></span>
-                        <span class="rhythm-cells">
-                            {% for lab in ['12a','','','','','','6a','','','','','','12p','','','','','','6p','','','','',''] %}<span class="rhythm-lab">{{ lab }}</span>{% endfor %}
-                        </span>
-                    </div>
+            <p class="stat-sub mono">each ridge is one species&rsquo; day &mdash; when it sings, dawn to night, peaked at its most vocal hour. tap a bird for its photos.</p>
+            <div class="rhythm-chart">
+                <div class="rhythm-row axis" aria-hidden="true">
+                    <span class="rhythm-head"></span>
+                    <span class="rhythm-plot">
+                        <span class="rhythm-lab" style="left: 0%">12a</span>
+                        <span class="rhythm-lab" style="left: 25%">6a</span>
+                        <span class="rhythm-lab" style="left: 50%">12p</span>
+                        <span class="rhythm-lab" style="left: 75%">6p</span>
+                        <span class="rhythm-lab" style="left: 100%">12a</span>
+                    </span>
+                    <span class="rhythm-peak mono">peak</span>
                 </div>
+                {% for r in rhythm.species %}
+                <a class="rhythm-row" href="/birds/species/{{ r.name|slug }}" title="{{ r.name }} &mdash; most vocal around {{ r.peaklab }}">
+                    <span class="rhythm-head">
+                        {% if r.img %}<img class="bird-avatar sm" src="{{ r.img }}" alt="" loading="lazy" onerror="this.classList.add('missing')">
+                        {% else %}<span class="bird-avatar sm ear-miss" title="heard, not photographed">&#129718;</span>{% endif %}
+                        <span class="rhythm-name">{{ r.name }}</span>
+                    </span>
+                    <span class="rhythm-plot"><svg class="rhythm-spark" viewBox="0 0 100 26" preserveAspectRatio="none" aria-hidden="true"><path d="{{ r.path }}"/></svg></span>
+                    <span class="rhythm-peak mono">{{ r.peaklab }}</span>
+                </a>
+                {% endfor %}
             </div>
         </div>
         {% endif %}

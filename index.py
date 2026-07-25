@@ -874,25 +874,30 @@ def birds_stats():
                     "img": (_stats_covers.get(disp) or [None])[0],
                     "shot": disp in photographed}
 
-        # Each row is normalized to ITS OWN busiest hour (gamma-lifted), so the
-        # heatmap reveals each species' daily SHAPE — when it sings — not just who
-        # is loudest. Rows are then ordered by peak hour into a dawn->night wave.
+        # Each species becomes a ridge: a filled area over the 24h day, normalized
+        # to ITS OWN busiest hour (gamma-lifted) so the SHAPE reads regardless of
+        # volume. Rows are ordered by peak hour into a dawn->night cascade.
+        def _hlab(h):
+            return "%d%s" % (h % 12 or 12, "a" if h < 12 else "p")
+
+        def _spark(intens):  # closed area path, viewBox 0 0 100 26, baseline at 26
+            n = len(intens)
+            body = " ".join("L%.2f,%.2f" % (i / (n - 1) * 100.0, 26.0 - v * 24.0)
+                            for i, v in enumerate(intens))
+            return "M0,26 %s L100,26 Z" % body
+
         rrows = []
         for s in (pat.get("rhythm") or [])[:30]:
             hrs = s.get("hours") or [0] * 24
             rmax = max(hrs) or 1
+            intens = [round((c / rmax) ** 0.6, 3) for c in hrs]
+            peak = max(range(24), key=lambda h: hrs[h]) if any(hrs) else 0
             row = _card(s.get("name"))
-            row.update({"cells": [{"c": c, "i": round((c / rmax) ** 0.6, 3)} for c in hrs],
-                        "total": s.get("total") or sum(hrs),
-                        "peak": max(range(24), key=lambda h: hrs[h]) if any(hrs) else 0})
+            row.update({"path": _spark(intens), "peak": peak, "peaklab": _hlab(peak),
+                        "total": s.get("total") or sum(hrs)})
             rrows.append(row)
         rrows.sort(key=lambda r: (r["peak"], -r["total"]))
-        hour_tot = [0] * 24
-        for s in (pat.get("rhythm") or []):
-            for h, v in enumerate(s.get("hours") or []):
-                hour_tot[h] += v
-        rhythm = {"species": rrows, "hourTotals": hour_tot,
-                  "hourMax": max(hour_tot) or 1}
+        rhythm = {"species": rrows}
 
         # Yard geography: which mic hears each species. Node colors match the live
         # page's dots (nodes.js assigns the palette by sorted node position).

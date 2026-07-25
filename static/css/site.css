@@ -835,25 +835,31 @@ a.pheno-cell:hover, a.pheno-cell:focus-visible {
 #ear-bars .ear-last { font-size: 0.64rem; color: var(--muted); white-space: nowrap; text-align: right; }
 @media (max-width: 560px) { #ear-bars .ear-last { display: none; } }
 
-/* The daily rhythm: species x hour-of-day heatmap. Each cell's --i (0..1) is the
-   species' activity that hour vs its own busiest hour; color-mix ramps an empty
-   cell -> neon. Rows come pre-sorted into a dawn->night wave. */
-.rhythm-scroll { overflow-x: auto; margin-top: 0.7rem; -webkit-overflow-scrolling: touch; }
-.rhythm-grid { min-width: 34rem; display: flex; flex-direction: column; gap: 3px; }
-.rhythm-row { display: flex; align-items: center; gap: 0.5rem; text-decoration: none; color: inherit; border-radius: 6px; }
+/* The daily rhythm: a ridgeline. One filled area per species over the 24h day
+   (normalized to its own peak, so shape reads regardless of volume), with vertical
+   time rails behind every row so the hour is legible at any depth. Rows are
+   pre-sorted into a dawn->night cascade; each row labels its peak hour. */
+.rhythm-chart { margin-top: 1rem; display: flex; flex-direction: column; gap: 1px; }
+.rhythm-row { display: grid; grid-template-columns: 9.5rem 1fr 2.1rem; align-items: center; gap: 0.5rem; text-decoration: none; color: inherit; border-radius: 6px; }
 a.rhythm-row:hover { background: rgba(47, 125, 79, 0.07); }
-.rhythm-head { flex: 0 0 auto; width: 9.5rem; display: flex; align-items: center; gap: 0.5rem; overflow: hidden; }
+a.rhythm-row:hover .rhythm-spark path { fill: color-mix(in srgb, var(--neon) 62%, transparent); }
+.rhythm-head { display: flex; align-items: center; gap: 0.5rem; overflow: hidden; }
 .rhythm-name { font-size: 0.78rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .bird-avatar.sm { width: 1.5rem; height: 1.5rem; border-width: 1px; }
-.rhythm-cells { flex: 1 1 auto; display: grid; grid-template-columns: repeat(24, 1fr); gap: 2px; }
-.rhythm-cell, .rhythm-tot {
-    height: 0.82rem; border-radius: 2px;
-    background: color-mix(in srgb, var(--neon) calc(var(--i, 0) * 100%), rgba(13, 18, 14, 0.055));
+/* vertical rails at 12a / 6a / 12p / 6p behind each ridge */
+.rhythm-plot { position: relative; height: 1.7rem;
+    background: repeating-linear-gradient(to right, rgba(13, 18, 14, 0.09) 0 1px, transparent 1px 25%); }
+.rhythm-spark { display: block; width: 100%; height: 100%; }
+.rhythm-spark path { fill: color-mix(in srgb, var(--neon) 45%, transparent); }
+.rhythm-row.axis .rhythm-plot { height: 0.9rem; background: none; }
+.rhythm-lab { position: absolute; top: 0; transform: translateX(-50%); font-family: var(--mono); font-size: 0.6rem; color: var(--muted); white-space: nowrap; }
+.rhythm-lab:first-child { transform: none; }
+.rhythm-lab:last-child { transform: translateX(-100%); }
+.rhythm-peak { font-size: 0.62rem; color: var(--muted); text-align: right; }
+@media (max-width: 560px) {
+    .rhythm-row { grid-template-columns: 6.6rem 1fr 1.9rem; }
+    .rhythm-name { font-size: 0.72rem; }
 }
-.rhythm-tot { height: 0.6rem; background: color-mix(in srgb, var(--green) calc(var(--i, 0) * 100%), rgba(13, 18, 14, 0.055)); }
-.rhythm-row.foot { margin-top: 1px; }
-.rhythm-lab { font-size: 0.6rem; color: var(--muted); text-align: left; line-height: 1; }
-@media (max-width: 560px) { .rhythm-head { width: 6.8rem; } .rhythm-name { font-size: 0.72rem; } }
 
 /* Around the yard: two-mic geography. A stacked proportion bar per species,
    segment colors matching the live page's node dots (set inline from the route). */
