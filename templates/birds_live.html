@@ -281,7 +281,10 @@
     </div>
 
     {# NOW — most recent call: the photo, and the sound itself #}
-    {% set r0 = sound.recent[0] %}
+    {# The hero is the newest recording we can actually PLAY, so the card always
+       has a working player — not just whatever's newest (a clip may not be
+       transcoded yet). JS keeps this in sync on every poll. #}
+    {% set r0 = (sound.recent | selectattr('audio') | first) or sound.recent[0] %}
     <section>
       <p class="lv-kick">Just heard</p>
       <div class="lv-now">
@@ -1121,19 +1124,17 @@
     if (nodeSel && !NODES.some(function (n) { return n.name === nodeSel; })) nodeSel = null;
     if (!(data.recent || []).length) return;
     var newTop = data.recent[0].t !== prevTop && !isFirst;
-    // In focus mode the hero is the FOCUSED bird, not the overall most-recent —
-    // so "focused on Red-eyed Vireo" doesn't show a Cardinal. If the bird isn't
-    // in the recent feed (last heard days ago), build a hero from the species
-    // rollup so it still leads, with its real last-heard time.
-    var hero = data.recent[0];
-    if (focusSlug || focusFam) {
-      hero = data.recent.filter(matchesFocus)[0];
-      if (!hero) {
-        var sp = (data.species || []).filter(matchesFocus)[0];
-        if (sp) hero = { display: sp.display, photo: sp.photo, fam: sp.fam, shot: sp.shot,
-                         t: sp.last, conf: sp.maxConf || 0, new: false };
-      }
-      hero = hero || data.recent[0];
+    // The hero is the newest recording we can PLAY, so the card and its player are
+    // always the same clip (never a bird with no play button). In focus mode it's
+    // the focused bird's newest playable clip; if that bird isn't in the recent
+    // feed (last heard days ago), build a hero from the species rollup so it still
+    // leads, with its real last-heard time.
+    var pool = (focusSlug || focusFam) ? data.recent.filter(matchesFocus) : data.recent;
+    var hero = playable(pool)[0] || pool[0] || data.recent[0];
+    if ((focusSlug || focusFam) && !pool.length) {
+      var sp = (data.species || []).filter(matchesFocus)[0];
+      if (sp) hero = { display: sp.display, photo: sp.photo, fam: sp.fam, shot: sp.shot,
+                       t: sp.last, conf: sp.maxConf || 0, new: false };
     }
     renderCounts(data.counts || {});
     curHero = hero;   // feed excludes this exact clip so it isn't shown twice
@@ -1144,10 +1145,11 @@
     renderWall();
     renderHistory();
     stampTimes();
-    // The hero player belongs to that hero call. Don't steal focus mid-listen:
-    // only (re)load on first paint or when the hero call changes.
-    var top = (focusSlug || focusFam) ? (hero && hero.audio ? hero : null) : playable(data.recent)[0];
-    if (top && (isFirst || newTop)) loadHero(top);
+    // Load the hero's player on first paint or whenever the hero clip changes —
+    // don't reload (and interrupt playback) just because a no-audio detection
+    // bumped the feed.
+    var top = hero && hero.audio ? hero : null;
+    if (top && (isFirst || !heroClip || top.audio !== heroClip.audio)) loadHero(top);
     applyFocus();  // the feed just re-rendered — keep the deep-link focus on
   }
   function poll() {
@@ -1253,8 +1255,13 @@
   var feedEl = document.getElementById("lv-feed");
   if (feedEl) feedEl.addEventListener("scroll", feedFade, { passive: true });
 
+  poll();  // embedded data may be a cached/bfcache snapshot — pull live at once
   setInterval(poll, 60000);
   setInterval(stampTimes, 30000);
+  // A backgrounded or bfcache-restored tab (common on phones) can show a stale
+  // snapshot — refresh the instant it's shown again or refocused.
+  window.addEventListener("pageshow", function (e) { if (e.persisted) poll(); });
+  document.addEventListener("visibilitychange", function () { if (!document.hidden) poll(); });
 })();
 </script>
 {% endblock %}
