@@ -176,6 +176,64 @@
         </div>
         {% endif %}
 
+        <!-- The daily rhythm: species x hour-of-day, each row lit against its own busiest hour -->
+        {% if rhythm and rhythm.species %}
+        <div class="stat-block stat-span-2" id="rhythm-block">
+            <h2>The daily rhythm</h2>
+            <p class="stat-sub mono">when each species sings, hour by hour. every row glows against <em>its own</em> busiest hour, so this is the <em>shape</em> of the day &mdash; earliest risers up top. tap a bird for its photos.</p>
+            <div class="rhythm-scroll">
+                <div class="rhythm-grid">
+                    <div class="rhythm-row axis" aria-hidden="true">
+                        <span class="rhythm-head"></span>
+                        <span class="rhythm-cells">
+                            {% for h in range(24) %}<span class="rhythm-tot" style="--i: {{ (rhythm.hourTotals[h] / rhythm.hourMax)|round(3) }}" title="{{ rhythm.hourTotals[h] }} calls at {{ '%02d:00'|format(h) }}"></span>{% endfor %}
+                        </span>
+                    </div>
+                    {% for r in rhythm.species %}
+                    <a class="rhythm-row" href="/birds/species/{{ r.name|slug }}">
+                        <span class="rhythm-head">
+                            {% if r.img %}<img class="bird-avatar sm" src="{{ r.img }}" alt="" loading="lazy" onerror="this.classList.add('missing')">
+                            {% else %}<span class="bird-avatar sm ear-miss" title="heard, not photographed">&#129718;</span>{% endif %}
+                            <span class="rhythm-name">{{ r.name }}</span>
+                        </span>
+                        <span class="rhythm-cells">
+                            {% for c in r.cells %}<span class="rhythm-cell" style="--i: {{ c.i }}" title="{{ r.name }} &middot; {{ c.c }} call{{ 's' if c.c != 1 }} at {{ '%02d:00'|format(loop.index0) }}"></span>{% endfor %}
+                        </span>
+                    </a>
+                    {% endfor %}
+                    <div class="rhythm-row foot mono" aria-hidden="true">
+                        <span class="rhythm-head"></span>
+                        <span class="rhythm-cells">
+                            {% for lab in ['12a','','','','','','6a','','','','','','12p','','','','','','6p','','','','',''] %}<span class="rhythm-lab">{{ lab }}</span>{% endfor %}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Around the yard: which mic hears each bird (two-node geography) -->
+        {% if geo and geo.species %}
+        <div class="stat-block stat-span-2" id="geo-block">
+            <h2>Around the yard</h2>
+            <p class="stat-sub mono">two mics, two corners &mdash; which one hears each bird.
+                {% for n in geo.nodes %}<span class="geo-key"><span class="geo-dot" style="background: {{ geo.colors[n] }}"></span>{{ n }} <b>{{ "{:,}".format(geo.nodeTotals[n] or 0) }}</b></span>{% if not loop.last %} &middot; {% endif %}{% endfor %}. tap a bird for its photos.</p>
+            <div class="geo-bars">
+                {% for g in geo.species if g.total >= 4 %}{% if loop.index <= 18 %}
+                <a class="geo-row" href="/birds/species/{{ g.name|slug }}">
+                    {% if g.img %}<img class="bird-avatar" src="{{ g.img }}" alt="" loading="lazy" onerror="this.classList.add('missing')">
+                    {% else %}<span class="bird-avatar ear-miss" title="heard, not photographed">&#129718;</span>{% endif %}
+                    <span class="geo-label">{{ g.name }} <span class="bar-sub">{{ g.fam if g.shot else '🎧 not photographed' }}</span></span>
+                    <span class="geo-track">
+                        {% for p in g.parts %}{% if p.pct %}<span class="geo-seg" style="width: {{ p.pct }}%; background: {{ geo.colors[p.node] }}" title="{{ p.node }} &middot; {{ p.n }} ({{ p.pct }}%)"></span>{% endif %}{% endfor %}
+                    </span>
+                    <span class="geo-val mono">{{ g.total }}</span>
+                </a>
+                {% endif %}{% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
         <!-- Where I find them — a map of every spot, with the ranked list beside it -->
         <div class="stat-block stat-span-2" id="places-block">
             <div class="sp-sec-h" style="margin-bottom:.4rem">

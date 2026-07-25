@@ -1593,6 +1593,27 @@ def load_sound_log():
         return None
 
 
+def load_patterns():
+    """All-time sound aggregates (birds/sounds/patterns.json): the yard's daily
+    rhythm (species x hour-of-day) and geography (species x listening node). Its
+    own file, refreshed on a slower cadence — the Stats page reads it directly.
+    None when the exporter hasn't published it yet (sections then hide)."""
+    key = "{}/sounds/patterns.json".format(S3_PREFIX)
+    if os.environ.get("BIRDS_USE_S3"):
+        try:
+            import boto3
+
+            body = boto3.client("s3").get_object(Bucket=S3_BUCKET, Key=key)["Body"].read()
+            return json.loads(body)
+        except Exception:  # noqa: BLE001 - not published yet / unreachable
+            return None
+    try:
+        with open(os.path.join(HERE, "birds", "sounds_patterns.json")) as fh:
+            return json.load(fh)
+    except (OSError, ValueError):
+        return None
+
+
 def species_covers(shots):
     """Every grid thumbnail per canonical species (best-weight first, de-duped) —
     the pool the /birds/live viewer draws from when it hears a species you've also

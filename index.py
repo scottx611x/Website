@@ -858,6 +858,60 @@ def birds_stats():
                "since": _d(daily[0]["d"]) if daily else None,
                "busiest": {"d": _d(busiest["d"]), "n": busiest.get("n") or 0} if busiest else None,
                "daily": [{"d": _d(d.get("d")), "n": d.get("n") or 0} for d in daily[-30:]]}
+    # The yard's daily rhythm (species x hour-of-day) and geography (species x
+    # listening node), from the all-time patterns aggregate. Each species is
+    # mapped to its display name + gallery avatar exactly like the `ear` block, so
+    # the charts cross-link to the photos and know what's been shot.
+    pat = birds.load_patterns()
+    rhythm = geo = None
+    if pat:
+        photographed = {nm for _, sp in birds.species_groups(shots) for nm, _ in sp}
+
+        def _card(name):
+            canon = birds._canon_species(name or "")
+            disp = canon[0] if canon else (name or "")
+            return {"name": disp, "fam": canon[1] if canon else "Other birds",
+                    "img": (_stats_covers.get(disp) or [None])[0],
+                    "shot": disp in photographed}
+
+        # Each row is normalized to ITS OWN busiest hour (gamma-lifted), so the
+        # heatmap reveals each species' daily SHAPE — when it sings — not just who
+        # is loudest. Rows are then ordered by peak hour into a dawn->night wave.
+        rrows = []
+        for s in (pat.get("rhythm") or [])[:30]:
+            hrs = s.get("hours") or [0] * 24
+            rmax = max(hrs) or 1
+            row = _card(s.get("name"))
+            row.update({"cells": [{"c": c, "i": round((c / rmax) ** 0.6, 3)} for c in hrs],
+                        "total": s.get("total") or sum(hrs),
+                        "peak": max(range(24), key=lambda h: hrs[h]) if any(hrs) else 0})
+            rrows.append(row)
+        rrows.sort(key=lambda r: (r["peak"], -r["total"]))
+        hour_tot = [0] * 24
+        for s in (pat.get("rhythm") or []):
+            for h, v in enumerate(s.get("hours") or []):
+                hour_tot[h] += v
+        rhythm = {"species": rrows, "hourTotals": hour_tot,
+                  "hourMax": max(hour_tot) or 1}
+
+        # Yard geography: which mic hears each species. Node colors match the live
+        # page's dots (nodes.js assigns the palette by sorted node position).
+        nodes = sorted(pat.get("nodes") or [])
+        if len(nodes) >= 2:
+            PAL = ["#2a9d9c", "#c25b86", "#3d7ec4", "#b8863b", "#7c6bd0", "#5a8f4e"]
+            colors = {nm: PAL[i % len(PAL)] for i, nm in enumerate(nodes)}
+            grows = []
+            for s in (pat.get("geo") or []):
+                bn = s.get("byNode") or {}
+                tot = s.get("total") or sum(bn.values())
+                row = _card(s.get("name"))
+                row.update({"total": tot,
+                            "parts": [{"node": nm, "n": bn.get(nm, 0),
+                                       "pct": round(bn.get(nm, 0) / tot * 100, 1) if tot else 0}
+                                      for nm in nodes]})
+                grows.append(row)
+            geo = {"nodes": nodes, "nodeTotals": pat.get("nodeTotals") or {},
+                   "colors": colors, "species": grows}
     # Single-species OR single-family focus (?bird=X / ?family=F, deep-linked
     # from a profile or the family eyebrow): the headline numbers filter to that
     # context so "by the numbers" actually means ITS numbers, while the charts
@@ -901,6 +955,8 @@ def birds_stats():
         map_points=birds.map_points(shots),
         span_months=span_months,
         ear=ear,
+        rhythm=rhythm,
+        geo=geo,
         local=_is_local(),
         curate=_curate_on(),
     )

@@ -827,6 +827,39 @@ a.pheno-cell:hover, a.pheno-cell:focus-visible {
 #ear-bars .bar-row.rich { grid-template-columns: 2.3rem minmax(6rem, 1fr) auto 4rem 2.6rem; }
 #ear-bars .ear-last { font-size: 0.64rem; color: var(--muted); white-space: nowrap; text-align: right; }
 @media (max-width: 560px) { #ear-bars .ear-last { display: none; } }
+
+/* The daily rhythm: species x hour-of-day heatmap. Each cell's --i (0..1) is the
+   species' activity that hour vs its own busiest hour; color-mix ramps an empty
+   cell -> neon. Rows come pre-sorted into a dawn->night wave. */
+.rhythm-scroll { overflow-x: auto; margin-top: 0.7rem; -webkit-overflow-scrolling: touch; }
+.rhythm-grid { min-width: 34rem; display: flex; flex-direction: column; gap: 3px; }
+.rhythm-row { display: flex; align-items: center; gap: 0.5rem; text-decoration: none; color: inherit; border-radius: 6px; }
+a.rhythm-row:hover { background: rgba(47, 125, 79, 0.07); }
+.rhythm-head { flex: 0 0 auto; width: 9.5rem; display: flex; align-items: center; gap: 0.5rem; overflow: hidden; }
+.rhythm-name { font-size: 0.78rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bird-avatar.sm { width: 1.5rem; height: 1.5rem; border-width: 1px; }
+.rhythm-cells { flex: 1 1 auto; display: grid; grid-template-columns: repeat(24, 1fr); gap: 2px; }
+.rhythm-cell, .rhythm-tot {
+    height: 0.82rem; border-radius: 2px;
+    background: color-mix(in srgb, var(--neon) calc(var(--i, 0) * 100%), rgba(13, 18, 14, 0.055));
+}
+.rhythm-tot { height: 0.6rem; background: color-mix(in srgb, var(--green) calc(var(--i, 0) * 100%), rgba(13, 18, 14, 0.055)); }
+.rhythm-row.foot { margin-top: 1px; }
+.rhythm-lab { font-size: 0.6rem; color: var(--muted); text-align: left; line-height: 1; }
+@media (max-width: 560px) { .rhythm-head { width: 6.8rem; } .rhythm-name { font-size: 0.72rem; } }
+
+/* Around the yard: two-mic geography. A stacked proportion bar per species,
+   segment colors matching the live page's node dots (set inline from the route). */
+.geo-key { white-space: nowrap; }
+.geo-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 0.25rem; }
+.geo-bars { display: flex; flex-direction: column; gap: 0.25rem; margin-top: 0.7rem; }
+.geo-row { display: grid; grid-template-columns: 2.1rem minmax(6rem, 12rem) 1fr 2.4rem; align-items: center; gap: 0.6rem; text-decoration: none; color: inherit; padding: 0.25rem 0.3rem; border-radius: 8px; }
+.geo-row:hover { background: rgba(47, 125, 79, 0.07); }
+.geo-label { font-size: 0.82rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.geo-track { display: flex; height: 0.7rem; border-radius: 999px; overflow: hidden; background: rgba(13, 18, 14, 0.05); }
+.geo-seg { height: 100%; min-width: 2px; }
+.geo-val { font-size: 0.72rem; color: var(--muted); text-align: right; }
+@media (max-width: 560px) { .geo-row { grid-template-columns: 2.1rem minmax(4.5rem, 8rem) 1fr 2.2rem; } .geo-label .bar-sub { display: none; } }
 .ear-more { font-size: 0.68rem; margin-top: 0.7rem; min-height: 1rem; }
 .ear-more a { color: var(--green); text-decoration: none; }
 .ear-more a:hover { color: var(--neon); }

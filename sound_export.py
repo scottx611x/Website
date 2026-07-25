@@ -37,6 +37,7 @@ BUCKET = os.environ.get("BIRDS_S3_BUCKET", "birds-scott-ouellette")
 CLIPS_DIR = os.path.expanduser(os.environ.get("BNG_CLIPS_DIR", "~/birdnet-go/data/clips"))
 KEY = "birds/sounds/recent.json"
 LOG_KEY = "birds/sounds/log.json"    # the full browsable detection log (its own file)
+PATTERNS_KEY = "birds/sounds/patterns.json"  # all-time aggregates: daily rhythm + yard geography
 CLIP_PREFIX = "birds/sounds/clips/"
 RECENT_N = 80         # feed backlog: the live page consolidates + scrolls these
 LOG_N = 1500          # detections in the log page's backlog
@@ -401,9 +402,43 @@ def build(s3=None):
               "last": node_last.get(nm)}
              for nm in sorted(node_ct, key=lambda n: node_last.get(n, ""), reverse=True)]
 
+    # All-time patterns for the Stats page: the yard's daily rhythm (each species'
+    # calls by hour-of-day, in local time) and its geography (which mic hears each
+    # species). Both are compact aggregates over the WHOLE detection history, so
+    # they live in their own file (patterns.json) rather than bloating the polled
+    # recent.json. Species names stay raw here; the site canonicalizes + attaches
+    # avatars, exactly like the `heard` list.
+    rhythm, geo_sp = {}, {}
+    for d in dets:
+        name = d.get("commonName")
+        if not name:
+            continue
+        when = local(d["timestamp"]) if d.get("timestamp") else None
+        if when is not None:
+            r = rhythm.setdefault(name, [0] * 24)
+            r[when.hour] += 1
+        nm = node_of(d)
+        if nm:
+            g = geo_sp.setdefault(name, {})
+            g[nm] = g.get(nm, 0) + 1
+    rhythm_out = sorted(
+        ({"name": n, "hours": h, "total": sum(h)} for n, h in rhythm.items() if sum(h) >= 2),
+        key=lambda s: -s["total"])
+    geo_out = sorted(
+        ({"name": n, "byNode": bn, "total": sum(bn.values())} for n, bn in geo_sp.items()),
+        key=lambda s: -s["total"])
+    patterns = {
+        "generated": None,  # stamped in main() alongside the other files
+        "nodes": [nd["name"] for nd in nodes],
+        "nodeTotals": {nd["name"]: nd["count"] for nd in nodes},
+        "rhythm": rhythm_out,
+        "geo": geo_out,
+    }
+
     generated = dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds")
     return {
         "generated": generated,
+        "patterns": patterns,
         "station": {"source": (node_of(dets[0]) if dets else "Back Yard")},
         "nodes": nodes,
         "weather": fetch_weather(),
@@ -431,17 +466,23 @@ def main():
         import boto3
         s3 = boto3.client("s3")
     payload = build(s3)
-    # The detection log ships in its own file; keep it out of recent.json.
+    # The detection log and the all-time patterns each ship in their own file so
+    # recent.json (polled every 60s) stays tiny.
     log = payload.pop("log", [])
     log_payload = {"generated": payload["generated"], "log": log}
+    patterns = payload.pop("patterns", {})
+    patterns["generated"] = payload["generated"]
     body = json.dumps(payload, separators=(",", ":")).encode()
     log_body = json.dumps(log_payload, separators=(",", ":")).encode()
+    patterns_body = json.dumps(patterns, separators=(",", ":")).encode()
     # local copy for debugging / commit-as-mirror
     here = os.path.dirname(os.path.abspath(__file__))
     local_path = os.path.join(here, "birds", "sounds_recent.json")
     os.makedirs(os.path.dirname(local_path), exist_ok=True)
     with open(local_path, "wb") as fh:
         fh.write(body)
+    with open(os.path.join(here, "birds", "sounds_patterns.json"), "wb") as fh:
+        fh.write(patterns_body)
     with_audio = sum(1 for r in payload["recent"] if r.get("audio"))
     print("built: %d species, %d recent (%d w/audio), %d log entries, %d calls today (%d+%d bytes)" % (
         payload["counts"]["speciesAllTime"], len(payload["recent"]), with_audio,
@@ -456,7 +497,10 @@ def main():
     s3.put_object(
         Bucket=BUCKET, Key=LOG_KEY, Body=log_body,
         ContentType="application/json", CacheControl="max-age=30")
-    print("uploaded s3://%s/%s and %s" % (BUCKET, KEY, LOG_KEY))
+    s3.put_object(
+        Bucket=BUCKET, Key=PATTERNS_KEY, Body=patterns_body,
+        ContentType="application/json", CacheControl="max-age=300")
+    print("uploaded s3://%s/%s, %s and %s" % (BUCKET, KEY, LOG_KEY, PATTERNS_KEY))
 
 
 if __name__ == "__main__":
