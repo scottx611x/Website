@@ -15,28 +15,42 @@
         {% set subnav_active = 'stats' %}{% set nav_titled = true if focus else false %}{% include '_birds_nav.html' %}
     </header>
 
-    <div class="stat-cards">
     {% if focus %}
+    <div class="stat-cards">
         {% set fq = ('bird=' ~ focus.bird|urlencode) if focus.bird else ('family=' ~ focus.family|urlencode) %}
         {% if focus.species %}<a class="stat-card" href="/birds?{{ fq }}"><span class="stat-num">{{ focus.species }}</span><span class="stat-lbl">{{ 'species' }}</span></a>{% endif %}
         {% if focus.photographed %}<a class="stat-card" href="/birds?{{ fq }}"><span class="stat-num">{{ "{:,}".format(focus.photos) }}</span><span class="stat-lbl">{{ 'photo' if focus.photos == 1 else 'photos' }}</span></a>{% endif %}
         {% if focus.videos %}<a class="stat-card" href="/birds?{{ fq }}&media=video"><span class="stat-num">{{ focus.videos }}</span><span class="stat-lbl">{{ 'video' if focus.videos == 1 else 'videos' }}</span></a>{% endif %}
-        {% if focus.active_months %}<a class="stat-card" href="#days"><span class="stat-num">{{ focus.active_months }}</span><span class="stat-lbl">{{ 'month' if focus.active_months == 1 else 'months' }}</span></a>{% endif %}
+        {% if focus.active_months %}<a class="stat-card" href="#days"><span class="stat-num">{{ focus.active_months }}</span><span class="stat-lbl">{{ 'month' if focus.active_months == 1 else 'months' }} active</span></a>{% endif %}
         {% if focus.places %}<a class="stat-card" href="/birds/map?{{ fq }}"><span class="stat-num">{{ focus.places }}</span><span class="stat-lbl">{{ 'place' if focus.places == 1 else 'places' }}</span></a>{% endif %}
-        {% if focus.away %}<a class="stat-card" href="/birds?{{ fq }}&area=elsewhere"><span class="stat-num">{{ focus.away }}</span><span class="stat-lbl">outside N. Andover {{ icon('alert') }}</span></a>{% endif %}
+        {% if focus.away %}<a class="stat-card" href="/birds?{{ fq }}&area=elsewhere"><span class="stat-num">{{ focus.away }}</span><span class="stat-lbl">shot away {{ icon('alert') }}</span></a>{% endif %}
         {% if focus.recordings %}<a class="stat-card" href="/birds/live?{{ fq }}"><span class="stat-num">{{ "{:,}".format(focus.recordings) }}</span><span class="stat-lbl">{{ 'recording' if focus.recordings == 1 else 'recordings' }}</span></a>{% endif %}
-    {% else %}
-        <a class="stat-card" href="/birds"><span class="stat-num">{{ stats.species }}</span><span class="stat-lbl">species</span></a>
-        <a class="stat-card" href="/birds"><span class="stat-num">{{ "{:,}".format(stats.photos) }}</span><span class="stat-lbl">photos</span></a>
-        {% if stats.videos %}<a class="stat-card" href="/birds?media=video"><span class="stat-num">{{ stats.videos }}</span><span class="stat-lbl">videos</span></a>{% endif %}
-        <a class="stat-card" href="#days"><span class="stat-num">{{ span_months }}</span><span class="stat-lbl">months</span></a>
-        <a class="stat-card" href="/birds?area=elsewhere"><span class="stat-num">{{ stats.away }}</span><span class="stat-lbl">outside N. Andover {{ icon('alert') }}</span></a>
-        {% if ear %}
-        <a class="stat-card" href="/birds/live/log"><span class="stat-num">{{ "{:,}".format(ear.calls) }}</span><span class="stat-lbl">recordings</span></a>
-        <a class="stat-card" href="/birds/heard"><span class="stat-num">{{ ear.heard|length }}</span><span class="stat-lbl">species heard</span></a>
-        {% endif %}
-    {% endif %}
     </div>
+    {% else %}
+    {# Two labeled clusters mirror the two ways I record birds — so "species"
+       reads unambiguously in each. The collection span lives in the date line
+       below (no redundant "months" card); the away count lives in the map
+       section below (no redundant "outside N. Andover" card). #}
+    <div class="stat-clusters">
+        <div class="stat-cluster">
+            <p class="stat-cluster-h mono">{{ icon('camera') }} Shot</p>
+            <div class="stat-cards">
+                <a class="stat-card" href="/birds"><span class="stat-num">{{ stats.species }}</span><span class="stat-lbl">species</span></a>
+                <a class="stat-card" href="/birds"><span class="stat-num">{{ "{:,}".format(stats.photos) }}</span><span class="stat-lbl">photos</span></a>
+                {% if stats.videos %}<a class="stat-card" href="/birds?media=video"><span class="stat-num">{{ stats.videos }}</span><span class="stat-lbl">videos</span></a>{% endif %}
+            </div>
+        </div>
+        {% if ear %}
+        <div class="stat-cluster">
+            <p class="stat-cluster-h mono">{{ icon('wave') }} Heard</p>
+            <div class="stat-cards">
+                <a class="stat-card" href="/birds/heard"><span class="stat-num">{{ ear.heard|length }}</span><span class="stat-lbl">species</span></a>
+                <a class="stat-card" href="/birds/live/log"><span class="stat-num">{{ "{:,}".format(ear.calls) }}</span><span class="stat-lbl">recordings</span></a>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
     {% set fd = focus if (focus and focus.first) else (stats if stats.first else None) %}
     {% if fd %}
     <p class="stat-span mono">{{ fd.first.strftime('%b %-d, %Y') }} &rarr; {{ fd.last.strftime('%b %-d, %Y') }}</p>
