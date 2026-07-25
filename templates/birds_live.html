@@ -1130,12 +1130,16 @@
     // feed (last heard days ago), build a hero from the species rollup so it still
     // leads, with its real last-heard time.
     var pool = (focusSlug || focusFam) ? data.recent.filter(matchesFocus) : data.recent;
-    var hero = playable(pool)[0] || pool[0] || data.recent[0];
-    if ((focusSlug || focusFam) && !pool.length) {
+    var hero = playable(pool)[0];  // newest recording in scope that has a clip
+    if (!hero && (focusSlug || focusFam)) {
+      // focused bird not in the recent feed (last heard days ago) — fall back to
+      // its LAST published recording from the species rollup, so it still plays.
       var sp = (data.species || []).filter(matchesFocus)[0];
       if (sp) hero = { display: sp.display, photo: sp.photo, fam: sp.fam, shot: sp.shot,
-                       t: sp.last, conf: sp.maxConf || 0, new: false };
+                       t: sp.last, conf: sp.maxConf || 0, new: false,
+                       audio: sp.audio, spec: sp.spec };
     }
+    hero = hero || pool[0] || data.recent[0];  // last resort: show the card even if silent
     renderCounts(data.counts || {});
     curHero = hero;   // feed excludes this exact clip so it isn't shown twice
     renderHero(hero);

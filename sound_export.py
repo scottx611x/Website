@@ -385,6 +385,24 @@ def build(s3=None):
         "maxConf": round(s.get("max_confidence", 0), 3),
     } for s in species if s.get("common_name")]
 
+    # Attach each species' MOST RECENT published clip (dets are newest-first), so a
+    # focused live view or species page can always play the latest call — even for
+    # a bird last heard days ago, not just today's feed.
+    sp_last_media = {}
+    for d in dets:
+        cn = d.get("commonName")
+        if not cn or cn in sp_last_media:
+            continue
+        m = d.get("_sy_media") or media.get(d.get("clipName")) or {}
+        if m.get("audio"):
+            sp_last_media[cn] = {"audio": m.get("audio"), "spec": m.get("spec")}
+    for s in sp_out:
+        lm = sp_last_media.get(s["common"])
+        if lm:
+            s["audio"] = lm["audio"]
+            if lm.get("spec"):
+                s["spec"] = lm["spec"]
+
     today_sp = sorted(day_sp.get(today, {}))
 
     # Listening nodes: distinct source names with lifetime + today counts, newest
