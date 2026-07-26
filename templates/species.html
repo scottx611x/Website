@@ -345,9 +345,12 @@
     if (applyClip(c)) audio.play().catch(function () {});
   }
   var toggleEl = document.getElementById("sp-toggle");
+  var listSetOrder = null;  // wired up by the recordings-list IIFE below
   if (toggleEl) toggleEl.addEventListener("click", function (e) {
     var b = e.target.closest("button"); if (!b) return;
     loadClip(b.getAttribute("data-clip"));
+    // Clicking the head switches the whole view: reorder the archive list to match.
+    if (listSetOrder) listSetOrder(b.getAttribute("data-clip") === "best" ? "clearest" : "latest");
     toggleEl.querySelectorAll("button").forEach(function (x) { x.classList.toggle("on", x === b); });
     var lst = document.getElementById("sp-recs-list");
     if (lst) lst.querySelectorAll(".sp-recrow.on").forEach(function (r) { r.classList.remove("on"); });
@@ -387,11 +390,22 @@
       if (open) render();
     }
     tgl.addEventListener("click", function () { open = !open; syncRecs(); });
+    // One ordering for the head + the list: "latest" = chronological, "clearest"
+    // = highest confidence. Either control sets it; both button groups reflect it.
+    function applyOrder(mode) {
+      rsort = mode === "clearest" ? "conf" : "latest";
+      sortEl.querySelectorAll("button").forEach(function (x) {
+        x.classList.toggle("on", x.getAttribute("data-rsort") === rsort);
+      });
+      if (toggleEl) toggleEl.querySelectorAll("button").forEach(function (x) {
+        x.classList.toggle("on", x.getAttribute("data-clip") === (mode === "clearest" ? "best" : "latest"));
+      });
+      if (open) render();
+    }
+    listSetOrder = applyOrder;  // let the head toggle drive the list order
     sortEl.addEventListener("click", function (e) {
       var b = e.target.closest("button"); if (!b) return;
-      rsort = b.getAttribute("data-rsort");
-      sortEl.querySelectorAll("button").forEach(function (x) { x.classList.toggle("on", x === b); });
-      render();
+      applyOrder(b.getAttribute("data-rsort") === "conf" ? "clearest" : "latest");
     });
     listEl.addEventListener("click", function (e) {
       var row = e.target.closest(".sp-recrow"); if (!row) return;
