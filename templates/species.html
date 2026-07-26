@@ -28,7 +28,9 @@
   .sp-sound{display:grid; grid-template-columns:minmax(0,1.4fr) minmax(0,1fr); gap:1.2rem; align-items:stretch}
   @media(max-width:720px){.sp-sound{grid-template-columns:1fr}}
   .sp-player{position:relative; border-radius:14px; overflow:hidden; background:var(--ink); min-height:150px; display:flex; flex-direction:column; justify-content:flex-end}
-  .sp-player .sp-spec{position:absolute; inset:0; background-size:cover; background-position:center}
+  /* FILL (stretch the whole recording to the width), not cover — the strip is a
+     scrubber, so the needle at --p*100% must map to the full call, not a crop. */
+  .sp-player .sp-spec{position:absolute; inset:0; background-size:100% 100%; background-position:center}
   .sp-player .sp-needle{position:absolute; top:0; bottom:0; left:calc(var(--p,0)*100%); width:2px; margin-left:-1px; background:linear-gradient(180deg,#eafff4,var(--neon)); box-shadow:0 0 10px 1px rgba(56,224,138,.85); opacity:0}
   .sp-player.playing .sp-needle{opacity:1}
   .sp-player .sp-veil{position:absolute; top:0; bottom:0; left:calc(var(--p,0)*100%); right:0; background:linear-gradient(90deg,rgba(6,10,7,0),rgba(6,10,7,.5) 24px); opacity:0; transition:opacity .3s}
