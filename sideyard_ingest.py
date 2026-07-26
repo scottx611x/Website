@@ -133,7 +133,15 @@ def main():
             except Exception as e:
                 print("spec failed %s: %s" % (base, e), file=sys.stderr)
                 continue
+            # Match the Back Yard loopback's chain so both nodes play at a
+            # comparable level: Side Yard segments are the RAW USB mic (~28 dB
+            # quieter, -52 vs -24 LUFS). High-pass first so the boost doesn't
+            # amplify low-frequency rumble, then into a limiter. +38 dB (not 28)
+            # because the high-pass sheds ~10 dB — measured to land ~-24 LUFS,
+            # matching Back Yard.
             run(["ffmpeg", "-nostdin", "-y", "-loglevel", "error", "-i", wavp,
+                 "-af", ("highpass=f=300:poles=2,highpass=f=300:poles=2,"
+                         "volume=38dB,alimiter=limit=0.9:attack=5:release=60"),
                  "-c:a", "aac", "-b:a", "96k", "-movflags", "+faststart", m4ap])
             try:
                 s3.upload_file(m4ap, S3_BUCKET, S3_CLIPS + m4a,
