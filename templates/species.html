@@ -18,7 +18,7 @@
   .sp-chip:hover{color:var(--green)} .sp-chip:hover b{color:var(--green)}
   @media(hover:hover){.sp-chip{border-bottom:1px dotted transparent} .sp-chip:hover{border-color:var(--green)}}
 
-  .sp-sec{margin-top:3.2rem}
+  .sp-sec{margin-top:3.2rem; scroll-margin-top:1.5rem}
   .sp-sec-h{display:flex; align-items:baseline; justify-content:space-between; gap:1rem; margin-bottom:1.1rem}
   .sp-kick{font-family:var(--mono); font-size:.7rem; letter-spacing:.16em; text-transform:uppercase; color:var(--green); margin:0}
   .sp-more{font-family:var(--mono); font-size:.74rem; text-decoration:none; color:var(--muted); white-space:nowrap}
@@ -124,7 +124,7 @@
         <div class="sp-chips">
             {% if sp.count %}<a class="sp-chip" href="/birds?bird={{ sp.name|urlencode }}">{{ icon('camera') }} <b>{{ sp.count }}</b> photo{{ '' if sp.count == 1 else 's' }}</a>{% endif %}
             {% if sp.rank %}<a class="sp-chip" href="/birds/stats?bird={{ sp.name|urlencode }}">{{ icon('trophy') }} <b>#{{ sp.rank }}</b> lifer</a>{% endif %}
-            {% if sp.heard %}<a class="sp-chip" href="/birds/live?bird={{ sp.name|urlencode }}">{{ icon('wave') }} heard <b>{{ sp.heard.count }}&times;</b></a>{% endif %}
+            {% if sp.heard %}<a class="sp-chip" href="#heard">{{ icon('wave') }} heard <b>{{ sp.heard.count }}&times;</b></a>{% endif %}
             {% if sp.places %}<a class="sp-chip" href="/birds/map?bird={{ sp.name|urlencode }}">{{ icon('pin') }} <b>{{ sp.places|length }}</b> place{{ '' if sp.places|length == 1 else 's' }}</a>{% endif %}
         </div>
     </header>
@@ -170,7 +170,7 @@
 
     {# ---- HEARD BY THE YARD ---- #}
     {% if sp.heard %}
-    <section class="sp-sec">
+    <section class="sp-sec" id="heard">
         <div class="sp-sec-h">
             <p class="sp-kick">Heard by the yard</p>
             <a class="sp-more" href="/birds/live?bird={{ sp.name|urlencode }}">the live feed &rarr;</a>
