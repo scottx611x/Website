@@ -133,15 +133,16 @@ def main():
             except Exception as e:
                 print("spec failed %s: %s" % (base, e), file=sys.stderr)
                 continue
-            # Match the Back Yard loopback's chain so both nodes play at a
-            # comparable level: Side Yard segments are the RAW USB mic (~28 dB
-            # quieter, -52 vs -24 LUFS). High-pass first so the boost doesn't
-            # amplify low-frequency rumble, then into a limiter. +38 dB (not 28)
-            # because the high-pass sheds ~10 dB — measured to land ~-24 LUFS,
-            # matching Back Yard.
+            # Level Side Yard to sit near Back Yard WITHOUT slamming its noise.
+            # The old blind +38 dB + hard limiter pushed the raw USB mic's poor
+            # SNR up so far that noise-only moments (-21.5 dB) came out LOUDER than
+            # actual calls (-23.1 dB) — "loud AF". loudnorm is content-aware: it
+            # normalizes each clip's integrated loudness to a target (a touch below
+            # Back Yard's -24), so a quiet/noisy clip is no longer overshot to full
+            # volume. High-pass first to drop rumble. Measured: calls land ~-27 dB,
+            # noise-only ~-26 dB — ~5 dB quieter and consistent.
             run(["ffmpeg", "-nostdin", "-y", "-loglevel", "error", "-i", wavp,
-                 "-af", ("highpass=f=300:poles=2,highpass=f=300:poles=2,"
-                         "volume=38dB,alimiter=limit=0.9:attack=5:release=60"),
+                 "-af", "highpass=f=250,loudnorm=I=-26:TP=-1.5:LRA=11",
                  "-c:a", "aac", "-b:a", "96k", "-movflags", "+faststart", m4ap])
             try:
                 s3.upload_file(m4ap, S3_BUCKET, S3_CLIPS + m4a,
