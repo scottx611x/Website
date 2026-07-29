@@ -504,7 +504,6 @@ body.home .site-nav { z-index: 0; }
 }
 .birds-subnav a:hover { border-color: var(--green); color: var(--green); }
 .birds-subnav a.on { background: var(--green); border-color: var(--green); color: #fff; }
-.birds-subnav .sn-sm { display: none; }  /* desktop shows the full "By the numbers"; phones swap to "Numbers" */
 /* Focus chip under the pills: names the species/family context the sub-nav is
    carrying, links to the profile, and clears with the ×. One chip for every
    page (the per-page focus banners are gone). */
@@ -532,9 +531,6 @@ body.home .site-nav { z-index: 0; }
         -webkit-overflow-scrolling: touch; scrollbar-width: none; margin-top: 0.8rem; padding: 0 0.1rem 0.3rem; }
     .birds-subnav::-webkit-scrollbar { display: none; }
     .birds-subnav a { flex: 0 0 auto; font-size: 0.72rem; padding: 0.3rem 0.72rem; }
-    /* Short "Numbers" on phones so all four pills fit without Map spilling off. */
-    .birds-subnav .sn-lg { display: none; }
-    .birds-subnav .sn-sm { display: inline; }
     /* the gallery's filter stack, tightened */
     .bird-filter { margin-top: 1rem; }
     .bird-stat { font-size: 0.78rem; margin-bottom: 0.7rem; }

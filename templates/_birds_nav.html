@@ -1,6 +1,6 @@
 {# Shared sub-nav for the bird section. Set `subnav_active` before including.
    Species context travels WITH the pills: on a species view (?bird=X or a
-   profile page that sets nav_bird), Gallery / By the numbers / Live / Map all
+   profile page that sets nav_bird), Gallery / Stats / Live / Map all
    keep pointing at that bird instead of dumping back to everything. A single
    focus chip (below the pills) names the context and clears it — pages no
    longer roll their own focus banners. #}
@@ -10,7 +10,7 @@
 {% from '_icons.html' import icon %}
 <nav class="birds-subnav mono" aria-label="Bird pages">
     <a href="/birds{{ bq }}" class="{{ 'on' if subnav_active == 'gallery' }}">{{ icon('camera') }} Gallery</a>
-    <a href="/birds/stats{{ bq }}" class="{{ 'on' if subnav_active == 'stats' }}">{{ icon('chart') }} <span class="sn-lg">By the numbers</span><span class="sn-sm">Stats</span></a>
+    <a href="/birds/stats{{ bq }}" class="{{ 'on' if subnav_active == 'stats' }}">{{ icon('chart') }} Stats</a>
     <a href="/birds/live{{ bq }}" class="{{ 'on' if subnav_active == 'live' }}">{{ icon('wave') }} Live</a>
     <a href="/birds/map{{ bq }}" class="{{ 'on' if subnav_active == 'map' }}">{{ icon('pin') }} Map</a>
 </nav>
