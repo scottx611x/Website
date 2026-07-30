@@ -672,6 +672,7 @@ def _live_view():
         view["counts"] = data.get("counts", {})
         view["daily"] = data.get("daily", [])
         view["hours"] = data.get("hours", [])
+        view["hoursHist"] = data.get("hoursHist", [])  # all-time typical-day overlay
         view["recent"] = [enrich(r) for r in data.get("recent", [])]
         # Give each species its full photo pool (best-first, capped) so the "just
         # heard" hero can pick a fresh portrait each page load instead of the one

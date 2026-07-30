@@ -348,8 +348,10 @@ def build(s3=None):
             out.update(media.get(d.get("clipName"), {}))
         return out
 
-    # local-day call counts (+ per-species) and hour-of-day rhythm for today
-    per_day, day_sp, hours = {}, {}, [0] * 24
+    # local-day call counts (+ per-species) and hour-of-day rhythm for today,
+    # plus an all-time hour-of-day histogram (the yard's TYPICAL day) for the
+    # faint "usually this active" overlay behind today's bars on the live strip.
+    per_day, day_sp, hours, hours_hist = {}, {}, [0] * 24, [0] * 24
     for d in dets:
         when = local(d["timestamp"]) if d.get("timestamp") else None
         if when is None:
@@ -359,6 +361,7 @@ def build(s3=None):
         sp = day_sp.setdefault(day, {})
         name = d.get("commonName") or "?"
         sp[name] = sp.get(name, 0) + 1
+        hours_hist[when.hour] += 1
         if day == today:
             hours[when.hour] += 1
 
@@ -483,6 +486,7 @@ def build(s3=None):
         "today": today_sp,
         "daily": daily,
         "hours": hours,
+        "hoursHist": hours_hist,  # all-time hour-of-day shape (the typical day)
         "counts": {
             "speciesAllTime": len(species),
             "callsAllTime": sum(per_day.values()),

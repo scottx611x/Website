@@ -116,7 +116,10 @@
   .lv-hmk::before{content:""; position:absolute; top:-2px; left:-3px; width:6px; height:6px; border-radius:50%}
   .lv-hmk.sunrise::before{background:var(--amber); box-shadow:0 0 5px 1px rgba(232,176,75,.5)}
   .lv-hmk.sunset::before{background:#6f7b8a}
-  .lv-hbars{display:flex; align-items:flex-end; gap:2px; height:38px}
+  .lv-hbars{display:flex; align-items:flex-end; gap:2px; height:38px; position:relative}
+  /* Faint all-time "typical day" behind today's bars, same geometry. */
+  .lv-hhist{position:absolute; inset:0; display:flex; align-items:flex-end; gap:2px; pointer-events:none}
+  .lv-hhist span{flex:1; min-width:2px; background:rgba(13,18,14,.07); border-radius:2px 2px 0 0}
   .lv-hb{flex:1; min-width:2px; border:none; padding:0; background:linear-gradient(180deg,var(--amber),rgba(232,176,75,.3)); border-radius:2px 2px 0 0; cursor:pointer}
   .lv-hb.zero{background:rgba(13,18,14,.08); height:3px !important; cursor:default}
   .lv-hb:hover:not(.zero){background:var(--neon)}
@@ -350,8 +353,9 @@
         <div class="lv-side">
           <div class="node-filter" id="lv-nodes" hidden></div>
           <div id="lv-hstrip" hidden>
-            <p class="lv-hkick mono">today by hour &middot; tap a bar to filter the feed</p>
+            <p class="lv-hkick mono">today vs a typical day &middot; tap a bar to filter</p>
             <div class="lv-hbarwrap">
+              <div class="lv-hhist" id="lv-hhist" aria-hidden="true"></div>
               <div class="lv-hbars" id="lv-hbars"></div>
               <div class="lv-hmarks" id="lv-hmarks" aria-hidden="true"></div>
             </div>
@@ -1027,6 +1031,15 @@
         ' style="height:' + Math.max(4, Math.round(n / hm * 100)) + '%" aria-label="' + hlabel(h) + ', ' + n + ' recordings"' +
         ' title="' + hlabel(h) + ' · ' + n + ' recording' + (n === 1 ? '' : 's') + (n ? ' — tap to filter' : '') + '"></button>';
     }).join("");
+    // Ghost of the yard's TYPICAL day (all-time hour histogram) behind today's
+    // bars — a subtle "usually this active now" reference. Scaled to its own peak.
+    var hist = LIVE.hoursHist || [], hhEl = document.getElementById("lv-hhist");
+    if (hhEl) {
+      var hhm = Math.max.apply(null, hist.length ? hist : [1]) || 1;
+      hhEl.innerHTML = hist.length
+        ? hist.map(function (n) { return '<span style="height:' + Math.max(2, Math.round(n / hhm * 100)) + '%"></span>'; }).join("")
+        : "";
+    }
     // Subtle sunrise/sunset marks so the dawn chorus lines up with the sun.
     var marks = document.getElementById("lv-hmarks"), w = LIVE.weather;
     function mk(iso, cls, label) {
