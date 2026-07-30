@@ -125,6 +125,16 @@
   .lv-hax{display:flex; justify-content:space-between; font-size:.6rem; color:var(--muted); margin-top:.15rem}
   .lv-feednote{font-size:.72rem; color:#a9761f; margin:.7rem 0 0}
   .lv-feednote b{color:var(--ink)}
+  /* Confidence filter: show the species you can trust; note the quieter ones. */
+  .lv-confbar{display:flex; align-items:center; gap:.6rem; margin:.9rem 0 0; font-size:.72rem; color:var(--muted); flex-wrap:wrap}
+  .lv-confbar label{white-space:nowrap} .lv-confbar label b{color:var(--green); font-weight:600}
+  .lv-confrange{-webkit-appearance:none; appearance:none; flex:1; min-width:96px; height:3px; border-radius:3px; background:rgba(13,18,14,.18); outline:none; cursor:pointer}
+  .lv-confrange::-webkit-slider-thumb{-webkit-appearance:none; width:15px; height:15px; border-radius:50%; background:var(--green); border:2px solid var(--paper); box-shadow:0 1px 3px rgba(13,18,14,.35); cursor:pointer}
+  .lv-confrange::-moz-range-thumb{width:15px; height:15px; border-radius:50%; background:var(--green); border:2px solid var(--paper); cursor:pointer}
+  .lv-confnote{white-space:nowrap}
+  .lv-lowtoggle{border:none; background:none; color:var(--green); font-family:var(--mono); font-size:.72rem; cursor:pointer; padding:0; text-decoration:underline; text-underline-offset:2px}
+  .lv-lowdiv{font-size:.62rem; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); margin:.8rem 0 .2rem; padding-top:.5rem; border-top:1px dashed rgba(13,18,14,.16)}
+  .lv-lowgroup{opacity:.62}
   .lv-nofeed{font-size:.78rem; color:var(--muted); padding:1rem 0}
 
   /* The feed scrolls the whole backlog; a bottom fade hints there's more. */
@@ -348,6 +358,11 @@
             <div class="lv-hax mono"><span>12a</span><span>6a</span><span>12p</span><span>6p</span><span>11p</span></div>
           </div>
           <p class="lv-feednote mono" id="lv-feednote" hidden></p>
+          <div class="lv-confbar mono" id="lv-confbar" hidden>
+            <label for="lv-confrange">confidence &ge; <b id="lv-confval">75%</b></label>
+            <input type="range" id="lv-confrange" min="70" max="95" step="5" value="75" aria-label="minimum confidence to show">
+            <span class="lv-confnote" id="lv-confnote"></span>
+          </div>
           <div class="lv-feed" id="lv-feed">
             {% for r in sound.recent[:9] %}
             <div class="lv-row mr">
@@ -835,7 +850,8 @@
   /* ---- the feed: contiguous same-species calls fold into one chain row
      showing the run's best confidence; ×N expands the individual calls.
      The whole backlog scrolls; the hour strip narrows it to one hour. ---- */
-  var expandedChains = {}, hourSel = -1;
+  var expandedChains = {}, hourSel = -1, confMin = 75, showLow = false;
+  try { var _cs = +localStorage.getItem("lv-confmin"); if (_cs >= 70 && _cs <= 95) confMin = _cs; } catch (e) {}
   // ONE row per species, not per contiguous run: a chatty cardinal + titmouse
   // used to leapfrog each other down the feed and bury everything else. Each
   // species now collapses to a single row (newest call up top, ×N expands the
@@ -895,7 +911,17 @@
     if (hourSel >= 0) {
       shown = shown.filter(function (r) { return new Date(r.t).getHours() === hourSel; });
     }
-    feed.innerHTML = chainsOf(shown).map(function (c, i) {
+    // Confidence gate: a species shows when its CLEAREST call clears the slider
+    // (default 75%). Quieter species aren't deleted — they're counted and can be
+    // revealed, dimmed, below. Keeps a species' calls together (split by species,
+    // not by individual call).
+    var thr = confMin / 100;
+    var chains = chainsOf(shown);
+    var loChains = chains.filter(function (c) { return (c.best ? c.best.conf : 0) < thr; });
+    var hiChains = chains.filter(function (c) { return (c.best ? c.best.conf : 0) >= thr; });
+    var cbar = document.getElementById("lv-confbar");
+    if (cbar) cbar.hidden = !(shown.length || loChains.length);
+    function chainHTML(c, i) {
       var n = c.calls.length, top = c.calls[0], bp = c.bestPlay;
       var xd = n > 1 && expandedChains[c.key];
       // Where this species' featured recording was heard — a bare dot, tooltip names it.
@@ -931,11 +957,18 @@
         }).join("") + '</div>';
       }
       return '<div class="lv-chain' + (xd ? ' x' : '') + '" data-key="' + esc(c.key) + '" data-fam="' + esc(c.fam || '') + '">' + main + sub + '</div>';
-    }).join("") || ((focusSlug || focusFam)
+    }
+    var body = hiChains.map(chainHTML).join("");
+    if (showLow && loChains.length) {
+      body += '<div class="lv-lowdiv">below ' + confMin + '% confidence</div>' +
+              '<div class="lv-lowgroup">' + loChains.map(chainHTML).join("") + '</div>';
+    }
+    feed.innerHTML = body || ((focusSlug || focusFam)
       ? '<p class="lv-nofeed">nothing else recent from ' + esc(focusName || focusFam) + ' — the hero above is the latest.' +
         (focusName ? ' <a href="/birds/species/' + focusSlug + '">every recording &rarr;</a>' : '') +
         ' <a href="/birds/live/log">browse by day &rarr;</a></p>'
       : '<p class="lv-nofeed">' + (hourSel >= 0 ? 'nothing logged in this hour (yet)' : 'nothing heard yet today &mdash; <a href="/birds/live/log">browse past days &rarr;</a>') + '</p>');
+    updateConfNote(loChains.length);
     // Re-point the live needle at the rebuilt strip for whatever's playing.
     if (current && !current.isHero) {
       var w = feed.querySelector('.lv-rowwrap[data-audio="' + current.audio + '"]');
@@ -945,6 +978,26 @@
     feedFade();
     syncViews();
   }
+  // The quieter-than-threshold species: counted, and revealable (dimmed) — never
+  // silently dropped, so a low-confidence visitor isn't invisible.
+  function updateConfNote(k) {
+    var el = document.getElementById("lv-confnote"); if (!el) return;
+    if (!k) { el.innerHTML = ""; return; }
+    el.innerHTML = ' &middot; <button type="button" class="lv-lowtoggle" id="lv-lowtoggle">' +
+      (showLow ? "hide quieter" : "+" + k + " quieter") + "</button>";
+    var b = document.getElementById("lv-lowtoggle");
+    if (b) b.onclick = function () { showLow = !showLow; renderFeed(LIVE.recent); };
+  }
+  (function () {
+    var r = document.getElementById("lv-confrange"), v = document.getElementById("lv-confval");
+    if (!r) return;
+    r.value = confMin; if (v) v.textContent = confMin + "%";
+    r.addEventListener("input", function () {
+      confMin = +r.value; if (v) v.textContent = confMin + "%"; showLow = false;
+      try { localStorage.setItem("lv-confmin", confMin); } catch (e) {}
+      renderFeed(LIVE.recent);
+    });
+  })();
   function renderHourStrip() {
     var wrap = document.getElementById("lv-hstrip");
     if (focusSlug || focusFam) { wrap.hidden = true; return; }  // all-species hours are noise under focus

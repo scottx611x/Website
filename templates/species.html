@@ -89,6 +89,11 @@
   .sp-heard .row b{font-family:var(--display); font-size:1.15rem; color:var(--ink); font-weight:600}
   .sp-heard a{font-family:var(--mono); font-size:.74rem; color:var(--green); text-decoration:none; margin-top:.2rem}
   .sp-heard .sp-heardon{align-items:center}
+  /* Daily rhythm mini-chart: when this bird is heard, hour by hour (all-time). */
+  .sp-day{display:flex; align-items:flex-end; gap:1.5px; height:34px; margin-top:.5rem}
+  .sp-day .sp-hr{flex:1; min-height:2px; border-radius:1.5px; background:rgba(47,125,79,.28)}
+  .sp-day .sp-hr.pk{background:var(--green)}
+  .sp-dayax{display:flex; justify-content:space-between; font-size:.58rem; color:var(--muted); margin-top:.3rem}
   .sp-nodes{display:flex; flex-wrap:wrap; gap:.55rem; justify-content:flex-end}
   .sp-nodetag{display:inline-flex; align-items:center; gap:.32rem; font-family:var(--mono); font-size:.74rem; color:var(--ink)}
   .sp-recrow .node-dot{margin:0 .1rem}
@@ -203,10 +208,18 @@
             {% endif %}
             <div class="sp-heard">
                 <div class="row"><span>recordings</span><b>{{ sp.heard.count }}&times;</b></div>
+                {% if sp.rhythm %}<div class="row"><span>most vocal</span><b>{{ (sp.rhythm.peak % 12) or 12 }} {{ 'AM' if sp.rhythm.peak < 12 else 'PM' }}</b></div>{% endif %}
                 {% if sp.heard.maxConf %}<div class="row"><span>highest confidence</span><b>{{ (sp.heard.maxConf*100)|round|int }}%</b></div>{% endif %}
                 <div class="row"><span>photographed?</span><b>{{ 'yes' if sp.photographed else 'not yet' }}</b></div>
                 {% if sp.heard_nodes and sp.heard_nodes|length > 1 %}
                 <div class="row sp-heardon"><span>heard on</span><span class="sp-nodes" id="sp-nodes"></span></div>
+                {% endif %}
+                {% if sp.rhythm %}
+                <div class="sp-day" title="when {{ sp.name }} is heard, hour by hour — all-time">
+                    {% set hmax = sp.rhythm.hours|max or 1 %}
+                    {% for v in sp.rhythm.hours %}<span class="sp-hr{{ ' pk' if loop.index0 == sp.rhythm.peak }}" style="height:{{ [10, (v / hmax * 100)|round|int]|max if v else 4 }}%"></span>{% endfor %}
+                </div>
+                <div class="sp-dayax mono"><span>12a</span><span>6a</span><span>12p</span><span>6p</span><span>11p</span></div>
                 {% endif %}
                 <a href="/birds/live?bird={{ sp.name|urlencode }}">open the live viewer &rarr;</a>
             </div>

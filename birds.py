@@ -2910,6 +2910,20 @@ def species_profile(name, shots=None, sound=None):
             heard_nodes.append(nm)
     all_nodes = [n.get("name") for n in (sound.get("nodes") or []) if n.get("name")]
 
+    # This bird's daily rhythm from the all-time patterns aggregate — the hour it
+    # sings most, plus the 24h shape for a mini activity chart. Historical, not
+    # today's; None until it's been heard enough to have a pattern.
+    rhythm = None
+    if heard:
+        for r in (load_patterns() or {}).get("rhythm", []):
+            rc = _canon_species(r.get("name") or "")
+            if rc and rc[0] == canon:
+                hrs = r.get("hours") or []
+                if any(hrs):
+                    rhythm = {"peak": max(range(24), key=lambda h: hrs[h]),
+                              "hours": hrs, "total": r.get("total") or sum(hrs)}
+                break
+
     if not count and not heard:
         return None  # neither photographed nor heard -> not a real page
     return {
@@ -2927,6 +2941,7 @@ def species_profile(name, shots=None, sound=None):
         "places": places,
         "mapped": sum(p["count"] for p in places),
         "heard": heard,
+        "rhythm": rhythm,
         "recent_call": recent_call,
         "best_call": best_call,
         "all_calls": all_calls,
