@@ -10,6 +10,12 @@
   .livewire section{margin-top:3.2rem}
   .lv-status{display:flex; justify-content:center; align-items:flex-start; gap:.5rem; color:var(--muted); font-size:.78rem; margin:.9rem 0 0}
   .lv-dot{width:9px;height:9px;border-radius:50%;flex:0 0 auto;margin-top:.26rem;background:var(--neon);box-shadow:0 0 4px 0 rgba(56,224,138,.4);animation:dotGlow 3.4s ease-in-out infinite}
+  /* Station offline / stale: the dot stops glowing, and an honest banner shows. */
+  .lv-status.stale .lv-dot{background:#c0392b;box-shadow:none;animation:none}
+  .lv-offline{max-width:640px;margin:1rem auto 0;padding:.7rem 1rem;border-radius:10px;
+    background:rgba(192,57,43,.08);border:1px solid rgba(192,57,43,.3);color:#8f2a1f;
+    font-family:var(--mono);font-size:.76rem;line-height:1.5;text-align:center}
+  .lv-offline b{color:#6f2018}
 
   /* minmax(0,…): grid items default to min-width:auto, and the feed's nowrap
      timestamps were silently stretching the whole page past the viewport. */
@@ -278,6 +284,10 @@
         {% if curate %}<div class="lv-supbar" id="lv-supbar" hidden></div>
         <div class="lv-toast" id="lv-toast" hidden></div>{% endif %}
     </header>
+    {# Honest degradation: if the station stops exporting (a home Pi can hang), the
+       site must NOT keep presenting the last data as live. JS flips this on when
+       the feed's `generated` timestamp goes stale. #}
+    <div class="lv-offline" id="lv-offline" hidden role="status"></div>
 
     {% if not has_data %}
     <div class="lv-empty">
@@ -299,7 +309,7 @@
        transcoded yet). JS keeps this in sync on every poll. #}
     {% set r0 = (sound.recent | selectattr('audio') | first) or sound.recent[0] %}
     <section>
-      <p class="lv-kick">Just heard</p>
+      <p class="lv-kick" id="lv-nowkick">Just heard</p>
       <div class="lv-now">
         <div class="lv-herocard">
         <div id="lv-hero">
@@ -484,8 +494,27 @@
         el.textContent = clock(t) + " · " + rel(t) + " · " + lead;
       } else { el.textContent = narrow ? rel(t) : clock(t) + " · " + rel(t); }
     });
-    var upd = document.getElementById("lv-upd");
-    if (upd && LIVE.generated) upd.textContent = "listening · North Andover, MA · updated " + rel(LIVE.generated) + weatherBit();
+    updateStationStatus();
+  }
+  // The station is a home Pi; it can hang. When its export goes stale, say so —
+  // never present hours-old data as "just heard / listening". `generated` is the
+  // exporter's own timestamp, so it stops advancing the moment the brain stops.
+  var STALE_MIN = 15;
+  function updateStationStatus() {
+    if (!LIVE.generated) return;
+    var mins = (Date.now() - new Date(LIVE.generated).getTime()) / 60000, stale = mins > STALE_MIN;
+    var upd = document.getElementById("lv-upd"), st = document.querySelector(".lv-status"),
+        off = document.getElementById("lv-offline"), kick = document.getElementById("lv-nowkick");
+    if (st) st.classList.toggle("stale", stale);
+    if (upd) upd.textContent = stale
+      ? "station offline · last heard " + rel(LIVE.generated)
+      : "listening · North Andover, MA · updated " + rel(LIVE.generated) + weatherBit();
+    if (kick) kick.textContent = stale ? "Last heard" : "Just heard";
+    if (off) {
+      off.hidden = !stale;
+      if (stale) off.innerHTML = "The yard microphone is <b>offline</b> — you're seeing the last recordings, from " +
+        rel(LIVE.generated) + ". It should reconnect on its own.";
+    }
   }
   // Ambient weather garnish: the next sun event, and rain when it's raining.
   function weatherBit() {
