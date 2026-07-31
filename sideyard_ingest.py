@@ -133,16 +133,17 @@ def main():
             except Exception as e:
                 print("spec failed %s: %s" % (base, e), file=sys.stderr)
                 continue
-            # Level Side Yard to sit near Back Yard WITHOUT slamming its noise.
-            # The old blind +38 dB + hard limiter pushed the raw USB mic's poor
-            # SNR up so far that noise-only moments (-21.5 dB) came out LOUDER than
-            # actual calls (-23.1 dB) — "loud AF". loudnorm is content-aware: it
-            # normalizes each clip's integrated loudness to a target (a touch below
-            # Back Yard's -24), so a quiet/noisy clip is no longer overshot to full
-            # volume. High-pass first to drop rumble. Measured: calls land ~-27 dB,
-            # noise-only ~-26 dB — ~5 dB quieter and consistent.
+            # Tame the Side Yard USB mic's poor SNR. loudnorm (content-aware) was
+            # wrong here: it normalizes INTEGRATED loudness, so on a low-SNR mic it
+            # pumps even the broadband hiss up to target — noise-only clips came out
+            # at ~-28 dB, audibly "gainy". Instead: high-pass (rumble), afftdn
+            # (knock down the broadband hiss), a FIXED moderate +22 dB (so quiet/
+            # noisy clips STAY quiet rather than being normalized up), and a limiter
+            # to catch loud calls. Measured: noise floor ~-38 dB — ~10 dB quieter
+            # than loudnorm, while calls stay audible.
             run(["ffmpeg", "-nostdin", "-y", "-loglevel", "error", "-i", wavp,
-                 "-af", "highpass=f=250,loudnorm=I=-26:TP=-1.5:LRA=11",
+                 "-af", ("highpass=f=250,afftdn=nr=20:nf=-50,"
+                         "volume=22dB,alimiter=limit=0.9:attack=5:release=60"),
                  "-c:a", "aac", "-b:a", "96k", "-movflags", "+faststart", m4ap])
             try:
                 s3.upload_file(m4ap, S3_BUCKET, S3_CLIPS + m4a,
