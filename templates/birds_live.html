@@ -1017,7 +1017,7 @@
     var el = document.getElementById("lv-confnote"); if (!el) return;
     if (!k) { el.innerHTML = ""; return; }
     el.innerHTML = ' &middot; <button type="button" class="lv-lowtoggle" id="lv-lowtoggle">' +
-      (showLow ? "hide low confidence" : "+" + k + " low confidence") + "</button>";
+      (showLow ? "hide lower confidence" : "+" + k + " lower confidence") + "</button>";
     var b = document.getElementById("lv-lowtoggle");
     if (b) b.onclick = function () { showLow = !showLow; renderFeed(LIVE.recent); };
   }
