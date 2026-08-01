@@ -961,6 +961,13 @@ def load_overrides():
     return _load_curation(OVERRIDES_FILE, dict)
 
 
+def load_vision_species():
+    """Per-image species assigned by Claude vision (bird_vision.py), keyed by post
+    id -> list of per-image species. The authoritative BASE for a carousel's
+    per-frame species when present; manual curate overrides still win on top."""
+    return _load_curation(VISION_FILE, dict)
+
+
 def _is_ambiguous(shot):
     """Needs review when no species was parsed, or several distinct ones were."""
     names = {normalize_species(s) for s in (shot.get("species_list") or []) if s}
@@ -1002,6 +1009,16 @@ def _caption_image_species(caption, n):
     return names[:n]  # more species than frames (unusual): one each, in order
 
 
+def _base_image_species(shot, n, vision):
+    """Per-frame species BASE: prefer the vision-derived assignment (from actually
+    looking at the photos) when it's present and the right length, else the
+    caption heuristic. Manual per-image overrides overlay on top of this."""
+    v = vision.get(shot.get("id")) if vision else None
+    if v and len(v) == n and any(v):
+        return list(v)
+    return _caption_image_species(shot.get("caption") or "", n)
+
+
 def apply_overrides(shots, overrides=None, apply_exclusions=True):
     """Apply hand-typed corrections and (re)compute the review flag in place.
 
@@ -1011,6 +1028,7 @@ def apply_overrides(shots, overrides=None, apply_exclusions=True):
     """
     if overrides is None:
         overrides = load_overrides()
+    vision = load_vision_species()
     for shot in shots:
         override = overrides.get(shot.get("id"))
         if override:
@@ -1021,7 +1039,7 @@ def apply_overrides(shots, overrides=None, apply_exclusions=True):
                 # species so an un-edited frame keeps its own species rather than
                 # falling back to the (now-edited) cover species — otherwise
                 # editing one frame silently relabels every other frame in the post.
-                base = _caption_image_species(shot.get("caption") or "", n)
+                base = _base_image_species(shot, n, vision)
                 shot["image_species"] = [
                     (per_image.get(str(i)) or base[i]) for i in range(n)
                 ]
@@ -1070,7 +1088,7 @@ def apply_overrides(shots, overrides=None, apply_exclusions=True):
         # Preserve any per-frame species already present; only fill the gaps.
         if not (override and override.get("images")):
             n = len(shot.get("images") or [])
-            base = _caption_image_species(shot.get("caption") or "", n)
+            base = _base_image_species(shot, n, vision)
             existing = shot.get("image_species") or []
             filled = [(existing[i] if i < len(existing) and existing[i] else base[i])
                       for i in range(n)]
@@ -1297,6 +1315,7 @@ def _load_manifest_from_s3():
 TOKEN_FILE = os.path.join(HERE, ".ig_token")
 EXCLUDED_FILE = os.path.join(HERE, "birds", "excluded.json")
 OVERRIDES_FILE = os.path.join(HERE, "birds", "overrides.json")
+VISION_FILE = os.path.join(HERE, "birds", "vision_species.json")
 LIFERS_FILE = os.path.join(HERE, "birds", "lifers.json")
 LOC_OVERRIDES_FILE = os.path.join(HERE, "birds", "location_overrides.json")
 SOUND_CURATION_FILE = os.path.join(HERE, "birds", "sound_curation.json")
@@ -1316,6 +1335,7 @@ PHOTOS_FILE = os.path.join(HERE, "static", "img", "photography", "manifest.json"
 _CURATION_S3 = {
     EXCLUDED_FILE: "{}/excluded.json".format(S3_PREFIX),
     OVERRIDES_FILE: "{}/overrides.json".format(S3_PREFIX),
+    VISION_FILE: "{}/vision_species.json".format(S3_PREFIX),
     REID_QUEUE_FILE: "{}/reid_queue.json".format(S3_PREFIX),
     SOUND_CURATION_FILE: "{}/sounds/curation.json".format(S3_PREFIX),
     LIFERS_FILE: "{}/lifers.json".format(S3_PREFIX),
