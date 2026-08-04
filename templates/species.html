@@ -56,14 +56,23 @@
   .sp-recs-list{margin-top:.7rem; display:flex; flex-direction:column; max-height:300px; overflow-y:auto; border:1px solid rgba(13,18,14,.1); border-radius:10px; scrollbar-width:thin}
   /* the class display: must not win over the hidden attribute (drawer stayed open) */
   .sp-recs-sort[hidden],.sp-recs-list[hidden]{display:none}
-  .sp-recrow{display:flex; align-items:center; gap:.7rem; padding:.5rem .7rem; background:none; border:none; border-bottom:1px solid rgba(13,18,14,.06); cursor:pointer; text-align:left; width:100%}
+  .sp-recrow{border-bottom:1px solid rgba(13,18,14,.06)}
   .sp-recrow:last-child{border-bottom:none}
-  .sp-recrow:hover{background:rgba(47,125,79,.06)}
-  .sp-recrow.on{background:rgba(47,125,79,.1)}
-  .sp-recrow .rp{flex:0 0 auto; width:26px; height:26px; border-radius:50%; background:var(--green); color:#fff; display:flex; align-items:center; justify-content:center; font-size:.58rem}
+  .sp-rechead{display:flex; align-items:center; gap:.7rem; padding:.5rem .7rem; background:none; border:none; cursor:pointer; text-align:left; width:100%}
+  .sp-recrow:hover .sp-rechead{background:rgba(47,125,79,.06)}
+  .sp-recrow.on .sp-rechead{background:rgba(47,125,79,.1)}
+  .sp-rechead .rp{flex:0 0 auto; width:26px; height:26px; border-radius:50%; background:var(--green); color:#fff; display:flex; align-items:center; justify-content:center; font-size:.58rem}
   .sp-recrow.on .rp{background:var(--ink)}
-  .sp-recrow .rw{flex:1; font-family:var(--mono); font-size:.72rem; color:var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
-  .sp-recrow .rc{flex:0 0 auto; font-family:var(--mono); font-size:.62rem; font-weight:600; padding:.1rem .42rem; border-radius:999px}
+  .sp-rechead .rw{flex:1; font-family:var(--mono); font-size:.72rem; color:var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+  .sp-rechead .rc{flex:0 0 auto; font-family:var(--mono); font-size:.62rem; font-weight:600; padding:.1rem .42rem; border-radius:999px}
+  /* Inline focused spectrogram scrubber — revealed for the recording you play,
+     right in the row, instead of hijacking the big hero player up top. */
+  .sp-rowspec{--p:0; display:none; position:relative; margin:0 .7rem .6rem 2.9rem; border-radius:8px; overflow:hidden; background:var(--ink); cursor:pointer}
+  .sp-rowspec img{display:block; width:100%; height:60px; object-fit:fill}
+  .sp-rowneedle{position:absolute; top:0; bottom:0; left:calc(var(--p,0)*100%); width:2px; margin-left:-1px; background:linear-gradient(180deg,#eafff4,var(--neon)); box-shadow:0 0 10px 1px rgba(56,224,138,.85); opacity:0}
+  .sp-recrow.on .sp-rowspec{display:block}
+  .sp-recrow.on .sp-rowneedle{opacity:1}
+  @media(max-width:520px){ .sp-rowspec{margin-left:.7rem} .sp-rowspec img{height:76px} }
   .sp-recrow .rc.hi{background:rgba(47,125,79,.15); color:var(--green)}
   .sp-recrow .rc.mid{background:rgba(13,18,14,.07); color:var(--ink)}
   .sp-recrow .rc.lo{background:rgba(169,118,31,.16); color:#a9761f}
@@ -346,22 +355,38 @@
   var audio = new Audio(MEDIA + CLIPS.latest.audio);
   var spec = CLIPS.latest.spec;
   var raf = null, zoom = null;
+  // When you play a row in the archive list, that row's own inline spectrogram is
+  // the playhead target (rowBox) instead of the big hero player up top. null = hero.
+  var rowBox = null, curRowAudio = null;
+  function clearRow() {
+    if (rowBox) {
+      rowBox.style.setProperty("--p", 0);
+      var pr = rowBox.closest(".sp-recrow");
+      if (pr) { pr.classList.remove("on"); var rp = pr.querySelector(".rp"); if (rp) rp.innerHTML = "&#9654;"; }
+    }
+    rowBox = null; curRowAudio = null;
+  }
   function fmtT(s) { s = Math.floor(s || 0); return Math.floor(s / 60) + ":" + ("0" + (s % 60)).slice(-2); }
   function paint() {
     var d = audio.duration || 0, p = d ? audio.currentTime / d : 0;
-    wrap.style.setProperty("--p", p);
-    if (zoom) {
+    (rowBox || wrap).style.setProperty("--p", p);
+    if (!rowBox && zoom) {
       zoom.querySelector(".sp-zwrap").style.setProperty("--zp", p);
       zoom.querySelector(".sp-ztime").textContent = fmtT(audio.currentTime) + (d ? " / " + fmtT(d) : "");
     }
     raf = audio.paused ? null : requestAnimationFrame(paint);
   }
   function toggle() { if (audio.paused) audio.play().catch(function () {}); else audio.pause(); }
-  btn.addEventListener("click", toggle);
+  btn.addEventListener("click", function () {
+    // If an archive row was playing, the hero button snaps back to the hero clip.
+    if (rowBox) { applyClip(curClip); audio.play().catch(function () {}); return; }
+    toggle();
+  });
   // Swap the player to any clip — the toggle picks latest/clearest, the list any.
   var curClip = CLIPS.latest;
   function applyClip(c) {
     var wasPlaying = !audio.paused;
+    clearRow();  // returning to the hero player releases any inline archive row
     audio.pause();
     audio.src = MEDIA + c.audio;
     audio.currentTime = 0;
@@ -416,13 +441,48 @@
       listEl.innerHTML = rows().map(function (r) {
         var pct = Math.round((r.conf || 0) * 100),
             cc = pct >= 90 ? "hi" : pct >= 75 ? "mid" : "lo",
-            on = curClip && curClip.audio === r.audio;
-        return '<button type="button" class="sp-recrow' + (on ? " on" : "") + '" data-audio="' + esc(r.audio) + '">' +
-          '<span class="rp">&#9654;</span>' +
-          '<span class="rw">' + esc(r.when || "") + '</span>' +
-          nodeDot(r.node) +
-          '<span class="rc ' + cc + '">' + pct + '%</span></button>';
+            on = curRowAudio === r.audio;
+        return '<div class="sp-recrow' + (on ? " on" : "") + '" data-audio="' + esc(r.audio) + '"' +
+            (r.spec ? ' data-spec="' + esc(MEDIA + r.spec) + '"' : '') + '>' +
+          '<button type="button" class="sp-rechead">' +
+            '<span class="rp">' + (on && !audio.paused ? "&#10074;&#10074;" : "&#9654;") + '</span>' +
+            '<span class="rw">' + esc(r.when || "") + '</span>' +
+            nodeDot(r.node) +
+            '<span class="rc ' + cc + '">' + pct + '%</span>' +
+          '</button>' +
+          (r.spec ? '<div class="sp-rowspec"><div class="sp-rowneedle"></div></div>' : '') +
+        '</div>';
       }).join("");
+      // A sort re-render swaps the DOM — re-mount whatever is playing so its inline
+      // spectrogram + needle survive the reorder without interrupting the audio.
+      if (curRowAudio) {
+        var re = listEl.querySelector('.sp-recrow[data-audio="' + curRowAudio + '"]');
+        rowBox = re ? mountRow(re) : null;
+        if (re) re.classList.add("on");
+      }
+    }
+    // Reveal a row's inline spectrogram (the image loads only when first played,
+    // so a 40-row list doesn't fetch 40 spectrograms up front).
+    function mountRow(rowEl) {
+      var box = rowEl.querySelector(".sp-rowspec"); if (!box) return null;
+      if (!box.querySelector("img")) {
+        var sp = rowEl.getAttribute("data-spec");
+        if (sp) box.insertAdjacentHTML("afterbegin", '<img loading="lazy" alt="spectrogram" src="' + sp + '">');
+      }
+      return box;
+    }
+    function playRow(rowEl, af) {
+      wrap.classList.remove("playing"); btn.innerHTML = "&#9654;";  // release the hero
+      listEl.querySelectorAll(".sp-recrow.on").forEach(function (x) {
+        x.classList.remove("on"); var rp = x.querySelector(".rp"); if (rp) rp.innerHTML = "&#9654;";
+      });
+      var box = mountRow(rowEl); if (!box) return;
+      rowEl.classList.add("on");
+      rowBox = box; curRowAudio = af; curKey = null;
+      if (toggleEl) toggleEl.querySelectorAll("button").forEach(function (x) { x.classList.remove("on"); });
+      audio.pause(); audio.src = MEDIA + af; audio.currentTime = 0;
+      box.style.setProperty("--p", 0);
+      audio.play().catch(function () {});
     }
     function syncRecs() {
       listEl.hidden = !open; sortEl.hidden = !open;
@@ -450,21 +510,22 @@
     });
     listEl.addEventListener("click", function (e) {
       var row = e.target.closest(".sp-recrow"); if (!row) return;
-      var r = ALL.filter(function (x) { return x.audio === row.getAttribute("data-audio"); })[0];
-      if (!r) return;
-      curKey = null;
-      if (toggleEl) toggleEl.querySelectorAll("button").forEach(function (x) { x.classList.remove("on"); });
-      var pct = Math.round((r.conf || 0) * 100);
-      applyClip({ audio: r.audio, spec: r.spec ? MEDIA + r.spec : null, label: "Recording",
-                  meta: (r.when ? r.when + " · " : "") + pct + "% confident" });
-      listEl.querySelectorAll(".sp-recrow.on").forEach(function (x) { x.classList.remove("on"); });
-      row.classList.add("on");
-      audio.play().catch(function () {});
-      wrap.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      var af = row.getAttribute("data-audio");
+      // Scrub the active row by clicking its own spectrogram; otherwise play/toggle.
+      var specHit = e.target.closest(".sp-rowspec");
+      if (specHit && curRowAudio === af) { seekFrom(specHit, e.clientX); return; }
+      if (curRowAudio === af) { toggle(); return; }
+      playRow(row, af);
     });
     open = ALL.length > 0; syncRecs();  // archive is open by default — one glance, not a click
   })();
   function setPlaying(on) {
+    if (rowBox) {  // an archive row is the active player, not the hero
+      var pr = rowBox.closest(".sp-recrow");
+      if (pr) { var rp = pr.querySelector(".rp"); if (rp) rp.innerHTML = on ? "&#10074;&#10074;" : "&#9654;"; }
+      wrap.classList.remove("playing"); btn.innerHTML = "&#9654;";
+      return;
+    }
     wrap.classList.toggle("playing", on);
     btn.innerHTML = on ? "&#10074;&#10074;" : "&#9654;";
     if (zoom) {
@@ -474,7 +535,7 @@
   }
   audio.addEventListener("play", function () { setPlaying(true); if (raf == null) raf = requestAnimationFrame(paint); });
   audio.addEventListener("pause", function () { setPlaying(false); });
-  audio.addEventListener("ended", function () { setPlaying(false); wrap.style.setProperty("--p", 0); if (zoom) zoom.querySelector(".sp-zwrap").style.setProperty("--zp", 0); });
+  audio.addEventListener("ended", function () { setPlaying(false); (rowBox || wrap).style.setProperty("--p", 0); if (!rowBox && zoom) zoom.querySelector(".sp-zwrap").style.setProperty("--zp", 0); });
   function seekFrom(el, clientX) {
     if (!audio.duration) return;
     var r = el.getBoundingClientRect();
@@ -490,6 +551,7 @@
   // ---- enlarge: full-screen spectrogram, same audio, seek + play ----
   function openZoom() {
     if (zoom || !spec) return;
+    if (rowBox) applyClip(curClip);  // enlarge focuses the hero — snap back to its clip
     zoom = document.createElement("div");
     zoom.className = "sp-zoom";
     zoom.innerHTML =
