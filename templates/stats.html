@@ -117,7 +117,6 @@
         <!-- Most photographed -->
         <div class="stat-block" id="board">
             <h2>Most photographed</h2>
-            <p class="stat-sub mono">the birds that keep posing.</p>
             {% set smax = series.top[0].n %}
             {% for t in series.top %}
             <a class="bar-row rich" href="/birds/species/{{ t.name|slug }}">
@@ -142,7 +141,7 @@
         {% if ear %}
         <div class="stat-block stat-span-2" id="ear-block">
             <h2>Heard from the yard</h2>
-            <p class="stat-sub mono">the mic&rsquo;s side of the story{% if ear.since %}, listening since {{ ear.since }}{% endif %}. <a href="/birds/live">live &rarr;</a></p>
+            <p class="stat-sub mono"><a href="/birds/live">live &rarr;</a></p>
             <div class="ear-grid">
                 <div class="ear-main">
                     <div class="ear-controls mono">
