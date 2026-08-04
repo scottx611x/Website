@@ -22,6 +22,7 @@
   var MULTI = NODES.length > 1 && window.NodeUI;
   var nodeSel = null;
   function nodeDot(name) { return (MULTI && name) ? window.NodeUI.dot(name) : ""; }
+  function nodeTag(name) { return (MULTI && name && window.NodeUI) ? window.NodeUI.tag(name) : ""; }
   function renderNodes() {
     if (!nodesEl) return;
     if (!MULTI) { nodesEl.hidden = true; return; }
@@ -144,14 +145,21 @@
         ? '<a class="dl-nm" href="/birds/species/' + encodeURIComponent(s.slug) + '">' + esc(s.name) + '</a>'
         : '<span class="dl-nm">' + esc(s.name) + '</span>';
       var tag = s.shot ? '<span class="dl-tag">&#10003; gallery</span>' : '<span class="dl-tag ear">not photographed</span>';
-      // Which mic: the featured clip's node, unless the day's calls span mics —
-      // then the ×N rows carry the per-recording dots instead of implying one.
-      var chainNode = s.best.e.node;
-      var mixedNode = MULTI && s.recs.some(function (r) { return r.e.node && r.e.node !== chainNode; });
+      // Which mic heard this species today. A bare dot alone read as "no mic", so
+      // name it: single-mic species get a labeled tag; species heard on both mics
+      // show both dots + "N mics" (and the ×N rows below label each recording).
+      var micNames = [];
+      s.recs.forEach(function (r) { var nm = r.e.node; if (nm && micNames.indexOf(nm) === -1) micNames.push(nm); });
+      var mixedNode = MULTI && micNames.length > 1;
+      var micHtml = "";
+      if (MULTI && micNames.length === 1) micHtml = nodeTag(micNames[0]);
+      else if (mixedNode) micHtml = '<span class="node-tag" title="heard on ' + esc(micNames.join(" + ")) + '">' +
+        micNames.map(function (nm) { return nodeDot(nm); }).join("") +
+        '<span class="node-tagname">' + micNames.length + ' mics</span></span>';
       var subs = s.recs.map(function (r) {
         return '<div class="dl-sub" data-audio="' + esc(r.e.audio) + '"><span class="st">' + esc(timeLabel(r.p)) + '</span>' +
           '<span class="sc">' + Math.round(r.e.conf * 100) + '%</span>' +
-          (mixedNode ? nodeDot(r.e.node) : "") +
+          (mixedNode ? nodeTag(r.e.node) : "") +
           shareBtn(r.e) + playBtn(r, s.name + ' at ' + timeLabel(r.p)) + '</div>';
       }).join("");
       return '<div class="dl-sprow" data-name="' + esc(s.name) + '">' +
@@ -159,7 +167,7 @@
           (s.photo ? '<img class="dl-av" loading="lazy" src="' + esc(s.photo) + '" alt="">' : '<span class="dl-av ear">' + ICONS.ear + '</span>') +
           '<span class="dl-spmain">' + nameHtml +
             '<span class="dl-spmeta"><span class="dl-time mono">' + when + '</span>' +
-            (mixedNode ? "" : nodeDot(chainNode)) +
+            micHtml +
             '<span class="dl-fam">' + esc(s.fam || "") + '</span>' + tag +
             (s.count > 1 ? '<button type="button" class="dl-count" aria-label="Show all ' + s.count + ' recordings, highest confidence first">&times;' + s.count + ' recordings</button>' : '') +
             '<span class="dl-hi mono" title="highest confidence">' + (s.count > 1 ? 'best ' : '') + '<span class="cl">conf</span> ' + conf + '%</span></span></span>' +

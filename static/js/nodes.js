@@ -37,6 +37,14 @@
       if (!name) return "";
       return '<span class="node-dot" style="background:' + style(name).dot + '" title="heard on ' + esc(name) + '"></span>';
     },
+    // A dot + inline text label, for naming the mic right on a recording row
+    // (where a bare dot alone reads as "no mic"). Quieter than the filter chip.
+    tag: function (name) {
+      if (!name) return "";
+      return '<span class="node-tag" title="heard on ' + esc(name) + '">' +
+        '<span class="node-dot" style="background:' + style(name).dot + '"></span>' +
+        '<span class="node-tagname">' + esc(name) + '</span></span>';
+    },
     // A dot + label chip, for the filter row and the "heard on" lines.
     chip: function (name, on) {
       var s = style(name);

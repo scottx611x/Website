@@ -494,6 +494,9 @@ body.home .site-nav { z-index: 0; }
 .node-chip.on { background: rgba(13, 18, 14, 0.05); border-width: 1.5px; font-weight: 600; }
 .node-chip.all { }
 .node-chip.all .node-dot { background: linear-gradient(90deg, #2a9d9c, #7c6bd0); }
+.node-tag { display: inline-flex; align-items: center; gap: 0.3rem; }
+.node-tagname { font-family: var(--mono); font-size: 0.62rem; letter-spacing: 0.02em;
+    color: var(--muted); white-space: nowrap; }
 
 /* Bird section sub-nav (gallery / map / stats) */
 .birds-subnav { display: flex; justify-content: center; flex-wrap: wrap; gap: 0.5rem; margin-top: 1.1rem; }
