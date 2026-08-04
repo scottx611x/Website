@@ -2941,7 +2941,8 @@ def species_profile(name, shots=None, sound=None):
                 hrs = r.get("hours") or []
                 if any(hrs):
                     rhythm = {"peak": max(range(24), key=lambda h: hrs[h]),
-                              "hours": hrs, "total": r.get("total") or sum(hrs)}
+                              "hours": hrs, "byNode": r.get("byNode") or {},
+                              "total": r.get("total") or sum(hrs)}
                 break
 
     if not count and not heard:

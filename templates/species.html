@@ -93,6 +93,10 @@
   .sp-day{display:flex; align-items:flex-end; gap:1.5px; height:34px; margin-top:.5rem}
   .sp-day .sp-hr{flex:1; min-height:2px; border-radius:1.5px; background:rgba(47,125,79,.28)}
   .sp-day .sp-hr.pk{background:var(--green)}
+  /* When two mics heard this bird, each hour bar stacks their share (colors match
+     the legend). Same bar heights as the flat chart — just split by mic. */
+  .sp-day .sp-hr.stk{background:none; display:flex; flex-direction:column-reverse; overflow:hidden; gap:0}
+  .sp-day .sp-hr.stk .sp-hseg{width:100%; display:block}
   .sp-dayax{display:flex; justify-content:space-between; font-size:.58rem; color:var(--muted); margin-top:.3rem}
   .sp-nodes{display:flex; flex-wrap:wrap; gap:.55rem; justify-content:flex-end}
   .sp-nodetag{display:inline-flex; align-items:center; gap:.32rem; font-family:var(--mono); font-size:.74rem; color:var(--ink)}
@@ -298,6 +302,28 @@
       var i = document.createElement("i"); i.textContent = n;
       return '<span class="sp-nodetag">' + window.NodeUI.dot(n) + i.innerHTML + '</span>';
     }).join("");
+  })();
+  // Split each hour of the daily-rhythm chart by mic, so the legend's two colors
+  // actually show the share between Back Yard and Side Yard hour by hour. Bar
+  // heights are unchanged (total calls that hour) — only their fill is split.
+  (function () {
+    var day = document.querySelector(".sp-day");
+    var BY = {{ ((sp.rhythm.byNode if sp.rhythm else {}) or {})|tojson }};
+    var HOURS = {{ ((sp.rhythm.hours if sp.rhythm else []) or [])|tojson }};
+    if (!day || !window.NodeUI) return;
+    var mics = Object.keys(BY);
+    if (mics.length < 2 || !HOURS.length) return;  // one mic (or no split data): leave the flat bars
+    mics.sort();  // stable order; NodeUI colors are assigned by sorted position too
+    var bars = day.querySelectorAll(".sp-hr");
+    HOURS.forEach(function (tot, h) {
+      var bar = bars[h]; if (!bar || !tot) return;
+      var segs = mics.map(function (nm) {
+        var c = (BY[nm] || [])[h] || 0;
+        return c ? '<span class="sp-hseg" style="flex:' + c + ' 0 0;background:' +
+          window.NodeUI.style(nm).dot + '" title="' + c + ' on ' + nm + '"></span>' : "";
+      }).join("");
+      if (segs) { bar.classList.add("stk"); bar.classList.remove("pk"); bar.innerHTML = segs; }
+    });
   })();
   var MEDIA = "https://birds-scott-ouellette.s3.amazonaws.com/birds/sounds/clips/";
   // The profile offers the latest recording and (when it's a different clip) the

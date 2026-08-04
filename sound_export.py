@@ -487,21 +487,23 @@ def build(s3=None):
     # they live in their own file (patterns.json) rather than bloating the polled
     # recent.json. Species names stay raw here; the site canonicalizes + attaches
     # avatars, exactly like the `heard` list.
-    rhythm, geo_sp = {}, {}
+    rhythm, rhythm_bn, geo_sp = {}, {}, {}
     for d in dets:
         name = d.get("commonName")
         if not name:
             continue
+        nm = node_of(d)
         when = local(d["timestamp"]) if d.get("timestamp") else None
         if when is not None:
-            r = rhythm.setdefault(name, [0] * 24)
-            r[when.hour] += 1
-        nm = node_of(d)
+            rhythm.setdefault(name, [0] * 24)[when.hour] += 1
+            if nm:  # per-mic hour split, so the species page can stack the rhythm bars
+                rhythm_bn.setdefault(name, {}).setdefault(nm, [0] * 24)[when.hour] += 1
         if nm:
             g = geo_sp.setdefault(name, {})
             g[nm] = g.get(nm, 0) + 1
     rhythm_out = sorted(
-        ({"name": n, "hours": h, "total": sum(h)} for n, h in rhythm.items() if sum(h) >= 2),
+        ({"name": n, "hours": h, "byNode": rhythm_bn.get(n, {}), "total": sum(h)}
+         for n, h in rhythm.items() if sum(h) >= 2),
         key=lambda s: -s["total"])
     geo_out = sorted(
         ({"name": n, "byNode": bn, "total": sum(bn.values())} for n, bn in geo_sp.items()),
