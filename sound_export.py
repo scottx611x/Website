@@ -88,6 +88,45 @@ def local(ts):
     return dt.datetime.fromisoformat(ts.replace("Z", "+00:00")).astimezone()
 
 
+# Strictly-nocturnal owls that BirdNET routinely mishears passing sirens and other
+# mechanical whines as — Eastern Screech-Owl is the worst offender (a siren's
+# descending wail scores as its whinny, sometimes >90%). These species do not call
+# in daylight, so ANY daytime "detection" is a false positive, not a bird. We drop
+# them here so they vanish from the site everywhere (feed, species pages, counts).
+# Belt-and-suspenders with BirdNET-Go's own daylightfilter, which we also tightened
+# at the source (its offset had been widened so far that midday sirens sailed through).
+NOCTURNAL_OWLS = {
+    "Megascops asio",     # Eastern Screech-Owl
+    "Aegolius acadicus",  # Northern Saw-whet Owl
+    "Tyto alba",          # Barn Owl
+    "Asio otus",          # Long-eared Owl
+}
+
+
+def drop_daytime_owls(dets, wx):
+    """Remove daytime detections of strictly-nocturnal owls (siren false positives).
+    Daytime = an hour past sunrise to an hour before sunset (the shoulder preserves
+    genuine dusk/dawn calls); falls back to a season-safe 09:00-16:00 clock window
+    when sun times are unavailable. Compared by time-of-day so it applies to the
+    whole backlog, not just today."""
+    lo, hi = dt.time(9), dt.time(16)
+    try:
+        if wx and wx.get("sunrise") and wx.get("sunset"):
+            sr = dt.datetime.fromisoformat(wx["sunrise"]) + dt.timedelta(hours=1)
+            ss = dt.datetime.fromisoformat(wx["sunset"]) - dt.timedelta(hours=1)
+            lo, hi = sr.time(), ss.time()
+    except Exception:
+        pass
+    kept = []
+    for d in dets:
+        if d.get("scientificName") in NOCTURNAL_OWLS and d.get("timestamp"):
+            wt = local(d["timestamp"]).time()
+            if lo < wt < hi:
+                continue  # broad daylight -> a siren, not an owl
+        kept.append(d)
+    return kept
+
+
 def find_clip(name):
     """Locate a clip file under CLIPS_DIR (BirdNET-Go nests by year/month)."""
     for root, _, files in os.walk(CLIPS_DIR):
@@ -319,6 +358,8 @@ def build(s3=None):
     dets = fetch_detections()
     dets += load_sideyard()  # merge store-and-forward Side Yard detections
     dets.sort(key=lambda d: d.get("timestamp", ""), reverse=True)  # newest first
+    wx = fetch_weather()
+    dets = drop_daytime_owls(dets, wx)  # strip daytime siren-as-owl false positives
     species = api("/api/v2/analytics/species/summary")  # all-time, with names
     media = publish_media(dets, s3)
     now = dt.datetime.now().astimezone()
@@ -480,7 +521,7 @@ def build(s3=None):
         "speciesClips": sp_clips,
         "station": {"source": (node_of(dets[0]) if dets else "Back Yard")},
         "nodes": nodes,
-        "weather": fetch_weather(),
+        "weather": wx,
         "recent": [det(d) for d in dets[:RECENT_N]],
         "species": sp_out,
         "today": today_sp,
