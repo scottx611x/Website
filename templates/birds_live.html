@@ -137,9 +137,9 @@
   /* Confidence filter: show the species you can trust; note the quieter ones. */
   .lv-confbar{display:flex; align-items:center; gap:.6rem; margin:.9rem 0 0; font-size:.72rem; color:var(--muted); flex-wrap:wrap}
   .lv-confbar label{white-space:nowrap} .lv-confbar label b{color:var(--green); font-weight:600}
-  .lv-confrange{-webkit-appearance:none; appearance:none; flex:1; min-width:96px; height:3px; border-radius:3px; background:rgba(13,18,14,.18); outline:none; cursor:pointer}
-  .lv-confrange::-webkit-slider-thumb{-webkit-appearance:none; width:15px; height:15px; border-radius:50%; background:var(--green); border:2px solid var(--paper); box-shadow:0 1px 3px rgba(13,18,14,.35); cursor:pointer}
-  .lv-confrange::-moz-range-thumb{width:15px; height:15px; border-radius:50%; background:var(--green); border:2px solid var(--paper); cursor:pointer}
+  /* accent-color tints the native slider green on iOS/desktop reliably — the
+     appearance:none custom-thumb route was being ignored on iOS (default blue). */
+  .lv-confrange{flex:1; min-width:120px; accent-color:var(--green); cursor:pointer; height:22px}
   .lv-confnote{white-space:nowrap}
   .lv-lowtoggle{border:none; background:none; color:var(--green); font-family:var(--mono); font-size:.72rem; cursor:pointer; padding:0; text-decoration:underline; text-underline-offset:2px}
   .lv-lowdiv{font-size:.62rem; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); margin:.8rem 0 .2rem; padding-top:.5rem; border-top:1px dashed rgba(13,18,14,.16)}
@@ -944,16 +944,18 @@
     if (hourSel >= 0) {
       shown = shown.filter(function (r) { return new Date(r.t).getHours() === hourSel; });
     }
-    // Confidence gate: a species shows when its CLEAREST call clears the slider
-    // (default 75%). Quieter species aren't deleted — they're counted and can be
-    // revealed, dimmed, below. Keeps a species' calls together (split by species,
-    // not by individual call).
+    // Confidence gate at the RECORDING level, not per-species: hide EVERY call
+    // below the slider (default 75%). A confirmed species (dynamic-threshold lets
+    // its quiet 50-70% calls through) no longer leaks those — a species shows only
+    // if it has a call clearing the bar, and only its clearing calls appear. The
+    // hidden calls are counted and revealable below.
     var thr = confMin / 100;
-    var chains = chainsOf(shown);
-    var loChains = chains.filter(function (c) { return (c.best ? c.best.conf : 0) < thr; });
-    var hiChains = chains.filter(function (c) { return (c.best ? c.best.conf : 0) >= thr; });
+    var hiRecs = shown.filter(function (r) { return (r.conf || 0) >= thr; });
+    var loRecs = shown.filter(function (r) { return (r.conf || 0) < thr; });
+    var hiChains = chainsOf(hiRecs);
+    var loChains = chainsOf(loRecs);
     var cbar = document.getElementById("lv-confbar");
-    if (cbar) cbar.hidden = !(shown.length || loChains.length);
+    if (cbar) cbar.hidden = !shown.length;
     function chainHTML(c, i) {
       var n = c.calls.length, top = c.calls[0], bp = c.bestPlay;
       var xd = n > 1 && expandedChains[c.key];
@@ -1001,7 +1003,7 @@
         (focusName ? ' <a href="/birds/species/' + focusSlug + '">every recording &rarr;</a>' : '') +
         ' <a href="/birds/live/log">browse by day &rarr;</a></p>'
       : '<p class="lv-nofeed">' + (hourSel >= 0 ? 'nothing logged in this hour (yet)' : 'nothing heard yet today &mdash; <a href="/birds/live/log">browse past days &rarr;</a>') + '</p>');
-    updateConfNote(loChains.length);
+    updateConfNote(loRecs.length);
     // Re-point the live needle at the rebuilt strip for whatever's playing.
     if (current && !current.isHero) {
       var w = feed.querySelector('.lv-rowwrap[data-audio="' + current.audio + '"]');
@@ -1029,6 +1031,12 @@
       confMin = +r.value; if (v) v.textContent = confMin + "%"; showLow = false;
       try { localStorage.setItem("lv-confmin", confMin); } catch (e) {}
       renderFeed(LIVE.recent);
+      // if the featured "just heard" clip is now below the bar, re-pick a hero
+      // that clears it (so the slider governs the headline too, not just the feed).
+      if (heroClip && (heroClip.conf || 0) < confMin / 100 && !(focusSlug || focusFam)) {
+        var nh = playable(LIVE.recent).filter(function (x) { return (x.conf || 0) >= confMin / 100; })[0];
+        if (nh && (!heroClip || nh.audio !== heroClip.audio)) { curHero = nh; renderHero(nh); loadHero(nh); }
+      }
     });
   })();
   function renderHourStrip() {
@@ -1225,7 +1233,11 @@
     // feed (last heard days ago), build a hero from the species rollup so it still
     // leads, with its real last-heard time.
     var pool = (focusSlug || focusFam) ? data.recent.filter(matchesFocus) : data.recent;
-    var hero = playable(pool)[0];  // newest recording in scope that has a clip
+    // Hero respects the confidence slider too — don't headline a sub-threshold clip
+    // when the feed is filtered (fall back to newest playable only if none clear it).
+    var heroThr = confMin / 100;
+    var hero = playable(pool).filter(function (r) { return (r.conf || 0) >= heroThr; })[0]
+             || playable(pool)[0];  // newest recording in scope that has a clip
     if (!hero && (focusSlug || focusFam)) {
       // focused bird not in the recent feed (last heard days ago) — fall back to
       // its LAST published recording from the species rollup, so it still plays.
