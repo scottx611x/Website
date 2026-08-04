@@ -133,18 +133,19 @@ def main():
             except Exception as e:
                 print("spec failed %s: %s" % (base, e), file=sys.stderr)
                 continue
-            # Tame the Side Yard USB mic's poor SNR. loudnorm (content-aware) was
-            # wrong here: it normalizes INTEGRATED loudness, so on a low-SNR mic it
-            # pumps even the broadband hiss up to target — noise-only clips came out
-            # at ~-28 dB, audibly "gainy". Instead: high-pass (rumble), afftdn
-            # (knock down the broadband hiss), a FIXED moderate +22 dB (so quiet/
-            # noisy clips STAY quiet rather than being normalized up), and a limiter
-            # to catch loud calls. Measured: noise floor ~-38 dB — ~10 dB quieter
-            # than loudnorm, while calls stay audible.
+            # Tame the Side Yard USB mic's poor SNR WITHOUT sounding processed.
+            # History: loudnorm was wrong (normalizes integrated loudness → pumps
+            # hiss up to target, "gainy"); afftdn was worse — its FFT denoise left
+            # robotic, watery "musical noise" so the mic sounded digital/weird.
+            # Now we mirror the Back Yard chain: high-pass off rumble, a FIXED
+            # moderate +22 dB (quiet clips STAY quiet, not normalized up), a limiter
+            # for loud calls, and NO denoiser — natural hiss reads better than
+            # artifacts. Source is now 192k AAC (was 64k, wired) so this re-encode is
+            # near-transparent; output bumped 96k→160k to match.
             run(["ffmpeg", "-nostdin", "-y", "-loglevel", "error", "-i", wavp,
-                 "-af", ("highpass=f=250,afftdn=nr=20:nf=-50,"
-                         "volume=22dB,alimiter=limit=0.9:attack=5:release=60"),
-                 "-c:a", "aac", "-b:a", "96k", "-movflags", "+faststart", m4ap])
+                 "-af", ("highpass=f=250,volume=22dB,"
+                         "alimiter=limit=0.9:attack=5:release=60"),
+                 "-c:a", "aac", "-b:a", "160k", "-movflags", "+faststart", m4ap])
             try:
                 s3.upload_file(m4ap, S3_BUCKET, S3_CLIPS + m4a,
                                ExtraArgs={"ContentType": "audio/mp4"})
