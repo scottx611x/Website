@@ -908,17 +908,31 @@
                 // Days with photos are real links (keyboard / middle-click friendly).
                 var parent = svg.append("a").attr("href", "/birds?on=" + key)
                                  .attr("aria-label", key + ", " + day.n + " photos");
+                // The whole cell is the tap target — a low-count day's dot is only
+                // ~4px across, a hopeless thing to hit. A transparent full-cell square
+                // (they tile without overlap) catches the click/hover; the dot itself
+                // is purely visual so it never steals the hit-test with its tiny area.
+                var hit = parent.append("rect")
+                    .attr("x", cx - (cell + gap) / 2).attr("y", cy - (cell + gap) / 2)
+                    .attr("width", cell + gap).attr("height", cell + gap)
+                    .attr("fill", "transparent").style("cursor", "pointer");
                 var dot = parent.append("circle").attr("class", "cal-day").attr("data-key", key)
-                    .attr("cx", cx).attr("cy", cy).attr("r", rScale(day.n)).attr("fill", "#2f7d4f");
+                    .attr("cx", cx).attr("cy", cy).attr("r", rScale(day.n)).attr("fill", "#2f7d4f")
+                    .style("pointer-events", "none");
                 if (isToday(d)) dot.attr("stroke", "#e8b04b").attr("stroke-width", 1.5);
-                dot.on("pointermove", function (ev) {
+                hit.on("pointermove", function (ev) {
+                        dot.attr("stroke", "#1f5a37").attr("stroke-width", 1.5);  // hover cue
                         var sp = day.sp.slice(0, 3).join(", ") +
                                  (day.sp.length > 3 ? " +" + (day.sp.length - 3) + " more" : "");
                         tipShow(ev, [d3.timeFormat("%a, %b %-d, %Y")(d),
                                      day.n + (day.n === 1 ? " photo" : " photos"),
                                      sp, "click for the photos →"], day.img);
                     })
-                    .on("pointerleave", tipHide);
+                    .on("pointerleave", function () {
+                        tipHide();
+                        if (isToday(d)) dot.attr("stroke", "#e8b04b").attr("stroke-width", 1.5);
+                        else dot.attr("stroke", null);
+                    });
             });
             d3.timeMonth.range(d3.timeMonth.ceil(start), end).forEach(function (d) {
                 svg.append("text").attr("x", left + d3.timeSunday.count(start, d) * (cell + gap))
