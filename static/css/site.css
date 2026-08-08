@@ -391,6 +391,16 @@ body.home .site-nav { z-index: 0; }
 .bird-active-meta a { color: var(--green); text-decoration: none; margin-left: 0.7rem; }
 .bird-active-meta a:hover { text-decoration: underline; }
 .gallery-category { font-family: var(--display); font-weight: 500; margin: 3rem 0 1.2rem; }
+/* Thumbnail size slider: nudges the masonry column count (see columnsFor). */
+.thumb-zoom { display: flex; align-items: center; gap: 0.55rem; justify-content: center; }
+.thumb-zoom label { cursor: pointer; }
+.thumb-zoom input[type="range"] {
+    width: 150px; max-width: 40vw; accent-color: var(--green);
+    cursor: pointer; margin: 0;
+}
+.tz-glyph { color: var(--muted); line-height: 1; }
+.tz-sm { font-size: 0.55rem; }
+.tz-lg { font-size: 1.05rem; }
 /* Masonry as reading-order columns: JS deals out cards across columns so the
    first row reads left→right (cards keep their natural, uncropped height). */
 .masonry { display: flex; align-items: flex-start; gap: 14px; }
