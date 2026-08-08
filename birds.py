@@ -14,7 +14,7 @@ one-time token setup.
 Environment variables (only needed for the sync job, not for serving):
     INSTAGRAM_ACCESS_TOKEN  long-lived token for the @birdsofnorthandover account
     INSTAGRAM_USER_ID       optional; resolved from the token if omitted
-    BIRDS_S3_BUCKET         bucket to re-host images + manifest (default: zappa bucket)
+    BIRDS_S3_BUCKET         bucket to re-host images + manifest (default: birds-scott-ouellette)
     BIRDS_S3_PREFIX         key prefix (default: "birds")
     BIRDS_TOP_N             how many top shots to keep (default: 24)
 """
@@ -52,7 +52,10 @@ MEDIA_FIELDS = (
     "children{media_type,media_url,thumbnail_url}"
 )
 
-S3_BUCKET = os.environ.get("BIRDS_S3_BUCKET", "zappa-0206au0bc")
+# Default matches what the prod Lambda sets explicitly (zappa_settings.json), so
+# local tooling run WITHOUT the env var reads the same live bucket instead of
+# silently falling back to the stale zappa deploy bucket (the old default).
+S3_BUCKET = os.environ.get("BIRDS_S3_BUCKET", "birds-scott-ouellette")
 S3_PREFIX = os.environ.get("BIRDS_S3_PREFIX", "birds")
 # Safety cap on how many posts to include (we consider all posts; this just
 # bounds an unexpectedly huge account). Posts you hide via curation never count.
@@ -961,11 +964,81 @@ def load_overrides():
     return _load_curation(OVERRIDES_FILE, dict)
 
 
-def load_vision_species():
-    """Per-image species assigned by Claude vision (bird_vision.py), keyed by post
-    id -> list of per-image species. The authoritative BASE for a carousel's
-    per-frame species when present; manual curate overrides still win on top."""
-    return _load_curation(VISION_FILE, dict)
+def load_image_species():
+    """Per-image species, keyed by post id -> list of per-frame species. Filled
+    at sync time from the posting pipeline's per-photo records (ground truth
+    typed at post time — see match_post_records). The authoritative BASE for a
+    carousel's per-frame species; manual curate overrides still win on top."""
+    return _load_curation(IMAGE_SPECIES_FILE, dict)
+
+
+def _load_post_records():
+    """The posting pipeline's per-photo truth: a list of records, one per posted
+    chunk — {caption, files, species[], locations[], scheduled_at} — mirrored to
+    S3 by bird-photography-pipeline at post time. Read straight from S3 (sync
+    runs with creds); [] when absent/unreachable so sync never depends on it."""
+    try:
+        import boto3
+
+        raw = boto3.client("s3").get_object(
+            Bucket=S3_BUCKET, Key="{}/post_records.json".format(S3_PREFIX))["Body"].read()
+        records = json.loads(raw)
+        return records if isinstance(records, list) else []
+    except Exception:  # noqa: BLE001 - no records yet / offline
+        return []
+
+
+def _norm_caption(text):
+    return " ".join((text or "").split()).lower()
+
+
+def match_post_records(shots):
+    """Bake per-frame species for posts the pipeline recorded at post time.
+
+    A record and its IG post share the exact caption (the pipeline wrote it)
+    and image count, so matching is normalized-caption + count; identical
+    captions on different posts (rare) break ties by nearest post time to the
+    record's Buffer slot. Matched species land in the image_species store
+    (once per post — a store entry is never rewritten, and manual curate
+    overrides sit above the store anyway). Returns how many posts were added."""
+    records = _load_post_records()
+    if not records:
+        return 0
+    store = load_image_species()
+    by_key = {}
+    for rec in records:
+        key = (_norm_caption(rec.get("caption")), len(rec.get("files") or []))
+        by_key.setdefault(key, []).append(rec)
+    added = 0
+    for shot in shots:
+        pid, n = shot.get("id"), len(shot.get("images") or [])
+        if not pid or pid in store or n < 2:
+            continue
+        recs = by_key.get((_norm_caption(shot.get("caption")), n))
+        if not recs:
+            continue
+        rec = recs[0]
+        if len(recs) > 1 and shot.get("timestamp"):
+            def _delta(r):
+                try:
+                    sched = datetime.datetime.fromisoformat(
+                        (r.get("scheduled_at") or "").replace("Z", "+00:00"))
+                    posted = datetime.datetime.fromisoformat(
+                        shot["timestamp"].replace("+0000", "+00:00"))
+                    return abs((posted - sched).total_seconds())
+                except ValueError:
+                    return float("inf")
+            rec = min(recs, key=_delta)
+        names = []
+        for raw in rec.get("species") or []:
+            canon = _canon_species(raw.replace("️", "").replace("⚠", "").strip())
+            names.append(canon[0] if canon else None)
+        if len(names) == n and all(names):
+            store[pid] = names
+            added += 1
+    if added:
+        _save_curation(IMAGE_SPECIES_FILE, store)
+    return added
 
 
 def _is_ambiguous(shot):
@@ -1009,11 +1082,11 @@ def _caption_image_species(caption, n):
     return names[:n]  # more species than frames (unusual): one each, in order
 
 
-def _base_image_species(shot, n, vision):
-    """Per-frame species BASE: prefer the vision-derived assignment (from actually
-    looking at the photos) when it's present and the right length, else the
-    caption heuristic. Manual per-image overrides overlay on top of this."""
-    v = vision.get(shot.get("id")) if vision else None
+def _base_image_species(shot, n, per_image):
+    """Per-frame species BASE: prefer the posting pipeline's per-photo record
+    (ground truth typed at post time) when it's present and the right length,
+    else the caption heuristic. Manual per-image overrides overlay on top."""
+    v = per_image.get(shot.get("id")) if per_image else None
     if v and len(v) == n and any(v):
         return list(v)
     return _caption_image_species(shot.get("caption") or "", n)
@@ -1028,7 +1101,7 @@ def apply_overrides(shots, overrides=None, apply_exclusions=True):
     """
     if overrides is None:
         overrides = load_overrides()
-    vision = load_vision_species()
+    per_image = load_image_species()
     for shot in shots:
         override = overrides.get(shot.get("id"))
         if override:
@@ -1039,7 +1112,7 @@ def apply_overrides(shots, overrides=None, apply_exclusions=True):
                 # species so an un-edited frame keeps its own species rather than
                 # falling back to the (now-edited) cover species — otherwise
                 # editing one frame silently relabels every other frame in the post.
-                base = _base_image_species(shot, n, vision)
+                base = _base_image_species(shot, n, per_image)
                 shot["image_species"] = [
                     (per_image.get(str(i)) or base[i]) for i in range(n)
                 ]
@@ -1088,7 +1161,7 @@ def apply_overrides(shots, overrides=None, apply_exclusions=True):
         # Preserve any per-frame species already present; only fill the gaps.
         if not (override and override.get("images")):
             n = len(shot.get("images") or [])
-            base = _base_image_species(shot, n, vision)
+            base = _base_image_species(shot, n, per_image)
             existing = shot.get("image_species") or []
             filled = [(existing[i] if i < len(existing) and existing[i] else base[i])
                       for i in range(n)]
@@ -1315,7 +1388,7 @@ def _load_manifest_from_s3():
 TOKEN_FILE = os.path.join(HERE, ".ig_token")
 EXCLUDED_FILE = os.path.join(HERE, "birds", "excluded.json")
 OVERRIDES_FILE = os.path.join(HERE, "birds", "overrides.json")
-VISION_FILE = os.path.join(HERE, "birds", "vision_species.json")
+IMAGE_SPECIES_FILE = os.path.join(HERE, "birds", "image_species.json")
 LIFERS_FILE = os.path.join(HERE, "birds", "lifers.json")
 LOC_OVERRIDES_FILE = os.path.join(HERE, "birds", "location_overrides.json")
 SOUND_CURATION_FILE = os.path.join(HERE, "birds", "sound_curation.json")
@@ -1335,7 +1408,7 @@ PHOTOS_FILE = os.path.join(HERE, "static", "img", "photography", "manifest.json"
 _CURATION_S3 = {
     EXCLUDED_FILE: "{}/excluded.json".format(S3_PREFIX),
     OVERRIDES_FILE: "{}/overrides.json".format(S3_PREFIX),
-    VISION_FILE: "{}/vision_species.json".format(S3_PREFIX),
+    IMAGE_SPECIES_FILE: "{}/image_species.json".format(S3_PREFIX),
     REID_QUEUE_FILE: "{}/reid_queue.json".format(S3_PREFIX),
     SOUND_CURATION_FILE: "{}/sounds/curation.json".format(S3_PREFIX),
     LIFERS_FILE: "{}/lifers.json".format(S3_PREFIX),
@@ -1846,6 +1919,13 @@ def instagram_sync(token=None):
     # (e.g. Instagram hiccup / token expiry). Keep the last known-good gallery.
     if not shots:
         return load_gallery()
+
+    # Label carousel frames from the posting pipeline's per-photo records (must
+    # run before apply_overrides so the fresh store entries reach this bake).
+    try:
+        match_post_records(shots)
+    except Exception:  # noqa: BLE001 - records are an enrichment, never a blocker
+        pass
 
     # Bake hand-typed corrections so prod gets them too, but keep arrays full-length
     # (exclusions are a display-time filter; baking them would misalign indices).
