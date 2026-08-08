@@ -577,7 +577,7 @@
                 var cap = (grid.dataset.mobileCap && window.innerWidth <= 560)
                     ? parseInt(grid.dataset.mobileCap, 10) : 0;
                 var key = n + ":" + (cap || 0);
-                if (grid._key === key) return;
+                if (grid._key === key) { upgradeThumbs(grid); return; }
                 grid._key = key;
                 grid.innerHTML = "";
                 var cols = [];
@@ -589,6 +589,25 @@
                 }
                 var cards = cap ? grid._cards.slice(0, cap) : grid._cards;
                 cards.forEach(function (card, i) { cols[i % n].appendChild(card); });
+                upgradeThumbs(grid);
+            }
+            // Grid thumbs are 640px wide; once the size slider (or a huge
+            // screen) renders a column wider than that, swap cards up to their
+            // full-res image so big thumbs don't go soft. One-way: images never
+            // downgrade back, so no churn while sliding.
+            function upgradeThumbs(grid) {
+                var col = grid.querySelector(".masonry-col");
+                if (!col) return;
+                var dpr = Math.min(window.devicePixelRatio || 1, 2);
+                if (col.getBoundingClientRect().width * dpr <= 640) return;
+                grid._cards.forEach(function (card) {
+                    var img = card.querySelector("img");
+                    if (!img || img._full) return;
+                    try {
+                        var full = JSON.parse(card.getAttribute("data-images"))[0];
+                        if (full && full !== img.src) { img._full = true; img.src = full; }
+                    } catch (_) { /* keep the thumb */ }
+                });
             }
             function layoutAll() { document.querySelectorAll(".masonry").forEach(layout); }
             window.setThumbZoom = function (v) {
