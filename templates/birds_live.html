@@ -249,6 +249,53 @@
   .lv-toprow .tb>i{display:block;height:100%;background:linear-gradient(90deg,var(--green),var(--neon))}
   .lv-toprow .tc{font-family:var(--mono); font-size:.7rem; color:var(--muted); width:3rem; text-align:right}
 
+  /* Today's soundtrack: one 24h band per species, every recording a tick. */
+  .lv-trackhint{color:var(--muted); font-size:.72rem; margin:-.6rem 0 1rem}
+  .lv-trackwrap{position:relative; --tl:10rem}
+  .lv-trackrows{display:flex; flex-direction:column; gap:5px}
+  .lv-trow{display:flex; align-items:center; gap:10px}
+  .lv-trow .tl{flex:0 0 var(--tl); font-family:var(--mono); font-size:.7rem; text-align:right;
+    overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+  .lv-trow .tl a{color:var(--ink); text-decoration:none}
+  .lv-trow .tl a:hover{color:var(--green)}
+  .lv-trow .tl .miss{color:var(--amber)}
+  .lv-trow .tband{position:relative; flex:1; height:20px}
+  .lv-trow .tband::before{content:""; position:absolute; left:0; right:0; top:50%; height:1px;
+    background:rgba(13,18,14,.09)}
+  .lv-tk{position:absolute; top:3px; bottom:3px; width:2px; border-radius:1px;
+    background:var(--green); opacity:.8; border:0; padding:0}
+  .lv-tk.miss{background:var(--amber)}
+  .lv-tk.lo{opacity:.22}
+  button.lv-tk{cursor:pointer}
+  button.lv-tk:hover{width:4px; opacity:1; box-shadow:0 0 5px 1px rgba(47,125,79,.4)}
+  .lv-trackmarks{position:absolute; left:calc(var(--tl) + 10px); right:0; top:0; bottom:1.35rem;
+    pointer-events:none}
+  .lv-tmk{position:absolute; top:0; bottom:0; border-left:1px dashed rgba(13,18,14,.16)}
+  .lv-tmk.sunrise{border-left-color:rgba(232,176,75,.6)}
+  .lv-tmk.sunset{border-left-color:rgba(111,123,138,.55)}
+  .lv-tmk.now{border-left:1px solid var(--green); opacity:.45}
+  .lv-tmk::after{content:""; position:absolute; top:-3px; left:-3px; width:5px; height:5px; border-radius:50%}
+  .lv-tmk.sunrise::after{background:var(--amber); box-shadow:0 0 5px 1px rgba(232,176,75,.5)}
+  .lv-tmk.sunset::after{background:#6f7b8a}
+  .lv-tmk.now::after{display:none}
+  .lv-trackax{display:flex; justify-content:space-between; margin-left:calc(var(--tl) + 10px);
+    color:var(--muted); font-size:.62rem; margin-top:.35rem}
+
+  /* Most vocal today: ranked rows, count bar, clearest clip playable. */
+  .lv-boardrows{display:flex; flex-direction:column; gap:10px; max-width:46rem}
+  .lv-brow{display:flex; align-items:center; gap:12px}
+  .lv-brow .brk{font-family:var(--display); font-size:1.15rem; color:var(--green); flex:0 0 1.6rem; text-align:right}
+  .lv-brow .lv-av{width:34px; height:34px; flex:0 0 34px}
+  .lv-brow .bmain{flex:1; min-width:0}
+  .lv-brow .bname{font-size:.85rem; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+  .lv-brow .bname a{color:var(--ink); text-decoration:none}
+  .lv-brow .bname a:hover{color:var(--green)}
+  .lv-brow .bname .bfam{font-family:var(--mono); font-weight:400; font-size:.64rem; color:var(--muted); margin-left:.45rem}
+  .lv-brow .bbar{height:6px; border-radius:3px; background:rgba(13,18,14,.08); overflow:hidden; margin:.3rem 0}
+  .lv-brow .bbar>i{display:block; height:100%; background:linear-gradient(90deg,var(--green),var(--neon))}
+  .lv-brow .bmeta{font-family:var(--mono); font-size:.66rem; color:var(--muted)}
+  .lv-brow .lv-rowplay{flex:0 0 auto}
+
   .lv-foot{color:var(--muted); font-size:.74rem; margin-top:3rem}
   .livewire{-webkit-tap-highlight-color:transparent}
   .lv-spec,.lv-rowspec,.lv-expand,.lv-playbtn,.lv-rowplay,.lv-range,.lv-bar,.lv-hb,.lv-xn,.lv-zoom{touch-action:manipulation}
@@ -265,6 +312,9 @@
     .lv-status{text-align:center}
     .lv-when{font-size:.62rem}
     .lv-wall{grid-template-columns:repeat(auto-fill,minmax(78px,1fr)); gap:.4rem}
+    .lv-trackwrap{--tl:6.2rem}
+    .lv-trow .tl{font-size:.6rem}
+    .lv-brow .bname .bfam{display:none}
   }
   .lv-logmore{display:inline-block; margin-top:1rem; font-size:.72rem; text-transform:uppercase; letter-spacing:.1em; color:var(--green); text-decoration:none; border-bottom:1px solid transparent}
   .lv-logmore:hover{color:var(--neon); border-color:currentColor}
@@ -410,6 +460,24 @@
         {% endfor %}
       </div>
       <p class="lv-wall-empty mono" id="lv-wall-empty"{% if sound.speciesToday %} hidden{% endif %}>Nothing heard yet today &mdash; check back after dawn.</p>
+    </section>
+
+    {# TODAY'S SOUNDTRACK — one 24h line per species, every recording a tick.
+       Filled by JS from dayrecs; grows through the day, sun marks for the chorus. #}
+    <section id="lv-track" hidden>
+      <p class="lv-kick">Today's soundtrack</p>
+      <p class="lv-trackhint mono">every recording today on a dawn-to-dusk line &middot; tap a tick to play it</p>
+      <div class="lv-trackwrap">
+        <div class="lv-trackmarks" id="lv-trackmarks" aria-hidden="true"></div>
+        <div class="lv-trackrows" id="lv-trackrows"></div>
+        <div class="lv-trackax mono"><span>12a</span><span>6a</span><span>12p</span><span>6p</span><span>11p</span></div>
+      </div>
+    </section>
+
+    {# MOST VOCAL TODAY — species ranked by recordings, clearest clip playable #}
+    <section id="lv-board" hidden>
+      <p class="lv-kick">Most vocal today</p>
+      <div class="lv-boardrows" id="lv-boardrows"></div>
     </section>
 
     {# HISTORY — the same strip through four lenses #}
@@ -793,6 +861,15 @@
       }
       return;
     }
+    var tk = e.target.closest("button.lv-tk");
+    if (tk) {
+      var tr = findRec(tk.getAttribute("data-audio"));
+      if (!tr) return;
+      if (current && current.audio === tr.audio) {
+        if (audio.paused) audio.play().catch(function () {}); else audio.pause();
+      } else playClip(tr, { needle: null });
+      return;
+    }
     var b = e.target.closest(".lv-rowplay"); if (!b) return;
     var wrap = b.closest(".lv-rowwrap"), r = findRec(b.getAttribute("data-audio"));
     if (!r) return;
@@ -862,6 +939,99 @@
     var set = function (id, v) { var el = document.getElementById(id); if (el) el.textContent = v; };
     set("lv-hvt-heard", list.length); set("lv-hvt-shot", shot); set("lv-hvt-miss", list.length - shot);
     applyFocus();
+  }
+  /* ---- Today's soundtrack + Most vocal: both draw from the day's visible
+     recordings under the same focus/node scoping as the feed, re-rendered from
+     renderFeed so every state change (poll, slider, hide, focus) flows through. */
+  function todayScoped() {
+    var todayKey = new Date().toDateString();
+    var recs = (LIVE.dayrecs || []).filter(function (r) {
+      return new Date(r.t).toDateString() === todayKey;
+    });
+    if (focusSlug || focusFam) recs = recs.filter(matchesFocus);
+    if (MULTI && nodeSel) recs = recs.filter(function (r) { return r.node === nodeSel; });
+    return recs;
+  }
+  function speciesMeta() {
+    var meta = {};
+    (LIVE.species || []).forEach(function (s) { meta[slugify(s.display)] = s; });
+    return meta;
+  }
+  function dayPct(iso) {
+    var d = new Date(iso);
+    return ((d.getHours() * 60 + d.getMinutes()) / 1440 * 100).toFixed(2);
+  }
+  function renderTrack() {
+    var sec = document.getElementById("lv-track"), rows = document.getElementById("lv-trackrows");
+    if (!sec || !rows) return;
+    var recs = todayScoped();
+    sec.hidden = !recs.length;
+    if (!recs.length) { rows.innerHTML = ""; return; }
+    var meta = speciesMeta(), by = {}, order = [];
+    recs.forEach(function (r) {
+      var k = slugify(r.display);
+      if (!by[k]) { by[k] = { display: r.display, first: r.t, recs: [] }; order.push(by[k]); }
+      by[k].recs.push(r);
+      if (r.t < by[k].first) by[k].first = r.t;
+    });
+    order.sort(function (a, b) { return a.first < b.first ? -1 : a.first > b.first ? 1 : 0; });
+    var thr = confMin / 100;
+    rows.innerHTML = order.map(function (sp) {
+      var m = meta[slugify(sp.display)] || {}, miss = !m.shot;
+      var ticks = sp.recs.map(function (r) {
+        var cls = "lv-tk" + (miss ? " miss" : "") + ((r.conf || 0) < thr ? " lo" : "");
+        var tip = clock(r.t) + " · " + Math.round((r.conf || 0) * 100) + "%";
+        return r.audio
+          ? '<button type="button" class="' + cls + '" style="left:' + dayPct(r.t) + '%" data-audio="' + esc(r.audio) + '" title="' + tip + ' — play" aria-label="play the ' + esc(sp.display) + ' recording from ' + clock(r.t) + '"></button>'
+          : '<i class="' + cls + '" style="left:' + dayPct(r.t) + '%" title="' + tip + '"></i>';
+      }).join("");
+      return '<div class="lv-trow"><span class="tl' + '">' +
+        '<a href="' + birdHref(sp.display) + '"' + (miss ? ' class="miss"' : '') + '>' + esc(sp.display) + '</a></span>' +
+        '<div class="tband">' + ticks + '</div></div>';
+    }).join("");
+    var marks = document.getElementById("lv-trackmarks"), w = LIVE.weather;
+    var mk = function (iso, cls, tip) {
+      return '<span class="lv-tmk ' + cls + '" style="left:' + dayPct(iso) + '%" title="' + tip + " " + clock(iso) + '"></span>';
+    };
+    marks.innerHTML = (w && w.sunrise ? mk(w.sunrise, "sunrise", "sunrise") : "") +
+                      (w && w.sunset ? mk(w.sunset, "sunset", "sunset") : "") +
+                      mk(new Date().toISOString(), "now", "now");
+  }
+  function renderBoard() {
+    var sec = document.getElementById("lv-board"), rows = document.getElementById("lv-boardrows");
+    if (!sec || !rows) return;
+    var thr = confMin / 100;
+    var recs = todayScoped().filter(function (r) { return (r.conf || 0) >= thr; });
+    var meta = speciesMeta(), by = {}, order = [];
+    recs.forEach(function (r) {
+      var k = slugify(r.display);
+      if (!by[k]) { by[k] = { display: r.display, fam: r.fam, n: 0, first: r.t, last: r.t, best: null }; order.push(by[k]); }
+      var c = by[k];
+      c.n++;
+      if (r.t < c.first) c.first = r.t;
+      if (r.t > c.last) c.last = r.t;
+      if (r.audio && (!c.best || (r.conf || 0) > (c.best.conf || 0))) c.best = r;
+    });
+    // A leaderboard of one isn't a leaderboard — need at least two species today.
+    sec.hidden = order.length < 2;
+    if (order.length < 2) { rows.innerHTML = ""; return; }
+    order.sort(function (a, b) { return b.n - a.n || (a.first < b.first ? -1 : 1); });
+    var top = order.slice(0, 10), max = top[0].n;
+    rows.innerHTML = top.map(function (c, i) {
+      var m = meta[slugify(c.display)] || {};
+      var av = m.photo
+        ? '<span class="lv-av" style="background-image:url(\'' + m.photo + '\')"></span>'
+        : '<span class="lv-av miss"></span>';
+      var span = clock(c.first) + (c.n > 1 ? " &rarr; " + clock(c.last) : "");
+      return '<div class="lv-brow"><span class="brk">' + (i + 1) + '</span>' + av +
+        '<div class="bmain"><div class="bname"><a href="' + birdHref(c.display) + '">' + esc(c.display) + '</a>' +
+        (c.fam ? '<span class="bfam">' + esc(c.fam) + '</span>' : '') + '</div>' +
+        '<div class="bbar"><i style="width:' + Math.max(4, Math.round(c.n / max * 100)) + '%"></i></div>' +
+        '<div class="bmeta">' + c.n + ' recording' + (c.n === 1 ? '' : 's') + ' &middot; ' + span + '</div></div>' +
+        (c.best ? '<div class="lv-rowwrap" data-audio="' + esc(c.best.audio) + '"><button class="lv-rowplay" data-audio="' + esc(c.best.audio) + '" title="play the clearest ' + esc(c.display) + ' clip (' + Math.round((c.best.conf || 0) * 100) + '%)" aria-label="play the clearest ' + esc(c.display) + ' recording">&#9654;</button></div>' : '') +
+        '</div>';
+    }).join("");
+    syncViews();
   }
   function renderHero(r) {
     var h = document.getElementById("lv-hero");
@@ -1011,6 +1181,10 @@
       if (current.needle && needleAt) current.needle.style.left = needleAt;
     }
     feedFade();
+    // The soundtrack + leaderboard share the feed's scoping, so every path that
+    // re-renders the feed (poll, slider, hide, node/focus change) refreshes them.
+    renderTrack();
+    renderBoard();
     syncViews();
   }
   // The quieter-than-threshold species: counted, and revealable (dimmed) — never
