@@ -11,9 +11,9 @@
     <header class="gallery-header">
         {# Focused, the title IS the context ("Osprey, by the numbers") — no
            more doubling the active "By the numbers" pill right below it. #}
-        {# Focus rides in the shared subnav pill (same as gallery/live/map),
-           so the title stays put instead of renaming itself per bird. #}
-        <h1>Birds, by the numbers</h1>
+        {# The title names the focused bird (the good headline); the shared
+           subnav pill still renders alongside for cross-page consistency. #}
+        <h1>{{ (focus.bird or focus.family) ~ ', by the numbers' if focus else 'Birds, by the numbers' }}</h1>
         {% set subnav_active = 'stats' %}{% include '_birds_nav.html' %}
     </header>
 

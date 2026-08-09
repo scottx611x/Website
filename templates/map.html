@@ -25,8 +25,9 @@
 {% from '_icons.html' import icon %}
 <section class="page wide">
     <header class="gallery-header">
-        {# Focus rides in the shared subnav pill; the title stays put. #}
-        <h1>Where the birds are</h1>
+        {# The title names the focused bird; the shared subnav pill still
+           renders alongside for cross-page consistency. #}
+        <h1>{% if active_bird %}Where I find {{ active_bird }}{% elif active_family %}Where I find {{ active_family }}{% else %}Where the birds are{% endif %}</h1>
         <p class="stat-sub mono">
             {{ "{:,}".format(mapped) }} photo{{ "" if mapped == 1 else "s" }} across
             {{ points|length }} place{{ "" if points|length == 1 else "s" }}. Tap a pin.
