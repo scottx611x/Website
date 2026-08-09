@@ -46,9 +46,7 @@
         </div>
         <p class="media-stat mono">
             <a class="media-link{% if active_media == 'photo' %} on{% endif %}" onclick="birdsGo(null,{media:'{{ '' if active_media == 'photo' else 'photo' }}'})"><strong>{{ media_n.photos }}</strong> photo{{ 's' if media_n.photos != 1 }}</a>{% if media_n.videos %} &middot; <a class="media-link{% if active_media == 'video' %} on{% endif %}" onclick="birdsGo(null,{media:'{{ '' if active_media == 'video' else 'video' }}'})"><strong>{{ media_n.videos }}</strong> video{{ 's' if media_n.videos != 1 }}</a>{% endif %}
-        </p>
-        <p class="media-stat mono">
-            order: <a class="media-link{% if not active_sort %} on{% endif %}" onclick="birdsGo(null,{sort:'',seed:String(Math.floor(Math.random()*1e9))})">shuffle</a> &middot; <a class="media-link{% if active_sort == 'posted' %} on{% endif %}" onclick="birdsGo(null,{sort:'posted'})">newest (post date)</a> &middot; <a class="media-link{% if active_sort == 'recent' %} on{% endif %}" onclick="birdsGo(null,{sort:'recent'})">newest (sighting date)</a> &middot; <a class="media-link{% if active_sort == 'oldest' %} on{% endif %}" onclick="birdsGo(null,{sort:'oldest'})">oldest</a>
+            &middot; order: <a class="media-link{% if not active_sort %} on{% endif %}" onclick="birdsGo(null,{sort:'',seed:String(Math.floor(Math.random()*1e9))})">shuffle</a> &middot; <a class="media-link{% if active_sort == 'posted' %} on{% endif %}" onclick="birdsGo(null,{sort:'posted'})">newest (post date)</a> &middot; <a class="media-link{% if active_sort == 'recent' %} on{% endif %}" onclick="birdsGo(null,{sort:'recent'})">newest (sighting date)</a> &middot; <a class="media-link{% if active_sort == 'oldest' %} on{% endif %}" onclick="birdsGo(null,{sort:'oldest'})">oldest</a>
             <span class="thumb-zoom">&middot;
                 <label for="thumbZoom">size:</label>
                 <span class="tz-glyph tz-sm" aria-hidden="true">&#9642;</span>

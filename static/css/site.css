@@ -391,6 +391,19 @@ body.home .site-nav { z-index: 0; }
 .bird-active-meta a { color: var(--green); text-decoration: none; margin-left: 0.7rem; }
 .bird-active-meta a:hover { text-decoration: underline; }
 .gallery-category { font-family: var(--display); font-weight: 500; margin: 3rem 0 1.2rem; }
+/* Compact header for the full-width gallery: the filter stack was pushing the
+   first photos below the fold, and the photos are the page. Scoped to
+   .birds-fill so other pages keep the airier spacing. */
+.birds-fill .page.wide { padding-top: 1.6rem; padding-bottom: 2rem; }
+.birds-fill .page .gallery-header h1 { font-size: clamp(2rem, 3.6vw, 2.7rem); margin-bottom: 0.3rem; }
+.birds-fill .gallery-header { margin-bottom: 1.3rem; }
+.birds-fill .birds-subnav { margin-top: 0.7rem; }
+.birds-fill .bird-filter { margin-top: 0.9rem; }
+.birds-fill .bird-stat { margin-bottom: 0.6rem; }
+.birds-fill .filter-search input, .birds-fill .bird-select select { padding-top: 0.45rem; padding-bottom: 0.45rem; }
+.birds-fill .media-stat { margin-top: 0.5rem; }
+.birds-fill .bird-active { margin-top: 0.9rem; }
+
 /* Thumbnail size slider: nudges the masonry column count (see columnsFor).
    Lives inline at the end of the "order:" row to keep the header short. */
 .thumb-zoom { display: inline-flex; align-items: center; gap: 0.4rem; vertical-align: middle; }
