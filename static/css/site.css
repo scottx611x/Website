@@ -391,12 +391,12 @@ body.home .site-nav { z-index: 0; }
 .bird-active-meta a { color: var(--green); text-decoration: none; margin-left: 0.7rem; }
 .bird-active-meta a:hover { text-decoration: underline; }
 .gallery-category { font-family: var(--display); font-weight: 500; margin: 3rem 0 1.2rem; }
-/* Thumbnail size slider: nudges the masonry column count (see columnsFor). */
-.thumb-zoom { display: flex; align-items: center; gap: 0.55rem; justify-content: center; }
+/* Thumbnail size slider: nudges the masonry column count (see columnsFor).
+   Lives inline at the end of the "order:" row to keep the header short. */
+.thumb-zoom { display: inline-flex; align-items: center; gap: 0.4rem; vertical-align: middle; }
 .thumb-zoom label { cursor: pointer; }
 .thumb-zoom input[type="range"] {
-    width: 150px; max-width: 40vw; accent-color: var(--green);
-    cursor: pointer; margin: 0;
+    width: 96px; accent-color: #2f7d4f; cursor: pointer; margin: 0; height: 1rem;
 }
 .tz-glyph { color: var(--muted); line-height: 1; }
 .tz-sm { font-size: 0.55rem; }
