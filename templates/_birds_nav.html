@@ -23,8 +23,8 @@
 {% elif request.args.get('bird') and nav_bird %}
 <p class="subnav-focus mono">
     <span class="sf-dot"></span>
-    <b class="sf-name">{{ nav_bird.replace(',', ' · ') }}</b>
-    {% if ',' not in nav_bird %}<span class="sf-sep">&middot;</span><a class="sf-profile" href="/birds/species/{{ nav_bird | slug }}">the profile &rarr;</a>{% endif %}
+    {% if ',' not in nav_bird %}<a class="sf-name" href="/birds/species/{{ nav_bird | slug }}" title="open the {{ nav_bird }} profile">{{ nav_bird }}</a>
+    {% else %}<b class="sf-name">{{ nav_bird.replace(',', ' · ') }}</b>{% endif %}
     <a class="sf-x" href="{{ request.path }}" aria-label="show every bird" title="show every bird">&times;</a>
 </p>
 {% elif request.args.get('family') and nav_family %}
