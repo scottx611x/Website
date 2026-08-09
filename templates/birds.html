@@ -11,7 +11,12 @@
 <section class="page wide">
     <header class="gallery-header">
         <h1>Birds of North Andover</h1>
-        {% set subnav_active = 'gallery' %}{% set nav_chip = false %}{% include '_birds_nav.html' %}
+        {# A lone species/family focus renders as the SAME chip in the SAME slot
+           as Live/Stats/Map (the shared subnav-focus pill); the gallery's own
+           chip row only appears once richer filters join in. #}
+        {% set solo_bird = active_birds|length == 1 and not (active_family or active_area or active_media or active_loc or active_on or active_posted or active_month) %}
+        {% set solo_family = active_family and not active_birds and not (active_area or active_media or active_loc or active_on or active_posted or active_month) %}
+        {% set subnav_active = 'gallery' %}{% set nav_chip = solo_bird or solo_family %}{% include '_birds_nav.html' %}
         {% if species_groups %}
         <div class="bird-filter">
             <p class="bird-stat">
@@ -66,6 +71,7 @@
         </script>
         {% if active_bird or active_family or active_area or active_media or active_loc or active_on or active_posted or active_month %}
         <div class="bird-active">
+            {% if not (solo_bird or solo_family) %}
             <div class="filter-chips">
                 {% if active_on %}<button type="button" class="chip" onclick="birdsGo(null,{on:''})">{{ icon('calendar') }} sighted {{ active_on_display }} <span>&times;</span></button>{% endif %}
                 {% if active_posted %}<button type="button" class="chip" onclick="birdsGo(null,{posted:''})">{{ icon('inbox') }} posted {{ active_posted_display }} <span>&times;</span></button>{% endif %}
@@ -76,6 +82,7 @@
                 {% if active_family %}<button type="button" class="chip" onclick="birdsGo(null,{family:''})">{{ active_family }} <span>&times;</span></button>{% endif %}
                 {% for b in active_birds %}<button type="button" class="chip" onclick="birdsGo(null,{removeBird:{{ b|tojson|forceescape }}})">{{ b }}{% if b in out_of_area %} {{ icon('alert') }}{% endif %} <span>&times;</span></button>{% endfor %}
             </div>
+            {% endif %}
             <p class="bird-active-meta">
                 {% if active_birds|length == 1 %}{{ bird_family }} &middot; {% endif %}{% set noun = 'video' if active_media == 'video' else 'photo' %}{{ shots|length }} {{ noun }}{{ 's' if shots|length != 1 }}
                 {% if active_birds|length == 1 %} &middot; <a href="/birds/species/{{ active_birds[0]|slug }}">&#10024; full profile &rarr;</a> &middot; <a href="/birds/map?bird={{ active_birds[0]|urlencode }}">&#128205; where I find them &rarr;</a>{% endif %}

@@ -371,14 +371,16 @@ body.home .site-nav { z-index: 0; }
 /* Filtered-state header + chips */
 .bird-active { margin: 2.2rem auto 0.5rem; }
 .filter-chips { display: flex; gap: 0.5rem; justify-content: center; flex-wrap: wrap; }
+/* Same visual language as the subnav-focus pill, so a filter chip and the
+   shared focus chip read as one system across gallery / live / stats / map. */
 .chip {
     display: inline-flex; align-items: center; gap: 0.45rem; cursor: pointer;
-    font-family: var(--mono); font-size: 0.82rem; color: #fff;
-    background: var(--green); border: none; border-radius: 999px;
-    padding: 0.4rem 0.85rem; transition: opacity 0.15s ease;
+    font-family: var(--mono); font-size: 0.82rem; color: var(--green); font-weight: 600;
+    background: var(--paper); border: 1px solid rgba(47, 125, 79, 0.35); border-radius: 999px;
+    padding: 0.4rem 0.85rem; transition: border-color 0.15s ease, background 0.15s ease;
 }
-.chip:hover { opacity: 0.85; }
-.chip span { font-size: 1.05em; opacity: 0.85; }
+.chip:hover { border-color: var(--green); background: rgba(47, 125, 79, 0.07); }
+.chip span { font-size: 1.05em; color: var(--muted); }
 .bird-active-kicker {
     font-family: var(--mono); font-size: 0.72rem; text-transform: uppercase;
     letter-spacing: 0.16em; color: var(--green); margin: 0 0 0.45rem;
