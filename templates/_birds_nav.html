@@ -15,37 +15,22 @@
     <a href="/birds/map{{ bq }}" class="{{ 'on' if subnav_active == 'map' }}">{{ icon('pin') }} Map</a>
 </nav>
 {# The chip appears on filtered views (query-param context), not on a species
-   profile — there the bird's name is already the headline. Pages whose TITLE
-   already names the context (focused stats/map) set nav_titled, and the chip
-   collapses to just the clear control; the gallery sets nav_chip=false because
-   it has its own richer filter chips. The name never shows twice. #}
-{% set nav_titled = nav_titled if nav_titled is defined else false %}
+   profile — there the bird's name is already the headline. It's the ONE way a
+   focused bird/family shows on every page (titles stay generic); the gallery
+   sets nav_chip=false when its richer multi-filter chips take over. #}
 {% set nav_chip = nav_chip if nav_chip is defined else true %}
 {% if not nav_chip %}
 {% elif request.args.get('bird') and nav_bird %}
 <p class="subnav-focus mono">
-    {% if not nav_titled %}
-    {# gallery / live: name the bird (the title doesn't) as a removable filter #}
     <span class="sf-dot"></span>
     {% if ',' not in nav_bird %}<a class="sf-name" href="/birds/species/{{ nav_bird | slug }}" title="open the {{ nav_bird }} profile">{{ nav_bird }}</a>
     {% else %}<b class="sf-name">{{ nav_bird.replace(',', ' · ') }}</b>{% endif %}
     <a class="sf-x" href="{{ request.path }}" aria-label="show every bird" title="show every bird">&times;</a>
-    {% else %}
-    {# stats / map: the title already names the bird — two plainly separate links,
-       clear the focus OR open the profile, not a → pointing straight at an × #}
-    <a class="sf-clear" href="{{ request.path }}" title="show every bird">&larr; every bird</a>
-    {% if ',' not in nav_bird %}<span class="sf-sep">&middot;</span><a class="sf-name" href="/birds/species/{{ nav_bird | slug }}">the profile &rarr;</a>{% endif %}
-    {% endif %}
 </p>
 {% elif request.args.get('family') and nav_family %}
 <p class="subnav-focus mono">
-    {% if not nav_titled %}
     <span class="sf-dot"></span>
     <b class="sf-name">{{ nav_family }}</b>
     <a class="sf-x" href="{{ request.path }}" aria-label="show every family" title="show every family">&times;</a>
-    {% else %}
-    <a class="sf-clear" href="{{ request.path }}" title="show every family">&larr; every family</a>
-    <span class="sf-sep">&middot;</span><a class="sf-name" href="/birds?family={{ nav_family|urlencode }}">the gallery &rarr;</a>
-    {% endif %}
 </p>
 {% endif %}

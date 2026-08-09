@@ -25,26 +25,15 @@
 {% from '_icons.html' import icon %}
 <section class="page wide">
     <header class="gallery-header">
-        {% if active_bird %}
-        <h1>Where I find {{ active_bird }}</h1>
-        <p class="stat-sub mono">
-            {{ "{:,}".format(mapped) }} photo{{ "" if mapped == 1 else "s" }} across
-            {{ points|length }} place{{ "" if points|length == 1 else "s" }}. Tap a pin.
-            &nbsp;&middot;&nbsp; <a href="/birds/species/{{ active_bird|slug }}">the {{ active_bird }} profile</a>
-            &nbsp;&middot;&nbsp; <a href="/birds?bird={{ active_bird|urlencode }}">the gallery</a>
-        </p>
-        {% elif active_family %}
-        <h1>Where I find {{ active_family }}</h1>
-        <p class="stat-sub mono">
-            {{ "{:,}".format(mapped) }} photo{{ "" if mapped == 1 else "s" }} across
-            {{ points|length }} place{{ "" if points|length == 1 else "s" }}. Tap a pin.
-            &nbsp;&middot;&nbsp; <a href="/birds?family={{ active_family|urlencode }}">the {{ active_family }} gallery</a>
-        </p>
-        {% else %}
+        {# Focus rides in the shared subnav pill; the title stays put. #}
         <h1>Where the birds are</h1>
-        <p class="stat-sub mono">{{ "{:,}".format(mapped) }} photos across {{ points|length }} places. Tap a pin.</p>
-        {% endif %}
-        {% set subnav_active = 'map' %}{% set nav_titled = true if (active_bird or active_family) else false %}{% include '_birds_nav.html' %}
+        <p class="stat-sub mono">
+            {{ "{:,}".format(mapped) }} photo{{ "" if mapped == 1 else "s" }} across
+            {{ points|length }} place{{ "" if points|length == 1 else "s" }}. Tap a pin.
+            {% if active_bird %}&nbsp;&middot;&nbsp; <a href="/birds?bird={{ active_bird|urlencode }}">the gallery</a>{% endif %}
+            {% if active_family %}&nbsp;&middot;&nbsp; <a href="/birds?family={{ active_family|urlencode }}">the gallery</a>{% endif %}
+        </p>
+        {% set subnav_active = 'map' %}{% include '_birds_nav.html' %}
     </header>
 
     <div class="map-toggle mono">
