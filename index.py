@@ -738,6 +738,34 @@ def birds_live_json():
     return resp
 
 
+@app.route("/birds/live/history.json", methods=["GET"])
+def birds_live_history_json():
+    """The curated recording log (last 60 days), lightly enriched — feeds the
+    live page's soundtrack day-stepper and last-7-days comparison. Fetched
+    lazily, only when someone steps off 'today'."""
+    log = birds.load_sound_log() or {}
+    shots = birds.load_gallery(shuffle=False)
+    photographed = {n for _, sp in birds.species_groups(shots) for n, _ in sp}
+    cutoff = datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(days=60)
+    out = []
+    for r in (log.get("log") or []):
+        try:
+            if datetime.datetime.fromisoformat(r["t"]) < cutoff:
+                continue
+        except (KeyError, ValueError, TypeError):
+            continue
+        canon = birds._canon_species(r.get("common") or "")
+        disp = canon[0] if canon else (r.get("common") or "")
+        out.append({"t": r["t"], "display": disp,
+                    "fam": canon[1] if canon else "Other birds",
+                    "shot": disp in photographed, "conf": r.get("conf"),
+                    "audio": r.get("audio"), "spec": r.get("spec"),
+                    "node": r.get("node")})
+    resp = app.json.response({"recs": out})
+    resp.cache_control.max_age = 300
+    return resp
+
+
 @app.route("/birds/heard", methods=["GET"])
 def birds_heard():
     """Every species the porch mic has ever heard — the all-time roll, its own

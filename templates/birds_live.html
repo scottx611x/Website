@@ -268,6 +268,14 @@
   .lv-tk.lo{opacity:.22}
   button.lv-tk{cursor:pointer}
   button.lv-tk:hover{width:4px; opacity:1; box-shadow:0 0 5px 1px rgba(47,125,79,.4)}
+  button.lv-tk.playing{width:4px; opacity:1; background:var(--neon);
+    box-shadow:0 0 7px 2px rgba(57,217,138,.55); animation:lv-tkpulse 1.1s ease-in-out infinite}
+  @keyframes lv-tkpulse{50%{box-shadow:0 0 3px 1px rgba(57,217,138,.3)}}
+  .lv-trackctl{margin:-.2rem 0 .7rem}
+  .lv-daystep{display:inline-flex; align-items:center; gap:.4rem; margin-left:.5rem}
+  .lv-daystep b{font-family:var(--mono); font-size:.72rem; font-weight:600}
+  .lv-trow .tl b{font-weight:600}
+  .lv-trow .tl .tn2{color:var(--muted); margin-left:.4rem; font-weight:400}
   .lv-trackmarks{position:absolute; left:calc(var(--tl) + 10px); right:0; top:0; bottom:1.35rem;
     pointer-events:none}
   .lv-tmk{position:absolute; top:0; bottom:0; border-left:1px dashed rgba(13,18,14,.16)}
@@ -321,7 +329,7 @@
   .lv-empty{padding:3rem 0 1rem; text-align:center}
   .lv-empty h2{font-family:var(--display); font-weight:500; font-size:1.6rem; margin-bottom:.5rem}
   .lv-empty p{color:var(--muted); max-width:32rem; margin:.4rem auto}
-  @media(prefers-reduced-motion:reduce){.lv-dot{animation:none} .lv-row.flash{animation:none} .lv-zoom{animation:none}}
+  @media(prefers-reduced-motion:reduce){.lv-dot{animation:none} .lv-row.flash{animation:none} .lv-zoom{animation:none} button.lv-tk.playing{animation:none}}
 </style>
 
 {% macro feather(fill) %}<span class="feather" style="background-image:url('data:image/svg+xml;utf8,{{ ('<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"' ~ fill ~ '\"><path d=\"M23 6c-1 0-1.8.3-2.5.9C19 5.6 16.8 4.7 14 5.2c-4 .7-5.6 4-9 4.3-2 .2-3.3-.6-3.3-.6S2 12 6 12.6c-.7 1-2 1.7-3.5 1.9 0 0 1.2 1.5 3.6 1.1-.5.9-1.6 2-3.6 2.4 0 0 3.4 1.6 6.9-.6 2.9-1.8 4-4.8 6.1-6.9C22.5 9.4 24 8 23 6z\"/></svg>') }}')"></span>{% endmacro %}
@@ -465,8 +473,18 @@
     {# TODAY'S SOUNDTRACK — one 24h line per species, every recording a tick.
        Filled by JS from dayrecs; grows through the day, sun marks for the chorus. #}
     <section id="lv-track" hidden>
-      <p class="lv-kick">Today's soundtrack</p>
-      <p class="lv-trackhint mono">every recording today on a dawn-to-dusk line &middot; tap a tick to play it</p>
+      <p class="lv-kick" id="lv-trackkick">Today's soundtrack</p>
+      <div class="lv-ranges lv-trackctl mono" id="lv-trackctl" role="tablist" aria-label="Soundtrack day">
+        <button class="lv-range on" data-td="today">today</button>
+        <button class="lv-range" data-td="yesterday">yesterday</button>
+        <button class="lv-range" data-td="week">last 7 days</button>
+        <span class="lv-daystep" id="lv-daystep" hidden>
+          <button type="button" class="lv-range" data-td="prev" aria-label="previous day">&lsaquo;</button>
+          <b id="lv-dayname"></b>
+          <button type="button" class="lv-range" data-td="next" aria-label="next day">&rsaquo;</button>
+        </span>
+      </div>
+      <p class="lv-trackhint mono">every recording on a dawn-to-dusk line &middot; tap a tick to hear it</p>
       <div class="lv-trackwrap">
         <div class="lv-trackmarks" id="lv-trackmarks" aria-hidden="true"></div>
         <div class="lv-trackrows" id="lv-trackrows"></div>
@@ -648,6 +666,10 @@
     root.querySelectorAll(".lv-rowwrap").forEach(function (w) {
       w.classList.toggle("playing",
         playing && current && !current.isHero && w.getAttribute("data-audio") === current.audio);
+    });
+    root.querySelectorAll("button.lv-tk").forEach(function (b) {
+      b.classList.toggle("playing",
+        !!(playing && current && b.getAttribute("data-audio") === current.audio));
     });
     var pb = document.getElementById("lv-playbtn");
     if (pb) pb.innerHTML = (playing && current && current.isHero) ? "&#10074;&#10074;" : "&#9654;";
@@ -863,9 +885,12 @@
     }
     var tk = e.target.closest("button.lv-tk");
     if (tk) {
-      var tr = findRec(tk.getAttribute("data-audio"));
+      var tr = trackRecs[tk.getAttribute("data-audio")] || findRec(tk.getAttribute("data-audio"));
       if (!tr) return;
-      if (current && current.audio === tr.audio) {
+      // A tick is tiny — playing invisibly read as broken. Open the full-screen
+      // viewer (the page's player) on the exact recording and play it there.
+      if (tr.spec) { openZoom(tr); playClip(tr, zoomCtx(tr)); }
+      else if (current && current.audio === tr.audio) {
         if (audio.paused) audio.play().catch(function () {}); else audio.pause();
       } else playClip(tr, { needle: null });
       return;
@@ -961,41 +986,123 @@
     var d = new Date(iso);
     return ((d.getHours() * 60 + d.getMinutes()) / 1440 * 100).toFixed(2);
   }
+  /* The soundtrack can look at any day, not just today: chips step through the
+     archive (history.json, fetched once on first use) and "last 7 days" stacks
+     one row per day for side-by-side comparison. Ticks are indexed so a click
+     can open the full-screen viewer for that exact recording. */
+  var trackMode = "today", trackDate = null, HIST = null, histLoading = false, trackRecs = {};
+  function localISO(d) {
+    return d.getFullYear() + "-" + ("0" + (d.getMonth() + 1)).slice(-2) + "-" + ("0" + d.getDate()).slice(-2);
+  }
+  function loadHist() {
+    if (HIST || histLoading) return;
+    histLoading = true;
+    fetch("/birds/live/history.json").then(function (r) { return r.json(); })
+      .then(function (d) { HIST = d.recs || []; renderTrack(); })
+      .catch(function () { histLoading = false; });
+  }
+  function histScoped() {
+    var recs = HIST || [];
+    if (focusSlug || focusFam) recs = recs.filter(matchesFocus);
+    if (MULTI && nodeSel) recs = recs.filter(function (r) { return r.node === nodeSel; });
+    return recs;
+  }
+  function tickHTML(r, thr) {
+    var cls = "lv-tk" + (r.shot ? "" : " miss") + ((r.conf || 0) < thr ? " lo" : "");
+    var tip = clock(r.t) + " · " + esc(r.display) + " · " + Math.round((r.conf || 0) * 100) + "%";
+    if (r.audio) trackRecs[r.audio] = r;
+    return r.audio
+      ? '<button type="button" class="' + cls + '" style="left:' + dayPct(r.t) + '%" data-audio="' + esc(r.audio) + '" title="' + tip + ' — play" aria-label="play the ' + esc(r.display) + ' recording from ' + clock(r.t) + '"></button>'
+      : '<i class="' + cls + '" style="left:' + dayPct(r.t) + '%" title="' + tip + '"></i>';
+  }
   function renderTrack() {
     var sec = document.getElementById("lv-track"), rows = document.getElementById("lv-trackrows");
+    var marks = document.getElementById("lv-trackmarks");
     if (!sec || !rows) return;
-    var recs = todayScoped();
-    sec.hidden = !recs.length;
-    if (!recs.length) { rows.innerHTML = ""; return; }
-    var meta = speciesMeta(), by = {}, order = [];
+    trackRecs = {};
+    var thr = confMin / 100;
+    var yester = localISO(new Date(Date.now() - 86400000));
+    var kick = document.getElementById("lv-trackkick"), ds = document.getElementById("lv-daystep");
+    var ctl = document.getElementById("lv-trackctl");
+    if (ctl) ctl.querySelectorAll(".lv-range[data-td]").forEach(function (b) {
+      var td = b.getAttribute("data-td");
+      b.classList.toggle("on", (td === "today" && trackMode === "today") ||
+        (td === "yesterday" && trackMode === "day" && trackDate === yester) ||
+        (td === "week" && trackMode === "week"));
+    });
+    if (ds) {
+      ds.hidden = trackMode !== "day";
+      var dn = document.getElementById("lv-dayname");
+      if (trackMode === "day" && dn) dn.textContent = new Date(trackDate + "T12:00:00")
+        .toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
+    }
+    if (kick) kick.textContent = trackMode === "today" ? "Today's soundtrack"
+      : trackMode === "week" ? "The last 7 days, stacked"
+      : trackDate === yester ? "Yesterday's soundtrack" : "That day's soundtrack";
+
+    if (trackMode !== "today" && !HIST) {
+      sec.hidden = false; marks.innerHTML = "";
+      rows.innerHTML = '<p class="lv-nofeed mono">pulling the archive&hellip;</p>';
+      loadHist();
+      return;
+    }
+
+    if (trackMode === "week") {
+      var pool = histScoped(), out = [];
+      for (var i = 0; i < 7; i++) {
+        var d = new Date(Date.now() - i * 86400000), iso = localISO(d);
+        var recs = iso === localISO(new Date()) ? todayScoped()
+          : pool.filter(function (r) { return localISO(new Date(r.t)) === iso; });
+        var lbl = i === 0 ? "today"
+          : d.toLocaleDateString("en-US", { weekday: "short", month: "numeric", day: "numeric" });
+        out.push('<div class="lv-trow"><span class="tl"><b>' + lbl + '</b>' +
+          '<span class="tn2">' + recs.length + '</span></span><div class="tband">' +
+          recs.map(function (r) { return tickHTML(r, thr); }).join("") + '</div></div>');
+      }
+      rows.innerHTML = out.join("");
+      sec.hidden = false;
+      marks.innerHTML = "";   // the sun marks are today's times; not honest across a week
+      return;
+    }
+
+    var recs = trackMode === "today" ? todayScoped()
+      : histScoped().filter(function (r) { return localISO(new Date(r.t)) === trackDate; });
+    if (trackMode === "today") {
+      // Only the untouched default view may hide the section (a quiet morning);
+      // once someone is stepping days, an empty day is an answer, not a blank.
+      sec.hidden = !recs.length;
+      if (!recs.length) { rows.innerHTML = ""; marks.innerHTML = ""; return; }
+    } else {
+      sec.hidden = false;
+      if (!recs.length) {
+        rows.innerHTML = '<p class="lv-nofeed mono">nothing recorded this day.</p>';
+        marks.innerHTML = "";
+        return;
+      }
+    }
+    var by = {}, order = [];
     recs.forEach(function (r) {
       var k = slugify(r.display);
-      if (!by[k]) { by[k] = { display: r.display, first: r.t, recs: [] }; order.push(by[k]); }
+      if (!by[k]) { by[k] = { display: r.display, shot: false, first: r.t, recs: [] }; order.push(by[k]); }
       by[k].recs.push(r);
+      by[k].shot = by[k].shot || !!r.shot;
       if (r.t < by[k].first) by[k].first = r.t;
     });
     order.sort(function (a, b) { return a.first < b.first ? -1 : a.first > b.first ? 1 : 0; });
-    var thr = confMin / 100;
     rows.innerHTML = order.map(function (sp) {
-      var m = meta[slugify(sp.display)] || {}, miss = !m.shot;
-      var ticks = sp.recs.map(function (r) {
-        var cls = "lv-tk" + (miss ? " miss" : "") + ((r.conf || 0) < thr ? " lo" : "");
-        var tip = clock(r.t) + " · " + Math.round((r.conf || 0) * 100) + "%";
-        return r.audio
-          ? '<button type="button" class="' + cls + '" style="left:' + dayPct(r.t) + '%" data-audio="' + esc(r.audio) + '" title="' + tip + ' — play" aria-label="play the ' + esc(sp.display) + ' recording from ' + clock(r.t) + '"></button>'
-          : '<i class="' + cls + '" style="left:' + dayPct(r.t) + '%" title="' + tip + '"></i>';
-      }).join("");
-      return '<div class="lv-trow"><span class="tl' + '">' +
-        '<a href="' + birdHref(sp.display) + '"' + (miss ? ' class="miss"' : '') + '>' + esc(sp.display) + '</a></span>' +
-        '<div class="tband">' + ticks + '</div></div>';
+      return '<div class="lv-trow"><span class="tl">' +
+        '<a href="' + birdHref(sp.display) + '"' + (sp.shot ? '' : ' class="miss"') + '>' + esc(sp.display) + '</a></span>' +
+        '<div class="tband">' + sp.recs.map(function (r) { return tickHTML(r, thr); }).join("") + '</div></div>';
     }).join("");
-    var marks = document.getElementById("lv-trackmarks"), w = LIVE.weather;
+    var w = LIVE.weather;
     var mk = function (iso, cls, tip) {
       return '<span class="lv-tmk ' + cls + '" style="left:' + dayPct(iso) + '%" title="' + tip + " " + clock(iso) + '"></span>';
     };
-    marks.innerHTML = (w && w.sunrise ? mk(w.sunrise, "sunrise", "sunrise") : "") +
-                      (w && w.sunset ? mk(w.sunset, "sunset", "sunset") : "") +
-                      mk(new Date().toISOString(), "now", "now");
+    // Sun + now marks only on today — they're today's times.
+    marks.innerHTML = trackMode !== "today" ? "" :
+      (w && w.sunrise ? mk(w.sunrise, "sunrise", "sunrise") : "") +
+      (w && w.sunset ? mk(w.sunset, "sunset", "sunset") : "") +
+      mk(new Date().toISOString(), "now", "now");
   }
   function renderBoard() {
     var sec = document.getElementById("lv-board"), rows = document.getElementById("lv-boardrows");
@@ -1197,6 +1304,26 @@
     var b = document.getElementById("lv-lowtoggle");
     if (b) b.onclick = function () { showLow = !showLow; renderFeed(LIVE.recent); };
   }
+  (function () {
+    var ctl = document.getElementById("lv-trackctl");
+    if (!ctl) return;
+    ctl.addEventListener("click", function (e) {
+      var b = e.target.closest(".lv-range[data-td]"); if (!b) return;
+      var td = b.getAttribute("data-td");
+      var yester = localISO(new Date(Date.now() - 86400000));
+      if (td === "today") { trackMode = "today"; trackDate = null; }
+      else if (td === "yesterday") { trackMode = "day"; trackDate = yester; }
+      else if (td === "week") { trackMode = "week"; trackDate = null; }
+      else if (td === "prev" || td === "next") {
+        var cur = new Date((trackDate || localISO(new Date())) + "T12:00:00");
+        cur.setDate(cur.getDate() + (td === "next" ? 1 : -1));
+        var iso = localISO(cur);
+        if (iso >= localISO(new Date())) { trackMode = "today"; trackDate = null; }
+        else { trackMode = "day"; trackDate = iso; }
+      }
+      renderTrack();
+    });
+  })();
   (function () {
     var r = document.getElementById("lv-confrange"), v = document.getElementById("lv-confval");
     if (!r) return;
