@@ -56,8 +56,13 @@ The daily `birds.scheduled_sync` Lambda refreshes it automatically thereafter.
 ## 3. Deploy
 
 ```bash
-zappa update production      # (first time on a fresh account: zappa deploy production)
+make deploy                  # stamps version.txt (asset cache-buster) + zappa update
+# (first time on a fresh account: zappa deploy production)
 ```
+
+Never deploy with bare `zappa update`: the package zeroes file mtimes, so
+`version.txt` is the only input that rotates the `?v=` cache key on css/js —
+skip the stamp and browsers keep year-old assets.
 
 ## 4. Populate the gallery cache
 

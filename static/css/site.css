@@ -562,6 +562,10 @@ body.home .site-nav { z-index: 0; }
     .filter-search input, .bird-select select { font-size: 0.8rem; padding: 0.5rem 1rem; }
     .filter-search input { min-width: 12rem; }
     .media-stat { font-size: 0.72rem; margin: 0.5rem 0 0; }
+    /* On phones the size slider gets its own centered line instead of wrapping
+       mid-sentence through the order links. */
+    .thumb-zoom { display: flex; justify-content: center; margin: 0.4rem auto 0; }
+    .thumb-zoom .tz-dot { display: none; }
 }
 
 /* Home birds strip: live numbers + destination links */

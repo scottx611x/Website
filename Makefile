@@ -1,4 +1,12 @@
-.PHONY: ci test run hooks pull-curations push-curations wildlife
+.PHONY: ci test run hooks pull-curations push-curations wildlife deploy
+
+## deploy: stamp version.txt with HEAD (busts the 1-year asset cache) + zappa update.
+## Always deploy with this, never bare `zappa update` — zappa zeroes file mtimes in
+## the package, so version.txt is the ONLY thing that rotates the css/js cache key.
+deploy:
+	git rev-parse --short HEAD > version.txt
+	zappa update production
+	@echo "deployed $$(cat version.txt)"
 
 ## ci: run the containerized test suite via Earthly (local CI)
 ci:
