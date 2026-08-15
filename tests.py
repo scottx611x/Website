@@ -657,5 +657,65 @@ class RealCaptionFormatTestCase(unittest.TestCase):
                 birds.EXCLUDED_FILE, birds.LOCAL_MANIFEST = orig_excl, orig_manifest
 
 
+class PerFrameDatesTestCase(unittest.TestCase):
+    """Per-frame capture dates from the pipeline's post records (combined-batch
+    posts whose frames span shooting days)."""
+
+    def _run_match(self, rec):
+        saved = {}
+        shot = {"id": "p1", "images": ["u0", "u1", "u2"],
+                "caption": rec["caption"], "timestamp": "2026-07-25T12:00:00+0000"}
+        with mock.patch.object(birds, "_load_post_records", return_value=[rec]), \
+             mock.patch.object(birds, "load_image_species", return_value={}), \
+             mock.patch.object(birds, "load_image_dates", return_value={}), \
+             mock.patch.object(birds, "_save_curation",
+                               side_effect=lambda path, data: saved.__setitem__(path, dict(data))):
+            birds.match_post_records([shot])
+        return saved
+
+    def test_record_dates_land_iso_normalized_and_aligned(self):
+        rec = {"caption": "Barred Owl\nCedar Waxwing\n\nRea St.\n\n7-20-26",
+               "files": ["a.jpg", "b.jpg", "c.jpg"],
+               "species": ["Barred Owl", "Barred Owl", "Cedar Waxwing"],
+               "dates": ["7-20-26", "7-20-26", "7-22-26"]}
+        saved = self._run_match(rec)
+        self.assertEqual(saved[birds.IMAGE_SPECIES_FILE]["p1"],
+                         ["Barred Owl", "Barred Owl", "Cedar Waxwing"])
+        self.assertEqual(saved[birds.IMAGE_DATES_FILE]["p1"],
+                         ["2026-07-20", "2026-07-20", "2026-07-22"])
+
+    def test_record_without_dates_matches_species_only(self):
+        rec = {"caption": "Barred Owl\nCedar Waxwing\n\nRea St.\n\n7-20-26",
+               "files": ["a.jpg", "b.jpg", "c.jpg"],
+               "species": ["Barred Owl", "Barred Owl", "Cedar Waxwing"]}
+        saved = self._run_match(rec)
+        self.assertIn(birds.IMAGE_SPECIES_FILE, saved)
+        self.assertNotIn(birds.IMAGE_DATES_FILE, saved)
+
+    def test_pseudo_frame_prefers_frame_date_falls_back_to_shot(self):
+        shot = {"id": "p", "images": ["u0", "u1"],
+                "caption": "Barred Owl\n\nRea St.\n\n7-20-26",
+                "timestamp": "2026-07-25T12:00:00+0000",
+                "species": "Barred Owl", "image_species": ["Barred Owl", "Barred Owl"],
+                "image_dates": [None, "2026-07-22"], "date": "Jul 20, 2026"}
+        f0, _ = birds._pseudo_frame(shot, 0)
+        f1, _ = birds._pseudo_frame(shot, 1)
+        self.assertEqual(f0["_sort"], "2026-07-20")   # no store date -> caption day
+        self.assertEqual(f0["date"], "Jul 20, 2026")
+        self.assertEqual(f1["_sort"], "2026-07-22")   # store date wins for its frame
+        self.assertEqual(f1["date"], "Jul 22, 2026")
+
+    def test_manual_capture_date_override_beats_the_store(self):
+        shot = {"id": "p", "images": ["u0", "u1"], "capture_date": "2026-07-01",
+                "caption": "Barred Owl\n\n7-20-26", "timestamp": "2026-07-25T12:00:00+0000",
+                "image_dates": ["2026-07-20", "2026-07-22"]}
+        self.assertEqual([d.isoformat() for d in birds._frame_dates(shot)],
+                         ["2026-07-01", "2026-07-01"])
+
+    def test_mixed_date_caption_keeps_first_match_for_the_shot(self):
+        self.assertEqual(birds._capture_date("Barred Owl\n\n7-20-26 & 7-22-26", None),
+                         "Jul 20, 2026")
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -513,7 +513,8 @@ def _pseudo_frame(shot, i):
     display = " & ".join(c[0] for c in canons) or (shot.get("species") or "")
     loc = canonical_location(iloc[i] if i < len(iloc) and iloc[i] else shot.get("location"))
     dims = shot.get("image_dims") or []
-    _sd = _shot_capture_date(shot)
+    _sd = _frame_dates(shot)[i] if i < len(images) else _shot_capture_date(shot)
+    idates = shot.get("image_dates") or []
     return {
         "id": "%s-%d" % (shot.get("id"), i),
         "_sort": _sd.isoformat() if _sd else "",
@@ -529,10 +530,11 @@ def _pseudo_frame(shot, i):
                          if i < len(shot.get("image_videos") or []) else None],
         "image_indices": [(shot.get("image_indices") or [])[i]
                           if i < len(shot.get("image_indices") or []) else i],
+        "image_dates": [idates[i] if i < len(idates) else None],
         "caption_species": shot.get("caption_species") or [],
         "species": display,
         "location": loc,
-        "date": shot.get("date"),
+        "date": (_sd.strftime("%b %-d, %Y") if _sd else shot.get("date")),
         "caption": shot.get("caption") or "",
     }, canons
 
@@ -610,14 +612,13 @@ def media_counts(shots, bird=None, family=None, area=None, ooa_only=(), month=No
     ooa_lower = {n.lower() for n in ooa_only}
     photos = videos = 0
     for shot in shots:
-        if month:
-            d = _shot_capture_date(shot)
-            if not d or d.month != month:
-                continue
+        fdates = _frame_dates(shot) if month else None
         isp = shot.get("image_species") or []
         vids = shot.get("image_videos") or []
         areas = shot.get("image_areas") or []
         for i in range(len(shot.get("images") or [])):
+            if month and not (fdates[i] and fdates[i].month == month):
+                continue
             raw = isp[i] if i < len(isp) and isp[i] else shot.get("species")
             canons = _canon_species_list(raw)
             names = [c[0].lower() for c in canons]
@@ -801,7 +802,7 @@ def _shuffle_images_weighted(shot):
     # first), so the cover + carousel vary per load but lean toward those favorites.
     order = sorted(range(n), key=lambda i: random.random() ** (1.0 / (n - i)), reverse=True)
     for key in ("images", "captions", "image_species", "image_locations", "image_areas",
-                "image_indices", "image_videos", "image_dims"):
+                "image_indices", "image_videos", "image_dims", "image_dates"):
         seq = shot.get(key)
         if isinstance(seq, list) and len(seq) == n:
             shot[key] = [seq[i] for i in order]
@@ -972,6 +973,28 @@ def load_image_species():
     return _load_curation(IMAGE_SPECIES_FILE, dict)
 
 
+def load_image_dates():
+    """Per-image capture dates, keyed by post id -> list of ISO date | None.
+    Filled at sync time from the posting pipeline's per-photo records (a post
+    combined from several shooting days carries each frame's real EXIF day).
+    Same never-rewrite semantics as the image_species store."""
+    return _load_curation(IMAGE_DATES_FILE, dict)
+
+
+def _norm_md_date(raw):
+    """Pipeline 'M-D-YY' (or M/D/YYYY) -> ISO date string, else None."""
+    m = _DATE_RE.search(str(raw or ""))
+    if not m:
+        return None
+    month, day, year = (int(p) for p in m.groups())
+    if year < 100:
+        year += 2000
+    try:
+        return datetime.date(year, month, day).isoformat()
+    except ValueError:
+        return None
+
+
 def _load_post_records():
     """The posting pipeline's per-photo truth: a list of records, one per posted
     chunk — {caption, files, species[], locations[], scheduled_at} — mirrored to
@@ -1005,6 +1028,8 @@ def match_post_records(shots):
     if not records:
         return 0
     store = load_image_species()
+    dstore = load_image_dates()
+    added_dates = 0
     by_key = {}
     for rec in records:
         key = (_norm_caption(rec.get("caption")), len(rec.get("files") or []))
@@ -1036,8 +1061,16 @@ def match_post_records(shots):
         if len(names) == n and all(names):
             store[pid] = names
             added += 1
+            # A combined-batch post carries each frame's real shooting day
+            # (record `dates`, aligned with files[]); older records lack it.
+            dates = [_norm_md_date(x) for x in (rec.get("dates") or [])]
+            if pid not in dstore and len(dates) == n and any(dates):
+                dstore[pid] = dates
+                added_dates += 1
     if added:
         _save_curation(IMAGE_SPECIES_FILE, store)
+    if added_dates:
+        _save_curation(IMAGE_DATES_FILE, dstore)
     return added
 
 
@@ -1102,6 +1135,7 @@ def apply_overrides(shots, overrides=None, apply_exclusions=True):
     if overrides is None:
         overrides = load_overrides()
     per_image = load_image_species()
+    per_dates = load_image_dates()
     for shot in shots:
         override = overrides.get(shot.get("id"))
         if override:
@@ -1167,6 +1201,11 @@ def apply_overrides(shots, overrides=None, apply_exclusions=True):
                       for i in range(n)]
             if any(filled):
                 shot["image_species"] = filled
+        # Per-frame capture dates (pipeline truth for combined-batch posts) ride
+        # along full-length; frame-unit views overlay them on the shot date.
+        idates = per_dates.get(shot.get("id"))
+        if idates and len(idates) == len(shot.get("images") or []):
+            shot["image_dates"] = list(idates)
         shot["ambiguous"] = (not override) and _is_ambiguous(shot)
         shot["image_areas"] = _image_areas(shot)
         # Manual out-of-area overrides overlay the caption-derived areas.
@@ -1201,7 +1240,7 @@ def _apply_image_exclusions(shot, excluded):
     if len(keep) == n:
         return
     for key in ("images", "captions", "image_species", "image_locations",
-                "image_areas", "image_videos", "image_dims"):
+                "image_areas", "image_videos", "image_dims", "image_dates"):
         seq = shot.get(key)
         if isinstance(seq, list) and len(seq) == n:
             shot[key] = [seq[i] for i in keep]
@@ -1389,6 +1428,7 @@ TOKEN_FILE = os.path.join(HERE, ".ig_token")
 EXCLUDED_FILE = os.path.join(HERE, "birds", "excluded.json")
 OVERRIDES_FILE = os.path.join(HERE, "birds", "overrides.json")
 IMAGE_SPECIES_FILE = os.path.join(HERE, "birds", "image_species.json")
+IMAGE_DATES_FILE = os.path.join(HERE, "birds", "image_dates.json")
 LIFERS_FILE = os.path.join(HERE, "birds", "lifers.json")
 LOC_OVERRIDES_FILE = os.path.join(HERE, "birds", "location_overrides.json")
 SOUND_CURATION_FILE = os.path.join(HERE, "birds", "sound_curation.json")
@@ -1409,6 +1449,7 @@ _CURATION_S3 = {
     EXCLUDED_FILE: "{}/excluded.json".format(S3_PREFIX),
     OVERRIDES_FILE: "{}/overrides.json".format(S3_PREFIX),
     IMAGE_SPECIES_FILE: "{}/image_species.json".format(S3_PREFIX),
+    IMAGE_DATES_FILE: "{}/image_dates.json".format(S3_PREFIX),
     REID_QUEUE_FILE: "{}/reid_queue.json".format(S3_PREFIX),
     SOUND_CURATION_FILE: "{}/sounds/curation.json".format(S3_PREFIX),
     LIFERS_FILE: "{}/lifers.json".format(S3_PREFIX),
@@ -2410,6 +2451,24 @@ def _shot_capture_date(shot):
     return _capture_date_obj(shot.get("caption") or "", shot.get("timestamp"))
 
 
+def _frame_dates(shot):
+    """Each frame's capture date: the pipeline's per-frame day where recorded
+    (a post combining several shooting days), else the shot date. A manual
+    curate ``capture_date`` override stays authoritative for the whole post."""
+    n = len(shot.get("images") or [])
+    base = _shot_capture_date(shot)
+    out = [base] * n
+    if shot.get("capture_date"):
+        return out
+    for i, iso in enumerate((shot.get("image_dates") or [])[:n]):
+        if iso:
+            try:
+                out[i] = datetime.date.fromisoformat(str(iso)[:10])
+            except ValueError:
+                pass
+    return out
+
+
 def _capture_date(caption, timestamp):
     """Capture date as a display string like "Mar 27, 2026" (or None)."""
     dt = _capture_date_obj(caption, timestamp)
@@ -2565,9 +2624,9 @@ def map_points(shots, places=None, species_filter=None, family_filter=None):
         isp = shot.get("image_species") or []
         images = shot.get("images") or []
         weight = shot.get("weight") or 0
-        d = _shot_capture_date(shot)
-        ym = d.isoformat()[:7] if d else None
+        fdates = _frame_dates(shot)
         for i in range(len(images)):
+            ym = fdates[i].isoformat()[:7] if fdates[i] else None
             loc = iloc[i] if i < len(iloc) and iloc[i] else shot.get("location")
             if not loc:
                 continue
@@ -2702,8 +2761,9 @@ def species_stats(shots, canon, family=None):
         iloc = shot.get("image_locations") or []
         areas = shot.get("image_areas") or []
         vids = shot.get("image_videos") or []
-        d = _shot_capture_date(shot)
+        fdates = _frame_dates(shot)
         for i in range(len(images)):
+            d = fdates[i]
             raw = isp[i] if i < len(isp) and isp[i] else shot.get("species")
             canons = _canon_species_list(raw)
             if canon:
@@ -2755,8 +2815,9 @@ def gallery_stats(shots):
         iloc = shot.get("image_locations") or []
         areas = shot.get("image_areas") or []
         vids = shot.get("image_videos") or []
-        d = _shot_capture_date(shot)
+        fdates = _frame_dates(shot)
         for i in range(len(images)):
+            d = fdates[i]
             if i < len(vids) and vids[i]:
                 videos += 1
             else:
@@ -2824,14 +2885,15 @@ def stats_series(shots, top_n=15):
     best_shot = {}   # name -> (post weight, image url) for the avatar
     sp_imgs = collections.defaultdict(dict)  # name -> {image url: best weight}
     for shot in shots:
-        d = _shot_capture_date(shot)
-        if not d:
-            continue
-        key = d.isoformat()
+        fdates = _frame_dates(shot)
         isp = shot.get("image_species") or []
         images = shot.get("images") or []
         weight = shot.get("weight") or 0
         for i in range(len(images)):
+            d = fdates[i]
+            if not d:
+                continue
+            key = d.isoformat()
             per_day_n[key] += 1
             if key not in day_best or weight > day_best[key][0]:
                 day_best[key] = (weight, images[i])
@@ -3063,14 +3125,15 @@ def activity_river(shots, top_n=None):
     sp_total = collections.Counter()
     sp_fam, sp_best = {}, {}
     for shot in shots:
-        d = _shot_capture_date(shot)
-        if not d:
-            continue
-        ym = "%04d-%02d" % (d.year, d.month)
+        fdates = _frame_dates(shot)
         isp = shot.get("image_species") or []
         images = shot.get("images") or []
         weight = shot.get("weight") or 0
         for i in range(len(images)):
+            d = fdates[i]
+            if not d:
+                continue
+            ym = "%04d-%02d" % (d.year, d.month)
             raw = isp[i] if i < len(isp) and isp[i] else shot.get("species")
             for name, family in _canon_species_list(raw):
                 bins[ym][name] += 1
@@ -3115,19 +3178,20 @@ def activity_river(shots, top_n=None):
 def images_on_date(shots, day):
     """Every frame captured on ``day`` (ISO date string) — the click-through
     target for the shooting-days calendar (/birds?on=YYYY-MM-DD). Uses the same
-    post-level capture date as the calendar counts, so the numbers always agree.
+    per-frame capture dates as the calendar counts, so the numbers always agree
+    (a combined-batch post contributes only the frames shot on ``day``).
 
-    All frames share a capture date here, so plain date sorting would be a
-    no-op: ``_sort`` gets the post time appended (newest/oldest fall back to
+    All shown frames share a capture date here, so plain date sorting would be
+    a no-op: ``_sort`` gets the post time appended (newest/oldest fall back to
     posting order) and the default order is a fresh shuffle, like the gallery.
     """
     buckets = []
     for shot in shots:
-        d = _shot_capture_date(shot)
-        if not d or d.isoformat() != day:
-            continue
+        fdates = _frame_dates(shot)
         bucket = []
         for i in range(len(shot.get("images") or [])):
+            if not (fdates[i] and fdates[i].isoformat() == day):
+                continue
             frame, _ = _pseudo_frame(shot, i)
             frame["_sort"] = "%sT%s" % (day, (shot.get("timestamp") or "")[11:19])
             bucket.append(frame)
