@@ -249,43 +249,6 @@
   .lv-toprow .tb>i{display:block;height:100%;background:linear-gradient(90deg,var(--green),var(--neon))}
   .lv-toprow .tc{font-family:var(--mono); font-size:.7rem; color:var(--muted); width:3rem; text-align:right}
 
-  /* Name that bird: a mystery clip, four photo tiles, a streak. */
-  .lv-quizcard{border:1px solid rgba(47,125,79,.28); border-radius:14px; padding:1.1rem 1.2rem 1.2rem;
-    background:var(--paper); max-width:46rem}
-  .lv-quiztop{display:flex; align-items:center; justify-content:space-between; gap:1rem; margin-bottom:1rem}
-  .lv-quizplay{display:inline-flex; align-items:center; gap:.55rem; cursor:pointer;
-    font-size:.78rem; text-transform:uppercase; letter-spacing:.1em; font-weight:600;
-    color:#fff; background:var(--green); border:1px solid var(--green); border-radius:999px;
-    padding:.6rem 1.25rem; transition:box-shadow .15s ease}
-  .lv-quizplay:hover{box-shadow:0 0 0 4px rgba(47,125,79,.18)}
-  .lv-quizstreak{font-size:.7rem; color:var(--muted)}
-  .lv-quizopts{display:grid; grid-template-columns:repeat(4,1fr); gap:.6rem}
-  .lv-qopt{position:relative; aspect-ratio:1/1; border:1px solid rgba(13,18,14,.14); border-radius:10px;
-    background:#dfe4dc center/cover no-repeat; cursor:pointer; overflow:hidden; padding:0;
-    transition:transform .12s ease, box-shadow .12s ease, opacity .2s ease}
-  .lv-qopt:hover{transform:translateY(-2px); box-shadow:0 6px 16px rgba(13,18,14,.16)}
-  .lv-qopt .qn{position:absolute; left:0; right:0; bottom:0; padding:.9rem .45rem .4rem;
-    font-family:var(--mono); font-size:.66rem; color:#fff; text-align:left;
-    background:linear-gradient(transparent,rgba(6,10,7,.78))}
-  .lv-qopt.miss{display:flex; align-items:center; justify-content:center}
-  .lv-qopt.miss .feather{width:34px; height:34px; background-size:contain; background-repeat:no-repeat}
-  .lv-qopt.win{box-shadow:0 0 0 3px var(--neon); transform:none}
-  .lv-qopt.win::after{content:"\2713"; position:absolute; top:.35rem; right:.5rem; color:var(--neon);
-    font-size:1.1rem; text-shadow:0 1px 4px rgba(6,10,7,.6)}
-  .lv-qopt.lose{box-shadow:0 0 0 3px #b23b2e}
-  .lv-qopt.lose::after{content:"\2717"; position:absolute; top:.35rem; right:.5rem; color:#e0654f;
-    font-size:1.1rem; text-shadow:0 1px 4px rgba(6,10,7,.6)}
-  .lv-qopt.dim{opacity:.38}
-  .lv-quizverdict{margin:.9rem 0 0; font-size:.8rem}
-  .lv-quizverdict a{color:var(--green)}
-  .lv-quizverdict .qv-t{color:var(--muted)}
-  .lv-quiznext{background:none; border:none; cursor:pointer; font:inherit; color:var(--neon);
-    font-weight:600; padding:0}
-  .lv-quiznext:hover{text-decoration:underline}
-  @media(max-width:560px){
-    .lv-quizopts{grid-template-columns:repeat(2,1fr)}
-  }
-
   /* Today's soundtrack: one 24h band per species, every recording a tick. */
   .lv-trackhint{color:var(--muted); font-size:.72rem; margin:-.6rem 0 1rem}
   .lv-trackwrap{position:relative; --tl:10rem}
@@ -390,22 +353,6 @@
       <p>A microphone in the yard, running a neural net that names birds by ear. Detections show up here the moment it's sure of one. Nothing over the confidence bar just yet.</p>
     </div>
     {% else %}
-
-    {# NAME THAT BIRD — the mic quizzes you: a mystery clip, four photo choices.
-       Pure client-side, built from the clips already on the page. #}
-    <section id="lv-quiz" hidden>
-      <p class="lv-kick">Play &mdash; name that bird</p>
-      <div class="lv-quizcard">
-        <div class="lv-quiztop">
-          <button type="button" class="lv-quizplay mono" id="lv-quizplay">
-            <span class="qp-ic">&#9654;</span> <span id="lv-quizplay-lbl">hear the mystery bird</span>
-          </button>
-          <span class="lv-quizstreak mono" id="lv-quizstreak" hidden></span>
-        </div>
-        <div class="lv-quizopts" id="lv-quizopts"></div>
-        <p class="lv-quizverdict mono" id="lv-quizverdict" hidden></p>
-      </div>
-    </section>
 
     <div class="stat-cards" id="lv-counts">
         <a class="stat-card" href="#lv-wall"><span class="stat-num">{{ sound.counts.speciesToday or 0 }}</span><span class="stat-lbl">species today</span></a>
@@ -735,122 +682,6 @@
     }
   }
   function fmtT(s) { s = Math.floor(s || 0); return Math.floor(s / 60) + ":" + ("0" + (s % 60)).slice(-2); }
-
-  /* ---- Name that bird: the mic quizzes the visitor. A mystery clip on its
-     own Audio element (the shared player would light up feed rows and leak
-     the answer), four photo tiles, streak in localStorage. ---- */
-  var qAudio = new Audio(), qCur = null, qLock = false, qStreak = 0, qBest = 0;
-  try { qBest = +localStorage.getItem("lv-quizbest") || 0; } catch (e) {}
-  function qShuffle(a) {
-    for (var i = a.length - 1; i > 0; i--) {
-      var j = Math.floor(Math.random() * (i + 1)), t = a[i]; a[i] = a[j]; a[j] = t;
-    }
-    return a;
-  }
-  function quizSpecies() {
-    var seen = {}, out = [];
-    (LIVE.species || []).forEach(function (s) {
-      if (s.photo && s.display && !seen[s.display]) { seen[s.display] = 1; out.push(s); }
-    });
-    return out;
-  }
-  function quizClips() {
-    var seen = {}, out = [];
-    ((LIVE.dayrecs || []).concat(LIVE.recent || [], LIVE.species || [])).forEach(function (r) {
-      if (r.audio && r.display && !seen[r.audio] && (r.conf == null || r.conf >= 0.75)) {
-        seen[r.audio] = 1; out.push(r);
-      }
-    });
-    return out;
-  }
-  function quizStreakUI() {
-    var el = document.getElementById("lv-quizstreak");
-    if (!el) return;
-    el.hidden = !(qStreak || qBest);
-    el.textContent = "streak " + qStreak + (qBest ? " · best " + qBest : "");
-  }
-  function quizRound(autoplay) {
-    var sec = document.getElementById("lv-quiz"), opts = document.getElementById("lv-quizopts");
-    if (!sec || !opts) return;
-    var clips = quizClips(), sps = quizSpecies();
-    if (!clips.length || sps.length < 4) { sec.hidden = true; return; }
-    sec.hidden = false;
-    qLock = false;
-    qCur = clips[Math.floor(Math.random() * clips.length)];
-    var meta = {};
-    sps.forEach(function (s) { meta[s.display] = s; });
-    var decoys = qShuffle(sps.filter(function (s) { return s.display !== qCur.display; })).slice(0, 3);
-    var tiles = qShuffle(decoys.map(function (s) {
-      return { display: s.display, photo: s.photo, ok: false };
-    }).concat([{ display: qCur.display,
-                 photo: qCur.photo || (meta[qCur.display] || {}).photo, ok: true }]));
-    opts.innerHTML = tiles.map(function (t) {
-      return '<button type="button" class="lv-qopt' + (t.photo ? '' : ' miss') + '"' +
-        (t.ok ? ' data-ok="1"' : '') +
-        (t.photo ? ' style="background-image:url(\'' + t.photo + '\')"' : '') + '>' +
-        (t.photo ? '' : FEATHER) + '<span class="qn">' + esc(t.display) + '</span></button>';
-    }).join("");
-    var v = document.getElementById("lv-quizverdict");
-    if (v) { v.hidden = true; v.innerHTML = ""; }
-    var lbl = document.getElementById("lv-quizplay-lbl");
-    if (lbl) lbl.textContent = "hear the mystery bird";
-    qAudio.src = MEDIA + qCur.audio;
-    if (autoplay) { audio.pause(); qAudio.play().catch(function () {}); }
-  }
-  function quizReveal(picked) {
-    if (qLock || !qCur) return;
-    qLock = true;
-    var right = !!picked.getAttribute("data-ok");
-    document.querySelectorAll("#lv-quizopts .lv-qopt").forEach(function (b) {
-      if (b.getAttribute("data-ok")) b.classList.add("win");
-      else if (b === picked) b.classList.add("lose");
-      else b.classList.add("dim");
-    });
-    qStreak = right ? qStreak + 1 : 0;
-    if (qStreak > qBest) {
-      qBest = qStreak;
-      try { localStorage.setItem("lv-quizbest", qBest); } catch (e) {}
-    }
-    quizStreakUI();
-    var v = document.getElementById("lv-quizverdict");
-    if (v) {
-      v.hidden = false;
-      var qt = qCur.t || qCur.last;   // species-rollup clips carry `last`, not `t`
-      if (qt && isNaN(+new Date(qt))) qt = null;
-      v.innerHTML = (right ? '&#10003; nice ear &mdash; ' : '&#10007; that was ') +
-        '<a href="' + birdHref(qCur.display) + '">' + esc(qCur.display) + '</a>' +
-        (qt ? ' <span class="qv-t">(' + clock(qt) + ')</span>' : '') +
-        ' &middot; <button type="button" class="lv-quiznext" id="lv-quiznext">next bird &rarr;</button>';
-    }
-  }
-  (function () {
-    var play = document.getElementById("lv-quizplay");
-    if (!play) return;
-    play.addEventListener("click", function () {
-      if (!qCur) return;
-      if (!qAudio.paused) { qAudio.pause(); return; }
-      audio.pause();   // one voice at a time
-      qAudio.play().catch(function () {});
-      var lbl = document.getElementById("lv-quizplay-lbl");
-      if (lbl) lbl.textContent = "hear it again";
-    });
-    var setIc = function () {
-      var ic = play.querySelector(".qp-ic");
-      if (ic) ic.innerHTML = qAudio.paused ? "&#9654;" : "&#10074;&#10074;";
-    };
-    qAudio.addEventListener("play", setIc);
-    qAudio.addEventListener("pause", setIc);
-    qAudio.addEventListener("ended", setIc);
-    document.getElementById("lv-quizopts").addEventListener("click", function (e) {
-      var b = e.target.closest(".lv-qopt");
-      if (b) quizReveal(b);
-    });
-    document.addEventListener("click", function (e) {
-      if (e.target.closest("#lv-quiznext")) { qAudio.pause(); quizRound(true); }
-    });
-    audio.addEventListener("play", function () { qAudio.pause(); });
-    quizStreakUI();
-  })();
 
   /* ---- 60fps playhead engine ----
      One rAF loop drives a single --p (progress 0..1) on every on-screen view of
@@ -1732,7 +1563,6 @@
     var top = hero && hero.audio ? hero : null;
     if (top && (isFirst || !heroClip || top.audio !== heroClip.audio)) loadHero(top);
     applyFocus();  // the feed just re-rendered — keep the deep-link focus on
-    if (!qCur) quizRound(false);   // deal the first quiz round once data lands
   }
   function poll() {
     fetch("/birds/live.json").then(function (r) { return r.json(); }).then(function (d) {
