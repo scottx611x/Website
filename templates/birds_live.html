@@ -139,7 +139,7 @@
   .lv-confbar label{white-space:nowrap} .lv-confbar label b{color:var(--green); font-weight:600}
   /* accent-color tints the native slider green on iOS/desktop reliably — the
      appearance:none custom-thumb route was being ignored on iOS (default blue). */
-  .lv-confrange{flex:1; min-width:120px; accent-color:var(--green); cursor:pointer; height:22px}
+  #lv-confrange{flex:1; min-width:120px; accent-color:#2f7d4f; cursor:pointer; height:22px}
   .lv-confnote{white-space:nowrap}
   .lv-lowtoggle{border:none; background:none; color:var(--green); font-family:var(--mono); font-size:.72rem; cursor:pointer; padding:0; text-decoration:underline; text-underline-offset:2px}
   .lv-lowdiv{font-size:.62rem; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); margin:.8rem 0 .2rem; padding-top:.5rem; border-top:1px dashed rgba(13,18,14,.16)}
@@ -249,6 +249,26 @@
   .lv-toprow .tb>i{display:block;height:100%;background:linear-gradient(90deg,var(--green),var(--neon))}
   .lv-toprow .tc{font-family:var(--mono); font-size:.7rem; color:var(--muted); width:3rem; text-align:right}
 
+  /* The broadcast: one big play affordance; the deck under it is the station. */
+  .lv-onair{display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap}
+  .lv-bcast{display:inline-flex; align-items:center; gap:.55rem; cursor:pointer;
+    font-size:.78rem; text-transform:uppercase; letter-spacing:.12em; font-weight:600;
+    color:#fff; background:var(--green); border:1px solid var(--green); border-radius:999px;
+    padding:.62rem 1.3rem; transition:background .15s ease, box-shadow .15s ease}
+  .lv-bcast:hover{box-shadow:0 0 0 4px rgba(47,125,79,.18)}
+  .lv-bcast .bc-ic{font-size:.85em}
+  .lv-bcast.on{background:#1e2b22; border-color:#1e2b22}
+  .lv-bcast.on .bc-ic{color:var(--neon); animation:lv-onair 1.4s ease-in-out infinite}
+  @keyframes lv-onair{50%{opacity:.35}}
+  .lv-skip{width:30px; height:30px; border-radius:50%; border:1px solid rgba(255,255,255,.3);
+    background:rgba(6,10,7,.35); color:#e6efe8; cursor:pointer; font-size:.5rem; flex:0 0 auto}
+  .lv-skip:hover{border-color:var(--neon); color:var(--neon)}
+  .lv-upnext{padding:.55rem .9rem .65rem; font-size:.68rem; color:rgba(230,240,232,.72);
+    background:var(--ink)}
+  .lv-upnext .lv-unx{background:none; border:none; cursor:pointer; font:inherit;
+    color:var(--neon); opacity:.85; padding:0}
+  .lv-upnext .lv-unx:hover{opacity:1; text-decoration:underline}
+
   /* Today's soundtrack: one 24h band per species, every recording a tick. */
   .lv-trackhint{color:var(--muted); font-size:.72rem; margin:-.6rem 0 1rem}
   .lv-trackwrap{position:relative; --tl:10rem}
@@ -354,20 +374,20 @@
     </div>
     {% else %}
 
-    <div class="stat-cards" id="lv-counts">
-        <a class="stat-card" href="#lv-wall"><span class="stat-num">{{ sound.counts.speciesToday or 0 }}</span><span class="stat-lbl">species today</span></a>
-        <a class="stat-card" href="/birds/live/log"><span class="stat-num">{{ sound.counts.callsToday or 0 }}</span><span class="stat-lbl">recordings today</span></a>
-        <a class="stat-card" href="/birds/heard"><span class="stat-num">{{ sound.counts.speciesAllTime or 0 }}</span><span class="stat-lbl">species heard all-time</span></a>
-        <a class="stat-card" href="/birds/live/log"><span class="stat-num">{{ "{:,}".format(sound.counts.callsAllTime or 0) }}</span><span class="stat-lbl">recordings all-time</span></a>
-    </div>
-
     {# NOW — most recent call: the photo, and the sound itself #}
     {# The hero is the newest recording we can actually PLAY, so the card always
        has a working player — not just whatever's newest (a clip may not be
        transcoded yet). JS keeps this in sync on every poll. #}
     {% set r0 = (sound.recent | selectattr('audio') | first) or sound.recent[0] %}
     <section>
-      <p class="lv-kick" id="lv-nowkick">Just heard</p>
+      <div class="lv-onair">
+        <p class="lv-kick" id="lv-nowkick">Just heard</p>
+        {# The station's one big affordance: play the day's recordings in order,
+           dawn onward, as a broadcast — the deck advances clip to clip. #}
+        <button type="button" class="lv-bcast mono" id="lv-bcast" hidden>
+          <span class="bc-ic">&#9654;</span> <span id="lv-bcast-label">listen to today</span>
+        </button>
+      </div>
       <div class="lv-now">
         <div class="lv-herocard">
         <div id="lv-hero">
@@ -409,13 +429,16 @@
               <button type="button" class="lv-expand" data-zoom="hero" aria-label="enlarge spectrogram">&#8599;</button>
             </div>
             <div class="lv-pctl">
+              <button class="lv-skip" id="lv-prev" hidden aria-label="previous recording">&#9664;&#9664;</button>
               <button class="lv-playbtn" id="lv-playbtn" aria-label="play the recording">&#9654;</button>
+              <button class="lv-skip" id="lv-next" hidden aria-label="next recording">&#9654;&#9654;</button>
               <div class="lv-ptxt">
                 <div class="lv-pname" id="lv-pname"></div>
                 <div class="lv-psub" id="lv-psub"></div>
               </div>
               <span class="lv-ptime" id="lv-ptime">0:00</span>
             </div>
+            <div class="lv-upnext mono" id="lv-upnext" hidden></div>
           </div>
         </div>
         <div class="lv-side">
@@ -449,6 +472,13 @@
         </div>
       </div>
     </section>
+
+    <div class="stat-cards" id="lv-counts">
+        <a class="stat-card" href="#lv-wall"><span class="stat-num">{{ sound.counts.speciesToday or 0 }}</span><span class="stat-lbl">species today</span></a>
+        <a class="stat-card" href="/birds/live/log"><span class="stat-num">{{ sound.counts.callsToday or 0 }}</span><span class="stat-lbl">recordings today</span></a>
+        <a class="stat-card" href="/birds/heard"><span class="stat-num">{{ sound.counts.speciesAllTime or 0 }}</span><span class="stat-lbl">species heard all-time</span></a>
+        <a class="stat-card" href="/birds/live/log"><span class="stat-num">{{ "{:,}".format(sound.counts.callsAllTime or 0) }}</span><span class="stat-lbl">recordings all-time</span></a>
+    </div>
 
     {# HEARD TODAY VS PHOTOGRAPHED — scoped to the active day #}
     <section>
@@ -645,6 +675,9 @@
     else { img.removeAttribute("src"); img.parentElement.style.display = "none"; }
   }
   function playClip(r, ctx, fraction) {
+    // A manual play anywhere on the page takes the station off air (the queue
+    // survives, so the broadcast button reads "resume").
+    if (bcOn && !_bcAdvance) { bcOn = false; bcUpdateUI(); }
     var changing = !current || current.audio !== r.audio;
     if (changing) audio.src = MEDIA + r.audio;
     current = { audio: r.audio, needle: ctx.needle, isHero: !!ctx.isHero };
@@ -682,6 +715,67 @@
     }
   }
   function fmtT(s) { s = Math.floor(s || 0); return Math.floor(s / 60) + ":" + ("0" + (s % 60)).slice(-2); }
+
+  /* ---- the broadcast: today's recordings, dawn onward, as one show.
+     One button builds the queue and rolls the deck clip to clip ('ended'
+     advances it); manual play of anything else takes the station off air. ---- */
+  var bcOn = false, bcQueue = [], bcIdx = -1, _bcAdvance = false;
+  function bcBuild() {
+    var thr = confMin / 100;
+    var recs = todayScoped().filter(function (r) { return r.audio && (r.conf || 0) >= thr; });
+    recs.sort(function (a, b) { return a.t < b.t ? -1 : a.t > b.t ? 1 : 0; });
+    return recs;
+  }
+  function bcPlay(i) {
+    if (i < 0) i = 0;
+    if (i >= bcQueue.length) { bcOn = false; bcUpdateUI(); return; }   // show's over
+    bcIdx = i;
+    var r = bcQueue[i];
+    bcOn = true;
+    renderHero(r); stampTimes(); loadHero(r);
+    _bcAdvance = true;
+    try { playClip(r, { needle: document.getElementById("lv-needle"), isHero: true }); }
+    finally { _bcAdvance = false; }
+    bcUpdateUI();
+  }
+  function bcUpdateUI() {
+    var btn = document.getElementById("lv-bcast"), lbl = document.getElementById("lv-bcast-label");
+    var kick = document.getElementById("lv-nowkick");
+    var prev = document.getElementById("lv-prev"), next = document.getElementById("lv-next");
+    var un = document.getElementById("lv-upnext");
+    if (!btn) return;
+    var q = bcOn ? bcQueue : bcBuild();
+    btn.hidden = !q.length;
+    btn.classList.toggle("on", bcOn);
+    if (lbl) lbl.textContent = bcOn ? "on air — stop"
+      : (bcIdx >= 0 && bcIdx < bcQueue.length - 1 ? "resume the broadcast"
+         : "listen to today — " + q.length + " recording" + (q.length === 1 ? "" : "s"));
+    if (kick) kick.textContent = bcOn ? "On air — the yard, in order" : "Just heard";
+    if (prev) prev.hidden = !bcOn;
+    if (next) next.hidden = !bcOn;
+    if (un) {
+      var items = bcOn ? bcQueue.slice(bcIdx + 1, bcIdx + 4) : [];
+      un.hidden = !items.length;
+      un.innerHTML = items.length ? 'up next &middot; ' + items.map(function (r, k) {
+        return '<button type="button" class="lv-unx" data-bi="' + (bcIdx + 1 + k) + '">' +
+          clock(r.t) + " " + esc(r.display) + "</button>";
+      }).join(" &middot; ") : "";
+    }
+  }
+  (function () {
+    var btn = document.getElementById("lv-bcast");
+    if (!btn) return;
+    btn.addEventListener("click", function () {
+      if (bcOn) { bcOn = false; audio.pause(); bcUpdateUI(); return; }
+      if (!bcQueue.length || bcIdx >= bcQueue.length - 1) { bcQueue = bcBuild(); bcIdx = -1; }
+      bcPlay(bcIdx + 1);
+    });
+    document.getElementById("lv-prev").addEventListener("click", function () { bcPlay(Math.max(0, bcIdx - 1)); });
+    document.getElementById("lv-next").addEventListener("click", function () { bcPlay(bcIdx + 1); });
+    document.getElementById("lv-upnext").addEventListener("click", function (e) {
+      var b = e.target.closest(".lv-unx"); if (b) bcPlay(+b.getAttribute("data-bi"));
+    });
+  })();
 
   /* ---- 60fps playhead engine ----
      One rAF loop drives a single --p (progress 0..1) on every on-screen view of
@@ -731,11 +825,18 @@
     });
     audio.addEventListener("play", function () { syncViews(); startRaf(); });
     audio.addEventListener("pause", function () { syncViews(); paint(); });
-    audio.addEventListener("ended", function () { syncViews(); paint(); });
+    audio.addEventListener("ended", function () {
+      syncViews(); paint();
+      if (bcOn) bcPlay(bcIdx + 1);   // the broadcast rolls on to the next clip
+    });
     audio.addEventListener("seeked", paint);
     audio.addEventListener("loadedmetadata", paint);
     // Clips not public yet (or expired): pull the whole affordance, no broken UI.
-    audio.addEventListener("error", function () { root.classList.add("no-media"); });
+    // Mid-broadcast, one bad clip just yields the floor to the next.
+    audio.addEventListener("error", function () {
+      if (bcOn) { bcPlay(bcIdx + 1); return; }
+      root.classList.add("no-media");
+    });
 
     // Hover to scrub: a ghost needle + time bubble track the cursor (pointer
     // devices); the click handlers already seek to where you release.
@@ -1550,7 +1651,7 @@
     hero = hero || pool[0] || data.recent[0];  // last resort: show the card even if silent
     renderCounts(data.counts || {});
     curHero = hero;   // feed excludes this exact clip so it isn't shown twice
-    renderHero(hero);
+    if (!bcOn) renderHero(hero);   // never yank the deck mid-broadcast
     renderNodes();
     renderHourStrip();
     renderFeed(data.recent, newTop);
@@ -1561,8 +1662,9 @@
     // don't reload (and interrupt playback) just because a no-audio detection
     // bumped the feed.
     var top = hero && hero.audio ? hero : null;
-    if (top && (isFirst || !heroClip || top.audio !== heroClip.audio)) loadHero(top);
+    if (!bcOn && top && (isFirst || !heroClip || top.audio !== heroClip.audio)) loadHero(top);
     applyFocus();  // the feed just re-rendered — keep the deep-link focus on
+    bcUpdateUI();  // fresh data may change the broadcast's clip count
   }
   function poll() {
     fetch("/birds/live.json").then(function (r) { return r.json(); }).then(function (d) {
