@@ -121,7 +121,10 @@
         {% if p.species and p.species != p.title %}{% set _ = meta.append(p.species) %}{% endif %}
         {% if p.location %}{% set _ = meta.append(p.location) %}{% endif %}
         {% if p.date %}{% set _ = meta.append(p.date) %}{% endif %}
-        <figure class="shot {{ span }}{% if p.hidden %} pg-hidden{% endif %}" data-id="{{ p.id }}" data-ar="{{ ar|round(4) }}" data-image-indices='{{ range(grp|length)|list|tojson }}'
+        {# data-index is what the shared lightbox sorts on: curate mode deals
+           cards into masonry columns, so DOM order stops matching what you see
+           and prev/next would walk column-by-column without it. #}
+        <figure class="shot {{ span }}{% if p.hidden %} pg-hidden{% endif %}" data-id="{{ p.id }}" data-index="{{ loop.index0 }}" data-ar="{{ ar|round(4) }}" data-image-indices='{{ range(grp|length)|list|tojson }}'
                 data-images='{{ grp|map(attribute="image")|list|tojson }}' data-captions='{{ caps|tojson }}'
                 tabindex="0" role="button" aria-label="View {{ p.title or 'photo' }} larger">
             <img loading="lazy" decoding="async" src="{{ p.thumb or p.image }}"
@@ -190,6 +193,9 @@
 {% endif %}
 {% if curate %}
 <script>
+    // Tell the shared lightbox these cards are photos, so its curate panel
+    // saves to /photography/edit instead of the birds override endpoint.
+    window.PHOTO_CURATE = true;
     function photoSave(id, patch, el) {
         if (el) el.classList.remove("saved", "save-failed");
         fetch("/photography/edit", {

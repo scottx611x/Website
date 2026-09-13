@@ -26,6 +26,7 @@ import json
 import os
 import random
 import re
+import threading
 import zlib
 
 import requests
@@ -40,11 +41,26 @@ MANUAL_BIRDS_FILE = os.path.join(HERE, "birds", "manual_birds.json")
 
 def _atomic_write_json(path, data, sort_keys=False):
     """Write JSON via a temp file + rename so a concurrent reader never sees a
-    half-written (or empty) file."""
-    tmp = "%s.tmp.%d" % (path, os.getpid())
-    with open(tmp, "w") as fh:
-        json.dump(data, fh, indent=2, sort_keys=sort_keys)
-    os.replace(tmp, path)
+    half-written (or empty) file.
+
+    The temp name carries the THREAD id as well as the pid: the web app is
+    threaded, and two curate saves landing together used to share one temp
+    file, interleave their writes, and rename the resulting garbage over the
+    real manifest (seen for real: a thumb URL with another field spliced into
+    it). Per-thread temps keep each writer's bytes to itself; the rename still
+    makes the last writer win cleanly.
+    """
+    tmp = "%s.tmp.%d.%d" % (path, os.getpid(), threading.get_ident())
+    try:
+        with open(tmp, "w") as fh:
+            json.dump(data, fh, indent=2, sort_keys=sort_keys)
+        os.replace(tmp, path)
+    except Exception:
+        try:
+            os.unlink(tmp)          # never leave a partial temp lying around
+        except OSError:
+            pass
+        raise
 
 GRAPH_BASE = "https://graph.instagram.com"
 MEDIA_FIELDS = (

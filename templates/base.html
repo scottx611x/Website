@@ -254,6 +254,7 @@
                             n: i + 1, of: urls.length, postId: pid, index: i,
                             origIndex: (ixs && ixs[i] != null) ? ixs[i] : i,
                             away: (ars && ars[i]) === "away",
+                            hidden: el.classList.contains("pg-hidden"),
                             video: (vds && vds[i]) || null, captionSpecies: csp || [],
                             cardEl: el  // the grid figure this frame came from
                         });
@@ -330,10 +331,43 @@
             box.addEventListener("click", function (e) {
                 if (_swiped) { _swiped = false; e.stopPropagation(); }  // swipe shouldn't close
             }, true);
+            // The lightbox is shared with /photography, whose entries are photos,
+            // not bird posts — their edits go to /photography/edit keyed by photo
+            // id. Without this the panel rendered but every save 400'd silently.
+            var PHOTOS = !!window.PHOTO_CURATE;
+            if (PHOTOS) {
+                // Bird-only controls: a photo has no posted date, no out-of-area
+                // flag and no re-ID queue. Leaving them on screen implied edits
+                // that could never land.
+                ["lightbox-posted", "lightbox-area", "lightbox-reid"].forEach(function (id) {
+                    var el = document.getElementById(id);
+                    // display:none directly — .lightbox-datefield sets a flex
+                    // display, which outranks the [hidden] attribute.
+                    if (el) (el.closest(".lightbox-datefield") || el).style.display = "none";
+                });
+                if (speciesInput) speciesInput.placeholder = "subject";
+            }
+            function savePhoto(f, patch, el) {
+                if (el) el.classList.remove("saved", "save-failed");
+                return fetch("/photography/edit", {
+                    method: "POST", headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(Object.assign({ id: f.postId }, patch))
+                }).then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+                  .then(function (res) {
+                    if (!res.ok) throw new Error("no such photo");
+                    if (el) { el.classList.add("saved"); setTimeout(function () { el.classList.remove("saved"); }, 1400); }
+                    return res;
+                  }).catch(function (e) { if (el) el.classList.add("save-failed"); throw e; });
+            }
             function saveLightboxSpecies() {
                 var f = frames[idx]; if (!f || !speciesInput) return;
                 var name = speciesInput.value.trim();
                 speciesInput.classList.remove("saved", "save-failed");
+                if (PHOTOS) {
+                    savePhoto(f, { species: name }, speciesInput)
+                        .then(function () { f.species = name; renderLabel(f); }).catch(function () {});
+                    return;
+                }
                 var imgs = {}; imgs[f.origIndex] = name;
                 fetch("/curate/override", {
                     method: "POST", headers: { "Content-Type": "application/json" },
@@ -374,6 +408,11 @@
                 var f = frames[idx]; if (!f || !locationInput) return;
                 var loc = locationInput.value.trim();
                 locationInput.classList.remove("saved", "save-failed");
+                if (PHOTOS) {
+                    savePhoto(f, { location: loc }, locationInput)
+                        .then(function () { f.location = loc; renderLabel(f); }).catch(function () {});
+                    return;
+                }
                 var locs = {}; locs[f.origIndex] = loc;
                 fetch("/curate/override", {
                     method: "POST", headers: { "Content-Type": "application/json" },
@@ -398,6 +437,15 @@
                 var f = frames[idx]; if (!f || !dateInput) return;
                 var iso = dateInput.value;  // "" clears back to the caption/post date
                 dateInput.classList.remove("saved", "save-failed");
+                if (PHOTOS) {
+                    savePhoto(f, { date: iso }, dateInput).then(function () {
+                        f.sighted = iso;
+                        f.date = iso ? new Date(iso + "T12:00:00").toLocaleDateString("en-US",
+                            { month: "short", day: "numeric", year: "numeric" }) : f.date;
+                        renderLabel(f);
+                    }).catch(function () {});
+                    return;
+                }
                 fetch("/curate/override", {
                     method: "POST", headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ id: f.postId, capture_date: iso })
@@ -462,14 +510,38 @@
             if (removeBtn) removeBtn.addEventListener("click", function (e) {
                 e.stopPropagation();
                 var f = frames[idx]; if (!f) return;
-                var unhiding = window.CURATE_HIDDEN_VIEW;
+                var unhiding = PHOTOS ? !!f.hidden : window.CURATE_HIDDEN_VIEW;
                 removeBtn.disabled = true;
                 removeBtn.textContent = unhiding ? "un-hiding…" : "hiding…";
-                fetch("/curate/exclude-image", {
-                    method: "POST", headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ id: f.postId, index: f.origIndex })
-                }).then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+                (PHOTOS
+                  ? fetch("/photography/edit", {
+                        method: "POST", headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ id: f.postId, hidden: !unhiding })
+                    })
+                  : fetch("/curate/exclude-image", {
+                        method: "POST", headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ id: f.postId, index: f.origIndex })
+                    })
+                ).then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
                   .then(function () {
+                    if (PHOTOS) {
+                        // A hidden photo keeps its card (dimmed) so the hide can be
+                        // undone from the same place — no splice, no advance.
+                        f.hidden = !unhiding;
+                        if (f.cardEl) f.cardEl.classList.toggle("pg-hidden", !!f.hidden);
+                        var pb = f.cardEl && f.cardEl.querySelector(".pe-hide");
+                        if (pb) {
+                            pb.setAttribute("aria-pressed", f.hidden ? "true" : "false");
+                            pb.innerHTML = f.hidden ? "↺ restore to gallery" : "× hide from gallery";
+                        }
+                        removeBtn.innerHTML = f.hidden ? "✓ hidden" : "✓ restored";
+                        removeBtn.classList.add("did-act");
+                        setTimeout(function () {
+                            removeBtn.classList.remove("did-act");
+                            removeBtn.innerHTML = f.hidden ? "↺ restore photo" : "× hide photo";
+                        }, 900);
+                        return;
+                    }
                     // Curate is an exploded-frame grid, so each frame IS one card:
                     // fade it out of the grid so the hide is visibly confirmed behind
                     // the lightbox, flash a confirmation, then advance to the next.
