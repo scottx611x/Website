@@ -126,6 +126,11 @@
            and prev/next would walk column-by-column without it. #}
         <figure class="shot {{ span }}{% if p.hidden %} pg-hidden{% endif %}" data-id="{{ p.id }}" data-index="{{ loop.index0 }}" data-ar="{{ ar|round(4) }}" data-image-indices='{{ range(grp|length)|list|tojson }}'
                 data-images='{{ grp|map(attribute="image")|list|tojson }}' data-captions='{{ caps|tojson }}'
+                data-photo-ids='{{ grp|map(attribute="id", default="")|list|tojson }}'
+                data-titles='{{ grp|map(attribute="title", default="")|list|tojson }}'
+                data-species='{{ grp|map(attribute="species", default="")|list|tojson }}'
+                data-locations='{{ grp|map(attribute="location", default="")|list|tojson }}'
+                data-dates='{{ grp|map(attribute="date", default="")|list|tojson }}'
                 tabindex="0" role="button" aria-label="View {{ p.title or 'photo' }} larger">
             <img loading="lazy" decoding="async" src="{{ p.thumb or p.image }}"
                  {% if p.w and p.h %}width="{{ p.w }}" height="{{ p.h }}"{% endif %}

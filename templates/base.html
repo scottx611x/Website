@@ -94,6 +94,7 @@
             {% if curate %}
             <div id="lightbox-suggest" class="lightbox-suggest" hidden></div>
             <div class="lightbox-curate">
+                <input type="text" id="lightbox-title" class="lightbox-species" placeholder="title" aria-label="Edit this photo's title" hidden>
                 <input type="text" id="lightbox-species" class="lightbox-species" placeholder="species" aria-label="Rename this bird">
                 <input type="text" id="lightbox-location" class="lightbox-species lightbox-location" placeholder="location" aria-label="Edit this photo's location">
                 <label class="lightbox-datefield"><span>taken</span><input type="date" id="lightbox-date" aria-label="Edit this photo's capture date" title="Capture date"></label>
@@ -245,6 +246,15 @@
                     var ixs; try { ixs = JSON.parse(el.getAttribute("data-image-indices")); } catch (_) { ixs = []; }
                     var vds; try { vds = JSON.parse(el.getAttribute("data-image-videos")); } catch (_) { vds = []; }
                     var csp; try { csp = JSON.parse(el.getAttribute("data-caption-species")); } catch (_) { csp = []; }
+                    // Photo cards can group several photos behind one cover, so
+                    // each frame carries its OWN id and fields — editing frame 3
+                    // must not write to the card's first photo.
+                    var pid_, ptit, pspc, ploc, pdat;
+                    try { pid_ = JSON.parse(el.getAttribute("data-photo-ids")); } catch (_) { pid_ = []; }
+                    try { ptit = JSON.parse(el.getAttribute("data-titles")); } catch (_) { ptit = []; }
+                    try { pspc = JSON.parse(el.getAttribute("data-species")); } catch (_) { pspc = []; }
+                    try { ploc = JSON.parse(el.getAttribute("data-locations")); } catch (_) { ploc = []; }
+                    try { pdat = JSON.parse(el.getAttribute("data-dates")); } catch (_) { pdat = []; }
                     el._frameStart = frames.length;
                     urls.forEach(function (u, i) {
                         frames.push({
@@ -255,6 +265,11 @@
                             origIndex: (ixs && ixs[i] != null) ? ixs[i] : i,
                             away: (ars && ars[i]) === "away",
                             hidden: el.classList.contains("pg-hidden"),
+                            photoId: (pid_ && pid_[i]) || null,
+                            title: (ptit && ptit[i]) || "",
+                            photoSpecies: (pspc && pspc[i]) || "",
+                            photoLocation: (ploc && ploc[i]) || "",
+                            photoDate: (pdat && pdat[i]) || "",
                             video: (vds && vds[i]) || null, captionSpecies: csp || [],
                             cardEl: el  // the grid figure this frame came from
                         });
@@ -277,9 +292,22 @@
                 renderLabel(f);
                 renderReid(f);
                 renderSuggest(f);
-                if (speciesInput) { speciesInput.value = f.species || ""; speciesInput.classList.remove("saved", "save-failed"); }
-                if (locationInput) { locationInput.value = f.location || ""; locationInput.classList.remove("saved", "save-failed"); }
-                if (dateInput) { dateInput.value = (f.sighted || "").slice(0, 10); dateInput.classList.remove("saved", "save-failed"); }
+                var tIn = document.getElementById("lightbox-title");
+                if (tIn && !tIn.hidden) { tIn.value = f.title || ""; tIn.classList.remove("saved", "save-failed"); }
+                if (speciesInput) {
+                    // On a photo the species field is its own value, not the
+                    // display species the caption composed.
+                    speciesInput.value = (window.PHOTO_CURATE ? f.photoSpecies : f.species) || "";
+                    speciesInput.classList.remove("saved", "save-failed");
+                }
+                if (locationInput) {
+                    locationInput.value = (window.PHOTO_CURATE ? f.photoLocation : f.location) || "";
+                    locationInput.classList.remove("saved", "save-failed");
+                }
+                if (dateInput) {
+                    dateInput.value = ((window.PHOTO_CURATE ? f.photoDate : f.sighted) || "").slice(0, 10);
+                    dateInput.classList.remove("saved", "save-failed");
+                }
                 if (postedInput) { postedInput.value = (f.posted || "").slice(0, 10); postedInput.classList.remove("saved", "save-failed"); }
                 if (areaBtn) {
                     areaBtn.classList.toggle("on", !!f.away);
@@ -345,13 +373,32 @@
                     // display, which outranks the [hidden] attribute.
                     if (el) (el.closest(".lightbox-datefield") || el).style.display = "none";
                 });
-                if (speciesInput) speciesInput.placeholder = "subject";
+                if (speciesInput) speciesInput.placeholder = "species (optional)";
+                var ti = document.getElementById("lightbox-title");
+                if (ti) {
+                    ti.hidden = false;
+                    ti.addEventListener("click", function (e) { e.stopPropagation(); });
+                    ti.addEventListener("change", function () {
+                        var f = frames[idx]; if (!f) return;
+                        var v = ti.value.trim();
+                        savePhoto(f, { title: v }, ti).then(function () {
+                            f.title = v;
+                            f.caption = [v, f.photoSpecies !== v ? f.photoSpecies : "",
+                                         f.location, f.date].filter(Boolean).join("  ·  ");
+                            renderLabel(f);
+                            var pt = f.cardEl && f.cardEl.querySelector(".pg-title");
+                            if (pt) pt.textContent = v;
+                            var inline = f.cardEl && f.cardEl.querySelector(".photo-edit .pe-field");
+                            if (inline) inline.value = v;
+                        }).catch(function () {});
+                    });
+                }
             }
             function savePhoto(f, patch, el) {
                 if (el) el.classList.remove("saved", "save-failed");
                 return fetch("/photography/edit", {
                     method: "POST", headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(Object.assign({ id: f.postId }, patch))
+                    body: JSON.stringify(Object.assign({ id: f.photoId || f.postId }, patch))
                 }).then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
                   .then(function (res) {
                     if (!res.ok) throw new Error("no such photo");
