@@ -575,6 +575,13 @@ body.home .site-nav { z-index: 0; }
 .strip-links .more { margin: 0.8rem 0 0; }
 
 /* ====================== SIGHTINGS MAP ====================== */
+/* OSM's raster tiles are louder than this site's paper palette, so the tile
+   pane gets toned down: desaturated, lightened, and warmed toward the cream
+   ground. Only the basemap is filtered — pins and popups sit in other panes
+   and keep their true colors. */
+.leaflet-tile-pane {
+    filter: saturate(0.20) brightness(1.16) contrast(0.82) sepia(0.32);
+}
 #sightings-map {
     height: min(72vh, 760px); border-radius: 12px; z-index: 1;
     border: 1px solid rgba(13, 18, 14, 0.12); box-shadow: 0 10px 30px -18px rgba(13, 18, 14, 0.35);

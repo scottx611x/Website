@@ -305,8 +305,8 @@
         if (!PTS.length) return;
         var map = L.map(el, { scrollWheelZoom: false, zoomControl: false, attributionControl: false });
         L.control.zoom({ position: "bottomright" }).addTo(map);
-        L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png", {
-            attribution: '&copy; OpenStreetMap &copy; CARTO', maxZoom: 19
+        L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+            attribution: '&copy; OpenStreetMap contributors', maxZoom: 19
         }).addTo(map);
         function esc(s) { var d = document.createElement("i"); d.textContent = s == null ? "" : s; return d.innerHTML; }
         var mx = PTS.reduce(function (m, p) { return Math.max(m, p.count); }, 1);
