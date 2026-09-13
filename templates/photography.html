@@ -15,7 +15,10 @@
     .pg-chip.on { background:var(--green); color:#fff; border-color:var(--green); }
     .pg-chip.on .n { color:rgba(255,255,255,.7); }
     /* Card caption: subject in the display face, meta in mono; a category tag. */
-    .shot .pg-cap { position:absolute; inset:auto 0 0 0; display:flex; flex-direction:column; gap:.1rem;
+    /* Decorative overlay only — without this it sits on top of the curate
+       edit panel and swallows clicks meant for the fields and hide button. */
+    .shot .pg-cap { pointer-events:none;
+                    position:absolute; inset:auto 0 0 0; display:flex; flex-direction:column; gap:.1rem;
                     padding:1.4rem .8rem .7rem; color:#fff; background:linear-gradient(transparent,rgba(6,10,7,.82));
                     opacity:0; transition:opacity .3s; }
     /* Both grids: the public page renders .pg-just, curate mode .masonry —
@@ -60,6 +63,17 @@
                 border:1px solid rgba(13,18,14,.18); border-radius:.35rem; background:var(--paper); color:var(--ink); }
     .photo-edit .pe-field.saved { border-color:var(--green); }
     .photo-edit .pe-field.save-failed { border-color:#c0473b; }
+    .photo-edit .pe-hide { font:inherit; font-size:.72rem; cursor:pointer; padding:.26rem .45rem;
+                border:1px solid rgba(13,18,14,.18); border-radius:.35rem; background:var(--paper);
+                color:var(--muted); }
+    .photo-edit .pe-hide:hover { border-color:#c0473b; color:#c0473b; }
+    .photo-edit .pe-hide[aria-pressed="true"] { border-color:var(--green); color:var(--green); }
+    /* A hidden photo stays on screen in curate mode, dimmed and struck, so the
+       restore control sits exactly where the hide happened. */
+    .shot.pg-hidden img { opacity:.32; filter:grayscale(.7); }
+    .shot.pg-hidden::before { content:"hidden"; position:absolute; z-index:3; top:.5rem; right:.5rem;
+                font-family:var(--mono); font-size:.6rem; letter-spacing:.08em; text-transform:uppercase;
+                padding:.16rem .5rem; border-radius:999px; background:rgba(192,71,59,.9); color:#fff; }
 </style>
 <section class="page wide">
     <header class="gallery-header">
@@ -107,7 +121,7 @@
         {% if p.species and p.species != p.title %}{% set _ = meta.append(p.species) %}{% endif %}
         {% if p.location %}{% set _ = meta.append(p.location) %}{% endif %}
         {% if p.date %}{% set _ = meta.append(p.date) %}{% endif %}
-        <figure class="shot {{ span }}" data-id="{{ p.id }}" data-ar="{{ ar|round(4) }}" data-image-indices='{{ range(grp|length)|list|tojson }}'
+        <figure class="shot {{ span }}{% if p.hidden %} pg-hidden{% endif %}" data-id="{{ p.id }}" data-ar="{{ ar|round(4) }}" data-image-indices='{{ range(grp|length)|list|tojson }}'
                 data-images='{{ grp|map(attribute="image")|list|tojson }}' data-captions='{{ caps|tojson }}'
                 tabindex="0" role="button" aria-label="View {{ p.title or 'photo' }} larger">
             <img loading="lazy" decoding="async" src="{{ p.thumb or p.image }}"
@@ -132,6 +146,9 @@
                 <input class="pe-field" value="{{ (p.tags or [])|join(', ') }}" list="photoTagList"
                        placeholder="tags, comma-separated" aria-label="Tags"
                        onchange="photoSave('{{ p.id }}', {tags:this.value.split(',')}, this)">
+                <button type="button" class="pe-hide" data-id="{{ p.id }}"
+                        aria-pressed="{{ 'true' if p.hidden else 'false' }}"
+                        onclick="photoHide(this)">{{ '&#8634; restore to gallery'|safe if p.hidden else '&times; hide from gallery'|safe }}</button>
             </div>
             {% endif %}
         </figure>
@@ -183,6 +200,20 @@
             if (!res.ok) throw 0;
             if (el) { el.classList.add("saved"); setTimeout(function () { el.classList.remove("saved"); }, 1200); }
           }).catch(function () { if (el) el.classList.add("save-failed"); });
+    }
+    // Hide/restore: the card dims in place rather than vanishing, so the undo
+    // is always right where the mistake happened.
+    function photoHide(btn) {
+        var card = btn.closest(".shot");
+        var hiding = btn.getAttribute("aria-pressed") !== "true";
+        btn.disabled = true;
+        photoSave(btn.getAttribute("data-id"), { hidden: hiding });
+        setTimeout(function () {
+            btn.disabled = false;
+            btn.setAttribute("aria-pressed", hiding ? "true" : "false");
+            btn.innerHTML = hiding ? "↺ restore to gallery" : "× hide from gallery";
+            if (card) card.classList.toggle("pg-hidden", hiding);
+        }, 120);
     }
 </script>
 {% endif %}

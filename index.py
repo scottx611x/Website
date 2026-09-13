@@ -270,6 +270,10 @@ def photography():
     if "photography" in HIDDEN_PAGES:
         abort(404)
     photos = birds.load_photos()
+    # Hidden photos stay in the store (and on S3) but leave the public gallery;
+    # curate mode still shows them, dimmed, so a hide can be undone.
+    if not _curate_on():
+        photos = [p for p in photos if not p.get("hidden")]
     tag = (request.args.get("tag") or "").strip()
     shown = [p for p in photos if not tag or tag in (p.get("tags") or [])]
     if _curate_on():
@@ -316,7 +320,7 @@ def photography_edit():
     pid = (data.get("id") or "").strip()
     if not pid:
         abort(400)
-    fields = {k: data[k] for k in ("title", "species", "location", "date", "tags")
+    fields = {k: data[k] for k in ("title", "species", "location", "date", "tags", "hidden")
               if k in data}
     photo = birds.set_photo(pid, fields)
     return {"ok": bool(photo), "photo": photo}

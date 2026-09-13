@@ -1553,10 +1553,21 @@ def load_photos():
 
 def set_photo(photo_id, fields):
     """Update one photo's editable metadata (title/species/location/date/tags)
-    from the curate editor. Returns the updated entry, or None if unknown."""
+    from the curate editor, or hide it from the gallery. Returns the updated
+    entry, or None if unknown.
+
+    Hiding sets a ``hidden`` flag rather than deleting: the S3 copy and the
+    manifest entry stay, so a hide is always undoable from curate mode (the
+    same reversible-by-default stance as the birds gallery's exclusions).
+    """
     photos = load_photos()
     for p in photos:
         if p.get("id") == photo_id:
+            if "hidden" in fields:
+                if fields["hidden"]:
+                    p["hidden"] = True
+                else:
+                    p.pop("hidden", None)
             for k in _PHOTO_FIELDS:
                 if k in fields:
                     if k == "tags":

@@ -23,6 +23,7 @@
     "location": "",
     "date": "2026-09-09",
     "tags": [
+      "mammal",
       "sadie"
     ],
     "w": 2048,
@@ -46,8 +47,8 @@
     "id": "fad67553426d",
     "image": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/images/fad67553426d.jpg",
     "thumb": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/thumbs/fad67553426d.jpg",
-    "title": "Dragonfly",
-    "species": "",
+    "title": "Meadowhawk",
+    "species": "Meadowhawk (Sympetrum sp.)",
     "location": "",
     "date": "2026-08-19",
     "tags": [
@@ -66,6 +67,7 @@
     "location": "",
     "date": "2026-08-08",
     "tags": [
+      "mammal",
       "sadie"
     ],
     "w": 2048,
@@ -95,6 +97,7 @@
     "location": "",
     "date": "2026-08-07",
     "tags": [
+      "mammal",
       "sadie"
     ],
     "w": 2048,
@@ -109,6 +112,7 @@
     "location": "",
     "date": "2026-08-07",
     "tags": [
+      "mammal",
       "sadie"
     ],
     "w": 2048,
@@ -123,6 +127,7 @@
     "location": "",
     "date": "2026-08-07",
     "tags": [
+      "mammal",
       "sadie"
     ],
     "w": 2048,
@@ -137,6 +142,7 @@
     "location": "",
     "date": "2026-08-07",
     "tags": [
+      "mammal",
       "sadie"
     ],
     "w": 2048,
@@ -151,6 +157,7 @@
     "location": "",
     "date": "2026-08-07",
     "tags": [
+      "mammal",
       "sadie"
     ],
     "w": 2048,
@@ -165,6 +172,7 @@
     "location": "",
     "date": "2026-08-07",
     "tags": [
+      "mammal",
       "sadie"
     ],
     "w": 2048,
@@ -336,8 +344,8 @@
     "id": "c60437008fd9",
     "image": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/images/c60437008fd9.jpg",
     "thumb": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/thumbs/c60437008fd9.jpg",
-    "title": "Dragonfly on a leaf",
-    "species": "",
+    "title": "Blue Dasher",
+    "species": "Blue Dasher",
     "location": "",
     "date": "2026-07-26",
     "tags": [
@@ -954,6 +962,7 @@
     "location": "",
     "date": "2026-05-23",
     "tags": [
+      "mammal",
       "sadie"
     ],
     "w": 2048,
@@ -968,6 +977,7 @@
     "location": "",
     "date": "2026-05-23",
     "tags": [
+      "mammal",
       "sadie"
     ],
     "w": 2048,
@@ -982,6 +992,7 @@
     "location": "",
     "date": "2026-05-23",
     "tags": [
+      "mammal",
       "sadie"
     ],
     "w": 2048,
@@ -996,6 +1007,7 @@
     "location": "",
     "date": "2026-05-23",
     "tags": [
+      "mammal",
       "sadie"
     ],
     "w": 2048,
@@ -1010,6 +1022,7 @@
     "location": "",
     "date": "2026-05-23",
     "tags": [
+      "mammal",
       "sadie"
     ],
     "w": 2048,
@@ -1024,6 +1037,7 @@
     "location": "",
     "date": "2026-05-23",
     "tags": [
+      "mammal",
       "sadie"
     ],
     "w": 2048,
@@ -1038,6 +1052,7 @@
     "location": "",
     "date": "2026-05-23",
     "tags": [
+      "mammal",
       "sadie"
     ],
     "w": 2048,
@@ -1052,6 +1067,7 @@
     "location": "",
     "date": "2026-05-23",
     "tags": [
+      "mammal",
       "sadie"
     ],
     "w": 2048,
@@ -1066,6 +1082,7 @@
     "location": "",
     "date": "2026-05-23",
     "tags": [
+      "mammal",
       "sadie"
     ],
     "w": 2048,
@@ -1080,6 +1097,7 @@
     "location": "",
     "date": "2026-05-23",
     "tags": [
+      "mammal",
       "sadie"
     ],
     "w": 2048,
@@ -1094,6 +1112,7 @@
     "location": "",
     "date": "2026-05-23",
     "tags": [
+      "mammal",
       "sadie"
     ],
     "w": 2048,
@@ -1108,6 +1127,7 @@
     "location": "",
     "date": "2026-05-23",
     "tags": [
+      "mammal",
       "sadie"
     ],
     "w": 2048,
@@ -1122,6 +1142,7 @@
     "location": "",
     "date": "2026-03-16",
     "tags": [
+      "mammal",
       "sadie"
     ],
     "w": 2048,
@@ -1136,6 +1157,7 @@
     "location": "",
     "date": "2026-03-16",
     "tags": [
+      "mammal",
       "sadie"
     ],
     "w": 2048,
@@ -1150,6 +1172,7 @@
     "location": "",
     "date": "2026-03-16",
     "tags": [
+      "mammal",
       "sadie"
     ],
     "w": 2048,
@@ -1159,11 +1182,12 @@
     "id": "5db0f9411eb8",
     "image": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/images/5db0f9411eb8.jpg",
     "thumb": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/thumbs/5db0f9411eb8.jpg",
-    "title": "Sadie, yellow slicker",
+    "title": "Sadie, yellow raincoat",
     "species": "Chocolate Labrador Retriever",
     "location": "",
     "date": "2026-03-16",
     "tags": [
+      "mammal",
       "sadie"
     ],
     "w": 2048,
@@ -1178,6 +1202,7 @@
     "location": "",
     "date": "2026-02-28",
     "tags": [
+      "mammal",
       "sadie"
     ],
     "w": 2048,
@@ -1192,6 +1217,7 @@
     "location": "",
     "date": "2026-02-28",
     "tags": [
+      "mammal",
       "sadie"
     ],
     "w": 2048,
@@ -1206,6 +1232,7 @@
     "location": "",
     "date": "2026-02-28",
     "tags": [
+      "mammal",
       "sadie"
     ],
     "w": 2048,
@@ -1220,6 +1247,7 @@
     "location": "",
     "date": "2026-02-28",
     "tags": [
+      "mammal",
       "sadie"
     ],
     "w": 2048,
@@ -1234,6 +1262,7 @@
     "location": "",
     "date": "2026-02-28",
     "tags": [
+      "mammal",
       "sadie"
     ],
     "w": 2048,
@@ -1248,6 +1277,7 @@
     "location": "",
     "date": "2026-02-28",
     "tags": [
+      "mammal",
       "sadie"
     ],
     "w": 2048,
@@ -1262,6 +1292,7 @@
     "location": "",
     "date": "2026-02-28",
     "tags": [
+      "mammal",
       "sadie"
     ],
     "w": 2048,
@@ -1276,6 +1307,7 @@
     "location": "",
     "date": "2026-02-28",
     "tags": [
+      "mammal",
       "sadie"
     ],
     "w": 2048,
@@ -1290,6 +1322,7 @@
     "location": "",
     "date": "2026-02-28",
     "tags": [
+      "mammal",
       "sadie"
     ],
     "w": 2048,
@@ -1304,6 +1337,7 @@
     "location": "",
     "date": "2026-02-28",
     "tags": [
+      "mammal",
       "sadie"
     ],
     "w": 2048,
@@ -1318,6 +1352,7 @@
     "location": "",
     "date": "2026-02-28",
     "tags": [
+      "mammal",
       "sadie"
     ],
     "w": 2048,
@@ -1332,6 +1367,7 @@
     "location": "",
     "date": "2026-02-28",
     "tags": [
+      "mammal",
       "sadie"
     ],
     "w": 2048,
@@ -1346,6 +1382,7 @@
     "location": "",
     "date": "2026-02-28",
     "tags": [
+      "mammal",
       "sadie"
     ],
     "w": 2048,

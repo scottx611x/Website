@@ -717,5 +717,36 @@ class PerFrameDatesTestCase(unittest.TestCase):
                          "Jul 20, 2026")
 
 
+class PhotoHideTestCase(unittest.TestCase):
+    """Hiding a photo drops it from the public gallery but keeps the entry."""
+
+    def _with_store(self, photos):
+        saved = {}
+        return (mock.patch.object(birds, "load_photos", return_value=photos),
+                mock.patch.object(birds, "_save_curation",
+                                  side_effect=lambda path, data: saved.setdefault("d", data)),
+                saved)
+
+    def test_hide_then_restore_roundtrip(self):
+        photos = [{"id": "abc", "title": "Groundhog", "tags": ["mammal"]}]
+        lp, sc, saved = self._with_store(photos)
+        with lp, sc:
+            p = birds.set_photo("abc", {"hidden": True})
+        self.assertTrue(p["hidden"])
+        with mock.patch.object(birds, "load_photos", return_value=photos), \
+             mock.patch.object(birds, "_save_curation", lambda path, data: None):
+            p = birds.set_photo("abc", {"hidden": False})
+        self.assertNotIn("hidden", p)
+
+    def test_hidden_photo_leaves_the_public_gallery(self):
+        photos = [{"id": "a", "title": "Shown", "tags": ["mammal"], "image": "i", "thumb": "t"},
+                  {"id": "b", "title": "Gone", "tags": ["mammal"], "image": "i", "thumb": "t",
+                   "hidden": True}]
+        with mock.patch.object(birds, "load_photos", return_value=photos):
+            body = index.app.test_client().get("/photography").data
+        self.assertIn(b"Shown", body)
+        self.assertNotIn(b"Gone", body)
+
+
 if __name__ == "__main__":
     unittest.main()
