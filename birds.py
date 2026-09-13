@@ -2377,6 +2377,10 @@ def _frame_captions(caption, n_images, date):
 _SPECIES_QUALIFIERS = {
     "baby", "babies", "juvenile", "juv", "immature", "fledgling", "fledglings",
     "adult", "male", "female", "pair", "nesting", "young",
+    # Scene notes, not species: "Great Blue Heron (Rookery)" is a heron, and
+    # filing it under "Other birds" split the species across two family groups.
+    # _NOTE_MARKERS already treats these as notes; keep the two lists in step.
+    "nest", "nests", "rookery", "roost", "roosting",
 }
 
 

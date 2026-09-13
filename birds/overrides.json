@@ -144,6 +144,12 @@
       "5": "Black-capped Chickadee"
     }
   },
+  "17887711575600803": {
+    "images": {
+      "3": "Eastern Bluebird",
+      "4": "Eastern Bluebird"
+    }
+  },
   "17888318436495513": {
     "image_locations": {
       "0": "Rea St.",
@@ -242,6 +248,11 @@
       "5": 4
     }
   },
+  "17900378307550363": {
+    "images": {
+      "2": "Ruby-throated Hummingbird"
+    }
+  },
   "17909494311439462": {
     "images": {
       "2": "Gray Catbird",
@@ -298,7 +309,7 @@
     },
     "images": {
       "0": "Canada Goose",
-      "1": "Heron Rookery",
+      "1": "Great Blue Heron (Rookery)",
       "2": "Downy Woodpecker",
       "3": "Northern Cardinal"
     }
@@ -338,8 +349,8 @@
     },
     "images": {
       "0": "Cooper's Hawk",
-      "1": "Cooper's Hawk",
-      "2": "Cooper's Hawk",
+      "1": "Red-tailed Hawk",
+      "2": "Red-tailed Hawk",
       "3": "Carolina Wren"
     }
   },
@@ -359,7 +370,7 @@
     "image_locations": {
       "0": "Rea St.",
       "1": "Rea St.",
-      "2": "Elm St.",
+      "2": "Chestnut St.",
       "3": "Postoffice Square, Boston"
     },
     "images": {
@@ -369,7 +380,26 @@
       "3": "Ovenbird"
     }
   },
+  "17929141929336049": {
+    "image_areas": {
+      "3": "away",
+      "4": "away",
+      "5": "away"
+    },
+    "image_locations": {
+      "1": "Thistle Road",
+      "3": "Lewiston, Maine",
+      "4": "Lewiston, Maine",
+      "5": "Lewiston, Maine"
+    }
+  },
   "17929377198140897": {
+    "image_areas": {
+      "2": "away",
+      "3": "away",
+      "4": "away",
+      "5": "away"
+    },
     "image_locations": {
       "0": "Rea Street",
       "1": "Rea Street",
@@ -384,13 +414,20 @@
       "2": "Mallard",
       "3": "Mallard",
       "4": "Red-tailed Hawk",
-      "5": "Mallard"
+      "5": "American Goldfinch"
     }
   },
   "17930656437110987": {
     "exclude_images": [
       0
     ]
+  },
+  "17931379037999794": {
+    "images": {
+      "0": "Sharp-shinned Hawk",
+      "1": "Sharp-shinned Hawk",
+      "2": "Sharp-shinned Hawk"
+    }
   },
   "17934049812169322": {
     "image_locations": {
@@ -579,6 +616,14 @@
       "9": "Great Blue Heron"
     }
   },
+  "17961816003158770": {
+    "images": {
+      "3": "Chipping Sparrow",
+      "4": "Chipping Sparrow",
+      "5": "Chipping Sparrow",
+      "6": "Northern House Wren"
+    }
+  },
   "17962425693067540": {
     "image_locations": {
       "0": "Rea St.",
@@ -636,6 +681,11 @@
       "3": "Common Loon",
       "4": "Common Loon",
       "5": "Common Loon"
+    }
+  },
+  "17984123655031573": {
+    "images": {
+      "1": "Cedar Waxwing"
     }
   },
   "17988454790972249": {
@@ -738,7 +788,7 @@
       "4": "Black-capped Chickadee",
       "5": "Northern Cardinal",
       "6": "American Robin",
-      "7": "American Crow"
+      "7": "Fish Crow"
     }
   },
   "18002274308894650": {
@@ -831,6 +881,7 @@
   },
   "18006289808839661": {
     "exclude_images": [
+      3,
       8
     ],
     "image_locations": {
@@ -866,9 +917,9 @@
       "3": "Rea Street"
     },
     "images": {
-      "0": "Cooper's Hawk",
-      "1": "Cooper's Hawk",
-      "2": "Cooper's Hawk",
+      "0": "Sharp-shinned Hawk",
+      "1": "Sharp-shinned Hawk",
+      "2": "Sharp-shinned Hawk",
       "3": "Black-capped Chickadee"
     }
   },
@@ -970,8 +1021,8 @@
       "0": "Tufted Titmouse",
       "1": "Downy Woodpecker",
       "2": "House Finch",
-      "3": "Black-capped Chickadee",
-      "4": "American Robin",
+      "3": "House Finch",
+      "4": "Black-capped Chickadee",
       "5": "American Robin",
       "6": "Tufted Titmouse",
       "7": "Northern Cardinal"
@@ -1118,8 +1169,8 @@
       "0": "Northern Flicker",
       "1": "Northern Flicker",
       "10": "Red-bellied Woodpecker",
-      "11": "Cooper's Hawk",
-      "12": "Red-bellied Woodpecker",
+      "11": "Northern Flicker",
+      "12": "Northern Flicker",
       "13": "Northern Flicker",
       "14": "Northern Flicker",
       "2": "Northern Flicker",
@@ -1375,9 +1426,9 @@
       "0": "Yellow-bellied Sapsucker",
       "1": "Red-bellied Woodpecker",
       "2": "Red-bellied Woodpecker",
-      "3": "White-breasted Nuthatch",
-      "4": "Chipping Sparrow",
-      "5": "Red-bellied Woodpecker"
+      "3": "Eastern Phoebe",
+      "4": "White-breasted Nuthatch",
+      "5": "Chipping Sparrow"
     }
   },
   "18080455232240808": {
@@ -1414,9 +1465,9 @@
       "5": "Rea St."
     },
     "images": {
-      "0": "Cooper's Hawk",
-      "1": "Cooper's Hawk",
-      "2": "Cooper's Hawk",
+      "0": "Red-shouldered Hawk",
+      "1": "Red-shouldered Hawk",
+      "2": "Red-shouldered Hawk",
       "3": "American Goldfinch",
       "4": "House Finch",
       "5": "Blue Jay"
@@ -1451,7 +1502,7 @@
       "2": "Mallard",
       "3": "Song Sparrow",
       "4": "Song Sparrow",
-      "5": "Northern Harrier",
+      "5": "American Crow",
       "6": "Northern Harrier"
     }
   },
@@ -1721,6 +1772,11 @@
       "6": "Northern Cardinal"
     }
   },
+  "18097267358373304": {
+    "image_locations": {
+      "1": "Thistle Rd."
+    }
+  },
   "18097368877823488": {
     "image_locations": {
       "0": "Lake Cochichewick",
@@ -1764,6 +1820,16 @@
       "1": "Mallard"
     }
   },
+  "18098448838973587": {
+    "images": {
+      "3": "Barn Swallow"
+    }
+  },
+  "18098831021218271": {
+    "images": {
+      "3": "Osprey"
+    }
+  },
   "18099239264230904": {
     "images": {
       "0": "House Finch",
@@ -1799,7 +1865,7 @@
       "2": "Rea St./Johnson St.",
       "3": "Rea St./Johnson St.",
       "4": "Rea St./Johnson St.",
-      "5": "Annie L. Sargent School",
+      "5": "Johnson St.",
       "6": "Johnson St.",
       "7": "Annie L. Sargent School",
       "8": "Johnson St.",
@@ -1812,7 +1878,7 @@
       "3": "Red-tailed Hawk",
       "4": "Red-tailed Hawk",
       "5": "Red-tailed Hawk",
-      "6": "Mourning Dove",
+      "6": "Red-tailed Hawk",
       "7": "Northern Flicker",
       "8": "Mourning Dove",
       "9": "American Crow"
@@ -1830,8 +1896,8 @@
       "0": "Barred Owl & Cooper's Hawk",
       "1": "Barred Owl & Cooper's Hawk",
       "2": "Cooper's Hawk",
-      "3": "Barred Owl & Cooper's Hawk",
-      "4": "Barred Owl & Cooper's Hawk"
+      "3": "Cooper's Hawk",
+      "4": "Cooper's Hawk"
     },
     "ratings": {
       "0": 5,
@@ -1868,7 +1934,7 @@
       "0": "Red-tailed Hawk",
       "1": "Red-tailed Hawk",
       "2": "Red-tailed Hawk",
-      "3": "Baltimore Oriole Nest"
+      "3": "Baltimore Oriole (nest)"
     }
   },
   "18103854235981287": {
@@ -1919,6 +1985,11 @@
       "2": 4
     }
   },
+  "18105776411128500": {
+    "images": {
+      "3": "Common Grackle"
+    }
+  },
   "18106871434987728": {
     "ratings": {
       "0": 5,
@@ -1950,7 +2021,16 @@
       "5": "Eastern Bluebird"
     }
   },
+  "18108194711041301": {
+    "images": {
+      "3": "House Sparrow",
+      "4": "House Sparrow"
+    }
+  },
   "18108326692692540": {
+    "exclude_images": [
+      3
+    ],
     "image_locations": {
       "0": "Shawsheen River  United States Post Office Andover, MA",
       "1": "Shawsheen River  United States Post Office Andover, MA",
@@ -2063,6 +2143,35 @@
       "1": "Great Blue Heron"
     }
   },
+  "18116238323481167": {
+    "image_locations": {
+      "2": "Market Basket",
+      "3": "Market Basket"
+    },
+    "images": {
+      "2": "Killdeer",
+      "3": "Killdeer"
+    }
+  },
+  "18119640376849422": {
+    "images": {
+      "3": "Black-and-white Warbler",
+      "4": "Red-breasted Nuthatch",
+      "5": "American Robin"
+    }
+  },
+  "18121643875892716": {
+    "images": {
+      "0": "Red-tailed Hawk & Northern Mockingbird",
+      "1": "Red-tailed Hawk & Northern Mockingbird",
+      "2": "Red-tailed Hawk & Northern Mockingbird",
+      "5": "Red-tailed Hawk & Northern Mockingbird",
+      "6": "Red-tailed Hawk & Northern Mockingbird",
+      "7": "Red-tailed Hawk & Northern Mockingbird",
+      "8": "Red-tailed Hawk & Northern Mockingbird",
+      "9": "Red-tailed Hawk & Northern Mockingbird"
+    }
+  },
   "18124810975535450": {
     "image_locations": {
       "0": "Summer St. Bridge, Boston",
@@ -2145,6 +2254,16 @@
       "6": "American Crow"
     }
   },
+  "18145153738523272": {
+    "images": {
+      "3": "Chimney Swift",
+      "4": "American Crow",
+      "5": "American Crow",
+      "6": "American Crow",
+      "7": "Red-tailed Hawk",
+      "8": "Red-tailed Hawk"
+    }
+  },
   "18147159676447040": {
     "image_locations": {
       "0": "Ipswich River Wildlife Sanctuary",
@@ -2203,6 +2322,11 @@
       "2": "Carolina Wren"
     }
   },
+  "18153265720446739": {
+    "images": {
+      "3": "Eastern Phoebe"
+    }
+  },
   "18154635835449638": {
     "image_locations": {
       "0": "Rea St.",
@@ -2228,6 +2352,12 @@
       "3": 4,
       "4": 4,
       "6": 4
+    }
+  },
+  "18171874519438600": {
+    "images": {
+      "3": "Red-tailed Hawk",
+      "4": "Red-tailed Hawk"
     }
   },
   "18174564514383378": {
@@ -2388,6 +2518,11 @@
       "6": "Canada Goose"
     }
   },
+  "18225944344323953": {
+    "images": {
+      "4": "Osprey"
+    }
+  },
   "18333385855246770": {
     "image_locations": {
       "0": "Rea St.",
@@ -2436,6 +2571,9 @@
     }
   },
   "18361078339166391": {
+    "exclude_images": [
+      6
+    ],
     "image_locations": {
       "0": "Rea St.",
       "1": "Rea St.",
@@ -2651,7 +2789,7 @@
       "0": "Northern Mockingbird",
       "1": "Northern Mockingbird",
       "2": "Black-capped Chickadee",
-      "3": "Blue Jay",
+      "3": "Blue Jay & Downy Woodpecker",
       "4": "Blue Jay",
       "5": "Northern Flicker",
       "6": "Eastern Bluebird",
@@ -2691,8 +2829,13 @@
     }
   },
   "18570565219023967": {
+    "image_locations": {
+      "1": "Weir Hill",
+      "4": "Rea St."
+    },
     "images": {
-      "0": "Red-tailed Hawk",
+      "0": "Red-tailed Hawk & Blue Jay",
+      "1": "Blue Jay & Red-tailed Hawk",
       "2": "Dark-eyed Junco",
       "3": "Black-capped Chickadee"
     }
@@ -2759,11 +2902,297 @@
       "1": "Red-tailed Hawk"
     }
   },
-  "17931379037999794": {
+  "manual-038e22a489b0": {
+    "image_areas": {
+      "0": "away"
+    },
+    "image_locations": {
+      "0": "Medford, MA"
+    }
+  },
+  "manual-0c60d75163f9": {
+    "image_areas": {
+      "0": "away"
+    }
+  },
+  "manual-0d89b6910aad": {
+    "image_areas": {
+      "0": "away"
+    },
+    "image_locations": {
+      "0": "Sand Pond, Litchfield, ME"
+    }
+  },
+  "manual-0f2eaaee1747": {
+    "image_areas": {
+      "0": "away",
+      "1": "away"
+    },
+    "image_locations": {
+      "1": "Pyramids Disc Golf Course, Leicester, MA"
+    }
+  },
+  "manual-10ca3dac2af2": {
+    "capture_date": "2024-03-16",
+    "exclude_images": [
+      0,
+      1
+    ],
+    "image_areas": {
+      "2": "away",
+      "3": "away",
+      "4": "away"
+    },
+    "image_locations": {
+      "2": "Spot Pond, Stoneham, Ma",
+      "3": "Spot Pond, Stoneham, MA",
+      "4": "New Orleans, Louisiana"
+    },
+    "posted": "2024-03-16"
+  },
+  "manual-138d2412af45": {
+    "image_locations": {
+      "0": "Rea St."
+    }
+  },
+  "manual-27db92cb4b0e": {
+    "capture_date": "2024-03-16",
+    "image_areas": {
+      "0": "away"
+    },
+    "image_locations": {
+      "0": "New Orleans, LA"
+    },
+    "posted": "2024-03-16"
+  },
+  "manual-48ace6c61469": {
+    "image_locations": {
+      "0": "New Orleans, Louisiana"
+    }
+  },
+  "manual-50627465b89b": {
+    "image_locations": {
+      "0": "Rea St."
+    }
+  },
+  "manual-54617f98a437": {
+    "image_areas": {
+      "0": "away"
+    },
+    "image_locations": {
+      "0": "Medford, MA"
+    }
+  },
+  "manual-57f1738a188e": {
+    "image_locations": {
+      "0": "Portugal"
+    }
+  },
+  "manual-63f647f3e409": {
+    "image_locations": {
+      "0": "Rea St."
+    }
+  },
+  "manual-734a5fa6264d": {
+    "image_areas": {
+      "0": "away",
+      "1": "away"
+    },
+    "image_locations": {
+      "0": "Tufts Boat House, Medford, MA",
+      "1": "Tufts Boat House, Medford, MA"
+    },
     "images": {
-      "0": "Sharp-shinned Hawk",
-      "1": "Sharp-shinned Hawk",
-      "2": "Sharp-shinned Hawk"
+      "0": "Cooper's Hawk"
+    }
+  },
+  "manual-7d2f884d1f23": {
+    "image_areas": {
+      "0": "away"
+    },
+    "image_locations": {
+      "0": "Medford, MA"
+    }
+  },
+  "manual-809368d639b3": {
+    "image_areas": {
+      "0": "away"
+    },
+    "image_locations": {
+      "0": "Lewiston, ME"
+    }
+  },
+  "manual-80e7186176ce": {
+    "exclude_images": [
+      0,
+      1
+    ]
+  },
+  "manual-8519911ca414": {
+    "exclude_images": [
+      0
+    ]
+  },
+  "manual-88977ff75197": {
+    "capture_date": "2014-07-05",
+    "image_locations": {
+      "0": "Sand Pond, Litchfield, ME"
+    },
+    "images": {
+      "0": "Bald Eagle"
+    },
+    "posted": "2014-07-05"
+  },
+  "manual-89a414860b87": {
+    "image_areas": {
+      "0": "away"
+    },
+    "image_locations": {
+      "0": "Newton Commonwealth Golf Course, Newton, MA"
+    }
+  },
+  "manual-8aecea6c475a": {
+    "exclude_images": [
+      0,
+      2,
+      4
+    ],
+    "image_areas": {
+      "1": "away",
+      "2": "away",
+      "3": "away",
+      "4": "away"
+    },
+    "image_locations": {
+      "1": "Sand Pond, Litchfield, ME"
+    }
+  },
+  "manual-8cf49778fe77": {
+    "image_areas": {
+      "0": "away"
+    },
+    "image_locations": {
+      "0": "Medford, MA"
+    }
+  },
+  "manual-8d76ba642982": {
+    "image_locations": {
+      "0": "Rea St."
+    }
+  },
+  "manual-8ffe9c8180fc": {
+    "image_areas": {
+      "0": "away"
+    }
+  },
+  "manual-9eabbfef54c2": {
+    "image_locations": {
+      "0": "Rea St."
+    }
+  },
+  "manual-ab0ffeee1dc3": {
+    "image_areas": {
+      "0": "away"
+    },
+    "image_locations": {
+      "0": "Sand Pond, Litchfield, ME"
+    }
+  },
+  "manual-b4ab8ce69c21": {
+    "image_areas": {
+      "0": "away"
+    }
+  },
+  "manual-c125ce7fde64": {
+    "image_areas": {
+      "0": "away"
+    },
+    "image_locations": {
+      "0": "Wingaersheek Beach, Gloucester, MA"
+    }
+  },
+  "manual-d09a1d7cb56a": {
+    "image_areas": {
+      "0": "away",
+      "1": "away"
+    },
+    "images": {
+      "0": "Red-winged Blackbird",
+      "1": "Red-winged Blackbird"
+    }
+  },
+  "manual-d8bb0697b613": {
+    "image_areas": {
+      "0": "away"
+    },
+    "image_locations": {
+      "0": "Medford, MA"
+    }
+  },
+  "manual-dc68d0c1c506": {
+    "image_areas": {
+      "0": "away"
+    },
+    "image_locations": {
+      "0": "Medford, MA"
+    }
+  },
+  "manual-e4cb9f96eda0": {
+    "image_areas": {
+      "0": "away"
+    }
+  },
+  "manual-e57b411a3d2f": {
+    "image_locations": {
+      "0": "Rea St."
+    },
+    "images": {
+      "0": "Hairy Woodpecker"
+    }
+  },
+  "manual-e9049e7f32cc": {
+    "image_areas": {
+      "0": "away",
+      "1": "away"
+    },
+    "image_locations": {
+      "0": "Medford, MA"
+    }
+  },
+  "manual-f4203f741123": {
+    "image_areas": {
+      "0": "away",
+      "1": "away",
+      "2": "away",
+      "3": "away"
+    },
+    "image_locations": {
+      "2": "Spot Pond, Stoneham, MA",
+      "3": "Spot Pond, Stoneham, MA"
+    }
+  },
+  "manual-f54e31250140": {
+    "image_locations": {
+      "0": "Molly Towne Rd."
+    },
+    "images": {
+      "0": "Sharp-shinned Hawk"
+    }
+  },
+  "manual-fc7b2d7bff20": {
+    "image_areas": {
+      "0": "away"
+    },
+    "image_locations": {
+      "0": "Malden, MA"
+    }
+  },
+  "manual-ffc787d3e561": {
+    "image_areas": {
+      "0": "away"
+    },
+    "image_locations": {
+      "0": "Norway"
     }
   }
 }

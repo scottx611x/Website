@@ -1,12 +1,152 @@
 [
   {
-    "id": "7301af7319a4",
-    "image": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/images/7301af7319a4.jpg",
-    "thumb": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/thumbs/7301af7319a4.jpg",
-    "title": "Groundhog",
-    "species": "Groundhog",
+    "id": "506e1e32b059",
+    "image": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/images/506e1e32b059.jpg",
+    "thumb": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/thumbs/506e1e32b059.jpg",
+    "title": "Bumblebees on Sedum",
+    "species": "Bumble Bee (Bombus sp.)",
     "location": "",
-    "date": "2026-06-19",
+    "date": "2026-09-09",
+    "tags": [
+      "insect"
+    ],
+    "w": 2048,
+    "h": 1365
+  },
+  {
+    "id": "41115da22fbd",
+    "image": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/images/41115da22fbd.jpg",
+    "thumb": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/thumbs/41115da22fbd.jpg",
+    "title": "Rose",
+    "species": "",
+    "location": "",
+    "date": "2026-09-07",
+    "tags": [
+      "flora"
+    ],
+    "w": 2048,
+    "h": 1365
+  },
+  {
+    "id": "fad67553426d",
+    "image": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/images/fad67553426d.jpg",
+    "thumb": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/thumbs/fad67553426d.jpg",
+    "title": "Dragonfly",
+    "species": "",
+    "location": "",
+    "date": "2026-08-19",
+    "tags": [
+      "insect"
+    ],
+    "w": 2048,
+    "h": 1365
+  },
+  {
+    "id": "f85ed83e30fe",
+    "image": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/images/f85ed83e30fe.jpg",
+    "thumb": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/thumbs/f85ed83e30fe.jpg",
+    "title": "Eastern Pondhawk",
+    "species": "Eastern Pondhawk",
+    "location": "",
+    "date": "2026-08-07",
+    "tags": [
+      "insect"
+    ],
+    "w": 2048,
+    "h": 1365
+  },
+  {
+    "id": "d76e6a074dd2",
+    "image": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/images/d76e6a074dd2.jpg",
+    "thumb": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/thumbs/d76e6a074dd2.jpg",
+    "title": "Hydrangea",
+    "species": "",
+    "location": "",
+    "date": "2026-08-03",
+    "tags": [
+      "flora"
+    ],
+    "w": 2048,
+    "h": 1365
+  },
+  {
+    "id": "e6396abfc051",
+    "image": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/images/e6396abfc051.jpg",
+    "thumb": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/thumbs/e6396abfc051.jpg",
+    "title": "Painted Turtle",
+    "species": "Painted Turtle",
+    "location": "",
+    "date": "2026-08-02",
+    "tags": [
+      "reptile"
+    ],
+    "w": 2048,
+    "h": 1365
+  },
+  {
+    "id": "1e7fddb9959a",
+    "image": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/images/1e7fddb9959a.jpg",
+    "thumb": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/thumbs/1e7fddb9959a.jpg",
+    "title": "Painted Turtle",
+    "species": "Painted Turtle",
+    "location": "",
+    "date": "2026-08-02",
+    "tags": [
+      "reptile"
+    ],
+    "w": 2048,
+    "h": 1365
+  },
+  {
+    "id": "080a8787759a",
+    "image": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/images/080a8787759a.jpg",
+    "thumb": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/thumbs/080a8787759a.jpg",
+    "title": "Painted Turtles",
+    "species": "Painted Turtle",
+    "location": "",
+    "date": "2026-08-02",
+    "tags": [
+      "reptile"
+    ],
+    "w": 2048,
+    "h": 1365
+  },
+  {
+    "id": "a5501714b95d",
+    "image": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/images/a5501714b95d.jpg",
+    "thumb": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/thumbs/a5501714b95d.jpg",
+    "title": "Inkcap Mushroom",
+    "species": "",
+    "location": "",
+    "date": "2026-07-31",
+    "tags": [
+      "fungi"
+    ],
+    "w": 2048,
+    "h": 1365
+  },
+  {
+    "id": "ffde33411f83",
+    "image": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/images/ffde33411f83.jpg",
+    "thumb": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/thumbs/ffde33411f83.jpg",
+    "title": "Inkcap Mushroom",
+    "species": "",
+    "location": "",
+    "date": "2026-07-31",
+    "tags": [
+      "fungi"
+    ],
+    "w": 2048,
+    "h": 1365
+  },
+  {
+    "id": "e282c5eebbc6",
+    "image": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/images/e282c5eebbc6.jpg",
+    "thumb": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/thumbs/e282c5eebbc6.jpg",
+    "title": "Eastern Cottontail",
+    "species": "Eastern Cottontail",
+    "location": "",
+    "date": "2026-07-28",
     "tags": [
       "mammal"
     ],
@@ -14,13 +154,13 @@
     "h": 1365
   },
   {
-    "id": "270e56e7d4b1",
-    "image": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/images/270e56e7d4b1.jpg",
-    "thumb": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/thumbs/270e56e7d4b1.jpg",
-    "title": "Groundhog",
-    "species": "Groundhog",
+    "id": "57a445f6d2ae",
+    "image": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/images/57a445f6d2ae.jpg",
+    "thumb": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/thumbs/57a445f6d2ae.jpg",
+    "title": "Eastern Cottontail",
+    "species": "Eastern Cottontail",
     "location": "",
-    "date": "2026-06-19",
+    "date": "2026-07-28",
     "tags": [
       "mammal"
     ],
@@ -28,46 +168,331 @@
     "h": 1365
   },
   {
-    "id": "5f6d378fd85e",
-    "image": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/images/5f6d378fd85e.jpg",
-    "thumb": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/thumbs/5f6d378fd85e.jpg",
-    "title": "Grapevine Beetle",
-    "species": "Grapevine Beetle",
+    "id": "9d1e7c70e0cd",
+    "image": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/images/9d1e7c70e0cd.jpg",
+    "thumb": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/thumbs/9d1e7c70e0cd.jpg",
+    "title": "Eastern Cottontail",
+    "species": "Eastern Cottontail",
     "location": "",
-    "date": "2026-06-24",
+    "date": "2026-07-28",
     "tags": [
-      "insect",
-      "beetle"
+      "mammal"
     ],
     "w": 2048,
     "h": 1365
   },
   {
-    "id": "4b6dde158d61",
-    "image": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/images/4b6dde158d61.jpg",
-    "thumb": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/thumbs/4b6dde158d61.jpg",
-    "title": "Grapevine Beetle",
-    "species": "Grapevine Beetle",
+    "id": "3509c4a04ea5",
+    "image": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/images/3509c4a04ea5.jpg",
+    "thumb": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/thumbs/3509c4a04ea5.jpg",
+    "title": "Meadowhawk",
+    "species": "Meadowhawk (Sympetrum sp.)",
     "location": "",
-    "date": "2026-06-24",
+    "date": "2026-07-27",
     "tags": [
-      "insect",
-      "beetle"
+      "insect"
     ],
     "w": 2048,
     "h": 1365
   },
   {
-    "id": "4e7cdb82daa8",
-    "image": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/images/4e7cdb82daa8.jpg",
-    "thumb": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/thumbs/4e7cdb82daa8.jpg",
-    "title": "Grapevine Beetle",
-    "species": "Grapevine Beetle",
+    "id": "8813bf309cee",
+    "image": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/images/8813bf309cee.jpg",
+    "thumb": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/thumbs/8813bf309cee.jpg",
+    "title": "White-tailed Deer",
+    "species": "White-tailed Deer",
     "location": "",
-    "date": "2026-06-24",
+    "date": "2026-07-23",
+    "tags": [
+      "mammal"
+    ],
+    "w": 2048,
+    "h": 1365
+  },
+  {
+    "id": "87ff5c03341d",
+    "image": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/images/87ff5c03341d.jpg",
+    "thumb": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/thumbs/87ff5c03341d.jpg",
+    "title": "White-tailed Deer",
+    "species": "White-tailed Deer",
+    "location": "",
+    "date": "2026-07-23",
+    "tags": [
+      "mammal"
+    ],
+    "w": 2048,
+    "h": 1365
+  },
+  {
+    "id": "70803babdaac",
+    "image": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/images/70803babdaac.jpg",
+    "thumb": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/thumbs/70803babdaac.jpg",
+    "title": "White-tailed Deer",
+    "species": "White-tailed Deer",
+    "location": "",
+    "date": "2026-07-23",
+    "tags": [
+      "mammal"
+    ],
+    "w": 2048,
+    "h": 1365
+  },
+  {
+    "id": "4e521fe8acfa",
+    "image": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/images/4e521fe8acfa.jpg",
+    "thumb": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/thumbs/4e521fe8acfa.jpg",
+    "title": "Blue Dasher",
+    "species": "Blue Dasher",
+    "location": "",
+    "date": "2026-07-19",
+    "tags": [
+      "insect"
+    ],
+    "w": 2048,
+    "h": 1365
+  },
+  {
+    "id": "fc2c3d150403",
+    "image": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/images/fc2c3d150403.jpg",
+    "thumb": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/thumbs/fc2c3d150403.jpg",
+    "title": "Blue Dasher",
+    "species": "Blue Dasher",
+    "location": "",
+    "date": "2026-07-19",
+    "tags": [
+      "insect"
+    ],
+    "w": 2048,
+    "h": 1365
+  },
+  {
+    "id": "04b05d99a14e",
+    "image": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/images/04b05d99a14e.jpg",
+    "thumb": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/thumbs/04b05d99a14e.jpg",
+    "title": "Eastern Cottontail",
+    "species": "Eastern Cottontail",
+    "location": "",
+    "date": "2026-07-18",
+    "tags": [
+      "mammal"
+    ],
+    "w": 2048,
+    "h": 1365
+  },
+  {
+    "id": "789290187821",
+    "image": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/images/789290187821.jpg",
+    "thumb": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/thumbs/789290187821.jpg",
+    "title": "Eastern Cottontail",
+    "species": "Eastern Cottontail",
+    "location": "",
+    "date": "2026-07-17",
+    "tags": [
+      "mammal"
+    ],
+    "w": 2048,
+    "h": 1365
+  },
+  {
+    "id": "37337d285fee",
+    "image": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/images/37337d285fee.jpg",
+    "thumb": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/thumbs/37337d285fee.jpg",
+    "title": "Eastern Cottontail",
+    "species": "Eastern Cottontail",
+    "location": "",
+    "date": "2026-07-17",
+    "tags": [
+      "mammal"
+    ],
+    "w": 2048,
+    "h": 1365
+  },
+  {
+    "id": "d98b3cf6e4d2",
+    "image": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/images/d98b3cf6e4d2.jpg",
+    "thumb": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/thumbs/d98b3cf6e4d2.jpg",
+    "title": "Eastern Cottontail",
+    "species": "Eastern Cottontail",
+    "location": "",
+    "date": "2026-07-17",
+    "tags": [
+      "mammal"
+    ],
+    "w": 2048,
+    "h": 1365
+  },
+  {
+    "id": "1bdca73c82e2",
+    "image": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/images/1bdca73c82e2.jpg",
+    "thumb": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/thumbs/1bdca73c82e2.jpg",
+    "title": "American Beaver",
+    "species": "American Beaver",
+    "location": "Weir Hill",
+    "date": "2026-07-12",
+    "tags": [
+      "mammal"
+    ],
+    "w": 2048,
+    "h": 1365
+  },
+  {
+    "id": "2cbf41b6418a",
+    "image": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/images/2cbf41b6418a.jpg",
+    "thumb": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/thumbs/2cbf41b6418a.jpg",
+    "title": "Eastern Chipmunk",
+    "species": "Eastern Chipmunk",
+    "location": "Abbott St",
+    "date": "2026-07-12",
+    "tags": [
+      "mammal"
+    ],
+    "w": 2048,
+    "h": 1365
+  },
+  {
+    "id": "4fa04d9f667e",
+    "image": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/images/4fa04d9f667e.jpg",
+    "thumb": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/thumbs/4fa04d9f667e.jpg",
+    "title": "Rose",
+    "species": "",
+    "location": "Rea St",
+    "date": "2026-07-11",
+    "tags": [
+      "flora",
+      "macro"
+    ],
+    "w": 2048,
+    "h": 1365
+  },
+  {
+    "id": "26befc8ede4b",
+    "image": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/images/26befc8ede4b.jpg",
+    "thumb": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/thumbs/26befc8ede4b.jpg",
+    "title": "Cabbage White",
+    "species": "Cabbage White",
+    "location": "Rea St",
+    "date": "2026-07-05",
     "tags": [
       "insect",
-      "beetle"
+      "butterfly"
+    ],
+    "w": 2048,
+    "h": 1365
+  },
+  {
+    "id": "963bf03b0ab3",
+    "image": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/images/963bf03b0ab3.jpg",
+    "thumb": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/thumbs/963bf03b0ab3.jpg",
+    "title": "Bumble Bee",
+    "species": "Bumble Bee (Bombus sp.)",
+    "location": "Rea St",
+    "date": "2026-07-05",
+    "tags": [
+      "insect",
+      "bee"
+    ],
+    "w": 2048,
+    "h": 1365
+  },
+  {
+    "id": "6cf549163f2e",
+    "image": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/images/6cf549163f2e.jpg",
+    "thumb": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/thumbs/6cf549163f2e.jpg",
+    "title": "Bumble Bee",
+    "species": "Bumble Bee (Bombus sp.)",
+    "location": "Rea St",
+    "date": "2026-07-05",
+    "tags": [
+      "insect",
+      "bee"
+    ],
+    "w": 2048,
+    "h": 1365
+  },
+  {
+    "id": "7a77f575d629",
+    "image": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/images/7a77f575d629.jpg",
+    "thumb": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/thumbs/7a77f575d629.jpg",
+    "title": "Dragonfly",
+    "species": "",
+    "location": "Rea St",
+    "date": "2026-07-05",
+    "tags": [
+      "insect",
+      "dragonfly"
+    ],
+    "w": 2048,
+    "h": 1365
+  },
+  {
+    "id": "461b462d8e14",
+    "image": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/images/461b462d8e14.jpg",
+    "thumb": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/thumbs/461b462d8e14.jpg",
+    "title": "Blue Dasher",
+    "species": "Blue Dasher",
+    "location": "Rea St",
+    "date": "2026-07-05",
+    "tags": [
+      "insect",
+      "dragonfly"
+    ],
+    "w": 2048,
+    "h": 1365
+  },
+  {
+    "id": "b1089ed9fa66",
+    "image": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/images/b1089ed9fa66.jpg",
+    "thumb": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/thumbs/b1089ed9fa66.jpg",
+    "title": "Eastern Chipmunk",
+    "species": "Eastern Chipmunk",
+    "location": "Rea St",
+    "date": "2026-07-03",
+    "tags": [
+      "mammal"
+    ],
+    "w": 2048,
+    "h": 1365
+  },
+  {
+    "id": "fd4d6be69578",
+    "image": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/images/fd4d6be69578.jpg",
+    "thumb": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/thumbs/fd4d6be69578.jpg",
+    "title": "Meadowhawk",
+    "species": "Meadowhawk (Sympetrum sp.)",
+    "location": "Rea St",
+    "date": "2026-07-01",
+    "tags": [
+      "insect",
+      "dragonfly"
+    ],
+    "w": 2048,
+    "h": 1365
+  },
+  {
+    "id": "1bfdd825e551",
+    "image": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/images/1bfdd825e551.jpg",
+    "thumb": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/thumbs/1bfdd825e551.jpg",
+    "title": "Meadowhawk",
+    "species": "Meadowhawk (Sympetrum sp.)",
+    "location": "Rea St",
+    "date": "2026-07-01",
+    "tags": [
+      "insect",
+      "dragonfly"
+    ],
+    "w": 2048,
+    "h": 1365
+  },
+  {
+    "id": "9257622bb752",
+    "image": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/images/9257622bb752.jpg",
+    "thumb": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/thumbs/9257622bb752.jpg",
+    "title": "Eastern Gray Squirrel",
+    "species": "Eastern Gray Squirrel",
+    "location": "Abbott St.",
+    "date": "2026-06-29",
+    "tags": [
+      "mammal"
     ],
     "w": 2048,
     "h": 1365
@@ -103,276 +528,89 @@
     "h": 1365
   },
   {
-    "id": "9257622bb752",
-    "image": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/images/9257622bb752.jpg",
-    "thumb": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/thumbs/9257622bb752.jpg",
-    "title": "Eastern Gray Squirrel",
-    "species": "Eastern Gray Squirrel",
-    "location": "",
-    "date": "2026-06-29",
-    "tags": [
-      "mammal"
-    ],
-    "w": 2048,
-    "h": 1365
-  },
-  {
-    "id": "fd4d6be69578",
-    "image": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/images/fd4d6be69578.jpg",
-    "thumb": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/thumbs/fd4d6be69578.jpg",
-    "title": "Meadowhawk",
-    "species": "Meadowhawk (Sympetrum sp.)",
-    "location": "",
-    "date": "2026-07-01",
+    "id": "5f6d378fd85e",
+    "image": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/images/5f6d378fd85e.jpg",
+    "thumb": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/thumbs/5f6d378fd85e.jpg",
+    "title": "Grapevine Beetle",
+    "species": "Grapevine Beetle",
+    "location": "Rea St",
+    "date": "2026-06-24",
     "tags": [
       "insect",
-      "dragonfly"
+      "beetle"
     ],
     "w": 2048,
     "h": 1365
   },
   {
-    "id": "1bfdd825e551",
-    "image": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/images/1bfdd825e551.jpg",
-    "thumb": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/thumbs/1bfdd825e551.jpg",
-    "title": "Meadowhawk",
-    "species": "Meadowhawk (Sympetrum sp.)",
-    "location": "",
-    "date": "2026-07-01",
+    "id": "4b6dde158d61",
+    "image": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/images/4b6dde158d61.jpg",
+    "thumb": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/thumbs/4b6dde158d61.jpg",
+    "title": "Grapevine Beetle",
+    "species": "Grapevine Beetle",
+    "location": "rea St.",
+    "date": "2026-06-24",
     "tags": [
       "insect",
-      "dragonfly"
+      "beetle"
     ],
     "w": 2048,
     "h": 1365
   },
   {
-    "id": "b1089ed9fa66",
-    "image": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/images/b1089ed9fa66.jpg",
-    "thumb": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/thumbs/b1089ed9fa66.jpg",
-    "title": "Eastern Chipmunk",
-    "species": "Eastern Chipmunk",
-    "location": "",
-    "date": "2026-07-03",
-    "tags": [
-      "mammal"
-    ],
-    "w": 2048,
-    "h": 1365
-  },
-  {
-    "id": "26befc8ede4b",
-    "image": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/images/26befc8ede4b.jpg",
-    "thumb": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/thumbs/26befc8ede4b.jpg",
-    "title": "Cabbage White",
-    "species": "Cabbage White",
-    "location": "",
-    "date": "2026-07-05",
+    "id": "4e7cdb82daa8",
+    "image": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/images/4e7cdb82daa8.jpg",
+    "thumb": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/thumbs/4e7cdb82daa8.jpg",
+    "title": "Grapevine Beetle",
+    "species": "Grapevine Beetle",
+    "location": "Rea St.",
+    "date": "2026-06-24",
     "tags": [
       "insect",
-      "butterfly"
+      "beetle"
     ],
     "w": 2048,
     "h": 1365
   },
   {
-    "id": "963bf03b0ab3",
-    "image": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/images/963bf03b0ab3.jpg",
-    "thumb": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/thumbs/963bf03b0ab3.jpg",
-    "title": "Bumble Bee",
-    "species": "Bumble Bee (Bombus sp.)",
+    "id": "7301af7319a4",
+    "image": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/images/7301af7319a4.jpg",
+    "thumb": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/thumbs/7301af7319a4.jpg",
+    "title": "Groundhog",
+    "species": "Groundhog",
+    "location": "Annie L. Sargent School",
+    "date": "2026-06-19",
+    "tags": [
+      "mammal"
+    ],
+    "w": 2048,
+    "h": 1365
+  },
+  {
+    "id": "270e56e7d4b1",
+    "image": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/images/270e56e7d4b1.jpg",
+    "thumb": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/thumbs/270e56e7d4b1.jpg",
+    "title": "Groundhog",
+    "species": "Groundhog",
+    "location": "Annie L. Sargent School",
+    "date": "2026-06-19",
+    "tags": [
+      "mammal"
+    ],
+    "w": 2048,
+    "h": 1365
+  },
+  {
+    "id": "c00997a2b123",
+    "image": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/images/c00997a2b123.jpg",
+    "thumb": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/thumbs/c00997a2b123.jpg",
+    "title": "Ichneumon Wasp",
+    "species": "Ichneumon Wasp (Ichneumonidae)",
     "location": "",
-    "date": "2026-07-05",
+    "date": "2026-06-09",
     "tags": [
       "insect",
-      "bee"
-    ],
-    "w": 2048,
-    "h": 1365
-  },
-  {
-    "id": "6cf549163f2e",
-    "image": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/images/6cf549163f2e.jpg",
-    "thumb": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/thumbs/6cf549163f2e.jpg",
-    "title": "Bumble Bee",
-    "species": "Bumble Bee (Bombus sp.)",
-    "location": "",
-    "date": "2026-07-05",
-    "tags": [
-      "insect",
-      "bee"
-    ],
-    "w": 2048,
-    "h": 1365
-  },
-  {
-    "id": "7a77f575d629",
-    "image": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/images/7a77f575d629.jpg",
-    "thumb": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/thumbs/7a77f575d629.jpg",
-    "title": "Dragonfly",
-    "species": "",
-    "location": "",
-    "date": "2026-07-05",
-    "tags": [
-      "insect",
-      "dragonfly"
-    ],
-    "w": 2048,
-    "h": 1365
-  },
-  {
-    "id": "461b462d8e14",
-    "image": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/images/461b462d8e14.jpg",
-    "thumb": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/thumbs/461b462d8e14.jpg",
-    "title": "Blue Dasher",
-    "species": "Blue Dasher",
-    "location": "",
-    "date": "2026-07-05",
-    "tags": [
-      "insect",
-      "dragonfly"
-    ],
-    "w": 2048,
-    "h": 1365
-  },
-  {
-    "id": "4fa04d9f667e",
-    "image": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/images/4fa04d9f667e.jpg",
-    "thumb": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/thumbs/4fa04d9f667e.jpg",
-    "title": "Rose",
-    "species": "",
-    "location": "",
-    "date": "2026-07-11",
-    "tags": [
-      "flora",
-      "macro"
-    ],
-    "w": 2048,
-    "h": 1365
-  },
-  {
-    "id": "1bdca73c82e2",
-    "image": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/images/1bdca73c82e2.jpg",
-    "thumb": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/thumbs/1bdca73c82e2.jpg",
-    "title": "American Beaver",
-    "species": "American Beaver",
-    "location": "",
-    "date": "2026-07-12",
-    "tags": [
-      "mammal"
-    ],
-    "w": 2048,
-    "h": 1365
-  },
-  {
-    "id": "2cbf41b6418a",
-    "image": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/images/2cbf41b6418a.jpg",
-    "thumb": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/thumbs/2cbf41b6418a.jpg",
-    "title": "Eastern Chipmunk",
-    "species": "Eastern Chipmunk",
-    "location": "",
-    "date": "2026-07-12",
-    "tags": [
-      "mammal"
-    ],
-    "w": 2048,
-    "h": 1365
-  },
-  {
-    "id": "d50feaa9c9ff",
-    "image": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/images/d50feaa9c9ff.jpg",
-    "thumb": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/thumbs/d50feaa9c9ff.jpg",
-    "title": "Eastern Chipmunk",
-    "species": "Eastern Chipmunk",
-    "location": "",
-    "date": "2026-06-06",
-    "tags": [
-      "mammal"
-    ],
-    "w": 2048,
-    "h": 1365
-  },
-  {
-    "id": "e5d42254cb4b",
-    "image": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/images/e5d42254cb4b.jpg",
-    "thumb": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/thumbs/e5d42254cb4b.jpg",
-    "title": "White-tailed Deer",
-    "species": "White-tailed Deer",
-    "location": "",
-    "date": "2026-06-06",
-    "tags": [
-      "mammal"
-    ],
-    "w": 2048,
-    "h": 3072
-  },
-  {
-    "id": "853f2c945943",
-    "image": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/images/853f2c945943.jpg",
-    "thumb": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/thumbs/853f2c945943.jpg",
-    "title": "White-tailed Deer",
-    "species": "White-tailed Deer",
-    "location": "",
-    "date": "2026-06-06",
-    "tags": [
-      "mammal"
-    ],
-    "w": 2048,
-    "h": 3072
-  },
-  {
-    "id": "d22699262ba0",
-    "image": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/images/d22699262ba0.jpg",
-    "thumb": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/thumbs/d22699262ba0.jpg",
-    "title": "White-tailed Deer",
-    "species": "White-tailed Deer",
-    "location": "",
-    "date": "2026-06-06",
-    "tags": [
-      "mammal"
-    ],
-    "w": 2048,
-    "h": 3072
-  },
-  {
-    "id": "1e71ab85104b",
-    "image": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/images/1e71ab85104b.jpg",
-    "thumb": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/thumbs/1e71ab85104b.jpg",
-    "title": "White-tailed Deer",
-    "species": "White-tailed Deer",
-    "location": "",
-    "date": "2026-06-06",
-    "tags": [
-      "mammal"
-    ],
-    "w": 2048,
-    "h": 1365
-  },
-  {
-    "id": "6e75a035354c",
-    "image": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/images/6e75a035354c.jpg",
-    "thumb": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/thumbs/6e75a035354c.jpg",
-    "title": "White-tailed Deer",
-    "species": "White-tailed Deer",
-    "location": "",
-    "date": "2026-06-06",
-    "tags": [
-      "mammal"
-    ],
-    "w": 2048,
-    "h": 1365
-  },
-  {
-    "id": "d17753f9c247",
-    "image": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/images/d17753f9c247.jpg",
-    "thumb": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/thumbs/d17753f9c247.jpg",
-    "title": "Eastern Cottontail",
-    "species": "Eastern Cottontail",
-    "location": "",
-    "date": "2026-06-06",
-    "tags": [
-      "mammal",
-      "rabbit"
+      "wasp"
     ],
     "w": 2048,
     "h": 1365
@@ -423,16 +661,100 @@
     "h": 1365
   },
   {
-    "id": "c00997a2b123",
-    "image": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/images/c00997a2b123.jpg",
-    "thumb": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/thumbs/c00997a2b123.jpg",
-    "title": "Ichneumon Wasp",
-    "species": "Ichneumon Wasp (Ichneumonidae)",
+    "id": "d50feaa9c9ff",
+    "image": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/images/d50feaa9c9ff.jpg",
+    "thumb": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/thumbs/d50feaa9c9ff.jpg",
+    "title": "Eastern Chipmunk",
+    "species": "Eastern Chipmunk",
     "location": "",
-    "date": "2026-06-09",
+    "date": "2026-06-06",
     "tags": [
-      "insect",
-      "wasp"
+      "mammal"
+    ],
+    "w": 2048,
+    "h": 1365
+  },
+  {
+    "id": "e5d42254cb4b",
+    "image": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/images/e5d42254cb4b.jpg",
+    "thumb": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/thumbs/e5d42254cb4b.jpg",
+    "title": "White-tailed Deer",
+    "species": "White-tailed Deer",
+    "location": "Rea St.",
+    "date": "2026-06-06",
+    "tags": [
+      "mammal"
+    ],
+    "w": 2048,
+    "h": 3072
+  },
+  {
+    "id": "853f2c945943",
+    "image": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/images/853f2c945943.jpg",
+    "thumb": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/thumbs/853f2c945943.jpg",
+    "title": "White-tailed Deer",
+    "species": "White-tailed Deer",
+    "location": "Rea St.",
+    "date": "2026-06-06",
+    "tags": [
+      "mammal"
+    ],
+    "w": 2048,
+    "h": 3072
+  },
+  {
+    "id": "d22699262ba0",
+    "image": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/images/d22699262ba0.jpg",
+    "thumb": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/thumbs/d22699262ba0.jpg",
+    "title": "White-tailed Deer",
+    "species": "White-tailed Deer",
+    "location": "Rea St.",
+    "date": "2026-06-06",
+    "tags": [
+      "mammal"
+    ],
+    "w": 2048,
+    "h": 3072
+  },
+  {
+    "id": "1e71ab85104b",
+    "image": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/images/1e71ab85104b.jpg",
+    "thumb": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/thumbs/1e71ab85104b.jpg",
+    "title": "White-tailed Deer",
+    "species": "White-tailed Deer",
+    "location": "Annie L. Sargent School",
+    "date": "2026-06-06",
+    "tags": [
+      "mammal"
+    ],
+    "w": 2048,
+    "h": 1365
+  },
+  {
+    "id": "6e75a035354c",
+    "image": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/images/6e75a035354c.jpg",
+    "thumb": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/thumbs/6e75a035354c.jpg",
+    "title": "White-tailed Deer",
+    "species": "White-tailed Deer",
+    "location": "Annie L. Sargent School",
+    "date": "2026-06-06",
+    "tags": [
+      "mammal"
+    ],
+    "w": 2048,
+    "h": 1365
+  },
+  {
+    "id": "d17753f9c247",
+    "image": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/images/d17753f9c247.jpg",
+    "thumb": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/thumbs/d17753f9c247.jpg",
+    "title": "Eastern Cottontail",
+    "species": "Eastern Cottontail",
+    "location": "Rea St.",
+    "date": "2026-06-06",
+    "tags": [
+      "mammal",
+      "rabbit"
     ],
     "w": 2048,
     "h": 1365
