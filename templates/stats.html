@@ -57,11 +57,26 @@
     <p class="stat-span mono">{{ fd.first.strftime('%b %-d, %Y') }} &rarr; {{ fd.last.strftime('%b %-d, %Y') }}</p>
     {% endif %}
 
+    {# Ten sections over roughly eight screens — without wayfinding you scroll
+       blind. Sticky, scroll-spied, horizontally scrollable when narrow. #}
+    <nav class="stat-jump" id="stat-jump" aria-label="Jump to section">
+      <a href="#s-life">Life list</a>
+      <a href="#s-year">Year</a>
+      <a href="#days">Shooting days</a>
+      <a href="#board">Most shot</a>
+      <a href="#s-family">Families</a>
+      <a href="#ear-block">Heard</a>
+      <a href="#rhythm-block">Rhythm</a>
+      <a href="#geo-block">Yard</a>
+      <a href="#places-block">Places</a>
+      <a href="#s-river">River</a>
+    </nav>
+
     <div class="stat-grid">
         <!-- Life list accumulation: scrub the timeline; the lifer card floats in
              the empty upper-left (a cumulative curve is monotonic, so that region
              is always clear). -->
-        <div class="stat-block stat-span-2">
+        <div class="stat-block stat-span-2" id="s-life">
             <h2>The life list</h2>
             <p class="stat-sub mono">every species, the day I first photographed it. scrub to explore.</p>
             <div class="accum-stage">
@@ -94,7 +109,7 @@
         </div>
 
         <!-- Phenology matrix: every species x every month -->
-        <div class="stat-block stat-span-2">
+        <div class="stat-block stat-span-2" id="s-year">
             <h2>The year, in birds</h2>
             <p class="stat-sub mono">all {{ series.pheno|length }} species, month by month. darker = more photos. tap a cell for that bird&rsquo;s photos.</p>
             <div class="pheno-controls">
@@ -132,7 +147,7 @@
         </div>
 
         <!-- By family treemap -->
-        <div class="stat-block">
+        <div class="stat-block" id="s-family">
             <h2>By family</h2>
             <p class="stat-sub mono">{{ stats.families|length }} families. area = photos, deeper green = more species.</p>
             <div id="fam-chart" class="d3-chart"></div>
@@ -278,7 +293,7 @@
         </div>
 
         <!-- The river: touch a species' current, meet the bird -->
-        <div class="stat-block stat-span-2 river-block">
+        <div class="stat-block stat-span-2 river-block" id="s-river">
             <div class="sp-sec-h" style="margin-bottom:.4rem">
                 <h2>The river</h2>
                 <button type="button" id="river-span" class="river-span mono">full history &rarr;</button>
@@ -1716,4 +1731,34 @@
         setTimeout(runFocus, 500);
     })();
 </script>
+
+<script>
+/* Scroll-spy for the jump nav. IntersectionObserver only, no scroll handler,
+   so it costs nothing per frame. */
+(function () {
+  var nav = document.getElementById("stat-jump");
+  if (!nav || !("IntersectionObserver" in window)) return;
+  var links = {};
+  nav.querySelectorAll("a").forEach(function (a) { links[a.getAttribute("href").slice(1)] = a; });
+  var seen = {};
+  var io = new IntersectionObserver(function (entries) {
+    entries.forEach(function (e) { seen[e.target.id] = e.isIntersecting ? e.intersectionRatio : 0; });
+    var best = null, bestV = 0;
+    Object.keys(seen).forEach(function (k) { if (seen[k] > bestV) { bestV = seen[k]; best = k; } });
+    nav.querySelectorAll("a").forEach(function (a) { a.classList.remove("on"); });
+    if (best && links[best]) {
+      var a = links[best];
+      a.classList.add("on");
+      var l = a.offsetLeft, w = a.offsetWidth;
+      if (l < nav.scrollLeft || l + w > nav.scrollLeft + nav.clientWidth) {
+        nav.scrollTo({ left: Math.max(0, l - nav.clientWidth / 2 + w / 2), behavior: "smooth" });
+      }
+    }
+  }, { threshold: [0, .15, .35, .6], rootMargin: "-70px 0px -45% 0px" });
+  Object.keys(links).forEach(function (id) {
+    var el = document.getElementById(id); if (el) io.observe(el);
+  });
+})();
+</script>
+
 {% endblock %}
