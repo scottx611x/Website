@@ -109,16 +109,9 @@ body.birdsfield .page{padding-top:.5rem!important}
 .bf-mlab span{flex:1;text-align:center}
 .bf-map{position:relative;width:100%;height:190px;background:#eae5d9;
   border-radius:4px;overflow:hidden;z-index:0}
-.bf-map i{position:absolute;width:9px;height:9px;border-radius:50%;
-  background:var(--green);border:2px solid var(--paper);transform:translate(-50%,-50%);
-  box-shadow:0 1px 3px rgba(13,18,14,.4)}
-.bf-map i.away{background:var(--amber)}
-.bf-map .bf-home{position:absolute;left:50%;top:50%;width:7px;height:7px;
-  border-radius:50%;background:var(--ink);transform:translate(-50%,-50%);opacity:.35}
-.bf-map::before{content:"";position:absolute;left:50%;top:0;bottom:0;width:1px;
-  background:rgba(13,18,14,.06)}
-.bf-map::after{content:"";position:absolute;top:50%;left:0;right:0;height:1px;
-  background:rgba(13,18,14,.06)}
+.bf-map.bf-mapfail::after{content:"map tiles unavailable";position:absolute;
+  inset:0;display:grid;place-items:center;font-size:.74rem;color:var(--muted)}
+.bf-map .leaflet-control-attribution{font-size:.6rem;background:rgba(250,248,243,.8)}
 .bf-places{list-style:none;margin:.7rem 0 0;padding:0}
 .bf-places li{display:flex;justify-content:space-between;gap:1rem;font-size:.82rem;
   padding:.28rem 0;border-bottom:1px solid rgba(13,18,14,.08)}
@@ -424,7 +417,10 @@ body.birdsfield .page{padding-top:.5rem!important}
     $("bf-oimg").src = t.src; $("bf-oimg").alt = t.name;
     $("bf-ocount").textContent = "";
     $("bf-ofacts").innerHTML = ""; $("bf-ostrip").innerHTML = "";
-    $("bf-oplaces").innerHTML = ""; $("bf-omap").innerHTML = "";
+    $("bf-oplaces").innerHTML = "";
+    // deliberately NOT clearing #bf-omap: Leaflet owns that element, and
+    // emptying it left _map pointing at DOM that no longer existed — which
+    // is why the map loaded the first time and then intermittently did not
     $("bf-omonths").innerHTML = ""; $("bf-omlab").innerHTML = "";
     $("bf-sound").hidden = true; $("bf-nosound").hidden = true;
     $("bf-ofull").href = "/birds/species/" + t.slug;
@@ -536,14 +532,19 @@ body.birdsfield .page{padding-top:.5rem!important}
     mk.setStyle({ fillOpacity: 1, weight: 3 });
     mk.bringToFront();
     _map.flyTo(mk.getLatLng(), 14, { duration: .6 });
-    if (_boop) clearInterval(_boop);
-    var step = 0;
-    _boop = setInterval(function () {                 // a short, decaying pulse
-      step++;
-      var k = Math.max(0, 1 - step / 10);
-      mk.setRadius(mk._base + 9 * k * Math.abs(Math.sin(step * 0.9)));
-      if (step > 10) { clearInterval(_boop); _boop = null; mk.setRadius(mk._base); }
-    }, 45);
+    // One swell and settle. The previous version oscillated on a sine, which
+    // read as a shake rather than a beat.
+    if (_boop) cancelAnimationFrame(_boop);
+    var t0 = null, DUR = 420;
+    (function frame(ts) {
+      if (t0 === null) t0 = ts;
+      var p = Math.min(1, (ts - t0) / DUR);
+      var swell = Math.sin(p * Math.PI);             // 0 -> 1 -> 0, once
+      var ease = swell * swell * (3 - 2 * swell);    // smoothstep the edges
+      mk.setRadius(mk._base + 7 * ease);
+      if (p < 1) _boop = requestAnimationFrame(frame);
+      else { _boop = null; mk.setRadius(mk._base); }
+    })(performance.now());
   }
   /* Leaflet is served from our own static/vendor rather than a CDN: no
      third-party fetch to fail silently, and it works offline. Loaded lazily
@@ -566,13 +567,26 @@ body.birdsfield .page{padding-top:.5rem!important}
     document.head.appendChild(js);
   }
   function drawMap(places) {
+    var box0 = $("bf-omap");
+    box0.classList.remove("bf-mapfail");
+    var failTimer = setTimeout(function () {
+      // no tile painted after a beat: say so rather than showing a dead box
+      if (!box0.querySelector("img.leaflet-tile")) box0.classList.add("bf-mapfail");
+    }, 6000);
     ensureLeaflet(function () {
+      clearTimeout(failTimer);
       var box = $("bf-omap");
+      if (_map && !box.classList.contains("leaflet-container")) {
+        try { _map.remove(); } catch (e) {}      // container was replaced
+        _map = null; _layer = null;
+      }
       if (!_map) {
-        _map = window.L.map(box, { zoomControl: false, attributionControl: false,
-                            scrollWheelZoom: false, dragging: true });
-        window.L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-                    { maxZoom: 17 }).addTo(_map);
+        _map = window.L.map(box, { zoomControl: false, scrollWheelZoom: false,
+                                   dragging: true });
+        window.L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+          maxZoom: 17, minZoom: 3,
+          attribution: '&copy; OpenStreetMap'      // required by their tile policy
+        }).addTo(_map);
       }
       if (_layer) _layer.remove();
       _layer = window.L.layerGroup().addTo(_map);
@@ -588,8 +602,11 @@ body.birdsfield .page{padding-top:.5rem!important}
         mk._base = base;
         _markers[(q.name || "").toLowerCase()] = mk;
       });
-      _map.invalidateSize();
       _bounds = pts;
+      // the modal has only just become visible, so the container may still
+      // measure zero; re-measure on the next frame before fitting
+      requestAnimationFrame(function () { _map.invalidateSize(); fitAll(); });
+      _map.invalidateSize();
       fitAll();
       // the frame on screen when the map finished loading gets the first boop
       if (frames[fi]) highlightPlace(frames[fi].where);
