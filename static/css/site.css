@@ -898,7 +898,14 @@ a.pheno-cell:hover, a.pheno-cell:focus-visible {
 .rhythm-chart { margin-top: 1rem; display: flex; flex-direction: column; gap: 1px; }
 .rhythm-row { display: grid; grid-template-columns: 9.5rem 1fr 2.1rem; align-items: center; gap: 0.5rem; text-decoration: none; color: inherit; border-radius: 6px; }
 a.rhythm-row:hover { background: rgba(47, 125, 79, 0.07); }
-a.rhythm-row:hover .rhythm-spark path { fill: color-mix(in srgb, var(--neon) 62%, transparent); }
+/* Each ridge is tinted by the hour that species peaks, so the dawn->night
+   cascade the rows are already sorted into finally reads. Falls back to the
+   original neon fill if --ridge is ever absent. */
+a.rhythm-row:hover .rhythm-spark path { fill: color-mix(in srgb, var(--ridge, var(--neon)) 80%, transparent); }
+.rhythm-legend { display: flex; flex-wrap: wrap; gap: 0.35rem 1rem; font-size: 0.68rem;
+  color: var(--muted); margin: 0 0 0.7rem; }
+.rhythm-legend span { display: inline-flex; align-items: center; gap: 0.4rem; }
+.rhythm-legend i { width: 0.7rem; height: 0.7rem; border-radius: 3px; flex: none; }
 .rhythm-head { display: flex; align-items: center; gap: 0.5rem; overflow: hidden; }
 .rhythm-name { font-size: 0.78rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .bird-avatar.sm { width: 1.5rem; height: 1.5rem; border-width: 1px; }
@@ -906,7 +913,7 @@ a.rhythm-row:hover .rhythm-spark path { fill: color-mix(in srgb, var(--neon) 62%
 .rhythm-plot { position: relative; height: 1.7rem;
     background: repeating-linear-gradient(to right, rgba(13, 18, 14, 0.09) 0 1px, transparent 1px 25%); }
 .rhythm-spark { display: block; width: 100%; height: 100%; }
-.rhythm-spark path { fill: color-mix(in srgb, var(--neon) 45%, transparent); }
+.rhythm-spark path { fill: color-mix(in srgb, var(--ridge, var(--neon)) 55%, transparent); }
 .rhythm-row.axis .rhythm-plot { height: 0.9rem; background: none; }
 .rhythm-lab { position: absolute; top: 0; transform: translateX(-50%); font-family: var(--mono); font-size: 0.6rem; color: var(--muted); white-space: nowrap; }
 .rhythm-lab:first-child { transform: none; }

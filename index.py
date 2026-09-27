@@ -913,6 +913,21 @@ def birds_stats():
         def _hlab(h):
             return "%d%s" % (h % 12 or 12, "a" if h < 12 else "p")
 
+        # The ridges were 30 identical mint curves — the cascade they are already
+        # sorted into was invisible. Colour by WHEN a bird peaks, so the dawn
+        # chorus, the midday lull and the owls read as bands at a glance. This is
+        # a cyclical sequential encoding (time), not 30 arbitrary categories.
+        _BANDS = [(5, 8,   "#b1560b", "dawn"),
+                  (8, 12,  "#2f7d4f", "morning"),
+                  (12, 17, "#028779", "afternoon"),
+                  (17, 21, "#950259", "dusk")]
+
+        def _band(h):
+            for lo, hi, col, lab in _BANDS:
+                if lo <= h < hi:
+                    return col, lab
+            return "#3a539c", "night"      # 21:00-05:00 wraps midnight
+
         def _spark(intens):  # closed area path, viewBox 0 0 100 26, baseline at 26
             n = len(intens)
             body = " ".join("L%.2f,%.2f" % (i / (n - 1) * 100.0, 26.0 - v * 24.0)
@@ -926,11 +941,17 @@ def birds_stats():
             intens = [round((c / rmax) ** 0.6, 3) for c in hrs]
             peak = max(range(24), key=lambda h: hrs[h]) if any(hrs) else 0
             row = _card(s.get("name"))
+            hue, band = _band(peak)
             row.update({"path": _spark(intens), "peak": peak, "peaklab": _hlab(peak),
+                        "hue": hue, "band": band,
                         "total": s.get("total") or sum(hrs)})
             rrows.append(row)
         rrows.sort(key=lambda r: (r["peak"], -r["total"]))
-        rhythm = {"species": rrows}
+        _seen, _legend = set(), []
+        for _lo, _hi, _col, _lab in _BANDS + [(0, 0, "#3a539c", "night")]:
+            if _lab not in _seen and any(r["band"] == _lab for r in rrows):
+                _seen.add(_lab); _legend.append({"label": _lab, "hue": _col})
+        rhythm = {"species": rrows, "legend": _legend}
 
         # Yard geography: which mic hears each species. Node colors match the live
         # page's dots (nodes.js assigns the palette by sorted node position).

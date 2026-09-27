@@ -210,6 +210,11 @@
         <div class="stat-block stat-span-2" id="rhythm-block">
             <h2>The daily rhythm</h2>
             <p class="stat-sub mono">each ridge is one species&rsquo; day &mdash; when it sings, dawn to night, peaked at its most vocal hour. tap a bird for its photos.</p>
+            {% if rhythm.legend %}
+            <div class="rhythm-legend mono">
+                {% for b in rhythm.legend %}<span><i style="background: {{ b.hue }}"></i>{{ b.label }}</span>{% endfor %}
+            </div>
+            {% endif %}
             <div class="rhythm-chart">
                 <div class="rhythm-row axis" aria-hidden="true">
                     <span class="rhythm-head"></span>
@@ -229,7 +234,7 @@
                         {% else %}<span class="bird-avatar sm ear-miss" title="heard, not photographed">&#129718;</span>{% endif %}
                         <span class="rhythm-name">{{ r.name }}</span>
                     </span>
-                    <span class="rhythm-plot"><svg class="rhythm-spark" viewBox="0 0 100 26" preserveAspectRatio="none" aria-hidden="true"><path d="{{ r.path }}"/></svg></span>
+                    <span class="rhythm-plot"><svg class="rhythm-spark" viewBox="0 0 100 26" preserveAspectRatio="none" aria-hidden="true" style="--ridge: {{ r.hue }}"><path d="{{ r.path }}"/></svg></span>
                     <span class="rhythm-peak mono">{{ r.peaklab }}</span>
                 </a>
                 {% endfor %}
