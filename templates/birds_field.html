@@ -109,6 +109,12 @@ body.birdsfield .page{padding-top:.5rem!important}
   background:var(--green);border:2px solid var(--paper);transform:translate(-50%,-50%);
   box-shadow:0 1px 3px rgba(13,18,14,.4)}
 .bf-map i.away{background:var(--amber)}
+.bf-map .bf-home{position:absolute;left:50%;top:50%;width:7px;height:7px;
+  border-radius:50%;background:var(--ink);transform:translate(-50%,-50%);opacity:.35}
+.bf-map::before{content:"";position:absolute;left:50%;top:0;bottom:0;width:1px;
+  background:rgba(13,18,14,.06)}
+.bf-map::after{content:"";position:absolute;top:50%;left:0;right:0;height:1px;
+  background:rgba(13,18,14,.06)}
 .bf-places{list-style:none;margin:.7rem 0 0;padding:0}
 .bf-places li{display:flex;justify-content:space-between;gap:1rem;font-size:.82rem;
   padding:.28rem 0;border-bottom:1px solid rgba(13,18,14,.08)}
@@ -185,6 +191,7 @@ body.birdsfield .page{padding-top:.5rem!important}
       <div id="bf-mapwrap">
         <h3>Where I find it</h3>
         <div class="bf-map" id="bf-omap"></div>
+        <p class="bf-note" id="bf-mapnote"></p>
         <ul class="bf-places" id="bf-oplaces"></ul>
       </div>
 
@@ -200,7 +207,7 @@ body.birdsfield .page{padding-top:.5rem!important}
       </div>
       <div id="bf-nosound" hidden>
         <h3>Its voice</h3>
-        <p class="bf-note">The yard microphone has never caught this one.</p>
+        <p class="bf-note" id="bf-nosoundtxt"></p>
       </div>
 
       <p class="bf-note"><a id="bf-ofull" href="#">Open the full species page &rarr;</a></p>
@@ -349,7 +356,7 @@ body.birdsfield .page{padding-top:.5rem!important}
      reachable by arrows, keyboard or the strip, and the rail carries the
      numbers, the year, the map and the voice. */
   var over = document.getElementById("bf-over"), audio = new Audio(), raf = null;
-  var cur = null, frames = [], fi = 0;
+  var cur = null, frames = [], fi = 0, wantSrc = null;
   var MONTHS = ["J","F","M","A","M","J","J","A","S","O","N","D"];
   var $ = function (id) { return document.getElementById(id); };
   function fmt(s) { s = Math.floor(s || 0); return Math.floor(s / 60) + ":" + ("0" + (s % 60)).slice(-2); }
@@ -379,6 +386,7 @@ body.birdsfield .page{padding-top:.5rem!important}
 
   function openSpecies(t) {
     cur = t.slug; frames = []; fi = 0;
+    wantSrc = t.src;            // open on the frame that was actually clicked
     $("bf-otitle").textContent = t.name;
     $("bf-ofam").textContent = t.fam || "";
     $("bf-oimg").src = t.src; $("bf-oimg").alt = t.name;
@@ -417,7 +425,15 @@ body.birdsfield .page{padding-top:.5rem!important}
         var im = e.target.closest("img"); if (!im) return;
         showFrame([].indexOf.call(this.querySelectorAll("img"), im));
       };
-      showFrame(0);
+      // Land on the tile the click came from, not whatever happens to be
+      // first in the profile — otherwise the modal appears to swap the photo.
+      var start = 0;
+      if (wantSrc) {
+        for (var q = 0; q < frames.length; q++) {
+          if (frames[q].thumb === wantSrc || frames[q].full === wantSrc) { start = q; break; }
+        }
+      }
+      showFrame(start);
     }
 
     var m = d.months || [];
@@ -429,29 +445,38 @@ body.birdsfield .page{padding-top:.5rem!important}
       $("bf-omlab").innerHTML = MONTHS.map(function (x) { return "<span>" + x + "</span>"; }).join("");
     }
 
-    // Mini-map: places plotted from their real coordinates, normalised into the
-    // box with a margin so a single pin still sits sensibly in the middle.
+    // Mini-map over a FIXED window around North Andover, not one fitted to
+    // whichever points this bird happens to have. Auto-fitting flung two
+    // nearby places to opposite corners and meant a different scale per
+    // species. Anything outside the window is counted, not plotted.
+    var HOME = { lat: 42.70, lng: -71.13 }, SPAN_LA = 0.17, SPAN_LN = 0.23;
     var pl = (d.places || []).filter(function (q) { return q.lat && q.lng; });
-    if (pl.length) {
-      var las = pl.map(function (q) { return q.lat; }), lns = pl.map(function (q) { return q.lng; });
-      var la0 = Math.min.apply(null, las), la1 = Math.max.apply(null, las);
-      var ln0 = Math.min.apply(null, lns), ln1 = Math.max.apply(null, lns);
-      var dla = (la1 - la0) || 0.02, dln = (ln1 - ln0) || 0.02;
-      $("bf-omap").innerHTML = pl.map(function (q) {
-        var x = 12 + ((q.lng - ln0) / dln) * 76;
-        var y = 88 - ((q.lat - la0) / dla) * 76;
-        return '<i class="' + (q.area === "away" ? "away" : "") + '" style="left:' +
-          x.toFixed(1) + '%;top:' + y.toFixed(1) + '%" title="' + esc(q.name) + '"></i>';
+    var inside = [], outside = 0;
+    pl.forEach(function (q) {
+      if (Math.abs(q.lat - HOME.lat) <= SPAN_LA && Math.abs(q.lng - HOME.lng) <= SPAN_LN) inside.push(q);
+      else outside += (q.count || 1);
+    });
+    $("bf-omap").innerHTML =
+      '<b class="bf-home" title="North Andover"></b>' +
+      inside.map(function (q) {
+        var x = 50 + ((q.lng - HOME.lng) / SPAN_LN) * 46;
+        var y = 50 - ((q.lat - HOME.lat) / SPAN_LA) * 46;
+        return '<i style="left:' + x.toFixed(1) + '%;top:' + y.toFixed(1) + '%" title="' +
+          esc(q.name) + ' · ' + (q.count || 0) + '"></i>';
       }).join("");
-    } else {
-      $("bf-mapwrap").style.display = (d.places && d.places.length) ? "" : "none";
-    }
+    $("bf-mapnote").textContent = outside
+      ? outside + (outside === 1 ? " sighting" : " sightings") + " outside this view"
+      : "";
+    $("bf-mapwrap").style.display = (d.places && d.places.length) ? "" : "none";
     $("bf-oplaces").innerHTML = (d.places || []).length
       ? d.places.map(function (q) {
           return "<li><span>" + esc(q.name) + "</span><em>" + q.count + "</em></li>";
         }).join("")
       : '<li><em>No mapped sightings yet</em></li>';
 
+    // Three states, not two. A bird can be heard without a clip surviving —
+    // saying "never caught this one" while the panel above reads 3 recordings
+    // is a contradiction the data never claimed.
     if (d.call && d.call.audio) {
       $("bf-sound").hidden = false;
       var sp = $("bf-ospec");
@@ -462,6 +487,11 @@ body.birdsfield .page{padding-top:.5rem!important}
         d.call.node].filter(Boolean).join(" · ");
     } else {
       $("bf-nosound").hidden = false;
+      $("bf-nosoundtxt").textContent = (h.count > 0)
+        ? "Heard " + h.count.toLocaleString() + (h.count === 1 ? " time" : " times") +
+          (h.first ? ", " + h.first + " to " + h.last : "") +
+          " — but no recording has been kept."
+        : "The yard microphone has never caught this one.";
     }
   }
 
