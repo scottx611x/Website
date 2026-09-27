@@ -709,10 +709,16 @@ def birds_species_json(slug):
             continue
         locs = f.get("image_locations") or []
         vids = f.get("image_videos") or []
+        idxs = f.get("image_indices") or []
+        areas = f.get("image_areas") or []
         frames.append({"thumb": birds.thumb_url(imgs[0]), "full": imgs[0],
                        "date": f.get("_sort") or f.get("date"),
                        "where": (locs[0] if locs else None),
-                       "vid": 1 if (vids and vids[0]) else 0})
+                       "vid": 1 if (vids and vids[0]) else 0,
+                       # identity, so curate can act on the exact frame shown
+                       "pid": f.get("post_id"),
+                       "idx": (idxs[0] if idxs else 0),
+                       "away": 1 if (areas and areas[0] == "away") else 0})
     heard = p.get("heard") or {}
     # best_call can be empty even for a heavily-recorded bird (Barred Owl has
     # 1,199 detections and 40 clips, yet no "best"), so pick the highest

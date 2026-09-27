@@ -151,6 +151,11 @@ body.birdsfield .page{padding-top:.5rem!important}
   letter-spacing:-.02em;margin:0}
 .bf-side .fam{font-size:.8rem;color:var(--muted);margin:.15rem 0 0}
 .bf-ocontrols{display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.7rem}
+.bf-cfield{display:block;margin-top:.7rem;font-size:.7rem;color:var(--muted)}
+.bf-cfield input{display:block;width:100%;margin-top:.25rem;font:inherit;
+  font-size:.82rem;padding:.35rem .5rem;border:1px solid rgba(13,18,14,.2);
+  border-radius:4px;background:#fff;color:var(--ink)}
+.bf-shuffle.on{background:var(--amber);border-color:var(--amber);color:var(--ink)}
 .bf-side h3{font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;
   color:var(--muted);font-weight:500;margin:0 0 .6rem}
 .bf-facts{display:grid;grid-template-columns:1fr 1fr;gap:.9rem .8rem;margin:0}
@@ -172,6 +177,9 @@ body.birdsfield .page{padding-top:.5rem!important}
 .bf-places li{display:flex;justify-content:space-between;gap:1rem;font-size:.82rem;
   padding:.28rem 0;border-bottom:1px solid rgba(13,18,14,.08)}
 .bf-places em{font-style:normal;color:var(--muted)}
+.bf-placelink{color:inherit;text-decoration:none;border-bottom:1px solid transparent}
+.bf-placelink:hover{color:var(--green);border-bottom-color:var(--green)}
+.bf-map path.leaflet-interactive{cursor:pointer}
 .bf-spec{width:100%;display:block;background:#0d120e;border-radius:3px;
   margin-bottom:.5rem}
 .bf-play{display:flex;align-items:center;gap:.6rem;font-size:.78rem;color:var(--muted)}
@@ -271,6 +279,19 @@ body.birdsfield .page{padding-top:.5rem!important}
         <p class="bf-note" id="bf-nosoundtxt"></p>
       </div>
 
+      {% if curate %}
+      <div id="bf-curate">
+        <h3>Curate this frame</h3>
+        <p class="bf-note" id="bf-cwhich"></p>
+        <div class="bf-ocontrols">
+          <button type="button" id="bf-caway" class="bf-shuffle">Out of area</button>
+          <button type="button" id="bf-chide" class="bf-shuffle">Hide frame</button>
+        </div>
+        <label class="bf-cfield"><span>Location</span>
+          <input type="text" id="bf-cloc" placeholder="where was it taken"></label>
+        <p class="bf-note" id="bf-csaved"></p>
+      </div>
+      {% endif %}
       <p class="bf-note"><a id="bf-ofull" href="#">Open the full species page &rarr;</a></p>
     </aside>
   </div>
@@ -527,6 +548,7 @@ body.birdsfield .page{padding-top:.5rem!important}
       im.classList.toggle("on", n === fi);
     });
     highlightPlace(f.where);
+    curateSync();
     var on = strip.querySelector("img.on");
     if (on) {
       var l = on.offsetLeft, w = on.offsetWidth;
@@ -627,9 +649,13 @@ body.birdsfield .page{padding-top:.5rem!important}
     $("bf-mapnote").textContent = "";
     if (pl.length) drawMap(pl);
 
+    // A place name is a filter, not a label: both the list and the map markers
+    // open the gallery scoped to that spot.
     $("bf-oplaces").innerHTML = (d.places || []).length
       ? d.places.map(function (q) {
-          return "<li><span>" + esc(q.name) + "</span><em>" + q.count + "</em></li>";
+          return '<li><a class="bf-placelink" href="/birds?loc=' +
+            encodeURIComponent(q.name) + '" title="Show every photo from ' +
+            esc(q.name) + '">' + esc(q.name) + "</a><em>" + q.count + "</em></li>";
         }).join("")
       : '<li><em>No mapped sightings yet</em></li>';
 
@@ -748,7 +774,11 @@ body.birdsfield .page{padding-top:.5rem!important}
         var mk = window.L.circleMarker([q.lat, q.lng], {
           radius: base, color: "#faf8f3", weight: 2,
           fillColor: q.area === "away" ? "#e8b04b" : "#2f7d4f", fillOpacity: .9
-        }).bindTooltip(q.name + " · " + (q.count || 0)).addTo(_layer);
+        }).bindTooltip(q.name + " · " + (q.count || 0) + " — click to filter")
+          .on("click", function () {
+            location.href = "/birds?loc=" + encodeURIComponent(q.name);
+          })
+          .addTo(_layer);
         mk._base = base;
         _markers[(q.name || "").toLowerCase()] = mk;
       });
@@ -799,6 +829,62 @@ body.birdsfield .page{padding-top:.5rem!important}
       return '<img src="' + f.thumb + '" alt="" loading="lazy">';
     }).join("");
     showFrame(0);
+  });
+
+  /* Curate acts on the frame currently on the stage — never the species —
+     so the post id and image index travel with each frame and are re-read on
+     every frame change. Editing the wrong photo is the failure mode worth
+     designing against. */
+  var cAway = $("bf-caway"), cHide = $("bf-chide"), cLoc = $("bf-cloc");
+  function curateSync() {
+    if (!cAway) return;
+    var f = frames[fi];
+    var ok = !!(f && f.pid);
+    [cAway, cHide].forEach(function (b) { b.disabled = !ok; b.style.opacity = ok ? 1 : .4; });
+    cLoc.disabled = !ok;
+    $("bf-cwhich").textContent = ok
+      ? "frame " + (fi + 1) + " of " + frames.length + " · post " + f.pid + " · image " + f.idx
+      : "no editable frame";
+    if (ok) {
+      cLoc.value = f.where || "";
+      cAway.classList.toggle("on", !!f.away);
+    }
+  }
+  function post(url, body, done) {
+    fetch(url, { method: "POST", headers: { "Content-Type": "application/json" },
+                 body: JSON.stringify(body) })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (j) {
+        $("bf-csaved").textContent = j && j.ok ? "saved ✓" : "could not save";
+        setTimeout(function () { $("bf-csaved").textContent = ""; }, 2200);
+        if (j && j.ok && done) done();
+      })
+      .catch(function () { $("bf-csaved").textContent = "could not save"; });
+  }
+  if (cHide) cHide.addEventListener("click", function () {
+    var f = frames[fi]; if (!f || !f.pid) return;
+    post("/curate/exclude-image", { id: f.pid, index: f.idx }, function () {
+      frames.splice(fi, 1);                       // drop it from the strip too
+      $("bf-ostrip").innerHTML = frames.map(function (x) {
+        return '<img src="' + x.thumb + '" alt="" loading="lazy">';
+      }).join("");
+      if (frames.length) showFrame(Math.min(fi, frames.length - 1));
+    });
+  });
+  if (cAway) cAway.addEventListener("click", function () {
+    var f = frames[fi]; if (!f || !f.pid) return;
+    var next = f.away ? "local" : "away";
+    var arr = []; arr[f.idx] = next;
+    post("/curate/override", { id: f.pid, image_areas: arr }, function () {
+      f.away = next === "away" ? 1 : 0; curateSync();
+    });
+  });
+  if (cLoc) cLoc.addEventListener("change", function () {
+    var f = frames[fi]; if (!f || !f.pid) return;
+    var arr = []; arr[f.idx] = cLoc.value.trim();
+    post("/curate/override", { id: f.pid, image_locations: arr }, function () {
+      f.where = cLoc.value.trim(); curateSync();
+    });
   });
 
   function closeOver() {
