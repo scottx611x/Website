@@ -139,6 +139,7 @@ body.birdsfield .page{padding-top:.5rem!important}
   color:rgba(255,255,255,.65);font-size:.76rem}
 .bf-strip{display:flex;gap:.35rem;overflow-x:auto;
   padding:.7rem 1.4rem 1.2rem;min-width:0}
+.bf-stripend{flex:none;width:1px;height:1px}
 .bf-strip img{width:60px;height:60px;object-fit:cover;flex:none;cursor:pointer;
   border-radius:2px;opacity:.42;transition:opacity .18s,transform .18s}
 .bf-strip img:hover{opacity:.85}
@@ -530,7 +531,13 @@ body.birdsfield .page{padding-top:.5rem!important}
   function fmt(s) { s = Math.floor(s || 0); return Math.floor(s / 60) + ":" + ("0" + (s % 60)).slice(-2); }
   function stop() { audio.pause(); audio.currentTime = 0; tick(); }
 
-  var stripShown = 0, stripAuto = false;
+  /* The filmstrip pages in as you reach its end.
+
+     A scroll handler could not do this: centring the active thumbnail is
+     itself a scroll, so every page triggered another and 24 became 120. A
+     sentinel watched by an IntersectionObserver only fires when the END of
+     the strip is genuinely reached, so our own scrolling cannot drive it. */
+  var stripShown = 0, stripAuto = false, stripIO = null, stripEnd = null;
   function growStrip(n) {
     var strip = $("bf-ostrip");
     var upto = Math.min(frames.length, stripShown + n);
@@ -538,8 +545,25 @@ body.birdsfield .page{padding-top:.5rem!important}
     for (var i = stripShown; i < upto; i++) {
       frag += '<img src="' + frames[i].thumb + '" alt="" loading="lazy" data-i="' + i + '">';
     }
+    if (!stripEnd) {
+      stripEnd = document.createElement("span");
+      stripEnd.className = "bf-stripend";
+      stripEnd.setAttribute("aria-hidden", "true");
+    }
     strip.insertAdjacentHTML("beforeend", frag);
     stripShown = upto;
+    if (stripShown < frames.length) {
+      strip.appendChild(stripEnd);                 // keep it last
+      if (!stripIO) {
+        stripIO = new IntersectionObserver(function (es) {
+          if (es[0].isIntersecting) growStrip(24);
+        }, { root: strip, rootMargin: "300px" });
+        stripIO.observe(stripEnd);
+      }
+    } else if (stripEnd && stripEnd.parentNode) {
+      stripEnd.parentNode.removeChild(stripEnd);   // nothing left to page in
+      if (stripIO) { stripIO.disconnect(); stripIO = null; }
+    }
   }
 
   function strip0() { return $("bf-ostrip"); }
@@ -692,19 +716,15 @@ body.birdsfield .page{padding-top:.5rem!important}
       // made opening a bird feel heavy, so render a first page and extend it
       // as the strip is scrolled.
       stripShown = 0;
+      if (stripIO) { stripIO.disconnect(); stripIO = null; }
+      stripEnd = null;
       $("bf-ostrip").innerHTML = "";
       growStrip(24);
       $("bf-ostrip").onclick = function (e) {
         var im = e.target.closest("img"); if (!im) return;
         showFrame(+im.dataset.i);
       };
-      $("bf-ostrip").onscroll = function () {
-        // Ignore the scrolls we cause ourselves when centring the active
-        // thumbnail — otherwise each one grows the strip, which scrolls again,
-        // and a 24-thumb page becomes 144.
-        if (stripAuto || stripShown >= frames.length) return;
-        if (this.scrollLeft + this.clientWidth > this.scrollWidth - 400) growStrip(24);
-      };
+
       // Land on the tile the click came from, not whatever happens to be
       // first in the profile — otherwise the modal appears to swap the photo.
       var start = 0;
