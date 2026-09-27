@@ -693,7 +693,8 @@ def birds_species_json(slug):
         "count": p.get("count"), "frames": frames,
         "months": (p.get("pheno") or {}).get("months") or [],
         "places": [{"name": q.get("name"), "count": q.get("count"),
-                    "area": q.get("area")} for q in (p.get("places") or [])[:6]],
+                    "area": q.get("area"), "lat": q.get("lat"), "lng": q.get("lng")}
+                   for q in (p.get("places") or [])[:8]],
         "heard": {"count": heard.get("count") or 0,
                   "first": (heard.get("first") or "")[:10],
                   "last": (heard.get("last") or "")[:10],
