@@ -724,6 +724,8 @@ def birds_species_json(slug):
                        "date": f.get("_sort") or f.get("date"),
                        "where": (locs[0] if locs else None),
                        "vid": 1 if (vids and vids[0]) else 0,
+                       # the playable clip, so the stage can show video not a poster
+                       "vsrc": (vids[0] if (vids and vids[0]) else None),
                        # identity, so curate can act on the exact frame shown
                        "pid": f.get("post_id"),
                        "idx": (idxs[0] if idxs else 0),

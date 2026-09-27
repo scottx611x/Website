@@ -238,6 +238,8 @@ body.birdsfield .page{padding-top:.5rem!important}
     <div class="bf-stage">
       <button class="bf-arrow bf-prev" id="bf-prev" aria-label="Previous frame">&#8249;</button>
       <img class="bf-oimg" id="bf-oimg" alt="">
+      <video class="bf-oimg" id="bf-ovid" hidden controls loop playsinline
+             preload="metadata"></video>
       <span class="bf-spin" aria-hidden="true"></span>
       <button class="bf-arrow bf-next" id="bf-next" aria-label="Next frame">&#8250;</button>
       <span class="bf-count" id="bf-ocount"></span>
@@ -540,13 +542,54 @@ body.birdsfield .page{padding-top:.5rem!important}
     stripShown = upto;
   }
 
+  function strip0() { return $("bf-ostrip"); }
+  function paintCaption(f) {
+    $("bf-ocount").textContent = (fi + 1) + " / " + frames.length +
+      (f.where ? "  ·  " + f.where : "") + (f.date ? "  ·  " + f.date : "");
+  }
+  function syncStrip(strip) {
+    while (stripShown <= fi && stripShown < frames.length) growStrip(24);
+    strip.querySelectorAll("img").forEach(function (im) {
+      im.classList.toggle("on", +im.dataset.i === fi);
+    });
+    var on = strip.querySelector("img.on");
+    if (on) {
+      var l = on.offsetLeft, w = on.offsetWidth;
+      if (l < strip.scrollLeft || l + w > strip.scrollLeft + strip.clientWidth) {
+        stripAuto = true;
+        strip.scrollTo({ left: Math.max(0, l - strip.clientWidth / 2 + w / 2), behavior: "smooth" });
+        setTimeout(function () { stripAuto = false; }, 500);
+      }
+    }
+  }
+
   function showFrame(i) {
     if (!frames.length) return;
     fi = (i % frames.length + frames.length) % frames.length;
     var f = frames[fi];
+    var img = $("bf-oimg"), vid = $("bf-ovid"), stage = img.parentNode;
+
+    // A video frame gets the real clip, not its poster — the stage was an
+    // <img>, so video frames were a still image you could not play.
+    if (f.vsrc) {
+      img.hidden = true; vid.hidden = false;
+      stage.classList.remove("busy"); img.classList.remove("loading");
+      if (vid.getAttribute("src") !== f.vsrc) {
+        vid.setAttribute("src", f.vsrc);
+        vid.poster = f.thumb || "";
+        vid.muted = true;                       // so autoplay is permitted
+        vid.play().catch(function () {});
+      }
+      paintCaption(f);
+      highlightPlace(f.where);
+      curateSync();
+      syncStrip(strip0());
+      return;
+    }
+    vid.pause(); vid.hidden = true; vid.removeAttribute("src"); img.hidden = false;
+
     // The thumbnail is already cached from the tile, so paint it at once and
     // swap in the full frame (~330 KB) when it lands. Beats a blank stage.
-    var img = $("bf-oimg"), stage = img.parentNode;
     var full = f.full || f.thumb;
     if (f.thumb && f.thumb !== full) {
       img.src = f.thumb;
@@ -958,6 +1001,9 @@ body.birdsfield .page{padding-top:.5rem!important}
   });
 
   function closeOver() {
+    var v = $("bf-ovid");
+    if (v) { v.pause(); v.removeAttribute("src"); v.hidden = true; }
+    $("bf-oimg").hidden = false;
     over.classList.remove("open"); document.body.style.overflow = ""; stop();
   }
   $("bf-oclose").addEventListener("click", closeOver);
