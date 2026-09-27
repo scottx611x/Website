@@ -677,7 +677,10 @@ def birds_species_json(slug):
         return app.json.response({"error": "unknown species"}), 404
     p = birds.species_profile(name) or {}
     frames = []
-    for f in (p.get("frames") or [])[:14]:
+    # No arbitrary cap: the modal is where you go to see ALL of a bird.
+    # Even the heaviest species (Barred Owl, ~200) is a few tens of KB,
+    # fetched lazily on open and lazy-loaded thumb by thumb.
+    for f in (p.get("frames") or []):
         imgs = f.get("images") or []
         if not imgs:
             continue
