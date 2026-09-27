@@ -1,11 +1,3 @@
-    // A real map rather than a blank box: the same Leaflet + OpenStreetMap the
-    // sightings page uses, loaded lazily the first time a modal needs it so the
-    // field itself never pays for it.
-    var pl = (d.places || []).filter(function (q) { return q.lat && q.lng; });
-    $("bf-mapwrap").style.display = (d.places && d.places.length) ? "" : "none";
-    $("bf-mapnote").textContent = "";
-    if (pl.length) drawMap(pl);
-
 {% extends 'base.html' %}
 {% block body_class %}birdsfield{% endblock %}
 
@@ -412,6 +404,7 @@ body.birdsfield .page{padding-top:.5rem!important}
     strip.querySelectorAll("img").forEach(function (im, n) {
       im.classList.toggle("on", n === fi);
     });
+    highlightPlace(f.where);
     var on = strip.querySelector("img.on");
     if (on) {
       var l = on.offsetLeft, w = on.offsetWidth;
@@ -484,29 +477,14 @@ body.birdsfield .page{padding-top:.5rem!important}
       $("bf-omlab").innerHTML = MONTHS.map(function (x) { return "<span>" + x + "</span>"; }).join("");
     }
 
-    // Mini-map over a FIXED window around North Andover, not one fitted to
-    // whichever points this bird happens to have. Auto-fitting flung two
-    // nearby places to opposite corners and meant a different scale per
-    // species. Anything outside the window is counted, not plotted.
-    var HOME = { lat: 42.70, lng: -71.13 }, SPAN_LA = 0.17, SPAN_LN = 0.23;
+    // A real map rather than a blank box: the same Leaflet + OpenStreetMap the
+    // sightings page uses, loaded lazily the first time a modal needs it so the
+    // field itself never pays for it.
     var pl = (d.places || []).filter(function (q) { return q.lat && q.lng; });
-    var inside = [], outside = 0;
-    pl.forEach(function (q) {
-      if (Math.abs(q.lat - HOME.lat) <= SPAN_LA && Math.abs(q.lng - HOME.lng) <= SPAN_LN) inside.push(q);
-      else outside += (q.count || 1);
-    });
-    $("bf-omap").innerHTML =
-      '<b class="bf-home" title="North Andover"></b>' +
-      inside.map(function (q) {
-        var x = 50 + ((q.lng - HOME.lng) / SPAN_LN) * 46;
-        var y = 50 - ((q.lat - HOME.lat) / SPAN_LA) * 46;
-        return '<i style="left:' + x.toFixed(1) + '%;top:' + y.toFixed(1) + '%" title="' +
-          esc(q.name) + ' · ' + (q.count || 0) + '"></i>';
-      }).join("");
-    $("bf-mapnote").textContent = outside
-      ? outside + (outside === 1 ? " sighting" : " sightings") + " outside this view"
-      : "";
     $("bf-mapwrap").style.display = (d.places && d.places.length) ? "" : "none";
+    $("bf-mapnote").textContent = "";
+    if (pl.length) drawMap(pl);
+
     $("bf-oplaces").innerHTML = (d.places || []).length
       ? d.places.map(function (q) {
           return "<li><span>" + esc(q.name) + "</span><em>" + q.count + "</em></li>";
@@ -536,44 +514,85 @@ body.birdsfield .page{padding-top:.5rem!important}
     }
   }
 
-  var _leaflet = null, _map = null, _layer = null;
+  var _leaflet = null, _map = null, _layer = null, _markers = {}, _bounds = [], _boop = null;
+
+  function fitAll() {
+    if (!_map || !_bounds.length) return;
+    if (_bounds.length === 1) _map.setView(_bounds[0], 13);
+    else _map.fitBounds(_bounds, { padding: [22, 22] });
+  }
+
+  /* Follow the photograph: when the frame changes, fly to where it was taken
+     and boop the marker. Frames carry a place name, so this matches on that —
+     any frame without one just resets to the whole range. */
+  function highlightPlace(where) {
+    if (!_map) return;
+    var mk = where ? _markers[String(where).toLowerCase()] : null;
+    Object.keys(_markers).forEach(function (k) {
+      _markers[k].setStyle({ fillOpacity: mk ? .35 : .9, weight: 2 });
+      _markers[k].setRadius(_markers[k]._base);
+    });
+    if (!mk) { fitAll(); return; }
+    mk.setStyle({ fillOpacity: 1, weight: 3 });
+    mk.bringToFront();
+    _map.flyTo(mk.getLatLng(), 14, { duration: .6 });
+    if (_boop) clearInterval(_boop);
+    var step = 0;
+    _boop = setInterval(function () {                 // a short, decaying pulse
+      step++;
+      var k = Math.max(0, 1 - step / 10);
+      mk.setRadius(mk._base + 9 * k * Math.abs(Math.sin(step * 0.9)));
+      if (step > 10) { clearInterval(_boop); _boop = null; mk.setRadius(mk._base); }
+    }, 45);
+  }
+  /* Leaflet is served from our own static/vendor rather than a CDN: no
+     third-party fetch to fail silently, and it works offline. Loaded lazily
+     the first time a modal needs a map. */
   function ensureLeaflet(cb) {
-    if (window.L) return cb();
-    if (_leaflet) return _leaflet.push(cb);
+    if (window.L && window.L.map) return cb();
+    if (_leaflet) { _leaflet.push(cb); return; }
     _leaflet = [cb];
     var css = document.createElement("link");
     css.rel = "stylesheet";
-    css.href = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css";
+    css.href = "{{ url_for('static', filename='vendor/leaflet.css', v=asset_v) }}";
     document.head.appendChild(css);
     var js = document.createElement("script");
-    js.src = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js";
-    js.onload = function () { _leaflet.forEach(function (f) { f(); }); _leaflet = []; };
-    js.onerror = function () { _leaflet = []; };   // degrade quietly
+    js.src = "{{ url_for('static', filename='vendor/leaflet.js', v=asset_v) }}";
+    js.onload = function () {
+      var q = _leaflet; _leaflet = null;          // null, not [] — an empty
+      q.forEach(function (f) { f(); });           // array is truthy and would
+    };                                            // swallow every later call
+    js.onerror = function () { _leaflet = null; };
     document.head.appendChild(js);
   }
   function drawMap(places) {
     ensureLeaflet(function () {
       var box = $("bf-omap");
       if (!_map) {
-        _map = L.map(box, { zoomControl: false, attributionControl: false,
+        _map = window.L.map(box, { zoomControl: false, attributionControl: false,
                             scrollWheelZoom: false, dragging: true });
-        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+        window.L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
                     { maxZoom: 17 }).addTo(_map);
       }
       if (_layer) _layer.remove();
-      _layer = L.layerGroup().addTo(_map);
+      _layer = window.L.layerGroup().addTo(_map);
+      _markers = {}; _bounds = [];
       var pts = [];
       places.forEach(function (q) {
         pts.push([q.lat, q.lng]);
-        L.circleMarker([q.lat, q.lng], {
-          radius: 5 + Math.min(7, Math.sqrt(q.count || 1)),
-          color: "#faf8f3", weight: 2,
+        var base = 5 + Math.min(7, Math.sqrt(q.count || 1));
+        var mk = window.L.circleMarker([q.lat, q.lng], {
+          radius: base, color: "#faf8f3", weight: 2,
           fillColor: q.area === "away" ? "#e8b04b" : "#2f7d4f", fillOpacity: .9
         }).bindTooltip(q.name + " · " + (q.count || 0)).addTo(_layer);
+        mk._base = base;
+        _markers[(q.name || "").toLowerCase()] = mk;
       });
       _map.invalidateSize();
-      if (pts.length === 1) _map.setView(pts[0], 13);
-      else _map.fitBounds(pts, { padding: [22, 22] });
+      _bounds = pts;
+      fitAll();
+      // the frame on screen when the map finished loading gets the first boop
+      if (frames[fi]) highlightPlace(frames[fi].where);
     });
   }
 
