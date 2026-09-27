@@ -623,11 +623,29 @@ def birds_field():
             "away": 1 if ((sh.get("image_areas") or [None])[0] == "away") else 0,
         }
         idx = len(tiles)
+        t["post_n"] = t["n"]          # images in THIS post
         tiles.append(t)
         if nm not in by_species:
             by_species[nm] = []
             order.append(nm)
         by_species[nm].append(idx)
+
+    # A tile opens the SPECIES, so the badge should read that bird's whole
+    # count, not how many images happened to be in this one post — showing 6
+    # for a House Finch that has 28 pictures is just confusing.
+    #
+    # Counted per FRAME, not per post: a post can hold several species, so
+    # crediting every image in it to the post's primary bird over-counts
+    # (it made Barred Owl 228 against the species page's 202).
+    totals = {}
+    for sh in shots:
+        isp = sh.get("image_species") or []
+        for i in range(len(sh.get("images") or [])):
+            raw = isp[i] if i < len(isp) and isp[i] else sh.get("species")
+            for nm, _fam in birds._canon_species_list(raw):
+                totals[nm] = totals.get(nm, 0) + 1
+    for t in tiles:
+        t["n"] = totals.get(t["name"], t["post_n"])
 
     # Round-robin across species: one tile each per pass, so a bird only recurs
     # after every other species with frames left has had a turn.
