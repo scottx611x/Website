@@ -328,8 +328,12 @@ body.birdsfield .page{padding-top:.5rem!important}
     a.style.width = COL_W + "px";
     a.style.height = d.h + "px";
     a.innerHTML = '<img src="' + t.src + '" alt="' + esc(t.name) + '" loading="lazy" decoding="async">' +
-      (t.n > 1 ? '<span class="bf-badge">&#10727; ' + t.n + '</span>' : '') +
-      (t.vid ? '<span class="bf-badge">&#9654;</span>' : '') +
+      // same meaning and glyph as the gallery's multi-badge: N images in this
+      // post. The old code point (U+29E7) is a thermodynamic symbol and read
+      // as "+ 5".
+      (t.n > 1 ? '<span class="bf-badge" title="' + t.n + ' images in this post">'
+                 + '\u29C9 ' + t.n + '</span>' : '') +
+      (t.vid ? '<span class="bf-badge" title="video">&#9654;</span>' : '') +
       '<figcaption>' + esc(t.name) + '</figcaption>';
     a._t = t;
     plane.appendChild(a);
