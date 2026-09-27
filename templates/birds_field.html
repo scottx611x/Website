@@ -78,6 +78,9 @@ body.birdsfield .page{padding-top:.5rem!important}
   flex-direction:column}
 .bf-stage{position:relative;display:flex;align-items:center;
   justify-content:center;padding:1.4rem 1.4rem .6rem;min-width:0;flex:1}
+/* [hidden] sets display:none in the UA sheet, but an author `display:block`
+   beats it — which left the empty <video> player rendering under the photo. */
+.bf-oimg[hidden]{display:none!important}
 .bf-oimg{max-width:100%;max-height:74vh;display:block;object-fit:contain;
   border-radius:3px;background:#0d120e;transition:filter .25s,opacity .25s}
 .bf-oimg.loading{filter:blur(8px) saturate(.8);opacity:.85}
