@@ -389,7 +389,13 @@ body.birdsfield .page{padding-top:.5rem!important}
     rebuild();
     px = 0; py = 0; vx = vy = 0;
     if (glide) { cancelAnimationFrame(glide); glide = null; }
-    clearLive(); apply();
+    clearLive();
+    plane.style.transform = "translate3d(0px,0px,0)";
+    // Repopulate synchronously. apply() only schedules a cull when `pending`
+    // is false, so if one was already queued the rebuild was skipped and the
+    // field came back empty until you panned.
+    pending = false;
+    cull();
   }
 
   // Two different things, deliberately:
