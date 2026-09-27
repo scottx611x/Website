@@ -158,7 +158,8 @@ body.birdsfield .page{padding-top:.5rem!important}
     <label for="bf-size">Size</label>
     <input id="bf-size" type="range" min="140" max="420" step="20" value="240"
            aria-label="Tile size">
-    <button type="button" id="bf-shuffle" class="bf-shuffle">Shuffle</button>
+    <button type="button" id="bf-random" class="bf-shuffle">Random spot</button>
+    <button type="button" id="bf-shuffle" class="bf-shuffle">Shuffle birds</button>
     <a href="/birds">Classic grid &nearr;</a>
     <a href="/birds/stats">Numbers &nearr;</a>
     <span class="bf-right" id="bf-tally">{{ tiles|length }} frames &middot; {{ species_n }} species</span>
@@ -327,15 +328,29 @@ body.birdsfield .page{padding-top:.5rem!important}
   apply();
   addEventListener("resize", function () { if (!pending) { pending = true; requestAnimationFrame(cull); } });
 
-  // Shuffle = leap to a random, far-off part of the field. The layout is
-  // deterministic, so this is simply a new vantage point rather than a reshuffle.
-  var shuf = document.getElementById("bf-shuffle");
-  if (shuf) shuf.addEventListener("click", function () {
+  function clearLive() { for (var k in live) { live[k].remove(); delete live[k]; } }
+
+  // Two different things, deliberately:
+  //   Random spot  — same field, new vantage point. Everything stays where it was.
+  //   Shuffle birds — genuinely reorders the sequence, so different birds sit in
+  //                   different places and the column heights change with them.
+  var rnd = document.getElementById("bf-random");
+  if (rnd) rnd.addEventListener("click", function () {
     px = -Math.round((Math.random() * 2 - 1) * 40000);
     py = -Math.round((Math.random() * 2 - 1) * 40000);
     vx = vy = 0; if (glide) { cancelAnimationFrame(glide); glide = null; }
-    for (var k in live) { live[k].remove(); delete live[k]; }
-    apply();
+    clearLive(); apply();
+  });
+
+  var shuf = document.getElementById("bf-shuffle");
+  if (shuf) shuf.addEventListener("click", function () {
+    for (var i = SEQ.length - 1; i > 0; i--) {       // Fisher-Yates
+      var j = Math.floor(Math.random() * (i + 1));
+      var t = SEQ[i]; SEQ[i] = SEQ[j]; SEQ[j] = t;
+    }
+    rebuild();                                        // heights follow the new order
+    vx = vy = 0; if (glide) { cancelAnimationFrame(glide); glide = null; }
+    clearLive(); apply();
   });
 
   var sizer = document.getElementById("bf-size");

@@ -693,8 +693,17 @@ def birds_species_json(slug):
     # 1,199 detections and 40 clips, yet no "best"), so pick the highest
     # confidence clip ourselves rather than settling for the latest — a clean
     # recording matters more than a fresh one.
-    alls = sorted((p.get("all_calls") or []),
-                  key=lambda c: -(c.get("conf") or 0))
+    # species_profile can surface no calls at all for a bird that plainly has
+    # clips (Red-tailed Hawk: 4 detections, 3 clips on file, all_calls empty),
+    # so read the per-species clip file directly as well and merge.
+    alls = list(p.get("all_calls") or [])
+    if not alls:
+        for c in (birds.load_species_clips().get(p.get("name")) or []):
+            if c.get("audio"):
+                alls.append({"audio": c.get("audio"), "spec": c.get("spec"),
+                             "conf": c.get("conf"), "t": c.get("t"),
+                             "when": c.get("when"), "node": c.get("node")})
+    alls.sort(key=lambda c: -(c.get("conf") or 0))
     call = p.get("best_call") or (alls[0] if alls else {}) or p.get("recent_call") or {}
     call_kind = "clearest"
     out = {
