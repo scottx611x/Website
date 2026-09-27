@@ -685,9 +685,11 @@ def birds_species_json(slug):
         if not imgs:
             continue
         locs = f.get("image_locations") or []
+        vids = f.get("image_videos") or []
         frames.append({"thumb": birds.thumb_url(imgs[0]), "full": imgs[0],
                        "date": f.get("_sort") or f.get("date"),
-                       "where": (locs[0] if locs else None)})
+                       "where": (locs[0] if locs else None),
+                       "vid": 1 if (vids and vids[0]) else 0})
     heard = p.get("heard") or {}
     # best_call can be empty even for a heavily-recorded bird (Barred Owl has
     # 1,199 detections and 40 clips, yet no "best"), so pick the highest
@@ -710,6 +712,8 @@ def birds_species_json(slug):
         "name": p.get("name"), "slug": p.get("slug"), "family": p.get("family"),
         "rank": p.get("rank"), "total": p.get("total_lifers"),
         "count": p.get("count"), "frames": frames,
+        "videos": sum(1 for f in frames if f["vid"]),
+        "images": sum(1 for f in frames if not f["vid"]),
         "months": (p.get("pheno") or {}).get("months") or [],
         "places": [{"name": q.get("name"), "count": q.get("count"),
                     "area": q.get("area"), "lat": q.get("lat"), "lng": q.get("lng")}

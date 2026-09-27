@@ -485,7 +485,11 @@ body.birdsfield .page{padding-top:.5rem!important}
     // clear the skeletons first: the facts below are appended, so without this
     // they stacked on top of the placeholders and rendered ten rows, not six
     $("bf-ofacts").innerHTML = "";
-    [["Frames", d.count || 0],
+    // "Frames" was jargon; say what they are, and only mention video when
+    // there actually is some.
+    var imgN = (d.images != null) ? d.images : (d.count || 0);
+    [[(d.videos ? "Images / Videos" : "Images"),
+      (d.videos ? imgN + " / " + d.videos : imgN)],
      ["Lifer", (d.rank || "—") + "/" + (d.total || "—")],
      ["Recordings", (h.count || 0).toLocaleString()],
      ["Clearest call", h.max ? Math.round(h.max * 100) + "%" : "—"]
