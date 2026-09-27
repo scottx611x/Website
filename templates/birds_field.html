@@ -50,7 +50,7 @@ body.birdsfield .page{padding-top:.5rem!important}
 /* the tile itself, matching the gallery's look */
 .bf-tile{position:absolute;display:block;overflow:hidden;background:#e9e4d8;
   text-decoration:none;color:inherit;border-radius:2px}
-.bf-tile img{width:100%;height:100%;object-fit:cover;display:block}
+.bf-tile img,.bf-tile video{width:100%;height:100%;object-fit:cover;display:block}
 .bf-tile figcaption{position:absolute;left:0;right:0;bottom:0;
   font-size:.74rem;color:#fff;
   padding:1.4rem .5rem .4rem;
@@ -367,7 +367,13 @@ body.birdsfield .page{padding-top:.5rem!important}
     a.style.top = d.y + "px";
     a.style.width = COL_W + "px";
     a.style.height = d.h + "px";
-    a.innerHTML = '<img src="' + t.src + '" alt="' + esc(t.name) + '" loading="lazy" decoding="async">' +
+    // Video tiles play themselves: muted, looping, inline. They only exist
+    // while on screen (the field is virtualised), so the number playing is
+    // bounded by the viewport rather than by the collection.
+    a.innerHTML = (t.vsrc
+        ? '<video src="' + t.vsrc + '" poster="' + t.src + '" autoplay muted loop ' +
+          'playsinline preload="metadata" aria-label="' + esc(t.name) + '"></video>'
+        : '<img src="' + t.src + '" alt="' + esc(t.name) + '" loading="lazy" decoding="async">') +
       // same meaning and glyph as the gallery's multi-badge: N images in this
       // post. The old code point (U+29E7) is a thermodynamic symbol and read
       // as "+ 5".

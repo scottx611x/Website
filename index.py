@@ -615,12 +615,15 @@ def birds_field():
         dm = (sh.get("image_dims") or [None])[0]
         names = birds._canon_species_list(sh.get("species"))
         nm, fam = (names[0] if names else (sh.get("species") or "Unknown", "Other birds"))
+        vlist = sh.get("image_videos") or []
         t = {
             "src": birds.thumb_url(imgs[0]),
+            # the real clip lives in image_videos; images[0] is just its poster
+            "vsrc": (vlist[0] if (vlist and vlist[0]) else None),
             "w": (dm[0] if dm else 0), "h": (dm[1] if dm else 0),
             "name": nm, "fam": fam, "slug": birds._species_slug(nm),
             "n": len(imgs),
-            "vid": 1 if ((sh.get("image_videos") or [None])[0]) else 0,
+            "vid": 1 if (vlist and vlist[0]) else 0,
             "away": 1 if ((sh.get("image_areas") or [None])[0] == "away") else 0,
         }
         idx = len(tiles)
