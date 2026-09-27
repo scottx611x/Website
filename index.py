@@ -1,4 +1,5 @@
 import datetime
+import math
 import hashlib
 import hmac
 import json
@@ -734,7 +735,24 @@ def birds_species_json(slug):
                 alls.append({"audio": c.get("audio"), "spec": c.get("spec"),
                              "conf": c.get("conf"), "t": c.get("t"),
                              "when": c.get("when"), "node": c.get("node")})
-    alls.sort(key=lambda c: -(c.get("conf") or 0))
+    # Rank by cleanliness, but let recency break near-ties: a 95% from last
+    # week should beat a 96% from two years ago, while a 100% still wins
+    # outright. The bonus decays over ~4 months and is capped at 12%, so it
+    # nudges rather than reorders.
+    _now = datetime.datetime.now(datetime.timezone.utc)
+
+    def _score(c):
+        conf = c.get("conf") or 0
+        try:
+            t = datetime.datetime.fromisoformat(c.get("t") or "")
+            if t.tzinfo is None:
+                t = t.replace(tzinfo=datetime.timezone.utc)
+            days = max(0.0, (_now - t).total_seconds() / 86400.0)
+        except (TypeError, ValueError):
+            return conf
+        return conf * (1 + 0.12 * math.exp(-days / 120.0))
+
+    alls.sort(key=lambda c: -_score(c))
     call = p.get("best_call") or (alls[0] if alls else {}) or p.get("recent_call") or {}
     call_kind = "clearest"
     out = {
@@ -754,6 +772,11 @@ def birds_species_json(slug):
         "call": {"audio": call.get("audio"), "spec": call.get("spec"),
                  "conf": call.get("conf"), "when": call.get("when"),
                  "node": call.get("node"), "kind": call_kind} if call.get("audio") else None,
+        # a shortlist, so you can hear more than the single best
+        "calls": [{"audio": c.get("audio"), "spec": c.get("spec"),
+                   "conf": c.get("conf"), "when": c.get("when"),
+                   "node": c.get("node")}
+                  for c in alls[:5] if c.get("audio")],
         "nodes": p.get("heard_nodes") or [],
     }
     resp = app.json.response(out)

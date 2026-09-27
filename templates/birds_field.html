@@ -190,6 +190,15 @@ body.birdsfield .page{padding-top:.5rem!important}
 .bf-dot{position:absolute;top:-3px;width:8px;height:8px;border-radius:50%;
   background:var(--green)}
 .bf-note{font-size:.76rem;color:var(--muted);margin:.5rem 0 0;line-height:1.5}
+.bf-calls{list-style:none;margin:.7rem 0 0;padding:0;display:flex;
+  flex-direction:column;gap:.15rem}
+.bf-calls li{display:flex;align-items:center;gap:.6rem;font-size:.74rem;
+  padding:.3rem .4rem;border-radius:4px;cursor:pointer;color:var(--ink-2,#3d453e)}
+.bf-calls li:hover{background:rgba(47,125,79,.09)}
+.bf-calls li.on{background:rgba(47,125,79,.14);color:var(--ink)}
+.bf-calls .pc{font-family:var(--mono);font-size:.7rem;color:var(--green);
+  min-width:2.6rem}
+.bf-calls .wh{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .bf-side a{color:var(--green)}
 
 @media (max-width:980px){
@@ -273,6 +282,7 @@ body.birdsfield .page{padding-top:.5rem!important}
           <span id="bf-otime">0:00</span>
         </div>
         <p class="bf-note" id="bf-onote"></p>
+        <ul class="bf-calls" id="bf-ocalls"></ul>
       </div>
       <div id="bf-nosound" hidden>
         <h3>Its voice</h3>
@@ -667,6 +677,25 @@ body.birdsfield .page{padding-top:.5rem!important}
       var sp = $("bf-ospec");
       if (d.call.spec) { sp.src = MEDIA + d.call.spec; sp.style.display = ""; } else sp.style.display = "none";
       audio.src = MEDIA + d.call.audio;
+      var list = d.calls && d.calls.length ? d.calls : [d.call];
+      $("bf-ocalls").innerHTML = list.map(function (c, i) {
+        return '<li' + (i === 0 ? ' class="on"' : '') + ' data-i="' + i + '">' +
+          '<span class="pc">' + Math.round((c.conf || 0) * 100) + '%</span>' +
+          '<span class="wh">' + esc(c.when || "") + '</span></li>';
+      }).join("");
+      $("bf-ocalls").onclick = function (e) {
+        var li = e.target.closest("li"); if (!li) return;
+        var c = list[+li.dataset.i]; if (!c || !c.audio) return;
+        this.querySelectorAll("li").forEach(function (x) { x.classList.remove("on"); });
+        li.classList.add("on");
+        stop();
+        if (c.spec) { $("bf-ospec").src = MEDIA + c.spec; $("bf-ospec").style.display = ""; }
+        audio.src = MEDIA + c.audio;
+        $("bf-onote").textContent = [c.when,
+          c.conf ? Math.round(c.conf * 100) + "% confidence" : "", c.node]
+          .filter(Boolean).join(" · ");
+        audio.play().catch(function () {}); tick();
+      };
       $("bf-onote").textContent = [
         "Clearest recording",
         d.call.when,
