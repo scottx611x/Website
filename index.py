@@ -616,14 +616,19 @@ def birds_field():
         names = birds._canon_species_list(sh.get("species"))
         nm, fam = (names[0] if names else (sh.get("species") or "Unknown", "Other birds"))
         vlist = sh.get("image_videos") or []
+        # A post's video is not necessarily its first frame — checking only
+        # index 0 found 14 of the 32. Show the post's first VIDEO frame when it
+        # has one, otherwise its first image.
+        vi = next((i for i in range(len(imgs)) if i < len(vlist) and vlist[i]), None)
+        mi = vi if vi is not None else 0
         t = {
-            "src": birds.thumb_url(imgs[0]),
-            # the real clip lives in image_videos; images[0] is just its poster
-            "vsrc": (vlist[0] if (vlist and vlist[0]) else None),
+            "src": birds.thumb_url(imgs[mi]),
+            # the clip itself lives in image_videos; images[] is only its poster
+            "vsrc": (vlist[vi] if vi is not None else None),
             "w": (dm[0] if dm else 0), "h": (dm[1] if dm else 0),
             "name": nm, "fam": fam, "slug": birds._species_slug(nm),
             "n": len(imgs),
-            "vid": 1 if (vlist and vlist[0]) else 0,
+            "vid": 1 if vi is not None else 0,
             "away": 1 if ((sh.get("image_areas") or [None])[0] == "away") else 0,
         }
         idx = len(tiles)
