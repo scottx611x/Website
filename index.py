@@ -677,9 +677,14 @@ def birds_field():
         if worst > best:
             best, stride = worst, cand
 
+    # The rail was reporting len(tiles) as "frames" (those are posts: 353 vs
+    # 1,754 actual frames) and len(order) as species (that counts only each
+    # post's primary bird: 95 vs 114). Use the gallery's own figures.
+    gstats = birds.gallery_stats(shots)
     return render_template(
         "birds_field.html", title="Birds of North Andover",
-        tiles=tiles, seq=seq, species_n=len(order), stride=stride,
+        tiles=tiles, seq=seq, species_n=gstats["species"], stride=stride,
+        photos_n=gstats["photos"], videos_n=gstats["videos"],
         curate=_curate_on(), local=_is_local())
 
 

@@ -195,7 +195,7 @@ body.birdsfield .page{padding-top:.5rem!important}
     <button type="button" id="bf-shuffle" class="bf-shuffle">Shuffle birds</button>
     <a href="/birds">Classic grid &nearr;</a>
     <a href="/birds/stats">Numbers &nearr;</a>
-    <span class="bf-right" id="bf-tally">{{ tiles|length }} frames &middot; {{ species_n }} species</span>
+    <span class="bf-right" id="bf-tally">{{ "{:,}".format(photos_n) }} photos{% if videos_n %} &middot; {{ videos_n }} video{{ 's' if videos_n != 1 }}{% endif %} &middot; {{ species_n }} species</span>
   </div>
 
   <div class="bf-canvas" id="bf-canvas">
