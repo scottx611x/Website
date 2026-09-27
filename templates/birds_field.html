@@ -1,0 +1,398 @@
+{% extends 'base.html' %}
+{% block body_class %}birdsfield{% endblock %}
+
+{% block meta_description %}Every bird photographed in North Andover, Massachusetts — an endless field of frames you can pan in any direction.{% endblock %}
+
+{% block content %}
+{# ------------------------------------------------------------------
+   The gallery, unbounded.
+
+   Same masonry tiles as /birds — natural aspect ratios, no cropping —
+   but laid on a plane that continues in every direction.
+
+   How it stays true masonry while being infinite: the tile order is a
+   fixed sequence, so the running total of tile heights can be
+   pre-computed once. Column `c` is that same sequence rotated by a
+   stride, so a tile's y is a difference of two prefix sums — O(1), no
+   walking from the origin, and columns pack with no gaps.
+   ------------------------------------------------------------------ #}
+<style>
+.bf{--line:rgba(13,18,14,.18);--soft:rgba(13,18,14,.5)}
+.bf *{box-sizing:border-box}
+body.birdsfield .page{padding-top:.5rem!important}
+
+.bf-rail{display:flex;align-items:center;flex-wrap:wrap;gap:.6rem 1.6rem;
+  font-family:var(--mono);font-size:.72rem;letter-spacing:.06em;
+  text-transform:uppercase;padding:0 0 .5rem}
+.bf-rail a{color:var(--ink);text-decoration:none}
+.bf-rail a:hover{text-decoration:underline;text-underline-offset:3px}
+.bf-rail label{color:var(--soft)}
+.bf-rail input[type=range]{-webkit-appearance:none;appearance:none;width:130px;
+  height:1px;background:var(--line);outline:none}
+.bf-rail input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;
+  width:9px;height:9px;background:var(--ink);cursor:pointer;border-radius:0}
+.bf-rail input[type=range]::-moz-range-thumb{width:9px;height:9px;
+  background:var(--ink);border:0;cursor:pointer;border-radius:0}
+.bf-right{margin-left:auto;color:var(--soft)}
+
+.bf-canvas{position:relative;overflow:hidden;cursor:grab;touch-action:none;
+  height:calc(100vh - 118px);min-height:440px;margin:0 calc(50% - 50vw)}
+.bf-canvas.drag{cursor:grabbing}
+.bf-plane{position:absolute;top:0;left:0;will-change:transform}
+
+/* the tile itself, matching the gallery's look */
+.bf-tile{position:absolute;display:block;overflow:hidden;background:#e9e4d8;
+  text-decoration:none;color:inherit;border-radius:2px}
+.bf-tile img{width:100%;height:100%;object-fit:cover;display:block}
+.bf-tile figcaption{position:absolute;left:0;right:0;bottom:0;
+  font-family:var(--mono);font-size:.62rem;letter-spacing:.04em;color:#fff;
+  padding:1.4rem .5rem .4rem;
+  background:linear-gradient(transparent,rgba(13,18,14,.78));
+  opacity:0;transition:opacity .18s}
+.bf-tile:hover figcaption,.bf-tile:focus-visible figcaption{opacity:1}
+.bf-badge{position:absolute;top:.35rem;right:.35rem;font-family:var(--mono);
+  font-size:.58rem;color:#fff;background:rgba(13,18,14,.55);
+  padding:.1rem .3rem;border-radius:2px}
+.bf-hint{position:absolute;left:50%;bottom:.6rem;transform:translateX(-50%);
+  z-index:5;font-family:var(--mono);font-size:.6rem;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--soft);pointer-events:none}
+
+/* ---------- detail ---------- */
+.bf-over{position:fixed;inset:0;z-index:130;background:var(--paper);display:none;
+  overflow-y:auto;padding:1.2rem clamp(1rem,3vw,2.4rem) 3rem;font-family:var(--mono)}
+.bf-over.open{display:block}
+.bf-ohead{display:flex;justify-content:space-between;align-items:baseline;gap:1rem;
+  font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;padding-bottom:1.6rem}
+.bf-ohead button{font:inherit;letter-spacing:inherit;background:none;border:0;
+  color:var(--ink);cursor:pointer}
+.bf-obody{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.3fr) minmax(0,1fr);
+  gap:clamp(1.2rem,3vw,3rem);align-items:start}
+.bf-obody h3{font-size:.68rem;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--soft);font-weight:400;margin:0 0 .8rem}
+.bf-obody h3:not(:first-child){margin-top:2rem}
+.bf-oimg{width:100%;display:block;background:#e9e4d8}
+.bf-strip{display:flex;gap:.35rem;overflow-x:auto;padding:.5rem 0 .3rem}
+.bf-strip img{width:58px;height:58px;object-fit:cover;flex:none;cursor:pointer;
+  opacity:.45;transition:opacity .18s}
+.bf-strip img:hover,.bf-strip img.on{opacity:1}
+.bf-facts{display:grid;grid-template-columns:1fr 1fr;gap:1rem .8rem;font-size:.76rem}
+.bf-facts dt{color:var(--soft);font-size:.66rem;margin-bottom:.15rem}
+.bf-facts dd{margin:0}
+.bf-months{display:flex;align-items:flex-end;gap:3px;height:44px}
+.bf-months span{flex:1;background:rgba(13,18,14,.08);position:relative}
+.bf-months i{position:absolute;left:0;right:0;bottom:0;background:var(--green)}
+.bf-mlab{display:flex;gap:3px;font-size:.54rem;color:var(--soft);margin-top:.25rem}
+.bf-mlab span{flex:1;text-align:center}
+.bf-places{list-style:none;margin:0;padding:0}
+.bf-places li{display:flex;justify-content:space-between;gap:1rem;font-size:.76rem;
+  border-bottom:1px solid rgba(13,18,14,.09);padding:.3rem 0}
+.bf-places em{font-style:normal;color:var(--soft)}
+.bf-spec{width:100%;display:block;background:#0d120e;margin-bottom:.5rem}
+.bf-play{display:flex;align-items:center;gap:.6rem;font-size:.72rem;color:var(--soft)}
+.bf-play button{font:inherit;background:none;border:1px solid var(--line);
+  color:var(--ink);cursor:pointer;padding:.12rem .5rem}
+.bf-track{flex:1;height:1px;background:var(--line);position:relative;cursor:pointer}
+.bf-dot{position:absolute;top:-2px;width:5px;height:5px;background:var(--ink)}
+.bf-note{font-size:.66rem;color:var(--soft);margin-top:.6rem}
+
+@media (max-width:900px){ .bf-obody{grid-template-columns:minmax(0,1fr)} }
+</style>
+
+<section class="page wide bf" id="bf-root">
+  <div class="bf-rail">
+    <span>Birds of North Andover</span>
+    <label for="bf-size">Size</label>
+    <input id="bf-size" type="range" min="140" max="420" step="20" value="240"
+           aria-label="Tile size">
+    <a href="/birds">Classic grid &nearr;</a>
+    <a href="/birds/stats">Numbers &nearr;</a>
+    <span class="bf-right" id="bf-tally">{{ tiles|length }} frames &middot; {{ species_n }} species</span>
+  </div>
+
+  <div class="bf-canvas" id="bf-canvas">
+    <div class="bf-plane" id="bf-plane"></div>
+    <span class="bf-hint">drag anywhere &middot; it keeps going</span>
+  </div>
+</section>
+
+<script id="bf-tiles" type="application/json">{{ tiles|tojson }}</script>
+<script id="bf-seq" type="application/json">{{ seq|tojson }}</script>
+
+<div class="bf-over" id="bf-over" role="dialog" aria-modal="true" aria-label="Species detail">
+  <div class="bf-ohead">
+    <span id="bf-otitle"></span>
+    <button type="button" id="bf-oclose">[ Close ]</button>
+  </div>
+  <div class="bf-obody">
+    <div>
+      <h3>Record</h3>
+      <dl class="bf-facts" id="bf-ofacts"></dl>
+      <h3>Through the year</h3>
+      <div class="bf-months" id="bf-omonths"></div>
+      <div class="bf-mlab" id="bf-omlab"></div>
+      <h3>Where</h3>
+      <ul class="bf-places" id="bf-oplaces"></ul>
+    </div>
+    <div>
+      <img class="bf-oimg" id="bf-oimg" alt="">
+      <div class="bf-strip" id="bf-ostrip"></div>
+    </div>
+    <div>
+      <div id="bf-sound" hidden>
+        <h3 style="margin-top:0">Its voice</h3>
+        <img class="bf-spec" id="bf-ospec" alt="Spectrogram of the recording">
+        <div class="bf-play">
+          <span id="bf-otime">0:00</span>
+          <span class="bf-track" id="bf-otrack"><span class="bf-dot" id="bf-odot"></span></span>
+          <button type="button" id="bf-oplay">[ &#9654; ]</button>
+        </div>
+        <p class="bf-note" id="bf-onote"></p>
+      </div>
+      <div id="bf-nosound" hidden>
+        <h3 style="margin-top:0">Its voice</h3>
+        <p class="bf-note">The yard microphone has never caught this one.</p>
+      </div>
+      <h3>Elsewhere</h3>
+      <p class="bf-note"><a id="bf-ofull" href="#" style="color:inherit">Every frame of this bird &nearr;</a></p>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  var TILES, SEQ;
+  try {
+    TILES = JSON.parse(document.getElementById("bf-tiles").textContent);
+    SEQ = JSON.parse(document.getElementById("bf-seq").textContent);
+  } catch (_) { return; }
+  if (!TILES.length || !SEQ.length) return;
+
+  var MEDIA = "https://birds-scott-ouellette.s3.amazonaws.com/birds/sounds/clips/";
+  var canvas = document.getElementById("bf-canvas");
+  var plane = document.getElementById("bf-plane");
+  var esc = function (s) { var d = document.createElement("i"); d.textContent = s == null ? "" : s; return d.innerHTML; };
+
+  var COL_W = 240, GAP = 10, STRIDE = {{ stride }}, L = SEQ.length;
+
+  /* Heights and their running total, computed once for the whole sequence.
+     ratio falls back to 1:1 for the frames whose dimensions we never captured
+     — object-fit:cover keeps those tidy; the rest are their true shape. */
+  var ratio = new Array(L), pre = new Array(L + 1), TOTAL = 0;
+  function rebuild() {
+    pre[0] = 0;
+    for (var i = 0; i < L; i++) {
+      var t = TILES[SEQ[i]];
+      var rr = (t.w > 0 && t.h > 0) ? (t.h / t.w) : 1;
+      ratio[i] = Math.max(0.6, Math.min(1.85, rr));
+      pre[i + 1] = pre[i] + Math.round(COL_W * ratio[i]) + GAP;
+    }
+    TOTAL = pre[L];
+  }
+  rebuild();
+
+  // column c is the sequence rotated by c*STRIDE; y is a prefix difference
+  function at(c, r) {
+    var base = ((c * STRIDE) % L + L) % L;
+    var k = base + r, lap = Math.floor(k / L), i = ((k % L) + L) % L;
+    return { i: i, t: TILES[SEQ[i]],
+             y: pre[i] - pre[base] + lap * TOTAL,
+             h: Math.round(COL_W * ratio[i]) };
+  }
+  function slotAtY(c, y) {                 // invert: first slot at/after y
+    var base = ((c * STRIDE) % L + L) % L;
+    var target = y + pre[base];
+    var lap = Math.floor(target / TOTAL), rem = target - lap * TOTAL;
+    var lo = 0, hi = L;                    // binary search the prefix table
+    while (lo < hi) { var mid = (lo + hi) >> 1; if (pre[mid] < rem) lo = mid + 1; else hi = mid; }
+    return lap * L + Math.max(0, lo - 1) - base;
+  }
+
+  var live = {}, px = 0, py = 0, vx = 0, vy = 0, glide = null, pending = false;
+
+  function build(c, r) {
+    var d = at(c, r), t = d.t;
+    var a = document.createElement("a");
+    a.className = "bf-tile";
+    a.href = "/birds/species/" + t.slug;
+    a.style.left = (c * (COL_W + GAP)) + "px";
+    a.style.top = d.y + "px";
+    a.style.width = COL_W + "px";
+    a.style.height = d.h + "px";
+    a.innerHTML = '<img src="' + t.src + '" alt="' + esc(t.name) + '" loading="lazy" decoding="async">' +
+      (t.n > 1 ? '<span class="bf-badge">&#10727; ' + t.n + '</span>' : '') +
+      (t.vid ? '<span class="bf-badge">&#9654;</span>' : '') +
+      '<figcaption>' + esc(t.name) + '</figcaption>';
+    a._t = t;
+    plane.appendChild(a);
+    return a;
+  }
+
+  function cull() {
+    pending = false;
+    var vw = canvas.clientWidth, vh = canvas.clientHeight, M = 300;
+    var cw = COL_W + GAP;
+    var c0 = Math.floor((-px - M) / cw), c1 = Math.ceil((-px + vw + M) / cw);
+    var need = {};
+    for (var c = c0; c <= c1; c++) {
+      var r = slotAtY(c, -py - M);
+      for (var guard = 0; guard < 80; guard++, r++) {
+        var d = at(c, r);
+        if (d.y > -py + vh + M) break;
+        var k = c + "," + r;
+        need[k] = 1;
+        if (!live[k]) live[k] = build(c, r);
+      }
+    }
+    for (var k2 in live) if (!need[k2]) { live[k2].remove(); delete live[k2]; }
+  }
+  function apply() {
+    plane.style.transform = "translate3d(" + Math.round(px) + "px," + Math.round(py) + "px,0)";
+    if (!pending) { pending = true; requestAnimationFrame(cull); }
+  }
+  function decay() {
+    if (Math.abs(vx) < .3 && Math.abs(vy) < .3) { glide = null; return; }
+    px += vx; py += vy; vx *= 0.94; vy *= 0.94; apply();
+    glide = requestAnimationFrame(decay);
+  }
+  apply();
+  addEventListener("resize", function () { if (!pending) { pending = true; requestAnimationFrame(cull); } });
+
+  var sizer = document.getElementById("bf-size");
+  sizer.addEventListener("input", function () {
+    COL_W = +sizer.value; rebuild();
+    for (var k in live) { live[k].remove(); delete live[k]; }
+    apply();
+  });
+
+  var down = false, lx = 0, ly = 0, moved = 0, hit = null;
+  canvas.addEventListener("pointerdown", function (e) {
+    down = true; moved = 0; lx = e.clientX; ly = e.clientY;
+    // capture retargets later events to the canvas, so remember the tile now
+    hit = e.target.closest ? e.target.closest(".bf-tile") : null;
+    vx = vy = 0; if (glide) { cancelAnimationFrame(glide); glide = null; }
+    canvas.classList.add("drag");
+    canvas.setPointerCapture && canvas.setPointerCapture(e.pointerId);
+  });
+  canvas.addEventListener("pointermove", function (e) {
+    if (!down) return;
+    var dx = e.clientX - lx, dy = e.clientY - ly;
+    lx = e.clientX; ly = e.clientY; moved += Math.abs(dx) + Math.abs(dy);
+    px += dx; py += dy; vx = dx; vy = dy; apply();
+  });
+  canvas.addEventListener("pointerup", function (e) {
+    if (!down) return;
+    down = false; canvas.classList.remove("drag");
+    if (hit && moved <= 6 && hit._t) openSpecies(hit._t);
+    else if (!glide) glide = requestAnimationFrame(decay);
+    hit = null;
+  });
+  canvas.addEventListener("pointercancel", function () { down = false; hit = null; canvas.classList.remove("drag"); });
+  canvas.addEventListener("wheel", function (e) {
+    e.preventDefault();
+    if (e.shiftKey) px -= (e.deltaY + e.deltaX); else { py -= e.deltaY; px -= e.deltaX; }
+    apply();
+  }, { passive: false });
+  plane.addEventListener("click", function (e) { if (e.target.closest(".bf-tile")) e.preventDefault(); });
+
+  /* ---------- the species detail ---------- */
+  var over = document.getElementById("bf-over"), audio = new Audio(), raf = null, cur = null;
+  var MONTHS = ["J","F","M","A","M","J","J","A","S","O","N","D"];
+  var $ = function (id) { return document.getElementById(id); };
+  function fmt(s) { s = Math.floor(s || 0); return Math.floor(s / 60) + ":" + ("0" + (s % 60)).slice(-2); }
+  function stop() { audio.pause(); audio.currentTime = 0; tick(); }
+
+  function openSpecies(t) {
+    cur = t.slug;
+    $("bf-otitle").textContent = t.name;
+    $("bf-oimg").src = t.src; $("bf-oimg").alt = t.name;
+    $("bf-ofacts").innerHTML = ""; $("bf-ostrip").innerHTML = "";
+    $("bf-oplaces").innerHTML = ""; $("bf-omonths").innerHTML = ""; $("bf-omlab").innerHTML = "";
+    $("bf-sound").hidden = true; $("bf-nosound").hidden = true;
+    $("bf-ofull").href = "/birds/species/" + t.slug;
+    stop();
+    over.classList.add("open"); document.body.style.overflow = "hidden";
+    fetch("/birds/species/" + t.slug + ".json")
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (d) { if (d && cur === t.slug) fill(d); })
+      .catch(function () {});
+  }
+  function fill(d) {
+    var h = d.heard || {};
+    [["Lifer", (d.rank || "—") + " of " + (d.total || "—")],
+     ["Family", d.family || "—"],
+     ["Frames", d.count || 0],
+     ["Recordings", (h.count || 0).toLocaleString()],
+     ["First heard", h.first || "—"],
+     ["Clearest", h.max ? Math.round(h.max * 100) + "%" : "—"]
+    ].forEach(function (kv) {
+      var el = document.createElement("div");
+      el.innerHTML = "<dt>" + esc(kv[0]) + "</dt><dd>" + esc(kv[1]) + "</dd>";
+      $("bf-ofacts").appendChild(el);
+    });
+
+    if (d.frames && d.frames.length) {
+      $("bf-oimg").src = d.frames[0].full || d.frames[0].thumb;
+      $("bf-ostrip").innerHTML = d.frames.map(function (f, i) {
+        return '<img src="' + f.thumb + '" alt="" loading="lazy"' +
+          (i === 0 ? ' class="on"' : '') + ' data-full="' + (f.full || f.thumb) + '">';
+      }).join("");
+      $("bf-ostrip").onclick = function (e) {
+        var im = e.target.closest("img"); if (!im) return;
+        $("bf-oimg").src = im.dataset.full;
+        $("bf-ostrip").querySelectorAll("img").forEach(function (x) { x.classList.remove("on"); });
+        im.classList.add("on");
+      };
+    }
+
+    var m = d.months || [];
+    if (m.length === 12) {
+      var mx = Math.max.apply(null, m.concat([1]));
+      $("bf-omonths").innerHTML = m.map(function (v) {
+        return '<span><i style="height:' + Math.round(v / mx * 100) + '%"></i></span>';
+      }).join("");
+      $("bf-omlab").innerHTML = MONTHS.map(function (x) { return "<span>" + x + "</span>"; }).join("");
+    }
+
+    $("bf-oplaces").innerHTML = (d.places || []).length
+      ? d.places.map(function (q) {
+          return "<li><span>" + esc(q.name) + "</span><em>" + q.count + "</em></li>";
+        }).join("")
+      : '<li><em>No mapped sightings yet</em></li>';
+
+    if (d.call && d.call.audio) {
+      $("bf-sound").hidden = false;
+      var sp = $("bf-ospec");
+      if (d.call.spec) { sp.src = MEDIA + d.call.spec; sp.style.display = ""; } else sp.style.display = "none";
+      audio.src = MEDIA + d.call.audio;
+      $("bf-onote").textContent = [d.call.when,
+        d.call.conf ? Math.round(d.call.conf * 100) + "% confidence" : "",
+        d.call.node].filter(Boolean).join(" · ");
+    } else {
+      $("bf-nosound").hidden = false;
+    }
+  }
+  function tick() {
+    var dur = audio.duration || 0, p = dur ? audio.currentTime / dur : 0;
+    $("bf-otime").textContent = fmt(audio.currentTime);
+    $("bf-odot").style.left = (p * 100).toFixed(2) + "%";
+    $("bf-oplay").innerHTML = audio.paused ? "[ &#9654; ]" : "[ &#10074;&#10074; ]";
+    if (!audio.paused) raf = requestAnimationFrame(tick);
+    else if (raf) { cancelAnimationFrame(raf); raf = null; }
+  }
+  $("bf-oplay").addEventListener("click", function () {
+    if (audio.paused) { audio.play().catch(function () {}); tick(); } else { audio.pause(); tick(); }
+  });
+  $("bf-otrack").addEventListener("click", function (e) {
+    var r = this.getBoundingClientRect();
+    if (audio.duration) { audio.currentTime = ((e.clientX - r.left) / r.width) * audio.duration; tick(); }
+  });
+  audio.addEventListener("ended", tick);
+  $("bf-oclose").addEventListener("click", function () {
+    over.classList.remove("open"); document.body.style.overflow = ""; stop();
+  });
+  addEventListener("keydown", function (e) {
+    if (e.key === "Escape" && over.classList.contains("open")) $("bf-oclose").click();
+  });
+})();
+</script>
+{% endblock %}

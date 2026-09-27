@@ -23,6 +23,8 @@ import bisect
 import datetime
 import difflib
 import json
+import time as _time
+import random as _random
 import os
 import random
 import re
@@ -86,7 +88,35 @@ SSM_TOKEN_PARAM = os.environ.get("INSTAGRAM_TOKEN_SSM_PARAM", "/birds/instagram_
 # ---------------------------------------------------------------------------
 # Serving
 # ---------------------------------------------------------------------------
-def load_gallery(shuffle=True):
+# ---------------------------------------------------------------------------
+# Short-lived memo for the three heavy loaders.
+#
+# Every request was re-fetching and re-parsing the whole gallery (1.4s), the
+# sound rollup (0.4s) and the patterns file (0.2s) from S3 — so a single
+# species lookup cost ~3.8s, and every page paid it too. The payloads only
+# change when a sync or the Pi writes new data, so a few seconds of staleness
+# is free. Returned objects are treated as read-only by every caller.
+_MEMO = {}
+_MEMO_TTL = 60.0
+
+
+def _memoed(key, ttl, build):
+    hit = _MEMO.get(key)
+    now = _time.time()
+    if hit and (now - hit[0]) < ttl:
+        return hit[1]
+    val = build()
+    _MEMO[key] = (now, val)
+    return val
+
+
+def memo_clear():
+    """Drop the loader memo — call after writing new data so the next read is
+    fresh rather than up to a minute behind."""
+    _MEMO.clear()
+
+
+def _load_gallery_uncached(shuffle=True):
     """Return the list of post dicts for rendering.
 
     Prefers the freshly-synced manifest cached in S3; falls back to the copy
@@ -890,6 +920,7 @@ def add_exclusion(post_id):
     if not os.environ.get("BIRDS_USE_S3"):
         shots = [s for s in (_load_local_manifest() or []) if s.get("id") != post_id]
         _atomic_write_json(LOCAL_MANIFEST, shots)
+        memo_clear()   # an edit must show immediately, not after the TTL
     return excluded
 
 
@@ -1344,6 +1375,7 @@ def set_override(post_id, fields):
     if shots and not os.environ.get("BIRDS_USE_S3"):
         apply_overrides(shots, overrides, apply_exclusions=False)
         _atomic_write_json(LOCAL_MANIFEST, shots)
+        memo_clear()   # an edit must show immediately, not after the TTL
     return next((s for s in shots if s.get("id") == post_id), None)
 
 
@@ -1539,6 +1571,7 @@ def pull_curations():
             continue  # not on S3 yet / unreadable
         if _read_repo_curation(path, None) != data:
             _atomic_write_json(path, data, sort_keys=(path == OVERRIDES_FILE))
+            memo_clear()   # an edit must show immediately, not after the TTL
             changed.append(os.path.relpath(path, HERE))
     return changed
 
@@ -1715,7 +1748,7 @@ def apply_sound_curation(data):
     return data
 
 
-def load_sounds():
+def _load_sounds_uncached():
     """The live bird-sound rollup (birds/sounds/recent.json) the listening station
     exports to S3. None when it hasn't run yet (the /birds/live page then shows a
     'coming online' state)."""
@@ -1735,7 +1768,7 @@ def load_sounds():
         return None
 
 
-def load_sound_log():
+def _load_sound_log_uncached():
     """The full browsable detection log (birds/sounds/log.json) — every recent
     detection, for /birds/live/log. Its own file so recent.json stays small."""
     key = "{}/sounds/log.json".format(S3_PREFIX)
@@ -1754,7 +1787,7 @@ def load_sound_log():
         return None
 
 
-def load_patterns():
+def _load_patterns_uncached():
     """All-time sound aggregates (birds/sounds/patterns.json): the yard's daily
     rhythm (species x hour-of-day) and geography (species x listening node). Its
     own file, refreshed on a slower cadence — the Stats page reads it directly.
@@ -1775,7 +1808,7 @@ def load_patterns():
         return None
 
 
-def load_species_clips():
+def _load_species_clips_uncached():
     """Per-species top recordings by confidence (birds/sounds/species_clips.json),
     across the whole clip-retention window — the archive the species page browses.
     Returns {common_name: [{audio, spec, conf, t, node}, ...]} (empty when absent)."""
@@ -1846,6 +1879,7 @@ def _save_curation(path, data):
         except Exception:  # noqa: BLE001 - fall through to a local write
             pass
     _atomic_write_json(path, data, sort_keys=(path == OVERRIDES_FILE))
+    memo_clear()   # an edit must show immediately, not after the TTL
 
 
 def resolve_token():
@@ -2217,6 +2251,7 @@ def _write_manifest(shots):
     # ...and update the committed copy so it's reviewable/diffable in git.
     try:
         _atomic_write_json(LOCAL_MANIFEST, shots)
+        memo_clear()   # an edit must show immediately, not after the TTL
     except OSError:
         pass
 
@@ -2582,7 +2617,7 @@ def canonical_location(loc):
 LOCATIONS_FILE = os.path.join(HERE, "static", "locations.json")
 
 
-def load_locations():
+def _load_locations_uncached():
     """Geocoded shooting spots for the sightings map (static/locations.json).
     Each place: name, lat, lng, area, and `match` — normalized _loc_key aliases;
     a frame belongs to the place when its key equals or extends an alias. Live
@@ -3255,3 +3290,34 @@ def ticker_species(shots):
 if __name__ == "__main__":  # manual run: python birds.py
     written = instagram_sync()
     print("Wrote {} top shots to {}".format(len(written), LOCAL_MANIFEST))
+
+
+def load_gallery(shuffle=True):
+    """Cached front-end to the gallery loader (see _MEMO). Shuffling happens on
+    a copy so the memoised list itself is never reordered."""
+    shots = _memoed("gallery", _MEMO_TTL, lambda: _load_gallery_uncached(shuffle=False))
+    if not shuffle:
+        return shots
+    out = list(shots)
+    _random.shuffle(out)
+    return out
+
+
+def load_sounds():
+    return _memoed("sounds", _MEMO_TTL, _load_sounds_uncached)
+
+
+def load_patterns():
+    return _memoed("patterns", _MEMO_TTL, _load_patterns_uncached)
+
+
+def load_species_clips():
+    return _memoed("species_clips", _MEMO_TTL, _load_species_clips_uncached)
+
+
+def load_sound_log():
+    return _memoed("sound_log", _MEMO_TTL, _load_sound_log_uncached)
+
+
+def load_locations():
+    return _memoed("locations", _MEMO_TTL, _load_locations_uncached)

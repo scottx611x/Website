@@ -597,6 +597,74 @@ def birds_gallery():
     )
 
 
+@app.route("/birds/field", methods=["GET"])
+def birds_field():
+    """The gallery as an endless field: the same masonry tiles, but pannable in
+    any direction. Tiles are drawn from a sequence built round-robin across
+    species, so a bird's share of the field tracks how often it was actually
+    photographed and the same species never lands beside itself."""
+    shots = birds.load_gallery(shuffle=False)
+
+    by_species, order = {}, []
+    tiles = []
+    for sh in shots:
+        imgs = sh.get("images") or []
+        if not imgs:
+            continue
+        dm = (sh.get("image_dims") or [None])[0]
+        names = birds._canon_species_list(sh.get("species"))
+        nm, fam = (names[0] if names else (sh.get("species") or "Unknown", "Other birds"))
+        t = {
+            "src": birds.thumb_url(imgs[0]),
+            "w": (dm[0] if dm else 0), "h": (dm[1] if dm else 0),
+            "name": nm, "fam": fam, "slug": birds._species_slug(nm),
+            "n": len(imgs),
+            "vid": 1 if ((sh.get("image_videos") or [None])[0]) else 0,
+            "away": 1 if ((sh.get("image_areas") or [None])[0] == "away") else 0,
+        }
+        idx = len(tiles)
+        tiles.append(t)
+        if nm not in by_species:
+            by_species[nm] = []
+            order.append(nm)
+        by_species[nm].append(idx)
+
+    # Round-robin across species: one tile each per pass, so a bird only recurs
+    # after every other species with frames left has had a turn.
+    #
+    # Capped, though. Uncapped, the tail of the sequence is whatever species
+    # still has frames — Barred Owl holds 41 of 353 — so the end degenerates
+    # into the same bird over and over. Capping keeps every pass wide and the
+    # spacing between repeats roughly the number of species.
+    CAP = 8
+    seq, any_left = [], True
+    while any_left:
+        any_left = False
+        for nm in order:
+            lst = by_species[nm]
+            if lst and sum(1 for i in seq if tiles[i]["name"] == nm) < CAP:
+                seq.append(lst.pop(0))
+                any_left = True
+
+    # Column c is the sequence rotated by c*STRIDE. If STRIDE lands near a
+    # multiple of the species count, neighbouring columns sit in phase and show
+    # the same birds — which is exactly what 97-against-95-species did. Pick the
+    # stride that spreads the nearby columns furthest apart in that cycle.
+    L, P = len(seq), max(1, len(order))
+    best, stride = -1, 1
+    for cand in range(7, max(8, L)):
+        if L % cand == 0:
+            continue
+        worst = min(min((cand * c) % P, P - (cand * c) % P) for c in range(1, 9))
+        if worst > best:
+            best, stride = worst, cand
+
+    return render_template(
+        "birds_field.html", title="Birds of North Andover",
+        tiles=tiles, seq=seq, species_n=len(order), stride=stride,
+        curate=_curate_on(), local=_is_local())
+
+
 @app.route("/birds/species/<slug>.json", methods=["GET"])
 def birds_species_json(slug):
     """Everything the site knows about one bird, as JSON, for the gallery's
