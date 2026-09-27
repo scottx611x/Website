@@ -689,7 +689,14 @@ def birds_species_json(slug):
                        "date": f.get("_sort") or f.get("date"),
                        "where": (locs[0] if locs else None)})
     heard = p.get("heard") or {}
-    call = p.get("best_call") or {}
+    # best_call can be empty even for a heavily-recorded bird (Barred Owl has
+    # 1,199 detections and 40 clips, yet no "best"), so fall back rather than
+    # telling the reader nothing was kept.
+    call = p.get("best_call") or p.get("recent_call") or {}
+    if not call.get("audio"):
+        alls = p.get("all_calls") or []
+        call = alls[0] if alls else {}
+    call_kind = "clearest" if (p.get("best_call") or {}).get("audio") else "most recent"
     out = {
         "name": p.get("name"), "slug": p.get("slug"), "family": p.get("family"),
         "rank": p.get("rank"), "total": p.get("total_lifers"),
@@ -704,7 +711,7 @@ def birds_species_json(slug):
                   "max": heard.get("maxConf")} if heard else None,
         "call": {"audio": call.get("audio"), "spec": call.get("spec"),
                  "conf": call.get("conf"), "when": call.get("when"),
-                 "node": call.get("node")} if call.get("audio") else None,
+                 "node": call.get("node"), "kind": call_kind} if call.get("audio") else None,
         "nodes": p.get("heard_nodes") or [],
     }
     resp = app.json.response(out)

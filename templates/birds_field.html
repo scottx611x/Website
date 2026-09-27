@@ -1,3 +1,11 @@
+    // A real map rather than a blank box: the same Leaflet + OpenStreetMap the
+    // sightings page uses, loaded lazily the first time a modal needs it so the
+    // field itself never pays for it.
+    var pl = (d.places || []).filter(function (q) { return q.lat && q.lng; });
+    $("bf-mapwrap").style.display = (d.places && d.places.length) ? "" : "none";
+    $("bf-mapnote").textContent = "";
+    if (pl.length) drawMap(pl);
+
 {% extends 'base.html' %}
 {% block body_class %}birdsfield{% endblock %}
 
@@ -36,6 +44,10 @@ body.birdsfield .page{padding-top:.5rem!important}
 .bf-rail input[type=range]::-moz-range-thumb{width:12px;height:12px;border-radius:50%;
   background:var(--green);border:0;cursor:pointer}
 .bf-right{margin-left:auto;font-size:.78rem;color:var(--muted)}
+.bf-shuffle{font:inherit;font-size:.85rem;background:none;border:1px solid rgba(13,18,14,.25);
+  color:var(--ink);border-radius:999px;padding:.18rem .8rem;cursor:pointer;
+  transition:background .18s,border-color .18s,color .18s}
+.bf-shuffle:hover{background:var(--green);border-color:var(--green);color:#fff}
 
 .bf-canvas{position:relative;overflow:hidden;cursor:grab;touch-action:none;
   height:calc(100vh - 118px);min-height:440px;margin:0 calc(50% - 50vw)}
@@ -103,8 +115,8 @@ body.birdsfield .page{padding-top:.5rem!important}
   border-radius:1px}
 .bf-mlab{display:flex;gap:3px;font-size:.58rem;color:var(--muted);margin-top:.25rem}
 .bf-mlab span{flex:1;text-align:center}
-.bf-map{position:relative;width:100%;aspect-ratio:3/2;background:#eae5d9;
-  border-radius:4px;overflow:hidden}
+.bf-map{position:relative;width:100%;height:190px;background:#eae5d9;
+  border-radius:4px;overflow:hidden;z-index:0}
 .bf-map i{position:absolute;width:9px;height:9px;border-radius:50%;
   background:var(--green);border:2px solid var(--paper);transform:translate(-50%,-50%);
   box-shadow:0 1px 3px rgba(13,18,14,.4)}
@@ -146,6 +158,7 @@ body.birdsfield .page{padding-top:.5rem!important}
     <label for="bf-size">Size</label>
     <input id="bf-size" type="range" min="140" max="420" step="20" value="240"
            aria-label="Tile size">
+    <button type="button" id="bf-shuffle" class="bf-shuffle">Shuffle</button>
     <a href="/birds">Classic grid &nearr;</a>
     <a href="/birds/stats">Numbers &nearr;</a>
     <span class="bf-right" id="bf-tally">{{ tiles|length }} frames &middot; {{ species_n }} species</span>
@@ -313,6 +326,17 @@ body.birdsfield .page{padding-top:.5rem!important}
   }
   apply();
   addEventListener("resize", function () { if (!pending) { pending = true; requestAnimationFrame(cull); } });
+
+  // Shuffle = leap to a random, far-off part of the field. The layout is
+  // deterministic, so this is simply a new vantage point rather than a reshuffle.
+  var shuf = document.getElementById("bf-shuffle");
+  if (shuf) shuf.addEventListener("click", function () {
+    px = -Math.round((Math.random() * 2 - 1) * 40000);
+    py = -Math.round((Math.random() * 2 - 1) * 40000);
+    vx = vy = 0; if (glide) { cancelAnimationFrame(glide); glide = null; }
+    for (var k in live) { live[k].remove(); delete live[k]; }
+    apply();
+  });
 
   var sizer = document.getElementById("bf-size");
   sizer.addEventListener("input", function () {
@@ -482,7 +506,9 @@ body.birdsfield .page{padding-top:.5rem!important}
       var sp = $("bf-ospec");
       if (d.call.spec) { sp.src = MEDIA + d.call.spec; sp.style.display = ""; } else sp.style.display = "none";
       audio.src = MEDIA + d.call.audio;
-      $("bf-onote").textContent = [d.call.when,
+      $("bf-onote").textContent = [
+        (d.call.kind === "clearest" ? "Clearest recording" : "Most recent recording"),
+        d.call.when,
         d.call.conf ? Math.round(d.call.conf * 100) + "% confidence" : "",
         d.call.node].filter(Boolean).join(" · ");
     } else {
@@ -493,6 +519,47 @@ body.birdsfield .page{padding-top:.5rem!important}
           " — but no recording has been kept."
         : "The yard microphone has never caught this one.";
     }
+  }
+
+  var _leaflet = null, _map = null, _layer = null;
+  function ensureLeaflet(cb) {
+    if (window.L) return cb();
+    if (_leaflet) return _leaflet.push(cb);
+    _leaflet = [cb];
+    var css = document.createElement("link");
+    css.rel = "stylesheet";
+    css.href = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css";
+    document.head.appendChild(css);
+    var js = document.createElement("script");
+    js.src = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js";
+    js.onload = function () { _leaflet.forEach(function (f) { f(); }); _leaflet = []; };
+    js.onerror = function () { _leaflet = []; };   // degrade quietly
+    document.head.appendChild(js);
+  }
+  function drawMap(places) {
+    ensureLeaflet(function () {
+      var box = $("bf-omap");
+      if (!_map) {
+        _map = L.map(box, { zoomControl: false, attributionControl: false,
+                            scrollWheelZoom: false, dragging: true });
+        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+                    { maxZoom: 17 }).addTo(_map);
+      }
+      if (_layer) _layer.remove();
+      _layer = L.layerGroup().addTo(_map);
+      var pts = [];
+      places.forEach(function (q) {
+        pts.push([q.lat, q.lng]);
+        L.circleMarker([q.lat, q.lng], {
+          radius: 5 + Math.min(7, Math.sqrt(q.count || 1)),
+          color: "#faf8f3", weight: 2,
+          fillColor: q.area === "away" ? "#e8b04b" : "#2f7d4f", fillOpacity: .9
+        }).bindTooltip(q.name + " · " + (q.count || 0)).addTo(_layer);
+      });
+      _map.invalidateSize();
+      if (pts.length === 1) _map.setView(pts[0], 13);
+      else _map.fitBounds(pts, { padding: [22, 22] });
+    });
   }
 
   function tick() {
