@@ -641,16 +641,74 @@ def birds_list():
                  key=lambda r: (r["first"] or datetime.date.max, r["name"]))
     for i, r in enumerate(out, 1):
         r["rank"] = i                       # lifer number, in the order first shot
-        r["img"] = (covers.get(r["name"]) or [None])[0]
+        pool = covers.get(r["name"]) or []
+        r["img"] = pool[0] if pool else None
+        # the whole pool, so a species repeating across the infinite field can
+        # show a different frame each time instead of the same thumbnail twice
+        r["imgs"] = pool[:6]
         r["heard"] = heard.get(r["name"], 0)
         r["clip"] = clip.get(r["name"])
+    span = (out[0]["first"], out[-1]["last"] or out[-1]["first"]) if out else None
+    # Flatten for the client: the field is built in JS, so every value it needs
+    # must be a plain string here (dates included — their JSON form is not
+    # something the browser should be parsing).
+    for r in out:
+        r["slug"] = birds._species_slug(r["name"])
+        r["shots"] = r["photos"] + r["videos"]
+        r["firstStr"] = r["first"].strftime("%d/%m/%Y") if r["first"] else ""
+        r["firstISO"] = r["first"].isoformat() if r["first"] else ""
+        r["lastStr"] = r["last"].strftime("%d/%m/%Y") if r["last"] else ""
+        r["first"] = r["firstISO"]
+        r["last"] = r["lastStr"]
     return render_template(
         "birds_list.html", title="The life list", rows=out,
-        span=(out[0]["first"], out[-1]["last"] or out[-1]["first"]) if out else None,
+        span=span,
         n_heard=sum(1 for r in out if r["heard"]),
         n_photos=sum(r["photos"] for r in out),
         n_videos=sum(r["videos"] for r in out),
         curate=_curate_on(), local=_is_local())
+
+
+@app.route("/birds/list/<slug>.json", methods=["GET"])
+def birds_list_detail(slug):
+    """Everything the site knows about one bird, for the field's detail view.
+    species_profile() already gathers across all four views — gallery, stats,
+    map and the mic — so this just trims it to what the overlay renders."""
+    names = birds.species_index()
+    name = names.get(slug)
+    if not name:
+        return app.json.response({"error": "unknown species"}), 404
+    p = birds.species_profile(name) or {}
+    frames = []
+    for f in (p.get("frames") or [])[:14]:
+        imgs = f.get("images") or []
+        if not imgs:
+            continue
+        locs = f.get("image_locations") or []
+        frames.append({"thumb": birds.thumb_url(imgs[0]), "full": imgs[0],
+                       "date": f.get("_sort") or f.get("date"),
+                       "where": (locs[0] if locs else None)})
+    heard = p.get("heard") or {}
+    call = p.get("best_call") or {}
+    out = {
+        "name": p.get("name"), "slug": p.get("slug"), "family": p.get("family"),
+        "rank": p.get("rank"), "total": p.get("total_lifers"),
+        "count": p.get("count"), "frames": frames,
+        "months": (p.get("pheno") or {}).get("months") or [],
+        "places": [{"name": q.get("name"), "count": q.get("count"),
+                    "area": q.get("area")} for q in (p.get("places") or [])[:6]],
+        "heard": {"count": heard.get("count") or 0,
+                  "first": (heard.get("first") or "")[:10],
+                  "last": (heard.get("last") or "")[:10],
+                  "max": heard.get("maxConf")} if heard else None,
+        "call": {"audio": call.get("audio"), "spec": call.get("spec"),
+                 "conf": call.get("conf"), "when": call.get("when"),
+                 "node": call.get("node")} if call.get("audio") else None,
+        "nodes": p.get("heard_nodes") or [],
+    }
+    resp = app.json.response(out)
+    resp.cache_control.max_age = 300
+    return resp
 
 
 @app.route("/birds/species/<slug>", methods=["GET"])

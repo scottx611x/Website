@@ -23,23 +23,30 @@
 .lx *{box-sizing:border-box}
 
 /* ---------- header rail ---------- */
-.lx-rail{display:grid;grid-template-columns:1fr auto 1fr;align-items:start;
-  gap:1rem;padding:.4rem 0 2.2rem;font-size:.72rem;letter-spacing:.06em;
+body.lifelist .page{padding-top:.5rem!important}
+.lx-rail{display:flex;align-items:center;flex-wrap:wrap;
+  gap:.6rem 1.6rem;padding:0 0 .5rem;font-size:.72rem;letter-spacing:.06em;
   text-transform:uppercase}
 .lx-rail a,.lx-rail button{font:inherit;letter-spacing:inherit;color:var(--ink);
   background:none;border:0;padding:0;cursor:pointer;text-decoration:none}
-.lx-views{display:flex;gap:1.1rem;justify-self:center}
+.lx-views{display:flex;gap:.8rem;align-items:center}
+.lx-views label{color:var(--soft)}
+.lx-views input[type=range]{-webkit-appearance:none;appearance:none;width:150px;
+  height:1px;background:var(--line);outline:none}
+.lx-views input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;
+  width:9px;height:9px;background:var(--ink);cursor:pointer;border-radius:0}
+.lx-views input[type=range]::-moz-range-thumb{width:9px;height:9px;
+  background:var(--ink);cursor:pointer;border:0;border-radius:0}
 .lx-views .on{text-decoration:underline;text-underline-offset:3px}
 .lx-views .off{color:var(--soft)}
-.lx-right{justify-self:end;text-align:right}
-.lx-sub{display:grid;grid-template-columns:1fr auto;gap:1rem;
-  font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;
-  color:var(--soft);padding-bottom:1.6rem}
+.lx-right{margin-left:auto;text-align:right}
+.lx-sub{display:contents}
 .lx-sub button{font:inherit;letter-spacing:inherit;color:var(--soft);
   background:none;border:0;cursor:pointer;padding:0}
 .lx-sub button:hover{color:var(--ink)}
-.lx-filters{display:none;grid-column:1/-1;flex-wrap:wrap;gap:.35rem .5rem;
-  padding-top:.9rem}
+.lx-filters{display:none;position:absolute;z-index:30;top:2.2rem;left:0;right:0;
+  flex-wrap:wrap;gap:.35rem .5rem;padding:.7rem 0;background:var(--paper);
+  border-bottom:1px solid var(--line)}
 .lx-filters.open{display:flex}
 .lx-filters button{border:1px solid var(--line);border-radius:999px;
   padding:.2rem .6rem;color:var(--soft)}
@@ -51,7 +58,7 @@
    single composited layer — no per-item work, nothing recalculated while
    you drag. Cards themselves never animate. */
 .lx-canvas{position:relative;overflow:hidden;cursor:grab;touch-action:none;
-  height:calc(100vh - 210px);min-height:420px;
+  height:calc(100vh - 128px);min-height:440px;
   margin:0 calc(50% - 50vw);padding:0}
 .lx-canvas.drag{cursor:grabbing}
 .lx-canvas::before,.lx-canvas::after{content:"";position:absolute;top:0;bottom:0;
@@ -73,6 +80,9 @@
 .lx-hint{position:absolute;left:50%;bottom:.7rem;transform:translateX(-50%);
   z-index:5;font-size:.62rem;letter-spacing:.16em;text-transform:uppercase;
   color:var(--soft);pointer-events:none}
+.lx-coord{position:absolute;right:.9rem;bottom:.7rem;z-index:5;font-size:.62rem;
+  letter-spacing:.1em;color:var(--soft);pointer-events:none;
+  font-variant-numeric:tabular-nums}
 
 /* ---------- detail overlay ---------- */
 .lx-over{position:fixed;inset:0;z-index:120;background:var(--paper);
@@ -104,17 +114,30 @@
   background:var(--ink);transform:translateX(calc(var(--p,0) * (100% * 0 + 1px) * 0))}
 .lx-dot{position:absolute;top:-2px;width:5px;height:5px;background:var(--ink)}
 .lx-onote{font-size:.68rem;color:var(--soft);letter-spacing:.05em;margin-top:.9rem}
+.lx-ohead #lx-otitle{flex:1;text-align:center;color:var(--soft)}
+.lx-omid{display:flex;flex-direction:column;gap:.6rem}
+.lx-strip{display:flex;gap:.4rem;overflow-x:auto;padding-bottom:.4rem}
+.lx-strip img{width:62px;height:62px;object-fit:cover;flex:none;cursor:pointer;
+  opacity:.5;transition:opacity .2s}
+.lx-strip img:hover,.lx-strip img.on{opacity:1}
+.lx-months{display:flex;align-items:flex-end;gap:3px;height:46px}
+.lx-months span{flex:1;position:relative;background:rgba(13,18,14,.08)}
+.lx-months i{position:absolute;left:0;right:0;bottom:0;background:var(--green);display:block}
+.lx-mlab{display:flex;gap:3px;font-size:.54rem;color:var(--soft);margin-top:.3rem}
+.lx-mlab span{flex:1;text-align:center}
+.lx-places{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:.45rem}
+.lx-places li{display:flex;justify-content:space-between;gap:1rem;font-size:.76rem;
+  border-bottom:1px solid rgba(13,18,14,.09);padding-bottom:.35rem}
+.lx-places em{font-style:normal;color:var(--soft)}
+.lx-ospec{width:100%;display:block;background:#0d120e;margin-bottom:.6rem}
 .lx-ofoot{display:flex;justify-content:space-between;font-size:.68rem;
   letter-spacing:.06em;text-transform:uppercase;color:var(--soft);
   padding-top:3rem}
 
-@media (max-width:1100px){ .lx-grid{grid-template-columns:repeat(4,1fr)} }
 @media (max-width:900px){
   .lx-obody{grid-template-columns:minmax(0,1fr)}
-  .lx-grid{grid-template-columns:repeat(3,1fr)}
 }
 @media (max-width:620px){
-  .lx-grid{grid-template-columns:repeat(2,1fr)}
   .lx-cell{transform:none}
   .lx-rail{grid-template-columns:1fr;gap:.6rem}
   .lx-views{justify-self:start}.lx-right{justify-self:start;text-align:left}
@@ -127,16 +150,16 @@
   <div class="lx-rail">
     <span>{{ rows|length }} Birds of North Andover</span>
     <span class="lx-views">
-      <span class="on">[ Grid ]</span>
-      <a class="off" href="/birds">[ Frames ]</a>
-      <a class="off" href="/birds/stats">[ Numbers ]</a>
+      <label for="lx-size">Size</label>
+      <input id="lx-size" type="range" min="80" max="260" step="10" value="150"
+             aria-label="Preview size">
     </span>
-    <span class="lx-right"><a href="/birds/map">The map &nearr;</a></span>
+    <a href="/birds/map" id="lx-maplink">The map &nearr;</a>
   </div>
 
-  <div class="lx-sub">
+  <div class="lx-sub" style="position:relative">
     <button type="button" id="lx-ftoggle">Filters [ + ]</button>
-    <span id="lx-tally">{{ rows|length }} species &middot; {{ "{:,}".format(n_photos) }} frames</span>
+    <span id="lx-tally" class="lx-right">{{ rows|length }} species &middot; {{ "{:,}".format(n_photos) }} frames</span>
     <div class="lx-filters" id="lx-filters">
       <button type="button" class="on" data-f="all">All</button>
       <button type="button" data-f="heard">Also heard</button>
@@ -148,53 +171,56 @@
   </div>
 
   <div class="lx-canvas" id="lx-canvas">
-    <div class="lx-plane" id="lx-plane">
-    {% for r in rows %}
-    <a class="lx-cell" href="/birds/species/{{ r.name|slug }}"
-       data-i="{{ loop.index0 }}"
-       data-name="{{ r.name }}" data-fam="{{ r.fam }}"
-       data-rank="{{ r.rank }}"
-       data-first="{{ r.first.strftime('%d/%m/%Y') if r.first else '' }}"
-       data-last="{{ r.last.strftime('%d/%m/%Y') if r.last else '' }}"
-       data-shots="{{ r.photos + r.videos }}"
-       data-heard="{{ r.heard }}"
-       data-img="{{ r.img or '' }}"
-       {% if r.clip %}data-audio="{{ r.clip.audio }}" data-conf="{{ (r.clip.conf * 100)|round|int if r.clip.conf else '' }}"{% endif %}>
-      <span class="lx-cap"><i>{{ "%03d"|format(r.rank) }}</i><b>{{ r.name }}</b></span>
-      {% if r.img %}
-      <img class="lx-shot" src="{{ r.img }}" alt="{{ r.name }}" loading="lazy"
-           decoding="async" width="300" height="300">
-      {% else %}<span class="lx-shot"></span>{% endif %}
-    </a>
-    {% endfor %}
-    </div>
-    <span class="lx-hint">drag anywhere &middot; scroll &middot; shift + scroll</span>
+    <div class="lx-plane" id="lx-plane"></div>
+    <span class="lx-hint">drag anywhere &middot; it keeps going</span>
+    <span class="lx-coord mono" id="lx-coord"></span>
   </div>
+
+  <script id="lx-data" type="application/json">{{ rows|tojson }}</script>
 </section>
 
 {# ---------- detail overlay ---------- #}
 <div class="lx-over lx" id="lx-over" role="dialog" aria-modal="true" aria-label="Species detail">
   <div class="lx-ohead">
     <span id="lx-onum">000</span>
+    <span id="lx-otitle"></span>
     <button type="button" id="lx-oclose">[ Close ]</button>
   </div>
+
   <div class="lx-obody">
     <div class="lx-oleft">
       <h3>The bird</h3>
       <p class="lx-story" id="lx-ostory"></p>
-      <div class="lx-play" id="lx-playrow" hidden>
-        <span id="lx-otime">0:00</span>
-        <span class="lx-track" id="lx-otrack"><span class="lx-dot" id="lx-odot"></span></span>
-        <button type="button" id="lx-oplay">[ &#9654; ]</button>
-      </div>
-      <p class="lx-onote" id="lx-onote"></p>
+
+      <h3 style="margin-top:2.2rem">Through the year</h3>
+      <div class="lx-months" id="lx-omonths"></div>
+
+      <h3 style="margin-top:2.2rem">Where</h3>
+      <ul class="lx-places" id="lx-oplaces"></ul>
     </div>
-    <div><img class="lx-oimg" id="lx-oimg" alt=""></div>
+
+    <div class="lx-omid">
+      <img class="lx-oimg" id="lx-oimg" alt="">
+      <div class="lx-strip" id="lx-ostrip"></div>
+    </div>
+
     <div class="lx-oright">
       <h3>Record</h3>
       <dl class="lx-ofacts" id="lx-ofacts"></dl>
+
+      <div id="lx-sound" hidden>
+        <h3 style="margin-top:2.2rem">Its voice</h3>
+        <img class="lx-ospec" id="lx-ospec" alt="Spectrogram of the recording">
+        <div class="lx-play" id="lx-playrow">
+          <span id="lx-otime">0:00</span>
+          <span class="lx-track" id="lx-otrack"><span class="lx-dot" id="lx-odot"></span></span>
+          <button type="button" id="lx-oplay">[ &#9654; ]</button>
+        </div>
+        <p class="lx-onote" id="lx-onote"></p>
+      </div>
     </div>
   </div>
+
   <div class="lx-ofoot">
     <span id="lx-ofam"></span>
     <span><a href="#" id="lx-ofull" style="color:inherit">Every frame &nearr;</a></span>
@@ -206,66 +232,175 @@
   var root = document.getElementById("lx-root");
   if (!root) return;
   var MEDIA = "https://birds-scott-ouellette.s3.amazonaws.com/birds/sounds/clips/";
-  var cells = [].slice.call(document.querySelectorAll(".lx-cell"));
+  function esc(s) { var d = document.createElement("i"); d.textContent = s == null ? "" : s; return d.innerHTML; }
 
-  /* --- lay the field out ------------------------------------------------
-     A jittered lattice rather than a grid: every entry gets a slot, then is
-     nudged off it by a seeded amount, so nothing lines up but nothing
-     collides either. Positions are computed once, in pixels, and never
-     touched again — panning moves the parent, not the children. */
+  /* --- an endless field -------------------------------------------------
+     The lattice is infinite in both axes. Cell (col,row) deterministically
+     picks a species and one of its frames from a seeded hash, so the field
+     is the same every visit, extends forever in any direction, and a species
+     recurring further out shows a DIFFERENT photograph of itself.
+
+     Only the cells intersecting the viewport exist in the DOM — nodes are
+     built on entry and dropped on exit, so panning a mile costs the same as
+     panning an inch. */
+  var DATA = [];
+  try { DATA = JSON.parse(document.getElementById("lx-data").textContent) || []; }
+  catch (_) {}
+  if (!DATA.length) return;
+  var TOTAL_FRAMES = DATA.reduce(function (a, s) { return a + (s.shots || 0); }, 0).toLocaleString();
+
   var canvas = document.getElementById("lx-canvas");
   var plane = document.getElementById("lx-plane");
-  var COLS = 12, COL_W = 268, ROW_H = 400, CAP_H = 34;
-  function rnd(i, salt) {                       // deterministic 0..1
-    var s = Math.sin(i * 12.9898 + salt * 78.233) * 43758.5453;
+  var coord = document.getElementById("lx-coord");
+  var BASE = 150, CAP_H = 28, MARGIN = 400;
+  var COL_W, ROW_H;
+  function sizing() {
+    COL_W = Math.round(BASE * 1.62);
+    ROW_H = Math.round(BASE * 1.72);
+  }
+  sizing();
+
+  function hash(c, r, salt) {                 // deterministic 0..1
+    var s = Math.sin(c * 127.1 + r * 311.7 + salt * 74.7) * 43758.5453;
     return s - Math.floor(s);
   }
-  var planeW = COLS * COL_W, planeH = 0;
-  cells.forEach(function (c, i) {
-    var col = i % COLS, row = Math.floor(i / COLS);
-    var w = 150 + Math.round(rnd(i, 3) * 90);                  // 150..240px
-    // Jitter is bounded by the room actually left in the slot, so entries
-    // never collide — the field looks loose but stays readable.
-    var slack = Math.max(0, ROW_H - (w + CAP_H) - 46);   // 46px gutter minimum
-    var x = col * COL_W + Math.round(rnd(i, 1) * (COL_W - w));
-    var y = row * ROW_H + Math.round(rnd(i, 2) * slack);
-    c.style.left = x + "px";
-    c.style.top = y + "px";
-    c.style.width = w + "px";
-    planeH = Math.max(planeH, y + w + CAP_H + 40);
-  });
-  plane.style.width = planeW + "px";
-  plane.style.height = planeH + "px";
+  /* Which bird lands in a cell.
 
-  /* --- pan it, in any direction ----------------------------------------
-     One transform on the plane. Drag, wheel (shift for sideways), and a
-     hand-rolled inertia decay. Nothing per-item, so this stays cheap no
-     matter how many entries there are. */
-  var px = 0, py = 0, vx = 0, vy = 0, glide = null;
-  function bounds() {
-    var r = canvas.getBoundingClientRect();
-    return { minX: Math.min(0, r.width - planeW), minY: Math.min(0, r.height - planeH) };
+     A flat walk over the species list gave every bird identical airtime, so a
+     one-photo rarity showed up as often as a bird with two hundred frames.
+     Instead we build a weighted sequence — each species repeated roughly
+     sqrt(frames) times, capped so nothing dominates — and interleave it
+     round-robin so repeats of the same bird sit as far apart as possible.
+     Walking that with a stride keeps neighbouring cells unrelated. */
+  var STRIDE = 23;
+  var SEQ = (function () {
+    var buckets = DATA.map(function (sp, i) {
+      var n = Math.max(1, Math.min(8, Math.round(Math.sqrt(sp.shots || 1))));
+      return { i: i, left: n };
+    });
+    var seq = [], any = true;
+    while (any) {                       // round-robin: spreads repeats evenly
+      any = false;
+      for (var b = 0; b < buckets.length; b++) {
+        if (buckets[b].left > 0) { seq.push(buckets[b].i); buckets[b].left--; any = true; }
+      }
+    }
+    return seq;
+  })();
+
+  function spec(c, r) {
+    var L = SEQ.length;
+    var sp = DATA[SEQ[(((c + r * STRIDE) % L) + L) % L]];
+    var pool = (sp.imgs && sp.imgs.length) ? sp.imgs : (sp.img ? [sp.img] : []);
+    // Wide spread of sizes, and every other row is shifted half a column, so
+    // neither the columns nor the rows of the underlying lattice are visible.
+    // Jitter then takes whatever slack is left in each cell — which is why
+    // nothing overlaps despite looking thrown down.
+    var w = Math.round(BASE * (0.62 + hash(c, r, 3) * 0.95));   // 0.62x .. 1.57x
+    var brick = (((r % 2) + 2) % 2) * (COL_W * 0.5);
+    var slackX = Math.max(0, COL_W - w - 6);
+    var slackY = Math.max(0, ROW_H - w - CAP_H - 6);
+    return {
+      sp: sp,
+      img: pool.length ? pool[Math.floor(hash(c, r, 2) * pool.length) % pool.length] : "",
+      w: w,
+      x: c * COL_W + brick + Math.round(hash(c, r, 4) * slackX),
+      y: r * ROW_H + Math.round(hash(c, r, 5) * slackY)
+    };
+  }
+
+  var live = {}, filter = "all";
+  function passes(sp) {
+    return filter === "all"
+      || (filter === "heard" && sp.heard > 0)
+      || (filter === "unheard" && !sp.heard)
+      || (filter.indexOf("fam:") === 0 && sp.fam === filter.slice(4));
+  }
+  function build(c, r, seen) {
+    var d = spec(c, r);
+    // Weighting makes a bird's repeats rare but not impossible inside one
+    // viewport; if one turns up, walk the sequence until we find a bird that
+    // isn't already on screen. Guarantees no visible duplicates.
+    if (seen) {
+      for (var t = 0; t < 40 && seen[d.sp.slug]; t++) d = spec(c + t + 1, r);
+    }
+    var sp = d.sp;
+    var a = document.createElement("a");
+    a.className = "lx-cell";
+    a.href = "/birds/species/" + sp.slug;
+    a.style.left = d.x + "px"; a.style.top = d.y + "px"; a.style.width = d.w + "px";
+    if (!passes(sp)) a.classList.add("dim");
+    // height is set explicitly: an `aspect-ratio` here loses to the image's
+    // own height attribute, which is what made cards overlap before.
+    a.innerHTML =
+      '<span class="lx-cap"><i>' + ("00" + sp.rank).slice(-3) + '</i><b>' +
+      esc(sp.name) + '</b></span>' +
+      (d.img
+        ? '<img class="lx-shot" src="' + d.img + '" alt="' + esc(sp.name) +
+          '" loading="lazy" decoding="async" style="height:' + d.w + 'px">'
+        : '<span class="lx-shot" style="height:' + d.w + 'px"></span>');
+    a._sp = sp;
+    plane.appendChild(a);
+    return a;
+  }
+
+  var px = 0, py = 0, vx = 0, vy = 0, glide = null, pending = false;
+  function cull() {
+    pending = false;
+    var vw = canvas.clientWidth, vh = canvas.clientHeight;
+    var c0 = Math.floor((-px - MARGIN) / COL_W), c1 = Math.ceil((-px + vw + MARGIN) / COL_W);
+    var r0 = Math.floor((-py - MARGIN) / ROW_H), r1 = Math.ceil((-py + vh + MARGIN) / ROW_H);
+    var need = {}, seen = {};
+    for (var k0 in live) if (live[k0]._sp) seen[live[k0]._sp.slug] = 1;
+    for (var c = c0; c <= c1; c++) {
+      for (var r = r0; r <= r1; r++) {
+        var k = c + "," + r;
+        need[k] = 1;
+        if (!live[k]) live[k] = build(c, r, seen);
+        if (live[k]._sp) seen[live[k]._sp.slug] = 1;
+      }
+    }
+    for (var k2 in live) {
+      if (!need[k2]) { live[k2].remove(); delete live[k2]; }
+    }
+    if (coord) coord.textContent =
+      Math.round(-px / COL_W) + " , " + Math.round(-py / ROW_H);
   }
   function apply() {
-    var b = bounds();
-    px = Math.max(b.minX, Math.min(0, px));
-    py = Math.max(b.minY, Math.min(0, py));
-    plane.style.transform = "translate3d(" + px + "px," + py + "px,0)";
+    plane.style.transform = "translate3d(" + Math.round(px) + "px," + Math.round(py) + "px,0)";
+    if (!pending) { pending = true; requestAnimationFrame(cull); }
   }
   function decay() {
-    if (Math.abs(vx) < .25 && Math.abs(vy) < .25) { glide = null; return; }
+    if (Math.abs(vx) < .3 && Math.abs(vy) < .3) { glide = null; return; }
     px += vx; py += vy; vx *= 0.94; vy *= 0.94; apply();
     glide = requestAnimationFrame(decay);
   }
   function kick() { if (!glide) glide = requestAnimationFrame(decay); }
 
-  // start somewhere inside the field rather than pinned to a corner
-  px = -Math.round(planeW * 0.06); py = -Math.round(planeH * 0.04); apply();
-  addEventListener("resize", apply);
+  apply();
+  addEventListener("resize", function () { if (!pending) { pending = true; requestAnimationFrame(cull); } });
 
-  var down = false, lx = 0, ly = 0, moved = 0;
+  var sizer = document.getElementById("lx-size");
+  if (sizer) {
+    sizer.addEventListener("input", function () {
+      // keep whatever is under the middle of the view roughly put while scaling
+      var vw = canvas.clientWidth / 2, vh = canvas.clientHeight / 2;
+      var fx = (-px + vw) / COL_W, fy = (-py + vh) / ROW_H;
+      BASE = +sizer.value; sizing();
+      px = -(fx * COL_W - vw); py = -(fy * ROW_H - vh);
+      for (var k in live) { live[k].remove(); delete live[k]; }
+      apply();
+    });
+  }
+
+  var down = false, lx = 0, ly = 0, moved = 0, hit = null;
   canvas.addEventListener("pointerdown", function (e) {
     down = true; moved = 0; lx = e.clientX; ly = e.clientY;
+    // Remember what was under the cursor NOW. Once the canvas captures the
+    // pointer, later events (including the click) retarget to the canvas, so
+    // closest('.lx-cell') on the click would find nothing — which is exactly
+    // why clicking a bird did nothing.
+    hit = e.target.closest ? e.target.closest(".lx-cell") : null;
     vx = vy = 0; if (glide) { cancelAnimationFrame(glide); glide = null; }
     canvas.classList.add("drag");
     canvas.setPointerCapture && canvas.setPointerCapture(e.pointerId);
@@ -276,18 +411,34 @@
     lx = e.clientX; ly = e.clientY; moved += Math.abs(dx) + Math.abs(dy);
     px += dx; py += dy; vx = dx; vy = dy; apply();
   });
-  ["pointerup", "pointercancel"].forEach(function (ev) {
-    canvas.addEventListener(ev, function () {
-      if (!down) return;
-      down = false; canvas.classList.remove("drag"); kick();
-    });
+  canvas.addEventListener("pointerup", function (e) {
+    if (!down) return;
+    down = false; canvas.classList.remove("drag");
+    canvas.releasePointerCapture && canvas.hasPointerCapture &&
+      canvas.hasPointerCapture(e.pointerId) && canvas.releasePointerCapture(e.pointerId);
+    if (hit && moved <= 6 && !hit.classList.contains("dim") && hit._sp) {
+      open(hit._sp);                       // a tap, not a pan
+    } else {
+      kick();
+    }
+    hit = null;
+  });
+  canvas.addEventListener("pointercancel", function () {
+    if (!down) return;
+    down = false; hit = null; canvas.classList.remove("drag"); kick();
   });
   canvas.addEventListener("wheel", function (e) {
     e.preventDefault();
-    if (e.shiftKey) { px -= e.deltaY + e.deltaX; }
-    else { py -= e.deltaY; px -= e.deltaX; }
+    if (e.shiftKey) px -= (e.deltaY + e.deltaX); else { py -= e.deltaY; px -= e.deltaX; }
     apply();
   }, { passive: false });
+
+  // clicking a cell opens it — unless that gesture was a pan
+  // Anchors stay in the markup for middle-click / "open in new tab" / crawlers,
+  // but a plain left click is handled by the pointer logic above.
+  plane.addEventListener("click", function (e) {
+    if (e.target.closest(".lx-cell")) e.preventDefault();
+  });
 
   /* --- filters -------------------------------------------------------- */
   var ftoggle = document.getElementById("lx-ftoggle");
@@ -301,16 +452,10 @@
     var b = e.target.closest("button[data-f]"); if (!b) return;
     fbox.querySelectorAll("button").forEach(function (x) { x.classList.remove("on"); });
     b.classList.add("on");
-    var f = b.dataset.f, shown = 0;
-    cells.forEach(function (c) {
-      var ok = f === "all"
-        || (f === "heard" && +c.dataset.heard > 0)
-        || (f === "unheard" && +c.dataset.heard === 0)
-        || (f.indexOf("fam:") === 0 && c.dataset.fam === f.slice(4));
-      c.classList.toggle("dim", !ok);
-      if (ok) shown++;
-    });
-    tally.textContent = shown + (shown === 1 ? " species" : " species");
+    filter = b.dataset.f;
+    for (var k in live) live[k].classList.toggle("dim", !passes(live[k]._sp));
+    var n = DATA.filter(passes).length;
+    tally.textContent = n + " species" + (filter === "all" ? " · " + TOTAL_FRAMES + " frames" : "");
   });
 
   /* --- detail overlay -------------------------------------------------- */
@@ -330,7 +475,6 @@
     dot: document.getElementById("lx-odot"),
     track: document.getElementById("lx-otrack")
   };
-  var esc = function (s) { var d = document.createElement("i"); d.textContent = s == null ? "" : s; return d.innerHTML; };
   function fmt(s) { s = Math.floor(s || 0); return Math.floor(s / 60) + ":" + ("0" + (s % 60)).slice(-2); }
 
   /* The "story" is assembled from what the site actually knows — no invented
@@ -339,7 +483,7 @@
     var n = +d.shots, heard = +d.heard;
     var bits = [];
     bits.push("Lifer number " + (+d.rank) + ", first photographed on " +
-      d.first.split("/").reverse().join("-") + ".");
+      (d.firstISO || d.firstStr) + ".");
     bits.push(n === 1 ? "A single frame, and no more since."
                       : "Photographed " + n + " times since.");
     if (heard > 0) {
@@ -352,44 +496,99 @@
     return bits.join(" ");
   }
 
-  function open(c) {
-    cur = c;
-    el.num.textContent = ("00" + c.dataset.rank).slice(-3);
-    el.img.src = c.dataset.img; el.img.alt = c.dataset.name;
-    el.story.textContent = story(c.dataset);
-    el.fam.textContent = c.dataset.fam;
-    el.full.href = "/birds/species/" + c.getAttribute("href").split("/").pop();
+  function open(sp) {
+    cur = sp;
+    el.num.textContent = ("00" + sp.rank).slice(-3);
+    document.getElementById("lx-otitle").textContent = sp.name;
+    el.img.src = sp.img || ""; el.img.alt = sp.name;
+    el.story.textContent = story(sp);
+    el.fam.textContent = sp.fam;
+    el.full.href = "/birds/species/" + sp.slug;
+    el.facts.innerHTML = "";
+    document.getElementById("lx-ostrip").innerHTML = "";
+    document.getElementById("lx-oplaces").innerHTML = "";
+    document.getElementById("lx-omonths").innerHTML = "";
+    document.getElementById("lx-sound").hidden = true;
+    stop();
+    over.classList.add("open");
+    document.body.style.overflow = "hidden";
+
+    // everything else is fetched — the field only carries what it needs to draw
+    fetch("/birds/list/" + sp.slug + ".json")
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (d) { if (d && cur === sp) fill(d, sp); })
+      .catch(function () {});
+  }
+
+  var MONTHS = ["J","F","M","A","M","J","J","A","S","O","N","D"];
+  function fill(d, sp) {
     var f = [
-      ["Name", c.dataset.name],
-      ["Family", c.dataset.fam],
-      ["First photographed", c.dataset.first],
-      ["Most recent", c.dataset.last || "—"],
-      ["Frames", c.dataset.shots],
-      ["Recordings", (+c.dataset.heard).toLocaleString()]
+      ["Lifer", (d.rank || sp.rank) + " of " + (d.total || "—")],
+      ["Family", d.family || sp.fam],
+      ["First photographed", sp.firstStr],
+      ["Most recent", sp.lastStr || "—"],
+      ["Frames", d.count || sp.shots],
+      ["Recordings", ((d.heard && d.heard.count) || 0).toLocaleString()]
     ];
     el.facts.innerHTML = f.map(function (kv) {
       return "<div><dt>" + esc(kv[0]) + "</dt><dd>" + esc(kv[1]) + "</dd></div>";
     }).join("");
 
-    stop();
-    if (c.dataset.audio) {
-      el.row.hidden = false;
-      audio.src = MEDIA + c.dataset.audio;
-      el.note.textContent = c.dataset.conf
-        ? "Clearest recording · " + c.dataset.conf + "% confidence"
-        : "";
-    } else {
-      el.row.hidden = true; el.note.textContent = "";
+    // frames: a bigger hero plus every other frame as a strip
+    var strip = document.getElementById("lx-ostrip");
+    if (d.frames && d.frames.length) {
+      el.img.src = d.frames[0].full || d.frames[0].thumb;
+      strip.innerHTML = d.frames.map(function (fr, i) {
+        return '<img src="' + fr.thumb + '" alt="" loading="lazy"' +
+          (i === 0 ? ' class="on"' : '') + ' data-full="' + (fr.full || fr.thumb) + '">';
+      }).join("");
+      strip.onclick = function (e) {
+        var im = e.target.closest("img"); if (!im) return;
+        el.img.src = im.dataset.full;
+        strip.querySelectorAll("img").forEach(function (x) { x.classList.remove("on"); });
+        im.classList.add("on");
+      };
     }
-    over.classList.add("open");
-    document.body.style.overflow = "hidden";
-    el.play.focus();
+
+    // phenology: which months this bird actually turns up in
+    var m = d.months || [], mx = Math.max.apply(null, m.concat([1]));
+    if (m.length === 12) {
+      document.getElementById("lx-omonths").innerHTML =
+        m.map(function (v) {
+          return '<span><i style="height:' + Math.round(v / mx * 100) + '%"></i></span>';
+        }).join("") +
+        '</div><div class="lx-mlab">' + MONTHS.map(function (x) {
+          return "<span>" + x + "</span>";
+        }).join("");
+    }
+
+    // places, straight off the map data
+    var pl = document.getElementById("lx-oplaces");
+    pl.innerHTML = (d.places || []).length
+      ? d.places.map(function (q) {
+          return "<li><span>" + esc(q.name) + "</span><em>" + q.count + "</em></li>";
+        }).join("")
+      : '<li><em>No mapped sightings yet</em></li>';
+
+    // the recording, with its spectrogram
+    if (d.call && d.call.audio) {
+      document.getElementById("lx-sound").hidden = false;
+      var spec = document.getElementById("lx-ospec");
+      if (d.call.spec) { spec.src = MEDIA + d.call.spec; spec.style.display = ""; }
+      else spec.style.display = "none";
+      audio.src = MEDIA + d.call.audio;
+      el.note.textContent = [
+        d.call.when || "",
+        d.call.conf ? Math.round(d.call.conf * 100) + "% confidence" : "",
+        d.call.node || ""
+      ].filter(Boolean).join(" · ");
+    }
   }
+
   function close() {
     over.classList.remove("open");
     document.body.style.overflow = "";
     stop();
-    if (cur) cur.focus();
   }
   function stop() { audio.pause(); audio.currentTime = 0; tick(); }
 
@@ -411,13 +610,6 @@
   });
   audio.addEventListener("ended", function () { tick(); });
 
-  cells.forEach(function (c) {
-    c.addEventListener("click", function (e) {
-      e.preventDefault();
-      if (moved > 6) return;          // that was a pan, not a click
-      open(c);
-    });
-  });
   document.getElementById("lx-oclose").addEventListener("click", close);
   document.addEventListener("keydown", function (e) {
     if (e.key === "Escape" && over.classList.contains("open")) close();
