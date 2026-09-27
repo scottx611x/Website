@@ -597,81 +597,10 @@ def birds_gallery():
     )
 
 
-@app.route("/birds/list", methods=["GET"])
-def birds_list():
-    """The life list as a collection: one entry per species, not one per photo.
-    The gallery's unit is the frame (1,700+ of them); this view's unit is the
-    bird, so the 114 reads as a finite set rather than a statistic in a header."""
-    shots = birds.load_gallery(shuffle=False)
-    covers = birds.species_covers(shots)
-    sound = birds.load_sounds() or {}
-    heard, clip = {}, {}
-    for s in (sound.get("species") or []):
-        canon = birds._canon_species(s.get("common") or "")
-        if canon:
-            heard[canon[0]] = s.get("count") or 0
-            if s.get("audio"):
-                # the species' clearest recording — the detail view plays it
-                clip[canon[0]] = {"audio": s.get("audio"), "spec": s.get("spec"),
-                                  "conf": s.get("maxConf")}
-
-    rows = {}
-    for shot in shots:
-        images = shot.get("images") or []
-        isp = shot.get("image_species") or []
-        vids = shot.get("image_videos") or []
-        fdates = birds._frame_dates(shot)
-        for i in range(len(images)):
-            raw = isp[i] if i < len(isp) and isp[i] else shot.get("species")
-            for nm, fam in birds._canon_species_list(raw):
-                r = rows.setdefault(nm, {"name": nm, "fam": fam, "photos": 0,
-                                         "videos": 0, "first": None, "last": None})
-                if i < len(vids) and vids[i]:
-                    r["videos"] += 1
-                else:
-                    r["photos"] += 1
-                d = fdates[i] if i < len(fdates) else None
-                if d:
-                    if not r["first"] or d < r["first"]:
-                        r["first"] = d
-                    if not r["last"] or d > r["last"]:
-                        r["last"] = d
-
-    out = sorted(rows.values(),
-                 key=lambda r: (r["first"] or datetime.date.max, r["name"]))
-    for i, r in enumerate(out, 1):
-        r["rank"] = i                       # lifer number, in the order first shot
-        pool = covers.get(r["name"]) or []
-        r["img"] = pool[0] if pool else None
-        # the whole pool, so a species repeating across the infinite field can
-        # show a different frame each time instead of the same thumbnail twice
-        r["imgs"] = pool[:6]
-        r["heard"] = heard.get(r["name"], 0)
-        r["clip"] = clip.get(r["name"])
-    span = (out[0]["first"], out[-1]["last"] or out[-1]["first"]) if out else None
-    # Flatten for the client: the field is built in JS, so every value it needs
-    # must be a plain string here (dates included — their JSON form is not
-    # something the browser should be parsing).
-    for r in out:
-        r["slug"] = birds._species_slug(r["name"])
-        r["shots"] = r["photos"] + r["videos"]
-        r["firstStr"] = r["first"].strftime("%d/%m/%Y") if r["first"] else ""
-        r["firstISO"] = r["first"].isoformat() if r["first"] else ""
-        r["lastStr"] = r["last"].strftime("%d/%m/%Y") if r["last"] else ""
-        r["first"] = r["firstISO"]
-        r["last"] = r["lastStr"]
-    return render_template(
-        "birds_list.html", title="The life list", rows=out,
-        span=span,
-        n_heard=sum(1 for r in out if r["heard"]),
-        n_photos=sum(r["photos"] for r in out),
-        n_videos=sum(r["videos"] for r in out),
-        curate=_curate_on(), local=_is_local())
-
-
-@app.route("/birds/list/<slug>.json", methods=["GET"])
-def birds_list_detail(slug):
-    """Everything the site knows about one bird, for the field's detail view.
+@app.route("/birds/species/<slug>.json", methods=["GET"])
+def birds_species_json(slug):
+    """Everything the site knows about one bird, as JSON, for the gallery's
+    per-species detail view.
     species_profile() already gathers across all four views — gallery, stats,
     map and the mic — so this just trims it to what the overlay renders."""
     names = birds.species_index()
