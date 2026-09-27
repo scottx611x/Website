@@ -275,7 +275,7 @@ body.birdsfield .page{padding-top:.5rem!important}
 
       <div id="bf-sound" hidden>
         <h3>Its voice</h3>
-        <img class="bf-spec" id="bf-ospec" alt="Spectrogram of the recording">
+        <img class="bf-spec" id="bf-ospec" loading="lazy" decoding="async" alt="Spectrogram of the recording">
         <div class="bf-play">
           <button type="button" id="bf-oplay" aria-label="Play recording">&#9654;</button>
           <span class="bf-track" id="bf-otrack"><span class="bf-dot" id="bf-odot"></span></span>
@@ -528,6 +528,18 @@ body.birdsfield .page{padding-top:.5rem!important}
   function fmt(s) { s = Math.floor(s || 0); return Math.floor(s / 60) + ":" + ("0" + (s % 60)).slice(-2); }
   function stop() { audio.pause(); audio.currentTime = 0; tick(); }
 
+  var stripShown = 0, stripAuto = false;
+  function growStrip(n) {
+    var strip = $("bf-ostrip");
+    var upto = Math.min(frames.length, stripShown + n);
+    var frag = "";
+    for (var i = stripShown; i < upto; i++) {
+      frag += '<img src="' + frames[i].thumb + '" alt="" loading="lazy" data-i="' + i + '">';
+    }
+    strip.insertAdjacentHTML("beforeend", frag);
+    stripShown = upto;
+  }
+
   function showFrame(i) {
     if (!frames.length) return;
     fi = (i % frames.length + frames.length) % frames.length;
@@ -560,8 +572,9 @@ body.birdsfield .page{padding-top:.5rem!important}
     $("bf-ocount").textContent = (fi + 1) + " / " + frames.length +
       (f.where ? "  ·  " + f.where : "") + (f.date ? "  ·  " + f.date : "");
     var strip = $("bf-ostrip");
-    strip.querySelectorAll("img").forEach(function (im, n) {
-      im.classList.toggle("on", n === fi);
+    while (stripShown <= fi && stripShown < frames.length) growStrip(24);
+    strip.querySelectorAll("img").forEach(function (im) {
+      im.classList.toggle("on", +im.dataset.i === fi);
     });
     highlightPlace(f.where);
     curateSync();
@@ -569,7 +582,9 @@ body.birdsfield .page{padding-top:.5rem!important}
     if (on) {
       var l = on.offsetLeft, w = on.offsetWidth;
       if (l < strip.scrollLeft || l + w > strip.scrollLeft + strip.clientWidth) {
+        stripAuto = true;
         strip.scrollTo({ left: Math.max(0, l - strip.clientWidth / 2 + w / 2), behavior: "smooth" });
+        setTimeout(function () { stripAuto = false; }, 500);
       }
     }
   }
@@ -630,12 +645,22 @@ body.birdsfield .page{padding-top:.5rem!important}
 
     frames = d.frames || [];
     if (frames.length) {
-      $("bf-ostrip").innerHTML = frames.map(function (f) {
-        return '<img src="' + f.thumb + '" alt="" loading="lazy">';
-      }).join("");
+      // Barred Owl has 202 frames. Building every thumbnail up front is what
+      // made opening a bird feel heavy, so render a first page and extend it
+      // as the strip is scrolled.
+      stripShown = 0;
+      $("bf-ostrip").innerHTML = "";
+      growStrip(24);
       $("bf-ostrip").onclick = function (e) {
         var im = e.target.closest("img"); if (!im) return;
-        showFrame([].indexOf.call(this.querySelectorAll("img"), im));
+        showFrame(+im.dataset.i);
+      };
+      $("bf-ostrip").onscroll = function () {
+        // Ignore the scrolls we cause ourselves when centring the active
+        // thumbnail — otherwise each one grows the strip, which scrolls again,
+        // and a 24-thumb page becomes 144.
+        if (stripAuto || stripShown >= frames.length) return;
+        if (this.scrollLeft + this.clientWidth > this.scrollWidth - 400) growStrip(24);
       };
       // Land on the tile the click came from, not whatever happens to be
       // first in the profile — otherwise the modal appears to swap the photo.
@@ -663,7 +688,17 @@ body.birdsfield .page{padding-top:.5rem!important}
     var pl = (d.places || []).filter(function (q) { return q.lat && q.lng; });
     $("bf-mapwrap").style.display = (d.places && d.places.length) ? "" : "none";
     $("bf-mapnote").textContent = "";
-    if (pl.length) drawMap(pl);
+    // Leaflet is ~150 KB plus tile requests. Nothing loads until the map is
+    // actually scrolled into view, so opening a bird costs nothing for it.
+    if (pl.length) {
+      if (window.IntersectionObserver) {
+        if (_mapIO) _mapIO.disconnect();
+        _mapIO = new IntersectionObserver(function (es) {
+          if (es[0].isIntersecting) { _mapIO.disconnect(); _mapIO = null; drawMap(pl); }
+        }, { rootMargin: "200px" });
+        _mapIO.observe($("bf-omap"));
+      } else { drawMap(pl); }
+    }
 
     // A place name is a filter, not a label: both the list and the map markers
     // open the gallery scoped to that spot.
@@ -717,7 +752,7 @@ body.birdsfield .page{padding-top:.5rem!important}
     }
   }
 
-  var _leaflet = null, _map = null, _layer = null, _markers = {}, _bounds = [], _boop = null;
+  var _leaflet = null, _map = null, _layer = null, _markers = {}, _bounds = [], _boop = null, _mapIO = null;
 
   function fitAll() {
     if (!_map || !_bounds.length) return;
