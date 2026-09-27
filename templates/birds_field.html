@@ -507,7 +507,7 @@ body.birdsfield .page{padding-top:.5rem!important}
       if (d.call.spec) { sp.src = MEDIA + d.call.spec; sp.style.display = ""; } else sp.style.display = "none";
       audio.src = MEDIA + d.call.audio;
       $("bf-onote").textContent = [
-        (d.call.kind === "clearest" ? "Clearest recording" : "Most recent recording"),
+        "Clearest recording",
         d.call.when,
         d.call.conf ? Math.round(d.call.conf * 100) + "% confidence" : "",
         d.call.node].filter(Boolean).join(" · ");

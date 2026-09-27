@@ -690,13 +690,13 @@ def birds_species_json(slug):
                        "where": (locs[0] if locs else None)})
     heard = p.get("heard") or {}
     # best_call can be empty even for a heavily-recorded bird (Barred Owl has
-    # 1,199 detections and 40 clips, yet no "best"), so fall back rather than
-    # telling the reader nothing was kept.
-    call = p.get("best_call") or p.get("recent_call") or {}
-    if not call.get("audio"):
-        alls = p.get("all_calls") or []
-        call = alls[0] if alls else {}
-    call_kind = "clearest" if (p.get("best_call") or {}).get("audio") else "most recent"
+    # 1,199 detections and 40 clips, yet no "best"), so pick the highest
+    # confidence clip ourselves rather than settling for the latest — a clean
+    # recording matters more than a fresh one.
+    alls = sorted((p.get("all_calls") or []),
+                  key=lambda c: -(c.get("conf") or 0))
+    call = p.get("best_call") or (alls[0] if alls else {}) or p.get("recent_call") or {}
+    call_kind = "clearest"
     out = {
         "name": p.get("name"), "slug": p.get("slug"), "family": p.get("family"),
         "rank": p.get("rank"), "total": p.get("total_lifers"),
