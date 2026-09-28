@@ -51,6 +51,8 @@ body.birdsfield .page{padding-top:.5rem!important}
 .bf-tile{position:absolute;display:block;overflow:hidden;background:#e9e4d8;
   text-decoration:none;color:inherit;border-radius:2px}
 .bf-tile img,.bf-tile video{width:100%;height:100%;object-fit:cover;display:block}
+.bf-tile figcaption b{display:block;font-weight:600}
+.bf-tile figcaption span{display:block;font-size:.66rem;opacity:.8}
 .bf-tile figcaption{position:absolute;left:0;right:0;bottom:0;
   font-size:.74rem;color:#fff;
   padding:1.4rem .5rem .4rem;
@@ -154,7 +156,12 @@ body.birdsfield .page{padding-top:.5rem!important}
 .bf-side h2{font-family:var(--display);font-size:1.5rem;font-weight:600;
   letter-spacing:-.02em;margin:0}
 .bf-side .fam{font-size:.8rem;color:var(--muted);margin:.15rem 0 0}
-.bf-ocontrols{display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.7rem}
+.bf-ocontrols{display:flex;gap:.45rem;flex-wrap:wrap;margin-top:.7rem}
+.bf-ico{width:34px;height:34px;border-radius:50%;border:1px solid rgba(13,18,14,.22);
+  background:none;color:var(--ink);cursor:pointer;font-size:.95rem;line-height:1;
+  display:grid;place-items:center;transition:background .18s,border-color .18s,color .18s}
+.bf-ico:hover{background:var(--green);border-color:var(--green);color:#fff}
+.bf-ico.copied{background:var(--green);border-color:var(--green);color:#fff}
 .bf-cfield{display:block;margin-top:.7rem;font-size:.7rem;color:var(--muted)}
 .bf-cfield input{display:block;width:100%;margin-top:.25rem;font:inherit;
   font-size:.82rem;padding:.35rem .5rem;border:1px solid rgba(13,18,14,.2);
@@ -256,8 +263,10 @@ body.birdsfield .page{padding-top:.5rem!important}
         <h2 id="bf-otitle"></h2>
         <p class="fam" id="bf-ofam"></p>
         <div class="bf-ocontrols">
-          <button type="button" id="bf-orandom" class="bf-shuffle">Random bird</button>
-          <button type="button" id="bf-oshuffle" class="bf-shuffle">Shuffle frames</button>
+          <button type="button" id="bf-orandom" class="bf-ico" title="Another bird at random" aria-label="Another bird at random">&#8635;</button>
+          <button type="button" id="bf-oshuffle" class="bf-ico" title="Shuffle this bird's frames" aria-label="Shuffle this bird's frames">&#128256;</button>
+          <button type="button" id="bf-ofs" class="bf-ico" title="Full screen" aria-label="Full screen">&#9974;</button>
+          <button type="button" id="bf-olink" class="bf-ico" title="Copy a link to this frame" aria-label="Copy a link to this frame">&#128279;</button>
         </div>
       </div>
 
@@ -280,7 +289,6 @@ body.birdsfield .page{padding-top:.5rem!important}
       </div>
 
       <div id="bf-sound" hidden>
-        <h3>Its voice</h3>
         <img class="bf-spec" id="bf-ospec" loading="lazy" decoding="async" alt="Spectrogram of the recording">
         <div class="bf-play">
           <button type="button" id="bf-oplay" aria-label="Play recording">&#9654;</button>
@@ -291,7 +299,6 @@ body.birdsfield .page{padding-top:.5rem!important}
         <ul class="bf-calls" id="bf-ocalls"></ul>
       </div>
       <div id="bf-nosound" hidden>
-        <h3>Its voice</h3>
         <p class="bf-note" id="bf-nosoundtxt"></p>
       </div>
 
@@ -386,7 +393,9 @@ body.birdsfield .page{padding-top:.5rem!important}
       (t.n > 1 ? '<span class="bf-badge" title="' + t.n + ' images in this post">'
                  + '\u29C9 ' + t.n + '</span>' : '') +
       (t.vid ? '<span class="bf-badge" title="video">&#9654;</span>' : '') +
-      '<figcaption>' + esc(t.name) + '</figcaption>';
+      '<figcaption><b>' + esc(t.name) + '</b>' +
+        (t.date ? '<span>' + esc(t.date) + (t.where ? ' · ' + esc(t.where) : '') + '</span>' : '') +
+      '</figcaption>';
     a._t = t;
     plane.appendChild(a);
     return a;
@@ -1021,6 +1030,27 @@ body.birdsfield .page{padding-top:.5rem!important}
     post("/curate/override", { id: f.pid, image_locations: arr }, function () {
       f.where = cLoc.value.trim(); curateSync();
     });
+  });
+
+  /* #8 permalink — the same idea as the gallery's copy-link, scoped to the
+     exact frame on screen. #7 full screen uses the stage element so the
+     filmstrip and rail drop away. */
+  var oLink = $("bf-olink"), oFs = $("bf-ofs");
+  if (oLink) oLink.addEventListener("click", function () {
+    var f = frames[fi] || {};
+    var u = location.origin + "/birds/species/" + cur +
+            (f.pid ? "?frame=" + encodeURIComponent(f.pid + "-" + f.idx) : "");
+    (navigator.clipboard ? navigator.clipboard.writeText(u) : Promise.reject())
+      .then(function () {
+        oLink.classList.add("copied");
+        setTimeout(function () { oLink.classList.remove("copied"); }, 1200);
+      })
+      .catch(function () { prompt("Copy this link", u); });
+  });
+  if (oFs) oFs.addEventListener("click", function () {
+    var el = $("bf-oimg").parentNode;
+    if (document.fullscreenElement) document.exitFullscreen();
+    else if (el.requestFullscreen) el.requestFullscreen().catch(function () {});
   });
 
   function closeOver() {

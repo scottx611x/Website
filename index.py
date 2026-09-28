@@ -608,36 +608,45 @@ def birds_field():
 
     by_species, order = {}, []
     tiles = []
+    # One tile per FRAME, not per post. A post can hold several birds, and 598
+    # frames carry a curated re-ID that differs from their post's primary
+    # species — so a post-level tile both mislabels them and hides every frame
+    # after the first. Per-frame also brings the species count to the gallery's
+    # 114 and surfaces all 32 videos rather than 23.
     for sh in shots:
         imgs = sh.get("images") or []
-        if not imgs:
-            continue
-        dm = (sh.get("image_dims") or [None])[0]
-        names = birds._canon_species_list(sh.get("species"))
-        nm, fam = (names[0] if names else (sh.get("species") or "Unknown", "Other birds"))
+        isp = sh.get("image_species") or []
         vlist = sh.get("image_videos") or []
-        # A post's video is not necessarily its first frame — checking only
-        # index 0 found 14 of the 32. Show the post's first VIDEO frame when it
-        # has one, otherwise its first image.
-        vi = next((i for i in range(len(imgs)) if i < len(vlist) and vlist[i]), None)
-        mi = vi if vi is not None else 0
-        t = {
-            "src": birds.thumb_url(imgs[mi]),
-            # the clip itself lives in image_videos; images[] is only its poster
-            "vsrc": (vlist[vi] if vi is not None else None),
-            "w": (dm[0] if dm else 0), "h": (dm[1] if dm else 0),
-            "name": nm, "fam": fam, "slug": birds._species_slug(nm),
-            "n": len(imgs),
-            "vid": 1 if vi is not None else 0,
-            "away": 1 if ((sh.get("image_areas") or [None])[0] == "away") else 0,
-        }
-        idx = len(tiles)
-        t["post_n"] = t["n"]          # images in THIS post
-        tiles.append(t)
-        if nm not in by_species:
-            by_species[nm] = []
-            order.append(nm)
-        by_species[nm].append(idx)
+        dims = sh.get("image_dims") or []
+        areas = sh.get("image_areas") or []
+        locs = sh.get("image_locations") or []
+        dates = sh.get("image_dates") or []
+        idxs = sh.get("image_indices") or []
+        for i in range(len(imgs)):
+            raw = isp[i] if (i < len(isp) and isp[i]) else sh.get("species")
+            names = birds._canon_species_list(raw)
+            if not names:
+                continue
+            nm, fam = names[0]
+            dm = dims[i] if (i < len(dims) and dims[i]) else None
+            t = {
+                "src": birds.thumb_url(imgs[i]),
+                "vsrc": (vlist[i] if (i < len(vlist) and vlist[i]) else None),
+                "w": (dm[0] if dm else 0), "h": (dm[1] if dm else 0),
+                "name": nm, "fam": fam, "slug": birds._species_slug(nm),
+                "vid": 1 if (i < len(vlist) and vlist[i]) else 0,
+                "away": 1 if (i < len(areas) and areas[i] == "away") else 0,
+                "where": (locs[i] if (i < len(locs) and locs[i]) else sh.get("location")),
+                "date": (dates[i] if (i < len(dates) and dates[i]) else (sh.get("_sort") or sh.get("date"))),
+                "pid": sh.get("post_id") or sh.get("id"),
+                "fidx": (idxs[i] if i < len(idxs) else i),
+            }
+            k = len(tiles)
+            tiles.append(t)
+            if nm not in by_species:
+                by_species[nm] = []
+                order.append(nm)
+            by_species[nm].append(k)
 
     # A tile opens the SPECIES, so the badge should read that bird's whole
     # count, not how many images happened to be in this one post — showing 6
@@ -646,15 +655,8 @@ def birds_field():
     # Counted per FRAME, not per post: a post can hold several species, so
     # crediting every image in it to the post's primary bird over-counts
     # (it made Barred Owl 228 against the species page's 202).
-    totals = {}
-    for sh in shots:
-        isp = sh.get("image_species") or []
-        for i in range(len(sh.get("images") or [])):
-            raw = isp[i] if i < len(isp) and isp[i] else sh.get("species")
-            for nm, _fam in birds._canon_species_list(raw):
-                totals[nm] = totals.get(nm, 0) + 1
     for t in tiles:
-        t["n"] = totals.get(t["name"], t["post_n"])
+        t["n"] = len(by_species.get(t["name"]) or []) or 1
 
     # Round-robin across species: one tile each per pass, so a bird only recurs
     # after every other species with frames left has had a turn.
