@@ -86,6 +86,20 @@ body.birdsfield .page{padding-top:.5rem!important}
 .bf-oimg{max-width:100%;max-height:74vh;display:block;object-fit:contain;
   border-radius:3px;background:#0d120e;transition:filter .25s,opacity .25s}
 .bf-oimg.loading{filter:blur(8px) saturate(.8);opacity:.85}
+/* Only reachable in full screen: the stage becomes the render root there, so
+   the modal's own close button — fixed, and outside the stage — is not
+   painted at all. */
+.bf-fsx{display:none}
+.bf-stage:fullscreen .bf-fsx,.bf-stage:-webkit-full-screen .bf-fsx{
+  display:grid;place-items:center;position:fixed;top:1rem;right:1.2rem;z-index:10;
+  width:42px;height:42px;border-radius:50%;border:0;cursor:pointer;
+  background:rgba(13,18,14,.6);color:#fff;font-size:1.6rem;line-height:1;
+  backdrop-filter:blur(4px)}
+.bf-stage:fullscreen .bf-fsx:hover{background:rgba(13,18,14,.85)}
+.bf-stage:fullscreen{background:#0d120e;padding:0}
+.bf-stage:fullscreen .bf-oimg{max-height:100vh;max-width:100vw}
+.bf-stage:fullscreen .bf-count{bottom:1rem;color:rgba(255,255,255,.75)}
+.bf-stage:fullscreen .bf-arrow{font-size:3rem}
 .bf-spin{position:absolute;top:50%;left:50%;width:26px;height:26px;margin:-13px 0 0 -13px;
   border:2px solid rgba(255,255,255,.25);border-top-color:#fff;border-radius:50%;
   animation:bfspin .7s linear infinite;display:none;pointer-events:none}
@@ -287,6 +301,7 @@ body.birdsfield .page{padding-top:.5rem!important}
       <video class="bf-oimg" id="bf-ovid" hidden controls loop playsinline
              preload="metadata"></video>
       <span class="bf-spin" aria-hidden="true"></span>
+      <button type="button" class="bf-fsx" id="bf-fsx" title="Leave full screen" aria-label="Leave full screen">&times;</button>
       <button class="bf-arrow bf-next" id="bf-next" aria-label="Next frame">&#8250;</button>
       <span class="bf-count" id="bf-ocount"></span>
     </div>
@@ -1185,11 +1200,14 @@ body.birdsfield .page{padding-top:.5rem!important}
       navigator.clipboard.writeText(u).then(function () { flash(true); }, legacy);
     } else { legacy(); }
   });
-  if (oFs) oFs.addEventListener("click", function () {
+  function toggleFs() {
     var el = $("bf-oimg").parentNode;
     if (document.fullscreenElement) document.exitFullscreen();
     else if (el.requestFullscreen) el.requestFullscreen().catch(function () {});
-  });
+  }
+  if (oFs) oFs.addEventListener("click", toggleFs);
+  var fsx = $("bf-fsx");
+  if (fsx) fsx.addEventListener("click", function (e) { e.stopPropagation(); toggleFs(); });
 
   /* #5 The mini-map expands to a real one: dragging and the wheel are enabled
      only while it is large, so a small inline map never swallows a scroll. */
@@ -1221,7 +1239,10 @@ body.birdsfield .page{padding-top:.5rem!important}
   });
   addEventListener("keydown", function (e) {
     if (!over.classList.contains("open")) return;
-    if (e.key === "Escape") closeOver();
+    if (e.key === "Escape") {
+      if (document.fullscreenElement) { document.exitFullscreen(); return; }
+      closeOver();
+    }
     else if (e.key === "ArrowLeft") showFrame(fi - 1);
     else if (e.key === "ArrowRight") showFrame(fi + 1);
   });
