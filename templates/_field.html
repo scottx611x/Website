@@ -222,27 +222,18 @@ body.birdsfield .page{padding-top:.5rem!important}
 .bf-specwrap{position:relative;--p:0;border-radius:3px;overflow:hidden;
   margin-bottom:.5rem;cursor:pointer;background:#0d120e}
 .bf-spec{width:100%;display:block;background:#0d120e}
-.ph-needle{position:absolute;top:0;bottom:0;left:calc(var(--p)*100%);width:2px;
-  margin-left:-1px;background:linear-gradient(180deg,#eafff4,var(--neon));
-  box-shadow:0 0 10px 1px rgba(56,224,138,.85),0 0 24px 4px rgba(56,224,138,.4);
-  opacity:0;pointer-events:none;will-change:left}
-.ph-needle::after{content:"";position:absolute;top:0;bottom:0;left:-30px;width:30px;
-  background:linear-gradient(90deg,rgba(56,224,138,0),rgba(56,224,138,.28))}
 .ph-veil{position:absolute;top:0;bottom:0;left:calc(var(--p)*100%);right:0;
   background:linear-gradient(90deg,rgba(6,10,7,0),rgba(6,10,7,.5) 24px);
   opacity:0;transition:opacity .3s;pointer-events:none}
 .ph-wash{position:absolute;top:0;bottom:0;left:0;width:calc(var(--p)*100%);
   background:linear-gradient(90deg,rgba(56,224,138,.04),rgba(56,224,138,.16));
   mix-blend-mode:screen;opacity:0;transition:opacity .3s;pointer-events:none}
-.bf-specwrap.ph-on .ph-needle,.bf-specwrap.ph-on .ph-veil,
-.bf-specwrap.ph-on .ph-wash{opacity:1}
+/* Progress now reads only as the wash filling across the spectrogram — the
+   needle and the separate scrub bar said the same thing twice. */
+.bf-specwrap.ph-on .ph-veil,.bf-specwrap.ph-on .ph-wash{opacity:1}
 .bf-play{display:flex;align-items:center;gap:.6rem;font-size:.78rem;color:var(--muted)}
 .bf-play button{font:inherit;background:var(--green);color:#fff;border:0;
   width:30px;height:30px;border-radius:50%;cursor:pointer;flex:none}
-.bf-track{flex:1;height:2px;background:rgba(13,18,14,.15);border-radius:2px;
-  position:relative;cursor:pointer}
-.bf-dot{position:absolute;top:-3px;width:8px;height:8px;border-radius:50%;
-  background:var(--green)}
 .bf-note{font-size:.76rem;color:var(--muted);margin:.5rem 0 0;line-height:1.5}
 .bf-calls{list-style:none;margin:.7rem 0 0;padding:0;display:flex;
   flex-direction:column;gap:.15rem}
@@ -348,11 +339,10 @@ body.birdsfield .page{padding-top:.5rem!important}
       <div id="bf-sound" hidden>
         <div class="bf-specwrap" id="bf-specwrap">
           <img class="bf-spec" id="bf-ospec" loading="lazy" decoding="async" alt="Spectrogram of the recording">
-          <span class="ph-wash"></span><span class="ph-veil"></span><span class="ph-needle"></span>
+          <span class="ph-wash"></span><span class="ph-veil"></span>
         </div>
         <div class="bf-play">
           <button type="button" id="bf-oplay" aria-label="Play recording">&#9654;</button>
-          <span class="bf-track" id="bf-otrack"><span class="bf-dot" id="bf-odot"></span></span>
           <span id="bf-otime">0:00</span>
         </div>
         <p class="bf-note" id="bf-onote"></p>
@@ -1072,9 +1062,7 @@ body.birdsfield .page{padding-top:.5rem!important}
   var ph = new Playhead(audio);
   ph.views([$("bf-specwrap")]);
   function tick() {
-    var p = ph.progress();
     $("bf-otime").textContent = fmt(audio.currentTime);
-    $("bf-odot").style.left = "calc(" + (p * 100).toFixed(2) + "% - 4px)";
     $("bf-oplay").innerHTML = audio.paused ? "&#9654;" : "&#10074;&#10074;";
     if (!audio.paused) raf = requestAnimationFrame(tick);
     else if (raf) { cancelAnimationFrame(raf); raf = null; }
@@ -1086,10 +1074,6 @@ body.birdsfield .page{padding-top:.5rem!important}
   })();
   $("bf-oplay").addEventListener("click", function () {
     if (audio.paused) { audio.play().catch(function () {}); tick(); } else { audio.pause(); tick(); }
-  });
-  $("bf-otrack").addEventListener("click", function (e) {
-    var r = this.getBoundingClientRect();
-    if (audio.duration) { audio.currentTime = ((e.clientX - r.left) / r.width) * audio.duration; tick(); }
   });
   audio.addEventListener("ended", tick);
 
