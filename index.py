@@ -699,6 +699,28 @@ def birds_field():
         curate=_curate_on(), local=_is_local())
 
 
+def _merge_places(profile, frames):
+    """Every place a species' frames name, with coordinates where we have them."""
+    counts = {}
+    for f in frames:
+        w = (f.get("where") or "").strip()
+        if w:
+            counts[w] = counts.get(w, 0) + 1
+    geo = {}
+    for q in (profile.get("places") or []):
+        if q.get("name"):
+            geo[q["name"]] = q
+    for name, q in geo.items():          # keep mapped places even if no frame names them
+        counts.setdefault(name, q.get("count") or 0)
+    out = []
+    for name, n in sorted(counts.items(), key=lambda kv: (-kv[1], kv[0])):
+        q = geo.get(name) or {}
+        out.append({"name": name, "count": n, "area": q.get("area"),
+                    "lat": q.get("lat"), "lng": q.get("lng"),
+                    "mapped": bool(q.get("lat") and q.get("lng"))})
+    return out[:12]
+
+
 @app.route("/birds/species/<slug>.json", methods=["GET"])
 def birds_species_json(slug):
     """Everything the site knows about one bird, as JSON, for the gallery's
@@ -774,9 +796,11 @@ def birds_species_json(slug):
         "videos": sum(1 for f in frames if f["vid"]),
         "images": sum(1 for f in frames if not f["vid"]),
         "months": (p.get("pheno") or {}).get("months") or [],
-        "places": [{"name": q.get("name"), "count": q.get("count"),
-                    "area": q.get("area"), "lat": q.get("lat"), "lng": q.get("lng")}
-                   for q in (p.get("places") or [])[:8]],
+        # Places are counted from the FRAMES, then merged with the geocoded
+        # entries for coordinates. species_profile only returns mapped places,
+        # so anywhere that was never geocoded — Roger Wheeler State Beach with
+        # six Osprey frames — simply vanished from the panel.
+        "places": _merge_places(p, frames),
         "heard": {"count": heard.get("count") or 0,
                   "first": (heard.get("first") or "")[:10],
                   "last": (heard.get("last") or "")[:10],

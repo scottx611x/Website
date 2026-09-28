@@ -41,6 +41,7 @@ body.birdsfield .page{padding-top:.5rem!important}
   color:var(--ink);border-radius:999px;padding:.18rem .8rem;cursor:pointer;
   transition:background .18s,border-color .18s,color .18s}
 .bf-shuffle:hover{background:var(--green);border-color:var(--green);color:#fff}
+.bf-shuffle.on{background:var(--ink);border-color:var(--ink);color:var(--paper)}
 
 .bf-canvas{position:relative;overflow:hidden;cursor:grab;touch-action:none;
   height:calc(100svh - 118px);min-height:340px;margin:0 calc(50% - 50vw)}
@@ -179,6 +180,14 @@ body.birdsfield .page{padding-top:.5rem!important}
   border-radius:1px}
 .bf-mlab{display:flex;gap:3px;font-size:.58rem;color:var(--muted);margin-top:.25rem}
 .bf-mlab span{flex:1;text-align:center}
+.bf-mapwrap2{position:relative}
+.bf-mapbig{position:absolute;right:.4rem;top:.4rem;z-index:500;width:28px;height:28px;
+  border-radius:6px;border:0;background:rgba(250,248,243,.9);cursor:pointer;
+  font-size:.85rem;line-height:1;display:grid;place-items:center}
+.bf-mapbig:hover{background:#fff}
+.bf-mapwrap2.big{position:fixed;inset:4vh 4vw;z-index:300;background:var(--paper);
+  border-radius:10px;box-shadow:0 20px 60px -20px rgba(13,18,14,.6);padding:0}
+.bf-mapwrap2.big .bf-map{height:100%!important}
 .bf-map{position:relative;width:100%;height:190px;background:#eae5d9;
   border-radius:4px;overflow:hidden;z-index:0}
 .bf-map.bf-mapfail::after{content:"map tiles unavailable";position:absolute;
@@ -188,6 +197,7 @@ body.birdsfield .page{padding-top:.5rem!important}
 .bf-places li{display:flex;justify-content:space-between;gap:1rem;font-size:.82rem;
   padding:.28rem 0;border-bottom:1px solid rgba(13,18,14,.08)}
 .bf-places em{font-style:normal;color:var(--muted)}
+.bf-places li.unmapped .bf-placelink{opacity:.65;border-bottom:1px dotted rgba(13,18,14,.3)}
 .bf-placelink{color:inherit;text-decoration:none;border-bottom:1px solid transparent}
 .bf-placelink:hover{color:var(--green);border-bottom-color:var(--green)}
 .bf-map path.leaflet-interactive{cursor:pointer}
@@ -210,6 +220,9 @@ body.birdsfield .page{padding-top:.5rem!important}
 .bf-calls .pc{font-family:var(--mono);font-size:.7rem;color:var(--green);
   min-width:2.6rem}
 .bf-calls .wh{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bf-calls .nd{font-size:.62rem;padding:.06rem .4rem;border-radius:999px;
+  white-space:nowrap;background:rgba(2,135,121,.14);color:#02685e}
+.bf-calls .nd.side{background:rgba(149,2,89,.12);color:#8a0a55}
 .bf-side a{color:var(--green)}
 
 @media (max-width:980px){
@@ -228,6 +241,7 @@ body.birdsfield .page{padding-top:.5rem!important}
            aria-label="Tile size">
     <button type="button" id="bf-random" class="bf-shuffle">Random spot</button>
     <button type="button" id="bf-shuffle" class="bf-shuffle">Shuffle birds</button>
+    <button type="button" id="bf-chrono" class="bf-shuffle" aria-pressed="false">Chronological</button>
     <a href="/birds">Classic grid &nearr;</a>
     <a href="/birds/stats">Numbers &nearr;</a>
     <span class="bf-right" id="bf-tally">{{ "{:,}".format(photos_n) }} photos{% if videos_n %} &middot; {{ videos_n }} video{{ 's' if videos_n != 1 }}{% endif %} &middot; {{ species_n }} species</span>
@@ -283,7 +297,10 @@ body.birdsfield .page{padding-top:.5rem!important}
 
       <div id="bf-mapwrap">
         <h3>Where I find it</h3>
-        <div class="bf-map" id="bf-omap"></div>
+        <div class="bf-mapwrap2">
+          <div class="bf-map" id="bf-omap"></div>
+          <button type="button" class="bf-mapbig" id="bf-mapbig" title="Expand the map" aria-label="Expand the map">&#9974;</button>
+        </div>
         <p class="bf-note" id="bf-mapnote"></p>
         <ul class="bf-places" id="bf-oplaces"></ul>
       </div>
@@ -462,6 +479,25 @@ body.birdsfield .page{padding-top:.5rem!important}
     clearLive(); apply();
   });
 
+  /* #9 Chronological: lay the field out newest-first by capture date instead
+     of the interleaved round-robin. Adjacency protection is a property of the
+     round-robin, so date order can put a bird beside itself — that is the
+     honest trade for showing real sequence. */
+  var chrono = document.getElementById("bf-chrono"), chronoOn = false, SEQ0 = SEQ.slice();
+  if (chrono) chrono.addEventListener("click", function () {
+    chronoOn = !chronoOn;
+    chrono.setAttribute("aria-pressed", chronoOn ? "true" : "false");
+    chrono.classList.toggle("on", chronoOn);
+    var next;
+    if (chronoOn) {
+      next = TILES.map(function (_t, i) { return i; }).sort(function (a, b) {
+        return String(TILES[b].date || "").localeCompare(String(TILES[a].date || ""));
+      });
+    } else { next = SEQ0.slice(); }
+    SEQ.length = 0; next.forEach(function (x) { SEQ.push(x); });
+    reseat();
+  });
+
   var shuf = document.getElementById("bf-shuffle");
   if (shuf) shuf.addEventListener("click", function () {
     // A flat Fisher-Yates over SEQ destroyed the very property that keeps a
@@ -525,6 +561,26 @@ body.birdsfield .page{padding-top:.5rem!important}
     hit = null;
   });
   canvas.addEventListener("pointercancel", function () { down = false; hit = null; canvas.classList.remove("drag"); });
+  /* #3 Hold the pointer near an edge and the field drifts that way — the
+     trackpad-swipe equivalent for a mouse. Stops the moment you leave the
+     edge, the modal opens, or you start dragging. */
+  var edgeX = 0, edgeY = 0, edgeRAF = null;
+  function edgeStep() {
+    if ((edgeX || edgeY) && !down && !over.classList.contains("open")) {
+      px += edgeX; py += edgeY; apply();
+      edgeRAF = requestAnimationFrame(edgeStep);
+    } else { edgeRAF = null; }
+  }
+  canvas.addEventListener("pointermove", function (e) {
+    if (down || e.pointerType === "touch") { edgeX = edgeY = 0; return; }
+    var r = canvas.getBoundingClientRect(), Z = 70, S = 9;
+    var dx = e.clientX - r.left, dy = e.clientY - r.top;
+    edgeX = dx < Z ? S * (1 - dx / Z) : (r.width - dx < Z ? -S * (1 - (r.width - dx) / Z) : 0);
+    edgeY = dy < Z ? S * (1 - dy / Z) : (r.height - dy < Z ? -S * (1 - (r.height - dy) / Z) : 0);
+    if ((edgeX || edgeY) && !edgeRAF) edgeRAF = requestAnimationFrame(edgeStep);
+  });
+  canvas.addEventListener("pointerleave", function () { edgeX = edgeY = 0; });
+
   canvas.addEventListener("wheel", function (e) {
     e.preventDefault();
     if (e.shiftKey) px -= (e.deltaY + e.deltaX); else { py -= e.deltaY; px -= e.deltaX; }
@@ -779,11 +835,16 @@ body.birdsfield .page{padding-top:.5rem!important}
     // open the gallery scoped to that spot.
     $("bf-oplaces").innerHTML = (d.places || []).length
       ? d.places.map(function (q) {
-          return '<li><a class="bf-placelink" href="/birds?loc=' +
-            encodeURIComponent(q.name) + '" title="Show every photo from ' +
-            esc(q.name) + '">' + esc(q.name) + "</a><em>" + q.count + "</em></li>";
+          return '<li' + (q.mapped ? '' : ' class="unmapped"') + '><a class="bf-placelink" href="/birds?loc=' +
+            encodeURIComponent(q.name) + '" title="Show every photo from ' + esc(q.name) +
+            (q.mapped ? '' : ' (no coordinates, so it cannot be plotted)') + '">' +
+            esc(q.name) + "</a><em>" + q.count + "</em></li>";
         }).join("")
-      : '<li><em>No mapped sightings yet</em></li>';
+      : '<li><em>Nowhere recorded yet</em></li>';
+    var unm = (d.places || []).filter(function (q) { return !q.mapped; }).length;
+    $("bf-mapnote").textContent = unm
+      ? unm + (unm === 1 ? " place has" : " places have") + " no coordinates yet"
+      : "";
 
     // Three states, not two. A bird can be heard without a clip surviving —
     // saying "never caught this one" while the panel above reads 3 recordings
@@ -797,7 +858,10 @@ body.birdsfield .page{padding-top:.5rem!important}
       $("bf-ocalls").innerHTML = list.map(function (c, i) {
         return '<li' + (i === 0 ? ' class="on"' : '') + ' data-i="' + i + '">' +
           '<span class="pc">' + Math.round((c.conf || 0) * 100) + '%</span>' +
-          '<span class="wh">' + esc(c.when || "") + '</span></li>';
+          '<span class="wh">' + esc(c.when || "") + '</span>' +
+          (c.node ? '<span class="nd ' +
+            (/side/i.test(c.node) ? 'side' : 'back') + '">' + esc(c.node) + '</span>' : '') +
+          '</li>';
       }).join("");
       $("bf-ocalls").onclick = function (e) {
         var li = e.target.closest("li"); if (!li) return;
@@ -1051,6 +1115,24 @@ body.birdsfield .page{padding-top:.5rem!important}
     var el = $("bf-oimg").parentNode;
     if (document.fullscreenElement) document.exitFullscreen();
     else if (el.requestFullscreen) el.requestFullscreen().catch(function () {});
+  });
+
+  /* #5 The mini-map expands to a real one: dragging and the wheel are enabled
+     only while it is large, so a small inline map never swallows a scroll. */
+  var mapBig = $("bf-mapbig");
+  if (mapBig) mapBig.addEventListener("click", function (e) {
+    e.stopPropagation();
+    var wrap = mapBig.parentNode, big = wrap.classList.toggle("big");
+    mapBig.innerHTML = big ? "&times;" : "&#9974;";
+    mapBig.title = big ? "Close the map" : "Expand the map";
+    if (_map) {
+      if (big) { _map.dragging.enable(); _map.scrollWheelZoom.enable(); _map.addControl(window.L.control.zoom()); }
+      else {
+        _map.scrollWheelZoom.disable();
+        if (window.L.Browser.mobile) _map.dragging.disable();
+      }
+      setTimeout(function () { _map.invalidateSize(); fitAll(); }, 210);
+    }
   });
 
   function closeOver() {
