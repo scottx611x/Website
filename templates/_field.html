@@ -398,7 +398,22 @@ body.birdsfield .page{padding-top:.5rem!important}
   var plane = document.getElementById("bf-plane");
   var esc = function (s) { var d = document.createElement("i"); d.textContent = s == null ? "" : s; return d.innerHTML; };
 
-  var COL_W = (window.innerWidth < 620 ? 150 : 240), GAP = 10, STRIDE = {{ stride }}, L = SEQ.length;
+  /* Tile width scales with how much there is to show. The plane is endless, so
+     it wraps the sequence — with a wide filter that repeat lands far off-screen,
+     but filtered to one bird there may only be a few dozen frames, and at the
+     default size a screen holds ~76 tiles, so the same photo appears several
+     times at once. Showing fewer, larger tiles keeps the repeat out of view and
+     gives a thin set the bigger previews it deserves anyway. */
+  var COL_W = (function () {
+    var base = window.innerWidth < 620 ? 150 : 240;
+    var n = SEQ.length;
+    if (!n || n >= 300) return base;
+    var perScreen = (window.innerWidth / (base + 10)) * (window.innerHeight / (base + 10));
+    if (n >= perScreen * 1.6) return base;          // already enough to fill
+    var want = Math.sqrt((window.innerWidth * window.innerHeight) / (n / 1.6)) - 10;
+    return Math.round(Math.max(base, Math.min(460, want)));
+  })();
+  var GAP = 10, STRIDE = {{ stride }}, L = SEQ.length;
 
   /* Heights and their running total, computed once for the whole sequence.
      ratio falls back to 1:1 for the frames whose dimensions we never captured
@@ -484,52 +499,80 @@ body.birdsfield .page{padding-top:.5rem!important}
     for (var k2 in live) if (!need[k2]) { live[k2].remove(); delete live[k2]; }
   }
   function apply() {
-    plane.style.transform = "translate3d(" + Math.round(px) + "px," + Math.round(py) + "px,0)";
+    // Fractional, not rounded: the plane is its own composited layer, so
+    // sub-pixel offsets cost nothing and a slow drift stops stepping 1px at
+    // a time, which is what made the idle motion look jagged.
+    plane.style.transform = "translate3d(" + px.toFixed(2) + "px," + py.toFixed(2) + "px,0)";
     if (!pending) { pending = true; requestAnimationFrame(cull); }
   }
   function decay() {
     if (Math.abs(vx) < .3 && Math.abs(vy) < .3) { glide = null; return; }
-    px += vx; py += vy; vx *= 0.94; vy *= 0.94; apply();
+    px += vx; py += vy; vx *= 0.94; vy *= 0.94; setDir(vx, vy); apply();
     glide = requestAnimationFrame(decay);
   }
   /* Discoverability: an endless plane gives no scrollbar and no edge, so
-     nothing says "this moves". On arrival the field drifts a little and eases
-     to rest — enough motion to read as draggable — and keeps breathing very
-     slowly until the first real interaction, then stops for good. */
-  var introDone = false, breatheT = 0, introRAF = null, introBase = { x: 0, y: 0 };
-  function stopIntro() {
-    if (introDone) return;
-    introDone = true;
-    if (introRAF) { cancelAnimationFrame(introRAF); introRAF = null; }
-    canvas.classList.add("bf-touched");
-  }
-  ["pointerdown", "wheel", "keydown"].forEach(function (ev) {
-    canvas.addEventListener(ev, stopIntro, { passive: true });
-  });
+     nothing says "this moves". On arrival the field eases in from off-centre,
+     then breathes very slowly ALONG THE LAST DIRECTION YOU TRAVELLED — drifting
+     on a fixed diagonal reads as a bug, whereas continuing your own gesture
+     reads as momentum. Any interaction stops it; it returns after a pause. */
+  var REDUCED = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var ambT = 0, ambRAF = null, ambBase = { x: 0, y: 0 }, ambFrom = { x: 0, y: 0 };
+  var entering = true, idleTimer = null;
+  var dir = { x: -0.93, y: -0.35 };        // unit vector: last way the field moved
 
-  function intro(ts) {
-    if (introDone) return;
-    if (!breatheT) breatheT = ts;
-    var t = (ts - breatheT) / 1000;
-    if (t < 1.6) {
-      introBase = { x: px, y: py };
-      // a decaying glide inward, so the first thing you see is movement
-      var k = 1 - t / 1.6;
-      px -= 26 * k * k * 0.016 * 60;
-      py -= 10 * k * k * 0.016 * 60;
+  function setDir(dx, dy) {
+    var m = Math.sqrt(dx * dx + dy * dy);
+    if (m > 0.5) { dir.x = dx / m; dir.y = dy / m; }
+  }
+
+  function ambStop() {
+    if (ambRAF) { cancelAnimationFrame(ambRAF); ambRAF = null; }
+    ambT = 0;
+  }
+
+  function ambStart() {
+    if (REDUCED || ambRAF || down || glide) return;
+    if (document.body.style.overflow === "hidden") return;   // a bird is open
+    ambBase = { x: px, y: py };
+    ambRAF = requestAnimationFrame(amb);
+  }
+
+  function amb(ts) {
+    if (!ambT) ambT = ts;
+    var t = (ts - ambT) / 1000, ENTER = 1.4;
+    if (entering && t < ENTER) {
+      // Absolute position from an eased curve, so every frame is exact rather
+      // than accumulating rounding error from per-frame nudges.
+      var k = 1 - Math.pow(1 - t / ENTER, 3);
+      px = ambFrom.x + (ambBase.x - ambFrom.x) * k;
+      py = ambFrom.y + (ambBase.y - ambFrom.y) * k;
     } else {
-      // then a barely-there sway, well under a tile's width
-      // apply() rounds to whole pixels, so a sub-pixel sway never rendered.
-      // Drive position from the wave itself rather than nudging it.
-      px = introBase.x + Math.sin(t * 0.5) * 9;
-      py = introBase.y + Math.cos(t * 0.37) * 4;
+      if (entering) { entering = false; ambT = ts; t = 0; }
+      var a = Math.sin(t * 0.36) * 9;       // one slow swing, no compound wave
+      px = ambBase.x + dir.x * a;
+      py = ambBase.y + dir.y * a;
     }
     apply();
-    introRAF = requestAnimationFrame(intro);
+    ambRAF = requestAnimationFrame(amb);
   }
-  if (!matchMedia("(prefers-reduced-motion: reduce)").matches) {
-    px += 90; py += 34;                      // start slightly off, then settle
-    introRAF = requestAnimationFrame(intro);
+
+  /* Any interaction takes the wheel; the drift comes back once you stop. */
+  function poke() {
+    canvas.classList.add("bf-touched");    // the hint has served its purpose
+    entering = false;
+    ambStop();
+    if (idleTimer) clearTimeout(idleTimer);
+    idleTimer = setTimeout(ambStart, 2600);
+  }
+  ["pointerdown", "wheel", "keydown"].forEach(function (ev) {
+    canvas.addEventListener(ev, poke, { passive: true });
+  });
+
+  if (!REDUCED) {
+    ambBase = { x: px, y: py };             // where it should come to rest
+    ambFrom = { x: px - dir.x * 96, y: py - dir.y * 96 };   // and where it starts
+    px = ambFrom.x; py = ambFrom.y;
+    ambRAF = requestAnimationFrame(amb);
   }
 
   /* Steer by tilting the phone. Opt-in, because iOS requires the permission
@@ -567,12 +610,17 @@ body.birdsfield .page{padding-top:.5rem!important}
       if (tRAF) { cancelAnimationFrame(tRAF); tRAF = null; }
       removeEventListener("deviceorientation", onTilt);
       btn.classList.remove("on"); btn.setAttribute("aria-pressed", "false");
+      if (idleTimer) clearTimeout(idleTimer);
+      idleTimer = setTimeout(ambStart, 2600);
     }
     function startTilt() {
       on = true; base = null;
       addEventListener("deviceorientation", onTilt);
       btn.classList.add("on"); btn.setAttribute("aria-pressed", "true");
-      stopIntro();
+      // tilt owns the field while it's on, so retire the drift rather than
+      // letting the idle timer bring it back to fight the gyro
+      canvas.classList.add("bf-touched");
+      ambStop(); if (idleTimer) clearTimeout(idleTimer);
       if (!tRAF) tRAF = requestAnimationFrame(step);
     }
     btn.addEventListener("click", function (e) {
@@ -689,7 +737,10 @@ body.birdsfield .page{padding-top:.5rem!important}
     py = -(fy * TOTAL - vh / 2);
     clearLive();
     pending = false;
-    plane.style.transform = "translate3d(" + Math.round(px) + "px," + Math.round(py) + "px,0)";
+    // Fractional, not rounded: the plane is its own composited layer, so
+    // sub-pixel offsets cost nothing and a slow drift stops stepping 1px at
+    // a time, which is what made the idle motion look jagged.
+    plane.style.transform = "translate3d(" + px.toFixed(2) + "px," + py.toFixed(2) + "px,0)";
     cull();
     var sz = document.getElementById("bf-size");
     if (sz) sz.value = COL_W;
@@ -763,7 +814,7 @@ body.birdsfield .page{padding-top:.5rem!important}
     if (!down) return;
     var dx = e.clientX - lx, dy = e.clientY - ly;
     lx = e.clientX; ly = e.clientY; moved += Math.abs(dx) + Math.abs(dy);
-    px += dx; py += dy; vx = dx; vy = dy; apply();
+    px += dx; py += dy; vx = dx; vy = dy; setDir(dx, dy); apply();
   });
   canvas.addEventListener("pointerup", function (e) {
     if (!down) return;
@@ -1402,6 +1453,8 @@ body.birdsfield .page{padding-top:.5rem!important}
     $("bf-oimg").hidden = false;
     over.classList.remove("open");
     document.body.style.overflow = "";
+    if (idleTimer) clearTimeout(idleTimer);
+    idleTimer = setTimeout(ambStart, 2600);   // field is yours again
     // Locking the body can drop the page to the top on mobile; put it back so
     // closing a bird returns you to the same place in the field.
     window.scrollTo(0, scrollAt);

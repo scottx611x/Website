@@ -7,9 +7,29 @@
 <script>
     // The gallery always uses the full screen width.
     document.body.classList.add("birds-fill");
+    /* Collapse the header once you leave the top. Plain scrollY rather than a
+       sentinel + observer: the header is itself sticky, so a sentinel would
+       have to sit outside it and be offset by the nav height, and this is one
+       number. rAF-throttled so it costs nothing while flinging. */
+    (function () {
+        var hdr, tick = false;
+        function read() {
+            tick = false;
+            hdr = hdr || document.querySelector(".gallery-header");
+            if (!hdr || hdr.dataset.pinned) return;
+            hdr.classList.toggle("is-stuck", window.scrollY > 48);
+        }
+        addEventListener("scroll", function () {
+            if (!tick) { tick = true; requestAnimationFrame(read); }
+        }, { passive: true });
+        read();
+    })();
 </script>
 <section class="page wide">
-    <header class="gallery-header">
+    {# The field's canvas is fixed to the viewport, so there is no page scroll
+       to collapse the header — it would sit full-height on top of the photos
+       forever. Start it collapsed there and leave it that way. #}
+    <header class="gallery-header{% if view == 'field' %} is-stuck{% endif %}"{% if view == 'field' %} data-pinned="1"{% endif %}>
         <h1>Birds of North Andover</h1>
         {# A lone species/family focus renders as the SAME chip in the SAME slot
            as Live/Stats/Map (the shared subnav-focus pill); the gallery's own

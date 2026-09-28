@@ -665,7 +665,16 @@ def _field_tiles(shots):
 
     # Round-robin across species, capped, so a bird never lands beside itself
     # and the tail does not degenerate into whichever species has the most.
-    CAP = 8
+    #
+    # The cap is a FAIRNESS device between species, so it has to scale with how
+    # many species are actually in play. A flat cap of 8 was fine across the
+    # whole collection but broke the moment the gallery was filtered to one
+    # bird: the sequence became 8 frames long, and since the field wraps that
+    # sequence to fill an endless plane, the same flicker showed up nine times
+    # in a single screen. Give every species enough of a share to cover more
+    # than a viewport holds (~76 tiles) and the repeats move off-screen.
+    TARGET = 160
+    CAP = max(8, -(-TARGET // max(1, len(order))))
     seen_n, seq, any_left = {}, [], True
     while any_left:
         any_left = False

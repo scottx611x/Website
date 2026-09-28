@@ -406,6 +406,57 @@ body.home .site-nav { z-index: 0; }
 .birds-fill .media-stat { margin-top: 0.5rem; }
 .birds-fill .bird-active { margin-top: 0.9rem; }
 
+/* ...and once you scroll, get out of the way entirely. The full header is
+   worth its height when you arrive — it is how you pick a bird — but it is
+   dead weight the moment you are looking at photos. On scroll it collapses
+   to a single sticky line carrying the same controls, so the filters stay
+   one click away without costing a third of the screen. Sits below the site
+   nav, which is itself sticky and shrinks to ~2.6rem. */
+.birds-fill .gallery-header {
+    position: sticky; top: 2.55rem; z-index: 40;
+    background: var(--paper);
+    transition: padding 0.18s ease, box-shadow 0.18s ease;
+}
+.birds-fill .gallery-header.is-stuck {
+    display: flex; align-items: center; flex-wrap: wrap; gap: 0.5rem 1.1rem;
+    text-align: left;
+    margin-bottom: 0.9rem; padding: 0.4rem 0 0.45rem;
+    border-bottom: 1px solid var(--line);
+    box-shadow: 0 12px 16px -16px rgba(0, 0, 0, 0.55);
+}
+.birds-fill .gallery-header.is-stuck h1 {
+    font-size: 1.02rem; margin: 0; white-space: nowrap; flex: 0 0 auto;
+}
+.birds-fill .gallery-header.is-stuck .bird-stat,
+.birds-fill .gallery-header.is-stuck .media-stat { display: none; }
+.birds-fill .gallery-header.is-stuck .birds-subnav { margin: 0; flex: 0 0 auto; }
+.birds-fill .gallery-header.is-stuck .bird-filter {
+    margin: 0; flex: 1 1 320px; min-width: 0;
+}
+.birds-fill .gallery-header.is-stuck .filter-controls {
+    margin: 0; justify-content: flex-end;
+}
+/* The search and family inputs carry min-widths sized for the full header.
+   In one compressed row they refuse to shrink, overflow LEFT past their own
+   container, and land on top of the active-species chip. Let them shrink. */
+.birds-fill .gallery-header.is-stuck .birds-subnav { flex: 0 1 auto; min-width: 0; }
+.birds-fill .gallery-header.is-stuck .filter-search,
+.birds-fill .gallery-header.is-stuck .bird-select { min-width: 0; }
+.birds-fill .gallery-header.is-stuck .filter-search input,
+.birds-fill .gallery-header.is-stuck .bird-select select {
+    min-width: 0; width: 100%;
+}
+.birds-fill .gallery-header.is-stuck .filter-search { flex: 1 1 9rem; max-width: 18rem; }
+.birds-fill .gallery-header.is-stuck .bird-select { flex: 1 1 9rem; max-width: 18rem; }
+.birds-fill .gallery-header.is-stuck .bird-active { margin: 0; flex: 1 1 100%; }
+@media (max-width: 720px) {
+    /* No room for the title on a phone — the nav already says where you are. */
+    .birds-fill .gallery-header.is-stuck h1 { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .birds-fill .gallery-header { transition: none; }
+}
+
 /* Thumbnail size slider: nudges the masonry column count (see columnsFor).
    Lives inline at the end of the "order:" row to keep the header short. */
 .thumb-zoom { display: inline-flex; align-items: center; gap: 0.4rem; vertical-align: middle; }
