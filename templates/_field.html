@@ -1159,12 +1159,31 @@ body.birdsfield .page{padding-top:.5rem!important}
     var f = frames[fi] || {};
     var u = location.origin + "/birds/species/" + cur +
             (f.pid ? "?frame=" + encodeURIComponent(f.pid + "-" + f.idx) : "");
-    (navigator.clipboard ? navigator.clipboard.writeText(u) : Promise.reject())
-      .then(function () {
-        oLink.classList.add("copied");
-        setTimeout(function () { oLink.classList.remove("copied"); }, 1200);
-      })
-      .catch(function () { prompt("Copy this link", u); });
+    // navigator.clipboard is secure-context only, so over plain HTTP on the LAN
+    // it simply does not exist — which dropped every copy into a prompt() box.
+    // Fall back to a throwaway textarea, which works on an insecure origin.
+    function flash(ok) {
+      oLink.classList.toggle("copied", ok);
+      oLink.innerHTML = ok ? "&#10003;" : "&#128279;";
+      setTimeout(function () {
+        oLink.classList.remove("copied"); oLink.innerHTML = "&#128279;";
+      }, 1200);
+    }
+    function legacy() {
+      var ta = document.createElement("textarea");
+      ta.value = u;
+      ta.setAttribute("readonly", "");
+      ta.style.cssText = "position:fixed;top:0;left:0;opacity:0;pointer-events:none";
+      document.body.appendChild(ta);
+      ta.select(); ta.setSelectionRange(0, u.length);
+      var ok = false;
+      try { ok = document.execCommand("copy"); } catch (e) { ok = false; }
+      document.body.removeChild(ta);
+      flash(ok);
+    }
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(u).then(function () { flash(true); }, legacy);
+    } else { legacy(); }
   });
   if (oFs) oFs.addEventListener("click", function () {
     var el = $("bf-oimg").parentNode;
