@@ -112,7 +112,7 @@ body.birdsfield .page{padding-top:.5rem!important}
 @media (max-width:620px){
   /* Pin the photograph and its strip; the record scrolls underneath, so you
      can read the numbers or watch the map boop without losing the frame. */
-  .bf-viewer{position:sticky;top:0;z-index:4;background:rgba(13,18,14,.97);
+  .bf-viewer{position:sticky;top:0;z-index:20;background:rgba(13,18,14,.97);
     padding-bottom:.2rem}
   .bf-side{border-top-left-radius:14px;border-top-right-radius:14px;
     box-shadow:0 -10px 24px -12px rgba(0,0,0,.5)}
@@ -193,12 +193,16 @@ body.birdsfield .page{padding-top:.5rem!important}
   border-radius:1px}
 .bf-mlab{display:flex;gap:3px;font-size:.58rem;color:var(--muted);margin-top:.25rem}
 .bf-mlab span{flex:1;text-align:center}
-.bf-mapwrap2{position:relative}
+/* isolate: the expand button needs z-index 500 to clear Leaflet's own
+   controls, but unscoped that also lifted it above the sticky viewer, so it
+   floated over the filmstrip while the rail scrolled underneath. A stacking
+   context keeps that 500 local to the map. */
+.bf-mapwrap2{position:relative;isolation:isolate;z-index:0}
 .bf-mapbig{position:absolute;right:.4rem;top:.4rem;z-index:500;width:28px;height:28px;
   border-radius:6px;border:0;background:rgba(250,248,243,.9);cursor:pointer;
   font-size:.85rem;line-height:1;display:grid;place-items:center}
 .bf-mapbig:hover{background:#fff}
-.bf-mapwrap2.big{position:fixed;inset:4vh 4vw;z-index:300;background:var(--paper);
+.bf-mapwrap2.big{position:fixed;inset:4vh 4vw;z-index:300;isolation:auto;background:var(--paper);
   border-radius:10px;box-shadow:0 20px 60px -20px rgba(13,18,14,.6);padding:0}
 .bf-mapwrap2.big .bf-map{height:100%!important}
 .bf-map{position:relative;width:100%;height:190px;background:#eae5d9;
