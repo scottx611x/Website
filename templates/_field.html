@@ -758,9 +758,19 @@ body.birdsfield .page{padding-top:.5rem!important}
     stop();
     over.classList.add("open"); document.body.style.overflow = "hidden";
     fetch("/birds/species/" + t.slug + ".json")
-      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (r) {
+        if (!r.ok) throw new Error("detail request failed: " + r.status);
+        return r.json();
+      })
       .then(function (d) { if (d && cur === t.slug) fill(d); })
-      .catch(function () {});
+      .catch(function (err) {
+        // A bare catch here hid a 500 for a whole round: the modal opened,
+        // the skeletons stayed, and nothing said why. Say it out loud.
+        console.error("species detail:", err);
+        $("bf-ofacts").innerHTML = "";
+        $("bf-oplaces").innerHTML = "<li><em>Could not load this bird's details</em></li>";
+        $("bf-ostrip").innerHTML = "";
+      });
   }
 
   function fill(d) {

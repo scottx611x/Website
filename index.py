@@ -700,6 +700,32 @@ def birds_field():
         curate=_curate_on(), local=_is_local())
 
 
+def _merge_places(profile, frames):
+    """Every place a species' frames name, with coordinates where we have them.
+
+    species_profile only returns geocoded places, so anywhere never geocoded
+    (Roger Wheeler State Beach, six Osprey frames) vanished entirely.
+    """
+    counts = {}
+    for f in frames:
+        w = (f.get("where") or "").strip()
+        if w:
+            counts[w] = counts.get(w, 0) + 1
+    geo = {}
+    for q in (profile.get("places") or []):
+        if q.get("name"):
+            geo[q["name"]] = q
+    for name, q in geo.items():
+        counts.setdefault(name, q.get("count") or 0)
+    out = []
+    for name, n in sorted(counts.items(), key=lambda kv: (-kv[1], kv[0])):
+        q = geo.get(name) or {}
+        out.append({"name": name, "count": n, "area": q.get("area"),
+                    "lat": q.get("lat"), "lng": q.get("lng"),
+                    "mapped": bool(q.get("lat") and q.get("lng"))})
+    return out[:12]
+
+
 @app.route("/birds/species/<slug>.json", methods=["GET"])
 def birds_species_json(slug):
     """Everything the site knows about one bird, as JSON, for the gallery's
