@@ -135,8 +135,9 @@ body.birdsfield .page{padding-top:.5rem!important}
   /* Sitting the caption on the image made it unreadable on a phone; give it
      its own line under the stage instead. */
   .bf-stage{flex-direction:column;gap:.4rem}
-  .bf-count{position:static;transform:none;color:var(--muted);font-size:.68rem;
-    text-align:center;line-height:1.35;padding:0 .4rem}
+  .bf-stage .bf-count{position:static;transform:none;color:var(--muted);
+    font-size:.68rem;text-align:center;line-height:1.35;padding:.2rem .4rem 0;
+    max-width:100%;background:none;backdrop-filter:none;text-shadow:none}
   .bf-arrow{top:40%}
   .bf-strip{padding:.5rem .8rem .8rem;-webkit-overflow-scrolling:touch}
   .bf-strip img{width:48px;height:48px}
@@ -154,8 +155,10 @@ body.birdsfield .page{padding-top:.5rem!important}
   padding:.4rem .7rem}
 .bf-arrow:hover{opacity:1}
 .bf-prev{left:.2rem}.bf-next{right:.2rem}
-.bf-count{position:absolute;bottom:.1rem;left:50%;transform:translateX(-50%);
-  color:rgba(255,255,255,.65);font-size:.76rem}
+.bf-count{position:absolute;bottom:.55rem;left:50%;transform:translateX(-50%);
+  color:#fff;font-size:.76rem;max-width:calc(100% - 5rem);text-align:center;
+  padding:.22rem .6rem;border-radius:999px;background:rgba(13,18,14,.62);
+  backdrop-filter:blur(6px);text-shadow:0 1px 2px rgba(0,0,0,.5)}
 .bf-strip{display:flex;gap:.35rem;overflow-x:auto;
   padding:.7rem 1.4rem 1.2rem;min-width:0}
 .bf-stripend{flex:none;width:1px;height:1px}
