@@ -62,8 +62,16 @@ body.birdsfield .page{padding-top:.5rem!important}
 .bf-badge{position:absolute;top:.35rem;right:.35rem;font-family:var(--mono);
   font-size:.58rem;color:#fff;background:rgba(13,18,14,.55);
   padding:.1rem .3rem;border-radius:2px}
+.bf-tilt{position:absolute;right:.6rem;bottom:.6rem;z-index:6;font:inherit;
+  font-size:.7rem;padding:.3rem .8rem;border-radius:999px;cursor:pointer;
+  border:1px solid rgba(13,18,14,.25);background:rgba(244,241,233,.85);
+  color:var(--ink);backdrop-filter:blur(4px)}
+.bf-tilt.on{background:var(--green);border-color:var(--green);color:#fff}
 .bf-hint{position:absolute;left:50%;bottom:.6rem;transform:translateX(-50%);
-  z-index:5;font-size:.72rem;color:var(--muted);pointer-events:none}
+  z-index:5;font-size:.72rem;color:var(--muted);pointer-events:none;
+  padding:.2rem .7rem;border-radius:999px;background:rgba(244,241,233,.75);
+  backdrop-filter:blur(4px);transition:opacity .6s .4s}
+.bf-canvas.bf-touched .bf-hint{opacity:0}   /* it has served its purpose */
 
 /* ---------- detail modal: image-led, in the site's own type ---------- */
 .bf-over{position:fixed;inset:0;z-index:130;background:rgba(13,18,14,.94);
@@ -179,6 +187,7 @@ body.birdsfield .page{padding-top:.5rem!important}
   display:grid;place-items:center;transition:background .18s,border-color .18s,color .18s}
 .bf-ico:hover{background:var(--green);border-color:var(--green);color:#fff}
 .bf-ico.copied{background:var(--green);border-color:var(--green);color:#fff}
+.bf-ico svg{display:block}
 .bf-cfield{display:block;margin-top:.7rem;font-size:.7rem;color:var(--muted)}
 .bf-cfield input{display:block;width:100%;margin-top:.25rem;font:inherit;
   font-size:.82rem;padding:.35rem .5rem;border:1px solid rgba(13,18,14,.2);
@@ -281,7 +290,9 @@ body.birdsfield .page{padding-top:.5rem!important}
 
   <div class="bf-canvas" id="bf-canvas">
     <div class="bf-plane" id="bf-plane"></div>
-    <span class="bf-hint">drag anywhere &middot; it keeps going</span>
+    <button type="button" class="bf-tilt" id="bf-tilt" hidden
+            title="Steer by tilting the phone" aria-pressed="false">Tilt</button>
+    <span class="bf-hint">drag anywhere &middot; pinch to resize &middot; it keeps going</span>
   </div>
 </section>
 
@@ -311,10 +322,10 @@ body.birdsfield .page{padding-top:.5rem!important}
         <h2 id="bf-otitle"></h2>
         <p class="fam" id="bf-ofam"></p>
         <div class="bf-ocontrols">
-          <button type="button" id="bf-orandom" class="bf-ico" title="Another bird at random" aria-label="Another bird at random">&#8635;</button>
-          <button type="button" id="bf-oshuffle" class="bf-ico" title="Shuffle this bird's frames" aria-label="Shuffle this bird's frames">&#128256;</button>
-          <button type="button" id="bf-ofs" class="bf-ico" title="Full screen" aria-label="Full screen">&#9974;</button>
-          <button type="button" id="bf-olink" class="bf-ico" title="Copy a link to this frame" aria-label="Copy a link to this frame">&#128279;</button>
+          <button type="button" id="bf-orandom" class="bf-ico" title="Another bird at random" aria-label="Another bird at random"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.6-6.4"/><path d="M21 3v6h-6"/></svg></button>
+          <button type="button" id="bf-oshuffle" class="bf-ico" title="Shuffle this bird's frames" aria-label="Shuffle this bird's frames"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 3h5v5"/><path d="M4 20 21 3"/><path d="M21 16v5h-5"/><path d="m15 15 6 6"/><path d="M4 4l5 5"/></svg></button>
+          <button type="button" id="bf-ofs" class="bf-ico" title="Full screen" aria-label="Full screen"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M16 3h3a2 2 0 0 1 2 2v3"/><path d="M8 21H5a2 2 0 0 1-2-2v-3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/></svg></button>
+          <button type="button" id="bf-olink" class="bf-ico" title="Copy a link to this frame" aria-label="Copy a link to this frame"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.5 1.5"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7L12 19"/></svg></button>
         </div>
       </div>
 
@@ -333,7 +344,7 @@ body.birdsfield .page{padding-top:.5rem!important}
         <h3>Where I find it</h3>
         <div class="bf-mapwrap2">
           <div class="bf-map" id="bf-omap"></div>
-          <button type="button" class="bf-mapbig" id="bf-mapbig" title="Expand the map" aria-label="Expand the map">&#9974;</button>
+          <button type="button" class="bf-mapbig" id="bf-mapbig" title="Expand the map" aria-label="Expand the map"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6"/><path d="M9 21H3v-6"/><path d="M21 3l-7 7"/><path d="M3 21l7-7"/></svg></button>
         </div>
         <p class="bf-note" id="bf-mapnote"></p>
         <ul class="bf-places" id="bf-oplaces"></ul>
@@ -345,7 +356,7 @@ body.birdsfield .page{padding-top:.5rem!important}
           <span class="ph-wash"></span><span class="ph-veil"></span>
         </div>
         <div class="bf-play">
-          <button type="button" id="bf-oplay" aria-label="Play recording">&#9654;</button>
+          <button type="button" id="bf-oplay" aria-label="Play recording"><svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></button>
           <span id="bf-otime">0:00</span>
         </div>
         <p class="bf-note" id="bf-onote"></p>
@@ -481,6 +492,100 @@ body.birdsfield .page{padding-top:.5rem!important}
     px += vx; py += vy; vx *= 0.94; vy *= 0.94; apply();
     glide = requestAnimationFrame(decay);
   }
+  /* Discoverability: an endless plane gives no scrollbar and no edge, so
+     nothing says "this moves". On arrival the field drifts a little and eases
+     to rest — enough motion to read as draggable — and keeps breathing very
+     slowly until the first real interaction, then stops for good. */
+  var introDone = false, breatheT = 0, introRAF = null, introBase = { x: 0, y: 0 };
+  function stopIntro() {
+    if (introDone) return;
+    introDone = true;
+    if (introRAF) { cancelAnimationFrame(introRAF); introRAF = null; }
+    canvas.classList.add("bf-touched");
+  }
+  ["pointerdown", "wheel", "keydown"].forEach(function (ev) {
+    canvas.addEventListener(ev, stopIntro, { passive: true });
+  });
+
+  function intro(ts) {
+    if (introDone) return;
+    if (!breatheT) breatheT = ts;
+    var t = (ts - breatheT) / 1000;
+    if (t < 1.6) {
+      introBase = { x: px, y: py };
+      // a decaying glide inward, so the first thing you see is movement
+      var k = 1 - t / 1.6;
+      px -= 26 * k * k * 0.016 * 60;
+      py -= 10 * k * k * 0.016 * 60;
+    } else {
+      // then a barely-there sway, well under a tile's width
+      // apply() rounds to whole pixels, so a sub-pixel sway never rendered.
+      // Drive position from the wave itself rather than nudging it.
+      px = introBase.x + Math.sin(t * 0.5) * 9;
+      py = introBase.y + Math.cos(t * 0.37) * 4;
+    }
+    apply();
+    introRAF = requestAnimationFrame(intro);
+  }
+  if (!matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    px += 90; py += 34;                      // start slightly off, then settle
+    introRAF = requestAnimationFrame(intro);
+  }
+
+  /* Steer by tilting the phone. Opt-in, because iOS requires the permission
+     prompt to come from a gesture and because a field that drifts whenever
+     you shift in your seat would be maddening. The tilt at the moment you
+     enable it becomes level, so it works lying down or propped up, and a
+     deadzone keeps small hand movement from registering. */
+  (function () {
+    var btn = document.getElementById("bf-tilt");
+    if (!btn || typeof DeviceOrientationEvent === "undefined") return;
+    if (!("ontouchstart" in window)) return;          // phones and tablets only
+    btn.hidden = false;
+    var on = false, base = null, tx = 0, ty = 0, tRAF = null;
+
+    function onTilt(e) {
+      if (e.beta == null || e.gamma == null) return;
+      if (!base) base = { b: e.beta, g: e.gamma };
+      var db = e.beta - base.b, dg = e.gamma - base.g;
+      var dead = 3, gain = 0.55, cap = 14;
+      var f = function (v) {
+        if (Math.abs(v) < dead) return 0;
+        return Math.max(-cap, Math.min(cap, (v - Math.sign(v) * dead) * gain));
+      };
+      tx = -f(dg); ty = -f(db);
+    }
+    function step() {
+      if (!on) { tRAF = null; return; }
+      if ((tx || ty) && !down && !over.classList.contains("open")) {
+        px += tx; py += ty; apply();
+      }
+      tRAF = requestAnimationFrame(step);
+    }
+    function stopTilt() {
+      on = false; base = null; tx = ty = 0;
+      if (tRAF) { cancelAnimationFrame(tRAF); tRAF = null; }
+      removeEventListener("deviceorientation", onTilt);
+      btn.classList.remove("on"); btn.setAttribute("aria-pressed", "false");
+    }
+    function startTilt() {
+      on = true; base = null;
+      addEventListener("deviceorientation", onTilt);
+      btn.classList.add("on"); btn.setAttribute("aria-pressed", "true");
+      stopIntro();
+      if (!tRAF) tRAF = requestAnimationFrame(step);
+    }
+    btn.addEventListener("click", function (e) {
+      e.stopPropagation();
+      if (on) return stopTilt();
+      var req = DeviceOrientationEvent.requestPermission;   // iOS 13+
+      if (typeof req === "function") {
+        req().then(function (r) { if (r === "granted") startTilt(); })
+             .catch(function () {});
+      } else { startTilt(); }
+    });
+  })();
+
   apply();
   addEventListener("resize", function () { if (!pending) { pending = true; requestAnimationFrame(cull); } });
 
@@ -625,7 +730,16 @@ body.birdsfield .page{padding-top:.5rem!important}
   ["pointerup", "pointercancel", "pointerleave"].forEach(function (ev) {
     canvas.addEventListener(ev, function (e) {
       delete pts[e.pointerId];
-      if (Object.keys(pts).length < 2) pinchD = 0;
+      if (Object.keys(pts).length >= 2) return;
+      if (pinchD) {
+        // Leaving a pinch: kill any momentum the finger movements accumulated,
+        // otherwise lifting off flung the field and it looked like it snapped
+        // back into alignment.
+        pinchD = 0; down = false; hit = null;
+        vx = vy = 0;
+        if (glide) { cancelAnimationFrame(glide); glide = null; }
+        canvas.classList.remove("drag");
+      }
     });
   });
 
@@ -642,7 +756,8 @@ body.birdsfield .page{padding-top:.5rem!important}
     hit = e.target.closest ? e.target.closest(".bf-tile") : null;
     vx = vy = 0; if (glide) { cancelAnimationFrame(glide); glide = null; }
     canvas.classList.add("drag");
-    canvas.setPointerCapture && canvas.setPointerCapture(e.pointerId);
+    try { canvas.setPointerCapture && canvas.setPointerCapture(e.pointerId); }
+    catch (err) { /* no active pointer with that id — harmless */ }
   });
   canvas.addEventListener("pointermove", function (e) {
     if (!down) return;
@@ -849,6 +964,7 @@ body.birdsfield .page{padding-top:.5rem!important}
     }).join("");
     $("bf-ofull").href = "/birds/species/" + t.slug;
     stop();
+    scrollAt = window.scrollY || 0;
     over.classList.add("open"); document.body.style.overflow = "hidden";
     fetch("/birds/species/" + t.slug + ".json")
       .then(function (r) {
@@ -1127,7 +1243,7 @@ body.birdsfield .page{padding-top:.5rem!important}
   ph.views([$("bf-specwrap")]);
   function tick() {
     $("bf-otime").textContent = fmt(audio.currentTime);
-    $("bf-oplay").innerHTML = audio.paused ? "&#9654;" : "&#10074;&#10074;";
+    $("bf-oplay").innerHTML = audio.paused ? '<svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>' : '<svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor"><path d="M7 4h3v16H7zM14 4h3v16h-3z"/></svg>';
     if (!audio.paused) raf = requestAnimationFrame(tick);
     else if (raf) { cancelAnimationFrame(raf); raf = null; }
   }
@@ -1231,9 +1347,9 @@ body.birdsfield .page{padding-top:.5rem!important}
     // Fall back to a throwaway textarea, which works on an insecure origin.
     function flash(ok) {
       oLink.classList.toggle("copied", ok);
-      oLink.innerHTML = ok ? "&#10003;" : "&#128279;";
+      oLink.classList.toggle("bf-ok", ok);
       setTimeout(function () {
-        oLink.classList.remove("copied"); oLink.innerHTML = "&#128279;";
+        oLink.classList.remove("copied"); oLink.classList.remove("bf-ok");
       }, 1200);
     }
     function legacy() {
@@ -1267,7 +1383,7 @@ body.birdsfield .page{padding-top:.5rem!important}
   if (mapBig) mapBig.addEventListener("click", function (e) {
     e.stopPropagation();
     var wrap = mapBig.parentNode, big = wrap.classList.toggle("big");
-    mapBig.innerHTML = big ? "&times;" : "&#9974;";
+    mapBig.innerHTML = big ? '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>' : '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6"/><path d="M9 21H3v-6"/><path d="M21 3l-7 7"/><path d="M3 21l7-7"/></svg>';
     mapBig.title = big ? "Close the map" : "Expand the map";
     if (_map) {
       if (big) { _map.dragging.enable(); _map.scrollWheelZoom.enable(); _map.addControl(window.L.control.zoom()); }
@@ -1279,11 +1395,17 @@ body.birdsfield .page{padding-top:.5rem!important}
     }
   });
 
+  var scrollAt = 0;
   function closeOver() {
     var v = $("bf-ovid");
     if (v) { v.pause(); v.removeAttribute("src"); v.hidden = true; }
     $("bf-oimg").hidden = false;
-    over.classList.remove("open"); document.body.style.overflow = ""; stop();
+    over.classList.remove("open");
+    document.body.style.overflow = "";
+    // Locking the body can drop the page to the top on mobile; put it back so
+    // closing a bird returns you to the same place in the field.
+    window.scrollTo(0, scrollAt);
+    stop();
   }
   $("bf-oclose").addEventListener("click", closeOver);
   over.addEventListener("click", function (e) {

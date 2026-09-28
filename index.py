@@ -759,6 +759,9 @@ def birds_species_json(slug):
                        "pid": f.get("post_id"),
                        "idx": (idxs[0] if idxs else 0),
                        "away": 1 if (areas and areas[0] == "away") else 0})
+    # Newest frame first, so the filmstrip reads left-to-right as most recent
+    # back through the archive.
+    frames.sort(key=lambda f: (f.get("date") or ""), reverse=True)
     heard = p.get("heard") or {}
     # best_call can be empty even for a heavily-recorded bird (Barred Owl has
     # 1,199 detections and 40 clips, yet no "best"), so pick the highest
