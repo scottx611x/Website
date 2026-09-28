@@ -200,8 +200,24 @@ body.birdsfield .page{padding-top:.5rem!important}
 .bf-placelink{color:inherit;text-decoration:none;border-bottom:1px solid transparent}
 .bf-placelink:hover{color:var(--green);border-bottom-color:var(--green)}
 .bf-map path.leaflet-interactive{cursor:pointer}
-.bf-spec{width:100%;display:block;background:#0d120e;border-radius:3px;
-  margin-bottom:.5rem}
+/* Same playhead vocabulary as the live page: one --p drives all three. */
+.bf-specwrap{position:relative;--p:0;border-radius:3px;overflow:hidden;
+  margin-bottom:.5rem;cursor:pointer;background:#0d120e}
+.bf-spec{width:100%;display:block;background:#0d120e}
+.ph-needle{position:absolute;top:0;bottom:0;left:calc(var(--p)*100%);width:2px;
+  margin-left:-1px;background:linear-gradient(180deg,#eafff4,var(--neon));
+  box-shadow:0 0 10px 1px rgba(56,224,138,.85),0 0 24px 4px rgba(56,224,138,.4);
+  opacity:0;pointer-events:none;will-change:left}
+.ph-needle::after{content:"";position:absolute;top:0;bottom:0;left:-30px;width:30px;
+  background:linear-gradient(90deg,rgba(56,224,138,0),rgba(56,224,138,.28))}
+.ph-veil{position:absolute;top:0;bottom:0;left:calc(var(--p)*100%);right:0;
+  background:linear-gradient(90deg,rgba(6,10,7,0),rgba(6,10,7,.5) 24px);
+  opacity:0;transition:opacity .3s;pointer-events:none}
+.ph-wash{position:absolute;top:0;bottom:0;left:0;width:calc(var(--p)*100%);
+  background:linear-gradient(90deg,rgba(56,224,138,.04),rgba(56,224,138,.16));
+  mix-blend-mode:screen;opacity:0;transition:opacity .3s;pointer-events:none}
+.bf-specwrap.ph-on .ph-needle,.bf-specwrap.ph-on .ph-veil,
+.bf-specwrap.ph-on .ph-wash{opacity:1}
 .bf-play{display:flex;align-items:center;gap:.6rem;font-size:.78rem;color:var(--muted)}
 .bf-play button{font:inherit;background:var(--green);color:#fff;border:0;
   width:30px;height:30px;border-radius:50%;cursor:pointer;flex:none}
@@ -257,6 +273,7 @@ body.birdsfield .page{padding-top:.5rem!important}
   </div>
 </section>
 
+<script src="{{ url_for('static', filename='js/playhead.js', v=asset_v) }}"></script>
 <script id="bf-tiles" type="application/json">{{ tiles|tojson }}</script>
 <script id="bf-seq" type="application/json">{{ seq|tojson }}</script>
 
@@ -310,7 +327,10 @@ body.birdsfield .page{padding-top:.5rem!important}
       </div>
 
       <div id="bf-sound" hidden>
-        <img class="bf-spec" id="bf-ospec" loading="lazy" decoding="async" alt="Spectrogram of the recording">
+        <div class="bf-specwrap" id="bf-specwrap">
+          <img class="bf-spec" id="bf-ospec" loading="lazy" decoding="async" alt="Spectrogram of the recording">
+          <span class="ph-wash"></span><span class="ph-veil"></span><span class="ph-needle"></span>
+        </div>
         <div class="bf-play">
           <button type="button" id="bf-oplay" aria-label="Play recording">&#9654;</button>
           <span class="bf-track" id="bf-otrack"><span class="bf-dot" id="bf-odot"></span></span>
@@ -601,7 +621,7 @@ body.birdsfield .page{padding-top:.5rem!important}
   var MONTHS = ["J","F","M","A","M","J","J","A","S","O","N","D"];
   var $ = function (id) { return document.getElementById(id); };
   function fmt(s) { s = Math.floor(s || 0); return Math.floor(s / 60) + ":" + ("0" + (s % 60)).slice(-2); }
-  function stop() { audio.pause(); audio.currentTime = 0; tick(); }
+  function stop() { ph.stop(); tick(); }
 
   /* The filmstrip pages in as you reach its end.
 
@@ -1028,14 +1048,23 @@ body.birdsfield .page{padding-top:.5rem!important}
     });
   }
 
+  // The shared engine drives --p on the spectrogram; this only mirrors it onto
+  // the small scrub bar and the play button.
+  var ph = new Playhead(audio);
+  ph.views([$("bf-specwrap")]);
   function tick() {
-    var dur = audio.duration || 0, p = dur ? audio.currentTime / dur : 0;
+    var p = ph.progress();
     $("bf-otime").textContent = fmt(audio.currentTime);
     $("bf-odot").style.left = "calc(" + (p * 100).toFixed(2) + "% - 4px)";
     $("bf-oplay").innerHTML = audio.paused ? "&#9654;" : "&#10074;&#10074;";
     if (!audio.paused) raf = requestAnimationFrame(tick);
     else if (raf) { cancelAnimationFrame(raf); raf = null; }
   }
+  // click the spectrogram to scrub, exactly as on the live page
+  (function () {
+    var sw = $("bf-specwrap");
+    if (sw) sw.addEventListener("click", function (e) { ph.seekFromEvent(sw, e); tick(); });
+  })();
   $("bf-oplay").addEventListener("click", function () {
     if (audio.paused) { audio.play().catch(function () {}); tick(); } else { audio.pause(); tick(); }
   });
