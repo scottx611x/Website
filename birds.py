@@ -1188,14 +1188,23 @@ def apply_overrides(shots, overrides=None, apply_exclusions=True):
         if override:
             n = len(shot.get("images") or [])
             if override.get("images"):
-                per_image = override["images"]
+                # Distinct name: this is ONE post's override. Assigning it to
+                # per_image clobbered the global image_species store for every
+                # post processed afterwards, so their curated per-frame species
+                # were silently replaced by this post's.
+                post_images = override["images"]
                 # Overlay the explicit per-image edits onto the caption-derived
                 # species so an un-edited frame keeps its own species rather than
                 # falling back to the (now-edited) cover species — otherwise
                 # editing one frame silently relabels every other frame in the post.
+                # The BASE must come from the global per-post store, which is
+                # what _base_image_species looks up by post id. Handing it the
+                # index-keyed override made that lookup miss every time, so the
+                # base silently fell back to the caption heuristic and curated
+                # frames came back with the wrong bird.
                 base = _base_image_species(shot, n, per_image)
                 shot["image_species"] = [
-                    (per_image.get(str(i)) or base[i]) for i in range(n)
+                    (post_images.get(str(i)) or base[i]) for i in range(n)
                 ]
                 assigned = [s for s in shot["image_species"] if s]
                 if assigned:
