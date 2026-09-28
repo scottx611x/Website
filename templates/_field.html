@@ -567,11 +567,72 @@ body.birdsfield .page{padding-top:.5rem!important}
     reseat();
   });
 
+  /* Pinch to resize — trackpad and touch.
+     Rebuilding changes every y (they are prefix sums over the sequence), so a
+     naive resize throws the view somewhere else. Hold the viewport centre's
+     fractional position across the rebuild instead. */
+  var MINW = 110, MAXW = 460;   // below ~110 the field is more DOM than picture
+  function applyScale(next) {
+    next = Math.round(Math.max(MINW, Math.min(MAXW, next)));
+    if (next === COL_W) return;
+    var vw = canvas.clientWidth, vh = canvas.clientHeight;
+    var fx = (-px + vw / 2) / (COL_W + GAP);
+    var fy = TOTAL ? (-py + vh / 2) / TOTAL : 0;
+    COL_W = next;
+    rebuild();
+    px = -(fx * (COL_W + GAP) - vw / 2);
+    py = -(fy * TOTAL - vh / 2);
+    clearLive();
+    pending = false;
+    plane.style.transform = "translate3d(" + Math.round(px) + "px," + Math.round(py) + "px,0)";
+    cull();
+    var sz = document.getElementById("bf-size");
+    if (sz) sz.value = COL_W;
+  }
+
+  // Trackpad pinch arrives as a wheel event with ctrlKey set.
+  canvas.addEventListener("wheel", function (e) {
+    if (!e.ctrlKey) return;
+    e.preventDefault();
+    // Exponential, and gently: a linear 1 - deltaY*0.01 sent a single
+    // trackpad gesture from 336px straight to the floor.
+    applyScale(COL_W * Math.exp(-e.deltaY * 0.0025));
+  }, { passive: false });
+
+  // Touch pinch: track the live pointers and follow the distance between two.
+  var pts = {}, pinchD = 0, pinchW = 0;
+  canvas.addEventListener("pointerdown", function (e) {
+    if (e.pointerType !== "touch") return;
+    pts[e.pointerId] = e;
+    var ids = Object.keys(pts);
+    if (ids.length === 2) {
+      var a = pts[ids[0]], b = pts[ids[1]];
+      pinchD = Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
+      pinchW = COL_W;
+      down = false;                       // a pinch is not a drag
+      canvas.classList.remove("drag");
+    }
+  });
+  canvas.addEventListener("pointermove", function (e) {
+    if (e.pointerType !== "touch" || !pts[e.pointerId]) return;
+    pts[e.pointerId] = e;
+    var ids = Object.keys(pts);
+    if (ids.length !== 2 || !pinchD) return;
+    var a = pts[ids[0]], b = pts[ids[1]];
+    var d = Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
+    if (d > 0) applyScale(pinchW * (d / pinchD));
+  });
+  ["pointerup", "pointercancel", "pointerleave"].forEach(function (ev) {
+    canvas.addEventListener(ev, function (e) {
+      delete pts[e.pointerId];
+      if (Object.keys(pts).length < 2) pinchD = 0;
+    });
+  });
+
   var sizer = document.getElementById("bf-size");
   if (sizer) sizer.value = COL_W;        // rail is absent inside the gallery        // reflect the phone-sized default
   if (sizer) sizer.addEventListener("input", function () {
-    COL_W = +sizer.value;
-    reseat();
+    applyScale(+sizer.value);             // same path as pinch, so both agree
   });
 
   var down = false, lx = 0, ly = 0, moved = 0, hit = null;
