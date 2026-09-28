@@ -154,7 +154,12 @@
         {% if curate %}<script>window.CURATE_MODE = true; window.CURATE_HIDDEN_VIEW = {{ (active_review == 'hidden')|tojson }};</script>{% endif %}
     </header>
 
-    {% if shots %}
+    {% if shots and view == 'field' %}
+    {# Same header, filters and curate above; only the grid swaps. The field is
+       built from the identical filtered `shots`, so nothing is reimplemented. #}
+    {% set tiles = field_tiles %}{% set seq = field_seq %}{% set stride = field_stride %}
+    {% include '_field.html' %}
+    {% elif shots %}
     <div class="masonry">
         {% for shot in shots %}
         <figure class="shot{% if curate %} curating{% if shot.ambiguous %} flagged{% endif %}{% endif %}"

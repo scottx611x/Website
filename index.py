@@ -1,4 +1,5 @@
 import datetime
+from urllib.parse import urlencode
 import math
 import hashlib
 import hmac
@@ -442,7 +443,11 @@ def birds_gallery():
             n = int(hashlib.sha1(birds.data_version().encode()).hexdigest()[:8], 16)
         else:
             n = random.randrange(1_000_000_000)
-        return redirect("/birds?seed=%d" % n)
+        # Carry every other query param through the seed redirect — it used to
+        # drop them, so ?view=grid bounced straight back to the field.
+        keep = {k: v for k, v in request.args.items() if k != "seed"}
+        keep["seed"] = str(n)
+        return redirect("/birds?" + urlencode(keep))
     if seed.isdigit():
         random.seed(int(seed))
     # Curate now renders the same exploded+shuffled frame view as the public
@@ -560,10 +565,23 @@ def birds_gallery():
             if any(name == active_birds[0] for name, _ in sp):
                 bird_family = fam
                 break
+    view = (request.args.get("view") or "field").strip().lower()
+    if view not in ("field", "grid"):
+        view = "field"
+    field_tiles, field_seq, field_stride = [], [], 1
+    if view == "field":
+        field_tiles, field_seq, field_stride, _ = _field_tiles(shots)
     return render_template(
         "birds.html",
         title="Birds of North Andover",
         shots=shots,
+        # The field is built from the SAME filtered list the masonry uses, so
+        # every filter, the curate review modes and the sort all carry over
+        # without being reimplemented. ?view=grid falls back to the masonry.
+        view=view,
+        field_tiles=field_tiles,
+        field_seq=field_seq,
+        field_stride=field_stride,
         species_groups=display_groups,
         family_counts=family_counts,
         species_count=total,
@@ -598,21 +616,15 @@ def birds_gallery():
     )
 
 
-@app.route("/birds/field", methods=["GET"])
-def birds_field():
-    """The gallery as an endless field: the same masonry tiles, but pannable in
-    any direction. Tiles are drawn from a sequence built round-robin across
-    species, so a bird's share of the field tracks how often it was actually
-    photographed and the same species never lands beside itself."""
-    shots = birds.load_gallery(shuffle=False)
+def _field_tiles(shots):
+    """One tile per FRAME, plus a viewing order and a column stride.
 
-    by_species, order = {}, []
-    tiles = []
-    # One tile per FRAME, not per post. A post can hold several birds, and 598
-    # frames carry a curated re-ID that differs from their post's primary
-    # species — so a post-level tile both mislabels them and hides every frame
-    # after the first. Per-frame also brings the species count to the gallery's
-    # 114 and surfaces all 32 videos rather than 23.
+    Shared by /birds/field and the classic gallery's field view, so both get
+    the same per-frame species handling and the same anti-adjacency ordering.
+    Takes whatever list of shots it is given, which is how the gallery's
+    filters carry over untouched.
+    """
+    by_species, order, tiles = {}, [], []
     for sh in shots:
         imgs = sh.get("images") or []
         isp = sh.get("image_species") or []
@@ -648,37 +660,22 @@ def birds_field():
                 order.append(nm)
             by_species[nm].append(k)
 
-    # A tile opens the SPECIES, so the badge should read that bird's whole
-    # count, not how many images happened to be in this one post — showing 6
-    # for a House Finch that has 28 pictures is just confusing.
-    #
-    # Counted per FRAME, not per post: a post can hold several species, so
-    # crediting every image in it to the post's primary bird over-counts
-    # (it made Barred Owl 228 against the species page's 202).
     for t in tiles:
         t["n"] = len(by_species.get(t["name"]) or []) or 1
 
-    # Round-robin across species: one tile each per pass, so a bird only recurs
-    # after every other species with frames left has had a turn.
-    #
-    # Capped, though. Uncapped, the tail of the sequence is whatever species
-    # still has frames — Barred Owl holds 41 of 353 — so the end degenerates
-    # into the same bird over and over. Capping keeps every pass wide and the
-    # spacing between repeats roughly the number of species.
+    # Round-robin across species, capped, so a bird never lands beside itself
+    # and the tail does not degenerate into whichever species has the most.
     CAP = 8
-    seq, any_left = [], True
+    seen_n, seq, any_left = {}, [], True
     while any_left:
         any_left = False
         for nm in order:
             lst = by_species[nm]
-            if lst and sum(1 for i in seq if tiles[i]["name"] == nm) < CAP:
+            if lst and seen_n.get(nm, 0) < CAP:
                 seq.append(lst.pop(0))
+                seen_n[nm] = seen_n.get(nm, 0) + 1
                 any_left = True
 
-    # Column c is the sequence rotated by c*STRIDE. If STRIDE lands near a
-    # multiple of the species count, neighbouring columns sit in phase and show
-    # the same birds — which is exactly what 97-against-95-species did. Pick the
-    # stride that spreads the nearby columns furthest apart in that cycle.
     L, P = len(seq), max(1, len(order))
     best, stride = -1, 1
     for cand in range(7, max(8, L)):
@@ -687,38 +684,20 @@ def birds_field():
         worst = min(min((cand * c) % P, P - (cand * c) % P) for c in range(1, 9))
         if worst > best:
             best, stride = worst, cand
+    return tiles, seq, stride, len(order)
 
-    # The rail was reporting len(tiles) as "frames" (those are posts: 353 vs
-    # 1,754 actual frames) and len(order) as species (that counts only each
-    # post's primary bird: 95 vs 114). Use the gallery's own figures.
+
+@app.route("/birds/field", methods=["GET"])
+def birds_field():
+    """The endless field over the whole collection (unfiltered)."""
+    shots = birds.load_gallery(shuffle=False)
+    tiles, seq, stride, species_n = _field_tiles(shots)
     gstats = birds.gallery_stats(shots)
     return render_template(
         "birds_field.html", title="Birds of North Andover",
         tiles=tiles, seq=seq, species_n=gstats["species"], stride=stride,
         photos_n=gstats["photos"], videos_n=gstats["videos"],
         curate=_curate_on(), local=_is_local())
-
-
-def _merge_places(profile, frames):
-    """Every place a species' frames name, with coordinates where we have them."""
-    counts = {}
-    for f in frames:
-        w = (f.get("where") or "").strip()
-        if w:
-            counts[w] = counts.get(w, 0) + 1
-    geo = {}
-    for q in (profile.get("places") or []):
-        if q.get("name"):
-            geo[q["name"]] = q
-    for name, q in geo.items():          # keep mapped places even if no frame names them
-        counts.setdefault(name, q.get("count") or 0)
-    out = []
-    for name, n in sorted(counts.items(), key=lambda kv: (-kv[1], kv[0])):
-        q = geo.get(name) or {}
-        out.append({"name": name, "count": n, "area": q.get("area"),
-                    "lat": q.get("lat"), "lng": q.get("lng"),
-                    "mapped": bool(q.get("lat") and q.get("lng"))})
-    return out[:12]
 
 
 @app.route("/birds/species/<slug>.json", methods=["GET"])

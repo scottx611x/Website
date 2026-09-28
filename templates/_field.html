@@ -1,0 +1,1171 @@
+{# The endless field: canvas, detail modal and their script.
+   Included by birds_field.html (whole collection) and by birds.html
+   (the gallery's filtered list), so both share one implementation.
+   Expects: tiles, seq, stride, curate. #}
+
+{# ------------------------------------------------------------------
+   The gallery, unbounded.
+
+   Same masonry tiles as /birds — natural aspect ratios, no cropping —
+   but laid on a plane that continues in every direction.
+
+   How it stays true masonry while being infinite: the tile order is a
+   fixed sequence, so the running total of tile heights can be
+   pre-computed once. Column `c` is that same sequence rotated by a
+   stride, so a tile's y is a difference of two prefix sums — O(1), no
+   walking from the origin, and columns pack with no gaps.
+   ------------------------------------------------------------------ #}
+<style>
+.bf{--line:rgba(13,18,14,.18);--soft:rgba(13,18,14,.5)}
+.bf *{box-sizing:border-box}
+body.birdsfield{overflow-x:hidden}
+body.birdsfield .page{padding-top:.5rem!important}
+
+.bf-rail{display:flex;align-items:center;flex-wrap:wrap;gap:.55rem 1.4rem;
+  padding:0 0 .7rem}
+.bf-rail h1{font-family:var(--display);font-size:clamp(1.3rem,2.4vw,1.9rem);
+  font-weight:600;letter-spacing:-.02em;margin:0}
+.bf-rail a{font-size:.85rem;color:var(--ink);text-decoration:none;
+  border-bottom:1px solid transparent}
+.bf-rail a:hover{border-bottom-color:var(--green);color:var(--green)}
+.bf-rail label{font-size:.78rem;color:var(--muted)}
+.bf-rail input[type=range]{-webkit-appearance:none;appearance:none;width:120px;
+  height:2px;background:rgba(13,18,14,.18);border-radius:2px;outline:none}
+.bf-rail input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;
+  width:12px;height:12px;border-radius:50%;background:var(--green);cursor:pointer}
+.bf-rail input[type=range]::-moz-range-thumb{width:12px;height:12px;border-radius:50%;
+  background:var(--green);border:0;cursor:pointer}
+.bf-right{margin-left:auto;font-size:.78rem;color:var(--muted)}
+.bf-shuffle{font:inherit;font-size:.85rem;background:none;border:1px solid rgba(13,18,14,.25);
+  color:var(--ink);border-radius:999px;padding:.18rem .8rem;cursor:pointer;
+  transition:background .18s,border-color .18s,color .18s}
+.bf-shuffle:hover{background:var(--green);border-color:var(--green);color:#fff}
+.bf-shuffle.on{background:var(--ink);border-color:var(--ink);color:var(--paper)}
+
+.bf-canvas{position:relative;overflow:hidden;cursor:grab;touch-action:none;
+  height:calc(100svh - 118px);min-height:340px;margin:0 calc(50% - 50vw)}
+.bf-canvas.drag{cursor:grabbing}
+.bf-plane{position:absolute;top:0;left:0;will-change:transform}
+
+/* the tile itself, matching the gallery's look */
+.bf-tile{position:absolute;display:block;overflow:hidden;background:#e9e4d8;
+  text-decoration:none;color:inherit;border-radius:2px}
+.bf-tile img,.bf-tile video{width:100%;height:100%;object-fit:cover;display:block}
+.bf-tile figcaption b{display:block;font-weight:600}
+.bf-tile figcaption span{display:block;font-size:.66rem;opacity:.8}
+.bf-tile figcaption{position:absolute;left:0;right:0;bottom:0;
+  font-size:.74rem;color:#fff;
+  padding:1.4rem .5rem .4rem;
+  background:linear-gradient(transparent,rgba(13,18,14,.78));
+  opacity:0;transition:opacity .18s}
+.bf-tile:hover figcaption,.bf-tile:focus-visible figcaption{opacity:1}
+.bf-badge{position:absolute;top:.35rem;right:.35rem;font-family:var(--mono);
+  font-size:.58rem;color:#fff;background:rgba(13,18,14,.55);
+  padding:.1rem .3rem;border-radius:2px}
+.bf-hint{position:absolute;left:50%;bottom:.6rem;transform:translateX(-50%);
+  z-index:5;font-size:.72rem;color:var(--muted);pointer-events:none}
+
+/* ---------- detail modal: image-led, in the site's own type ---------- */
+.bf-over{position:fixed;inset:0;z-index:130;background:rgba(13,18,14,.94);
+  display:none;overflow-y:auto;padding:0}
+.bf-over.open{display:block}
+.bf-oclose{position:fixed;top:.8rem;right:1rem;z-index:6;border:0;color:#fff;
+  font-size:1.6rem;line-height:1;cursor:pointer;opacity:.95;
+  background:rgba(13,18,14,.55);border-radius:50%;width:38px;height:38px;
+  display:grid;place-items:center;backdrop-filter:blur(4px)}
+.bf-oclose:hover{opacity:1}
+.bf-obody{display:grid;grid-template-columns:minmax(0,1fr) 22rem;
+  grid-template-rows:1fr auto;min-height:100svh}
+.bf-viewer{grid-column:1;grid-row:1 / span 2;min-width:0;display:flex;
+  flex-direction:column}
+.bf-stage{position:relative;display:flex;align-items:center;
+  justify-content:center;padding:1.4rem 1.4rem .6rem;min-width:0;flex:1}
+/* [hidden] sets display:none in the UA sheet, but an author `display:block`
+   beats it — which left the empty <video> player rendering under the photo. */
+.bf-oimg[hidden]{display:none!important}
+.bf-oimg{max-width:100%;max-height:74vh;display:block;object-fit:contain;
+  border-radius:3px;background:#0d120e;transition:filter .25s,opacity .25s}
+.bf-oimg.loading{filter:blur(8px) saturate(.8);opacity:.85}
+.bf-spin{position:absolute;top:50%;left:50%;width:26px;height:26px;margin:-13px 0 0 -13px;
+  border:2px solid rgba(255,255,255,.25);border-top-color:#fff;border-radius:50%;
+  animation:bfspin .7s linear infinite;display:none;pointer-events:none}
+.bf-stage.busy .bf-spin{display:block}
+@keyframes bfspin{to{transform:rotate(360deg)}}
+.bf-sk{background:linear-gradient(90deg,rgba(13,18,14,.06),rgba(13,18,14,.12),rgba(13,18,14,.06));
+  background-size:200% 100%;animation:bfsk 1.1s linear infinite;border-radius:3px}
+@keyframes bfsk{to{background-position:-200% 0}}
+.bf-skline{height:.7rem;margin:.35rem 0}
+@media (max-width:620px){
+  /* Pin the photograph and its strip; the record scrolls underneath, so you
+     can read the numbers or watch the map boop without losing the frame. */
+  .bf-viewer{position:sticky;top:0;z-index:4;background:rgba(13,18,14,.97);
+    padding-bottom:.2rem}
+  .bf-side{border-top-left-radius:14px;border-top-right-radius:14px;
+    box-shadow:0 -10px 24px -12px rgba(0,0,0,.5)}
+  /* The rail wraps to two tidy lines rather than a ragged four */
+  .bf-rail{gap:.45rem .9rem;padding-bottom:.55rem}
+  .bf-rail h1{font-size:1.15rem;width:100%}
+  .bf-rail{overflow:hidden}
+  .bf-rail a,.bf-shuffle{font-size:.8rem}
+  .bf-rail input[type=range]{width:88px}
+  .bf-right{width:100%;margin-left:0;order:9}
+  .bf-canvas{height:calc(100svh - 150px)}
+
+  /* Full-bleed stage, and arrows big enough to actually hit */
+  .bf-obody{min-height:0}
+  .bf-stage{padding:.6rem .4rem .3rem}
+  .bf-oimg{max-height:52svh}
+  .bf-arrow{font-size:2rem;padding:1rem .6rem;background:rgba(13,18,14,.35);
+    border-radius:50%;opacity:.85}
+  .bf-prev{left:.35rem}.bf-next{right:.35rem}
+  /* Sitting the caption on the image made it unreadable on a phone; give it
+     its own line under the stage instead. */
+  .bf-stage{flex-direction:column;gap:.4rem}
+  .bf-count{position:static;transform:none;color:var(--muted);font-size:.68rem;
+    text-align:center;line-height:1.35;padding:0 .4rem}
+  .bf-arrow{top:40%}
+  .bf-strip{padding:.5rem .8rem .8rem;-webkit-overflow-scrolling:touch}
+  .bf-strip img{width:48px;height:48px}
+  .bf-side{padding:1.1rem 1rem 3.5rem;gap:1.2rem}
+  .bf-oclose{top:.5rem;right:.6rem;font-size:1.5rem;width:40px;height:40px}
+  .bf-facts{gap:.7rem .6rem}
+  .bf-facts dd{font-size:.95rem}
+  .bf-map{height:160px}
+}
+@media (prefers-reduced-motion:reduce){
+  .bf-spin,.bf-sk{animation:none}
+}
+.bf-arrow{position:absolute;top:50%;transform:translateY(-50%);background:none;
+  border:0;color:#fff;font-size:2.4rem;line-height:1;cursor:pointer;opacity:.55;
+  padding:.4rem .7rem}
+.bf-arrow:hover{opacity:1}
+.bf-prev{left:.2rem}.bf-next{right:.2rem}
+.bf-count{position:absolute;bottom:.1rem;left:50%;transform:translateX(-50%);
+  color:rgba(255,255,255,.65);font-size:.76rem}
+.bf-strip{display:flex;gap:.35rem;overflow-x:auto;
+  padding:.7rem 1.4rem 1.2rem;min-width:0}
+.bf-stripend{flex:none;width:1px;height:1px}
+.bf-strip img{width:60px;height:60px;object-fit:cover;flex:none;cursor:pointer;
+  border-radius:2px;opacity:.42;transition:opacity .18s,transform .18s}
+.bf-strip img:hover{opacity:.85}
+.bf-strip img.on{opacity:1;transform:translateY(-3px)}
+
+.bf-side{grid-column:2;grid-row:1 / span 2;background:var(--paper);
+  padding:1.5rem 1.4rem 3rem;display:flex;flex-direction:column;gap:1.5rem;
+  overflow-y:auto;max-height:100svh}
+.bf-side h2{font-family:var(--display);font-size:1.5rem;font-weight:600;
+  letter-spacing:-.02em;margin:0}
+.bf-side .fam{font-size:.8rem;color:var(--muted);margin:.15rem 0 0}
+.bf-ocontrols{display:flex;gap:.45rem;flex-wrap:wrap;margin-top:.7rem}
+.bf-ico{width:34px;height:34px;border-radius:50%;border:1px solid rgba(13,18,14,.22);
+  background:none;color:var(--ink);cursor:pointer;font-size:.95rem;line-height:1;
+  display:grid;place-items:center;transition:background .18s,border-color .18s,color .18s}
+.bf-ico:hover{background:var(--green);border-color:var(--green);color:#fff}
+.bf-ico.copied{background:var(--green);border-color:var(--green);color:#fff}
+.bf-cfield{display:block;margin-top:.7rem;font-size:.7rem;color:var(--muted)}
+.bf-cfield input{display:block;width:100%;margin-top:.25rem;font:inherit;
+  font-size:.82rem;padding:.35rem .5rem;border:1px solid rgba(13,18,14,.2);
+  border-radius:4px;background:#fff;color:var(--ink)}
+.bf-shuffle.on{background:var(--amber);border-color:var(--amber);color:var(--ink)}
+.bf-side h3{font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--muted);font-weight:500;margin:0 0 .6rem}
+.bf-facts{display:grid;grid-template-columns:1fr 1fr;gap:.9rem .8rem;margin:0}
+.bf-facts dt{font-size:.68rem;color:var(--muted);margin-bottom:.1rem}
+.bf-facts dd{margin:0;font-size:1.05rem;font-family:var(--display);font-weight:600;
+  color:var(--green)}
+.bf-months{display:flex;align-items:flex-end;gap:3px;height:42px}
+.bf-months span{flex:1;height:100%;background:rgba(13,18,14,.07);border-radius:1px;position:relative}
+.bf-months i{position:absolute;left:0;right:0;bottom:0;background:var(--green);
+  border-radius:1px}
+.bf-mlab{display:flex;gap:3px;font-size:.58rem;color:var(--muted);margin-top:.25rem}
+.bf-mlab span{flex:1;text-align:center}
+.bf-mapwrap2{position:relative}
+.bf-mapbig{position:absolute;right:.4rem;top:.4rem;z-index:500;width:28px;height:28px;
+  border-radius:6px;border:0;background:rgba(250,248,243,.9);cursor:pointer;
+  font-size:.85rem;line-height:1;display:grid;place-items:center}
+.bf-mapbig:hover{background:#fff}
+.bf-mapwrap2.big{position:fixed;inset:4vh 4vw;z-index:300;background:var(--paper);
+  border-radius:10px;box-shadow:0 20px 60px -20px rgba(13,18,14,.6);padding:0}
+.bf-mapwrap2.big .bf-map{height:100%!important}
+.bf-map{position:relative;width:100%;height:190px;background:#eae5d9;
+  border-radius:4px;overflow:hidden;z-index:0}
+.bf-map.bf-mapfail::after{content:"map tiles unavailable";position:absolute;
+  inset:0;display:grid;place-items:center;font-size:.74rem;color:var(--muted)}
+.bf-map .leaflet-control-attribution{font-size:.6rem;background:rgba(250,248,243,.8)}
+.bf-places{list-style:none;margin:.7rem 0 0;padding:0}
+.bf-places li{display:flex;justify-content:space-between;gap:1rem;font-size:.82rem;
+  padding:.28rem 0;border-bottom:1px solid rgba(13,18,14,.08)}
+.bf-places em{font-style:normal;color:var(--muted)}
+.bf-places li.unmapped .bf-placelink{opacity:.65;border-bottom:1px dotted rgba(13,18,14,.3)}
+.bf-placelink{color:inherit;text-decoration:none;border-bottom:1px solid transparent}
+.bf-placelink:hover{color:var(--green);border-bottom-color:var(--green)}
+.bf-map path.leaflet-interactive{cursor:pointer}
+.bf-spec{width:100%;display:block;background:#0d120e;border-radius:3px;
+  margin-bottom:.5rem}
+.bf-play{display:flex;align-items:center;gap:.6rem;font-size:.78rem;color:var(--muted)}
+.bf-play button{font:inherit;background:var(--green);color:#fff;border:0;
+  width:30px;height:30px;border-radius:50%;cursor:pointer;flex:none}
+.bf-track{flex:1;height:2px;background:rgba(13,18,14,.15);border-radius:2px;
+  position:relative;cursor:pointer}
+.bf-dot{position:absolute;top:-3px;width:8px;height:8px;border-radius:50%;
+  background:var(--green)}
+.bf-note{font-size:.76rem;color:var(--muted);margin:.5rem 0 0;line-height:1.5}
+.bf-calls{list-style:none;margin:.7rem 0 0;padding:0;display:flex;
+  flex-direction:column;gap:.15rem}
+.bf-calls li{display:flex;align-items:center;gap:.6rem;font-size:.74rem;
+  padding:.3rem .4rem;border-radius:4px;cursor:pointer;color:var(--ink-2,#3d453e)}
+.bf-calls li:hover{background:rgba(47,125,79,.09)}
+.bf-calls li.on{background:rgba(47,125,79,.14);color:var(--ink)}
+.bf-calls .pc{font-family:var(--mono);font-size:.7rem;color:var(--green);
+  min-width:2.6rem}
+.bf-calls .wh{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bf-calls .nd{font-size:.62rem;padding:.06rem .4rem;border-radius:999px;
+  white-space:nowrap;background:rgba(2,135,121,.14);color:#02685e}
+.bf-calls .nd.side{background:rgba(149,2,89,.12);color:#8a0a55}
+.bf-side a{color:var(--green)}
+
+@media (max-width:980px){
+  .bf-obody{grid-template-columns:minmax(0,1fr);grid-template-rows:auto auto}
+  .bf-viewer{grid-column:1;grid-row:1}
+  .bf-side{grid-column:1;grid-row:2;max-height:none}
+  .bf-oimg{max-height:56svh}
+}
+</style>
+
+<section class="page wide bf" id="bf-root">
+  {# Standalone only. Inside the gallery the page's own header and filters
+     stay, and only the grid swaps — so the field brings no second rail. #}
+  {% if photos_n is defined %}
+  <div class="bf-rail">
+    <span>Birds of North Andover</span>
+    <label for="bf-size">Size</label>
+    <input id="bf-size" type="range" min="140" max="420" step="20" value="240"
+           aria-label="Tile size">
+    <button type="button" id="bf-random" class="bf-shuffle">Random spot</button>
+    <button type="button" id="bf-shuffle" class="bf-shuffle">Shuffle birds</button>
+    <button type="button" id="bf-chrono" class="bf-shuffle" aria-pressed="false">Chronological</button>
+    <a href="/birds">Classic grid &nearr;</a>
+    <a href="/birds/stats">Numbers &nearr;</a>
+    <span class="bf-right" id="bf-tally">{{ "{:,}".format(photos_n) }} photos{% if videos_n %} &middot; {{ videos_n }} video{{ 's' if videos_n != 1 }}{% endif %} &middot; {{ species_n }} species</span>
+  </div>
+
+  {% endif %}
+
+  <div class="bf-canvas" id="bf-canvas">
+    <div class="bf-plane" id="bf-plane"></div>
+    <span class="bf-hint">drag anywhere &middot; it keeps going</span>
+  </div>
+</section>
+
+<script id="bf-tiles" type="application/json">{{ tiles|tojson }}</script>
+<script id="bf-seq" type="application/json">{{ seq|tojson }}</script>
+
+<div class="bf-over" id="bf-over" role="dialog" aria-modal="true" aria-label="Species detail">
+  <button class="bf-oclose" id="bf-oclose" aria-label="Close">&times;</button>
+  <div class="bf-obody">
+    <div class="bf-viewer">
+    <div class="bf-stage">
+      <button class="bf-arrow bf-prev" id="bf-prev" aria-label="Previous frame">&#8249;</button>
+      <img class="bf-oimg" id="bf-oimg" alt="">
+      <video class="bf-oimg" id="bf-ovid" hidden controls loop playsinline
+             preload="metadata"></video>
+      <span class="bf-spin" aria-hidden="true"></span>
+      <button class="bf-arrow bf-next" id="bf-next" aria-label="Next frame">&#8250;</button>
+      <span class="bf-count" id="bf-ocount"></span>
+    </div>
+    <div class="bf-strip" id="bf-ostrip"></div>
+    </div>
+
+    <aside class="bf-side">
+      <div>
+        <h2 id="bf-otitle"></h2>
+        <p class="fam" id="bf-ofam"></p>
+        <div class="bf-ocontrols">
+          <button type="button" id="bf-orandom" class="bf-ico" title="Another bird at random" aria-label="Another bird at random">&#8635;</button>
+          <button type="button" id="bf-oshuffle" class="bf-ico" title="Shuffle this bird's frames" aria-label="Shuffle this bird's frames">&#128256;</button>
+          <button type="button" id="bf-ofs" class="bf-ico" title="Full screen" aria-label="Full screen">&#9974;</button>
+          <button type="button" id="bf-olink" class="bf-ico" title="Copy a link to this frame" aria-label="Copy a link to this frame">&#128279;</button>
+        </div>
+      </div>
+
+      <div>
+        <h3>By the numbers</h3>
+        <dl class="bf-facts" id="bf-ofacts"></dl>
+      </div>
+
+      <div>
+        <h3>Through the year</h3>
+        <div class="bf-months" id="bf-omonths"></div>
+        <div class="bf-mlab" id="bf-omlab"></div>
+      </div>
+
+      <div id="bf-mapwrap">
+        <h3>Where I find it</h3>
+        <div class="bf-mapwrap2">
+          <div class="bf-map" id="bf-omap"></div>
+          <button type="button" class="bf-mapbig" id="bf-mapbig" title="Expand the map" aria-label="Expand the map">&#9974;</button>
+        </div>
+        <p class="bf-note" id="bf-mapnote"></p>
+        <ul class="bf-places" id="bf-oplaces"></ul>
+      </div>
+
+      <div id="bf-sound" hidden>
+        <img class="bf-spec" id="bf-ospec" loading="lazy" decoding="async" alt="Spectrogram of the recording">
+        <div class="bf-play">
+          <button type="button" id="bf-oplay" aria-label="Play recording">&#9654;</button>
+          <span class="bf-track" id="bf-otrack"><span class="bf-dot" id="bf-odot"></span></span>
+          <span id="bf-otime">0:00</span>
+        </div>
+        <p class="bf-note" id="bf-onote"></p>
+        <ul class="bf-calls" id="bf-ocalls"></ul>
+      </div>
+      <div id="bf-nosound" hidden>
+        <p class="bf-note" id="bf-nosoundtxt"></p>
+      </div>
+
+      {% if curate %}
+      <div id="bf-curate">
+        <h3>Curate this frame</h3>
+        <p class="bf-note" id="bf-cwhich"></p>
+        <div class="bf-ocontrols">
+          <button type="button" id="bf-caway" class="bf-shuffle">Out of area</button>
+          <button type="button" id="bf-chide" class="bf-shuffle">Hide frame</button>
+        </div>
+        <label class="bf-cfield"><span>Location</span>
+          <input type="text" id="bf-cloc" placeholder="where was it taken"></label>
+        <p class="bf-note" id="bf-csaved"></p>
+      </div>
+      {% endif %}
+      <p class="bf-note"><a id="bf-ofull" href="#">Open the full species page &rarr;</a></p>
+    </aside>
+  </div>
+</div>
+
+<script>
+(function () {
+  var TILES, SEQ;
+  try {
+    TILES = JSON.parse(document.getElementById("bf-tiles").textContent);
+    SEQ = JSON.parse(document.getElementById("bf-seq").textContent);
+  } catch (_) { return; }
+  if (!TILES.length || !SEQ.length) return;
+
+  var MEDIA = "https://birds-scott-ouellette.s3.amazonaws.com/birds/sounds/clips/";
+  var canvas = document.getElementById("bf-canvas");
+  var plane = document.getElementById("bf-plane");
+  var esc = function (s) { var d = document.createElement("i"); d.textContent = s == null ? "" : s; return d.innerHTML; };
+
+  var COL_W = (window.innerWidth < 620 ? 150 : 240), GAP = 10, STRIDE = {{ stride }}, L = SEQ.length;
+
+  /* Heights and their running total, computed once for the whole sequence.
+     ratio falls back to 1:1 for the frames whose dimensions we never captured
+     — object-fit:cover keeps those tidy; the rest are their true shape. */
+  var ratio = new Array(L), pre = new Array(L + 1), TOTAL = 0;
+  function rebuild() {
+    pre[0] = 0;
+    for (var i = 0; i < L; i++) {
+      var t = TILES[SEQ[i]];
+      var rr = (t.w > 0 && t.h > 0) ? (t.h / t.w) : 1;
+      ratio[i] = Math.max(0.6, Math.min(1.85, rr));
+      pre[i + 1] = pre[i] + Math.round(COL_W * ratio[i]) + GAP;
+    }
+    TOTAL = pre[L];
+  }
+  rebuild();
+
+  // column c is the sequence rotated by c*STRIDE; y is a prefix difference
+  function at(c, r) {
+    var base = ((c * STRIDE) % L + L) % L;
+    var k = base + r, lap = Math.floor(k / L), i = ((k % L) + L) % L;
+    return { i: i, t: TILES[SEQ[i]],
+             y: pre[i] - pre[base] + lap * TOTAL,
+             h: Math.round(COL_W * ratio[i]) };
+  }
+  function slotAtY(c, y) {                 // invert: first slot at/after y
+    var base = ((c * STRIDE) % L + L) % L;
+    var target = y + pre[base];
+    var lap = Math.floor(target / TOTAL), rem = target - lap * TOTAL;
+    var lo = 0, hi = L;                    // binary search the prefix table
+    while (lo < hi) { var mid = (lo + hi) >> 1; if (pre[mid] < rem) lo = mid + 1; else hi = mid; }
+    return lap * L + Math.max(0, lo - 1) - base;
+  }
+
+  var live = {}, px = 0, py = 0, vx = 0, vy = 0, glide = null, pending = false;
+
+  function build(c, r) {
+    var d = at(c, r), t = d.t;
+    var a = document.createElement("a");
+    a.className = "bf-tile";
+    a.href = "/birds/species/" + t.slug;
+    a.style.left = (c * (COL_W + GAP)) + "px";
+    a.style.top = d.y + "px";
+    a.style.width = COL_W + "px";
+    a.style.height = d.h + "px";
+    // Video tiles play themselves: muted, looping, inline. They only exist
+    // while on screen (the field is virtualised), so the number playing is
+    // bounded by the viewport rather than by the collection.
+    a.innerHTML = (t.vsrc
+        ? '<video src="' + t.vsrc + '" poster="' + t.src + '" autoplay muted loop ' +
+          'playsinline preload="metadata" aria-label="' + esc(t.name) + '"></video>'
+        : '<img src="' + t.src + '" alt="' + esc(t.name) + '" loading="lazy" decoding="async">') +
+      // same meaning and glyph as the gallery's multi-badge: N images in this
+      // post. The old code point (U+29E7) is a thermodynamic symbol and read
+      // as "+ 5".
+      (t.n > 1 ? '<span class="bf-badge" title="' + t.n + ' images in this post">'
+                 + '\u29C9 ' + t.n + '</span>' : '') +
+      (t.vid ? '<span class="bf-badge" title="video">&#9654;</span>' : '') +
+      '<figcaption><b>' + esc(t.name) + '</b>' +
+        (t.date ? '<span>' + esc(t.date) + (t.where ? ' · ' + esc(t.where) : '') + '</span>' : '') +
+      '</figcaption>';
+    a._t = t;
+    plane.appendChild(a);
+    return a;
+  }
+
+  function cull() {
+    pending = false;
+    var vw = canvas.clientWidth, vh = canvas.clientHeight, M = 300;
+    var cw = COL_W + GAP;
+    var c0 = Math.floor((-px - M) / cw), c1 = Math.ceil((-px + vw + M) / cw);
+    var need = {};
+    for (var c = c0; c <= c1; c++) {
+      var r = slotAtY(c, -py - M);
+      for (var guard = 0; guard < 80; guard++, r++) {
+        var d = at(c, r);
+        if (d.y > -py + vh + M) break;
+        var k = c + "," + r;
+        need[k] = 1;
+        if (!live[k]) live[k] = build(c, r);
+      }
+    }
+    for (var k2 in live) if (!need[k2]) { live[k2].remove(); delete live[k2]; }
+  }
+  function apply() {
+    plane.style.transform = "translate3d(" + Math.round(px) + "px," + Math.round(py) + "px,0)";
+    if (!pending) { pending = true; requestAnimationFrame(cull); }
+  }
+  function decay() {
+    if (Math.abs(vx) < .3 && Math.abs(vy) < .3) { glide = null; return; }
+    px += vx; py += vy; vx *= 0.94; vy *= 0.94; apply();
+    glide = requestAnimationFrame(decay);
+  }
+  apply();
+  addEventListener("resize", function () { if (!pending) { pending = true; requestAnimationFrame(cull); } });
+
+  function clearLive() { for (var k in live) { live[k].remove(); delete live[k]; } }
+
+  /* Rebuild the layout and put the view somewhere that definitely has content.
+     Every y position is a prefix sum over SEQ, so changing SEQ or the column
+     width moves all of them — leaving px/py pointing into empty space, which
+     is why shuffling or resizing emptied the field. */
+  function reseat() {
+    rebuild();
+    px = 0; py = 0; vx = vy = 0;
+    if (glide) { cancelAnimationFrame(glide); glide = null; }
+    clearLive();
+    plane.style.transform = "translate3d(0px,0px,0)";
+    // Repopulate synchronously. apply() only schedules a cull when `pending`
+    // is false, so if one was already queued the rebuild was skipped and the
+    // field came back empty until you panned.
+    pending = false;
+    cull();
+  }
+
+  // Two different things, deliberately:
+  //   Random spot  — same field, new vantage point. Everything stays where it was.
+  //   Shuffle birds — genuinely reorders the sequence, so different birds sit in
+  //                   different places and the column heights change with them.
+  var rnd = document.getElementById("bf-random");
+  if (rnd) rnd.addEventListener("click", function () {
+    px = -Math.round((Math.random() * 2 - 1) * 40000);
+    py = -Math.round((Math.random() * 2 - 1) * 40000);
+    vx = vy = 0; if (glide) { cancelAnimationFrame(glide); glide = null; }
+    clearLive(); apply();
+  });
+
+  /* #9 Chronological: lay the field out newest-first by capture date instead
+     of the interleaved round-robin. Adjacency protection is a property of the
+     round-robin, so date order can put a bird beside itself — that is the
+     honest trade for showing real sequence. */
+  var chrono = document.getElementById("bf-chrono"), chronoOn = false, SEQ0 = SEQ.slice();
+  if (chrono) chrono.addEventListener("click", function () {
+    chronoOn = !chronoOn;
+    chrono.setAttribute("aria-pressed", chronoOn ? "true" : "false");
+    chrono.classList.toggle("on", chronoOn);
+    var next;
+    if (chronoOn) {
+      next = TILES.map(function (_t, i) { return i; }).sort(function (a, b) {
+        return String(TILES[b].date || "").localeCompare(String(TILES[a].date || ""));
+      });
+    } else { next = SEQ0.slice(); }
+    SEQ.length = 0; next.forEach(function (x) { SEQ.push(x); });
+    reseat();
+  });
+
+  var shuf = document.getElementById("bf-shuffle");
+  if (shuf) shuf.addEventListener("click", function () {
+    // A flat Fisher-Yates over SEQ destroyed the very property that keeps a
+    // bird from landing beside itself. Re-deal instead: shuffle the ORDER OF
+    // SPECIES, then rebuild the round-robin, so the spacing survives.
+    var by = {}, names = [];
+    SEQ.forEach(function (idx) {
+      var nm = TILES[idx].name;
+      if (!by[nm]) { by[nm] = []; names.push(nm); }
+      by[nm].push(idx);
+    });
+    for (var i = names.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var t = names[i]; names[i] = names[j]; names[j] = t;
+    }
+    names.forEach(function (nm) {                     // vary each bird's frames too
+      var a = by[nm];
+      for (var k = a.length - 1; k > 0; k--) {
+        var m = Math.floor(Math.random() * (k + 1));
+        var s = a[k]; a[k] = a[m]; a[m] = s;
+      }
+    });
+    var out = [], more = true;
+    while (more) {
+      more = false;
+      names.forEach(function (nm) {
+        if (by[nm].length) { out.push(by[nm].shift()); more = true; }
+      });
+    }
+    SEQ.length = 0; out.forEach(function (x) { SEQ.push(x); });
+    reseat();
+  });
+
+  var sizer = document.getElementById("bf-size");
+  if (sizer) sizer.value = COL_W;        // rail is absent inside the gallery        // reflect the phone-sized default
+  if (sizer) sizer.addEventListener("input", function () {
+    COL_W = +sizer.value;
+    reseat();
+  });
+
+  var down = false, lx = 0, ly = 0, moved = 0, hit = null;
+  canvas.addEventListener("pointerdown", function (e) {
+    down = true; moved = 0; lx = e.clientX; ly = e.clientY;
+    // capture retargets later events to the canvas, so remember the tile now
+    hit = e.target.closest ? e.target.closest(".bf-tile") : null;
+    vx = vy = 0; if (glide) { cancelAnimationFrame(glide); glide = null; }
+    canvas.classList.add("drag");
+    canvas.setPointerCapture && canvas.setPointerCapture(e.pointerId);
+  });
+  canvas.addEventListener("pointermove", function (e) {
+    if (!down) return;
+    var dx = e.clientX - lx, dy = e.clientY - ly;
+    lx = e.clientX; ly = e.clientY; moved += Math.abs(dx) + Math.abs(dy);
+    px += dx; py += dy; vx = dx; vy = dy; apply();
+  });
+  canvas.addEventListener("pointerup", function (e) {
+    if (!down) return;
+    down = false; canvas.classList.remove("drag");
+    if (hit && moved <= 6 && hit._t) openSpecies(hit._t);
+    else if (!glide) glide = requestAnimationFrame(decay);
+    hit = null;
+  });
+  canvas.addEventListener("pointercancel", function () { down = false; hit = null; canvas.classList.remove("drag"); });
+  /* #3 Hold the pointer near an edge and the field drifts that way — the
+     trackpad-swipe equivalent for a mouse. Stops the moment you leave the
+     edge, the modal opens, or you start dragging. */
+  var edgeX = 0, edgeY = 0, edgeRAF = null;
+  function edgeStep() {
+    if ((edgeX || edgeY) && !down && !over.classList.contains("open")) {
+      px += edgeX; py += edgeY; apply();
+      edgeRAF = requestAnimationFrame(edgeStep);
+    } else { edgeRAF = null; }
+  }
+  canvas.addEventListener("pointermove", function (e) {
+    if (down || e.pointerType === "touch") { edgeX = edgeY = 0; return; }
+    var r = canvas.getBoundingClientRect(), Z = 70, S = 9;
+    var dx = e.clientX - r.left, dy = e.clientY - r.top;
+    edgeX = dx < Z ? S * (1 - dx / Z) : (r.width - dx < Z ? -S * (1 - (r.width - dx) / Z) : 0);
+    edgeY = dy < Z ? S * (1 - dy / Z) : (r.height - dy < Z ? -S * (1 - (r.height - dy) / Z) : 0);
+    if ((edgeX || edgeY) && !edgeRAF) edgeRAF = requestAnimationFrame(edgeStep);
+  });
+  canvas.addEventListener("pointerleave", function () { edgeX = edgeY = 0; });
+
+  canvas.addEventListener("wheel", function (e) {
+    e.preventDefault();
+    if (e.shiftKey) px -= (e.deltaY + e.deltaX); else { py -= e.deltaY; px -= e.deltaX; }
+    apply();
+  }, { passive: false });
+  plane.addEventListener("click", function (e) { if (e.target.closest(".bf-tile")) e.preventDefault(); });
+
+  /* ---------- the species detail ----------
+     Image-led: the frame fills the stage, every frame of that bird is
+     reachable by arrows, keyboard or the strip, and the rail carries the
+     numbers, the year, the map and the voice. */
+  var over = document.getElementById("bf-over"), audio = new Audio(), raf = null;
+  var cur = null, frames = [], fi = 0, wantSrc = null;
+  var MONTHS = ["J","F","M","A","M","J","J","A","S","O","N","D"];
+  var $ = function (id) { return document.getElementById(id); };
+  function fmt(s) { s = Math.floor(s || 0); return Math.floor(s / 60) + ":" + ("0" + (s % 60)).slice(-2); }
+  function stop() { audio.pause(); audio.currentTime = 0; tick(); }
+
+  /* The filmstrip pages in as you reach its end.
+
+     A scroll handler could not do this: centring the active thumbnail is
+     itself a scroll, so every page triggered another and 24 became 120. A
+     sentinel watched by an IntersectionObserver only fires when the END of
+     the strip is genuinely reached, so our own scrolling cannot drive it. */
+  var stripShown = 0, stripAuto = false, stripIO = null, stripEnd = null;
+  function growStrip(n) {
+    var strip = $("bf-ostrip");
+    var upto = Math.min(frames.length, stripShown + n);
+    var frag = "";
+    for (var i = stripShown; i < upto; i++) {
+      frag += '<img src="' + frames[i].thumb + '" alt="" loading="lazy" data-i="' + i + '">';
+    }
+    if (!stripEnd) {
+      stripEnd = document.createElement("span");
+      stripEnd.className = "bf-stripend";
+      stripEnd.setAttribute("aria-hidden", "true");
+    }
+    strip.insertAdjacentHTML("beforeend", frag);
+    stripShown = upto;
+    if (stripShown < frames.length) {
+      strip.appendChild(stripEnd);                 // keep it last
+      if (!stripIO) {
+        stripIO = new IntersectionObserver(function (es) {
+          if (es[0].isIntersecting) growStrip(24);
+        }, { root: strip, rootMargin: "300px" });
+        stripIO.observe(stripEnd);
+      }
+    } else if (stripEnd && stripEnd.parentNode) {
+      stripEnd.parentNode.removeChild(stripEnd);   // nothing left to page in
+      if (stripIO) { stripIO.disconnect(); stripIO = null; }
+    }
+  }
+
+  function strip0() { return $("bf-ostrip"); }
+  function paintCaption(f) {
+    $("bf-ocount").textContent = (fi + 1) + " / " + frames.length +
+      (f.where ? "  ·  " + f.where : "") + (f.date ? "  ·  " + f.date : "");
+  }
+  function syncStrip(strip) {
+    while (stripShown <= fi && stripShown < frames.length) growStrip(24);
+    strip.querySelectorAll("img").forEach(function (im) {
+      im.classList.toggle("on", +im.dataset.i === fi);
+    });
+    var on = strip.querySelector("img.on");
+    if (on) {
+      var l = on.offsetLeft, w = on.offsetWidth;
+      if (l < strip.scrollLeft || l + w > strip.scrollLeft + strip.clientWidth) {
+        stripAuto = true;
+        strip.scrollTo({ left: Math.max(0, l - strip.clientWidth / 2 + w / 2), behavior: "smooth" });
+        setTimeout(function () { stripAuto = false; }, 500);
+      }
+    }
+  }
+
+  function showFrame(i) {
+    if (!frames.length) return;
+    fi = (i % frames.length + frames.length) % frames.length;
+    var f = frames[fi];
+    var img = $("bf-oimg"), vid = $("bf-ovid"), stage = img.parentNode;
+
+    // A video frame gets the real clip, not its poster — the stage was an
+    // <img>, so video frames were a still image you could not play.
+    if (f.vsrc) {
+      img.hidden = true; vid.hidden = false;
+      stage.classList.remove("busy"); img.classList.remove("loading");
+      if (vid.getAttribute("src") !== f.vsrc) {
+        vid.setAttribute("src", f.vsrc);
+        vid.poster = f.thumb || "";
+        vid.muted = true;                       // so autoplay is permitted
+        vid.play().catch(function () {});
+      }
+      paintCaption(f);
+      highlightPlace(f.where);
+      curateSync();
+      syncStrip(strip0());
+      return;
+    }
+    vid.pause(); vid.hidden = true; vid.removeAttribute("src"); img.hidden = false;
+
+    // The thumbnail is already cached from the tile, so paint it at once and
+    // swap in the full frame (~330 KB) when it lands. Beats a blank stage.
+    var full = f.full || f.thumb;
+    if (f.thumb && f.thumb !== full) {
+      img.src = f.thumb;
+      img.classList.add("loading");
+      stage.classList.add("busy");
+      var pre = new Image();
+      pre.onload = function () {
+        if (frames[fi] === f) {                 // still the frame on screen
+          img.src = full;
+          img.classList.remove("loading");
+          stage.classList.remove("busy");
+        }
+      };
+      pre.onerror = function () {
+        img.classList.remove("loading"); stage.classList.remove("busy");
+      };
+      pre.src = full;
+    } else {
+      img.src = full;
+      img.classList.remove("loading");
+      stage.classList.remove("busy");
+    }
+    $("bf-ocount").textContent = (fi + 1) + " / " + frames.length +
+      (f.where ? "  ·  " + f.where : "") + (f.date ? "  ·  " + f.date : "");
+    var strip = $("bf-ostrip");
+    while (stripShown <= fi && stripShown < frames.length) growStrip(24);
+    strip.querySelectorAll("img").forEach(function (im) {
+      im.classList.toggle("on", +im.dataset.i === fi);
+    });
+    highlightPlace(f.where);
+    curateSync();
+    var on = strip.querySelector("img.on");
+    if (on) {
+      var l = on.offsetLeft, w = on.offsetWidth;
+      if (l < strip.scrollLeft || l + w > strip.scrollLeft + strip.clientWidth) {
+        stripAuto = true;
+        strip.scrollTo({ left: Math.max(0, l - strip.clientWidth / 2 + w / 2), behavior: "smooth" });
+        setTimeout(function () { stripAuto = false; }, 500);
+      }
+    }
+  }
+  $("bf-prev").addEventListener("click", function () { showFrame(fi - 1); });
+  $("bf-next").addEventListener("click", function () { showFrame(fi + 1); });
+
+  function openSpecies(t) {
+    cur = t.slug; frames = []; fi = 0;
+    wantSrc = t.src;            // open on the frame that was actually clicked
+    $("bf-otitle").textContent = t.name;
+    $("bf-ofam").textContent = t.fam || "";
+    $("bf-oimg").src = t.src; $("bf-oimg").alt = t.name;
+    $("bf-ocount").textContent = "";
+    $("bf-ofacts").innerHTML = ""; $("bf-ostrip").innerHTML = "";
+    $("bf-oplaces").innerHTML = "";
+    // deliberately NOT clearing #bf-omap: Leaflet owns that element, and
+    // emptying it left _map pointing at DOM that no longer existed — which
+    // is why the map loaded the first time and then intermittently did not
+    $("bf-omonths").innerHTML = ""; $("bf-omlab").innerHTML = "";
+    $("bf-sound").hidden = true; $("bf-nosound").hidden = true;
+    // Something to look at while the profile is fetched, instead of empty panels
+    $("bf-ofacts").innerHTML = new Array(6).join("x").split("x").map(function () {
+      return '<div><dt class="bf-sk bf-skline" style="width:60%"></dt>' +
+             '<dd class="bf-sk bf-skline" style="width:45%"></dd></div>';
+    }).join("");
+    $("bf-oplaces").innerHTML = '<li class="bf-sk bf-skline" style="width:100%"></li>' +
+                                '<li class="bf-sk bf-skline" style="width:80%"></li>';
+    $("bf-ostrip").innerHTML = new Array(9).join("x").split("x").map(function () {
+      return '<span class="bf-sk" style="width:58px;height:58px;flex:none"></span>';
+    }).join("");
+    $("bf-ofull").href = "/birds/species/" + t.slug;
+    stop();
+    over.classList.add("open"); document.body.style.overflow = "hidden";
+    fetch("/birds/species/" + t.slug + ".json")
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (d) { if (d && cur === t.slug) fill(d); })
+      .catch(function () {});
+  }
+
+  function fill(d) {
+    var h = d.heard || {};
+    // clear the skeletons first: the facts below are appended, so without this
+    // they stacked on top of the placeholders and rendered ten rows, not six
+    $("bf-ofacts").innerHTML = "";
+    // "Frames" was jargon; say what they are, and only mention video when
+    // there actually is some.
+    var imgN = (d.images != null) ? d.images : (d.count || 0);
+    [[(d.videos ? "Images / Videos" : "Images"),
+      (d.videos ? imgN + " / " + d.videos : imgN)],
+     ["Lifer", (d.rank || "—") + "/" + (d.total || "—")],
+     ["Recordings", (h.count || 0).toLocaleString()],
+     ["Clearest call", h.max ? Math.round(h.max * 100) + "%" : "—"]
+    ].forEach(function (kv) {
+      var el = document.createElement("div");
+      el.innerHTML = "<dt>" + esc(kv[0]) + "</dt><dd>" + esc(kv[1]) + "</dd>";
+      $("bf-ofacts").appendChild(el);
+    });
+
+    frames = d.frames || [];
+    if (frames.length) {
+      // Barred Owl has 202 frames. Building every thumbnail up front is what
+      // made opening a bird feel heavy, so render a first page and extend it
+      // as the strip is scrolled.
+      stripShown = 0;
+      if (stripIO) { stripIO.disconnect(); stripIO = null; }
+      stripEnd = null;
+      $("bf-ostrip").innerHTML = "";
+      growStrip(24);
+      $("bf-ostrip").onclick = function (e) {
+        var im = e.target.closest("img"); if (!im) return;
+        showFrame(+im.dataset.i);
+      };
+
+      // Land on the tile the click came from, not whatever happens to be
+      // first in the profile — otherwise the modal appears to swap the photo.
+      var start = 0;
+      if (wantSrc) {
+        for (var q = 0; q < frames.length; q++) {
+          if (frames[q].thumb === wantSrc || frames[q].full === wantSrc) { start = q; break; }
+        }
+      }
+      showFrame(start);
+    }
+
+    var m = d.months || [];
+    if (m.length === 12) {
+      var mx = Math.max.apply(null, m.concat([1]));
+      $("bf-omonths").innerHTML = m.map(function (v) {
+        return '<span><i style="height:' + Math.round(v / mx * 100) + '%"></i></span>';
+      }).join("");
+      $("bf-omlab").innerHTML = MONTHS.map(function (x) { return "<span>" + x + "</span>"; }).join("");
+    }
+
+    // A real map rather than a blank box: the same Leaflet + OpenStreetMap the
+    // sightings page uses, loaded lazily the first time a modal needs it so the
+    // field itself never pays for it.
+    var pl = (d.places || []).filter(function (q) { return q.lat && q.lng; });
+    $("bf-mapwrap").style.display = (d.places && d.places.length) ? "" : "none";
+    $("bf-mapnote").textContent = "";
+    // Leaflet is ~150 KB plus tile requests. Nothing loads until the map is
+    // actually scrolled into view, so opening a bird costs nothing for it.
+    if (pl.length) {
+      if (window.IntersectionObserver) {
+        if (_mapIO) _mapIO.disconnect();
+        _mapIO = new IntersectionObserver(function (es) {
+          if (es[0].isIntersecting) { _mapIO.disconnect(); _mapIO = null; drawMap(pl); }
+        }, { rootMargin: "200px" });
+        _mapIO.observe($("bf-omap"));
+      } else { drawMap(pl); }
+    }
+
+    // A place name is a filter, not a label: both the list and the map markers
+    // open the gallery scoped to that spot.
+    $("bf-oplaces").innerHTML = (d.places || []).length
+      ? d.places.map(function (q) {
+          return '<li' + (q.mapped ? '' : ' class="unmapped"') + '><a class="bf-placelink" href="/birds?loc=' +
+            encodeURIComponent(q.name) + '" title="Show every photo from ' + esc(q.name) +
+            (q.mapped ? '' : ' (no coordinates, so it cannot be plotted)') + '">' +
+            esc(q.name) + "</a><em>" + q.count + "</em></li>";
+        }).join("")
+      : '<li><em>Nowhere recorded yet</em></li>';
+    var unm = (d.places || []).filter(function (q) { return !q.mapped; }).length;
+    $("bf-mapnote").textContent = unm
+      ? unm + (unm === 1 ? " place has" : " places have") + " no coordinates yet"
+      : "";
+
+    // Three states, not two. A bird can be heard without a clip surviving —
+    // saying "never caught this one" while the panel above reads 3 recordings
+    // is a contradiction the data never claimed.
+    if (d.call && d.call.audio) {
+      $("bf-sound").hidden = false;
+      var sp = $("bf-ospec");
+      if (d.call.spec) { sp.src = MEDIA + d.call.spec; sp.style.display = ""; } else sp.style.display = "none";
+      audio.src = MEDIA + d.call.audio;
+      var list = d.calls && d.calls.length ? d.calls : [d.call];
+      $("bf-ocalls").innerHTML = list.map(function (c, i) {
+        return '<li' + (i === 0 ? ' class="on"' : '') + ' data-i="' + i + '">' +
+          '<span class="pc">' + Math.round((c.conf || 0) * 100) + '%</span>' +
+          '<span class="wh">' + esc(c.when || "") + '</span>' +
+          (c.node ? '<span class="nd ' +
+            (/side/i.test(c.node) ? 'side' : 'back') + '">' + esc(c.node) + '</span>' : '') +
+          '</li>';
+      }).join("");
+      $("bf-ocalls").onclick = function (e) {
+        var li = e.target.closest("li"); if (!li) return;
+        var c = list[+li.dataset.i]; if (!c || !c.audio) return;
+        this.querySelectorAll("li").forEach(function (x) { x.classList.remove("on"); });
+        li.classList.add("on");
+        stop();
+        if (c.spec) { $("bf-ospec").src = MEDIA + c.spec; $("bf-ospec").style.display = ""; }
+        audio.src = MEDIA + c.audio;
+        $("bf-onote").textContent = [c.when,
+          c.conf ? Math.round(c.conf * 100) + "% confidence" : "", c.node]
+          .filter(Boolean).join(" · ");
+        audio.play().catch(function () {}); tick();
+      };
+      $("bf-onote").textContent = [
+        "Clearest recording",
+        d.call.when,
+        d.call.conf ? Math.round(d.call.conf * 100) + "% confidence" : "",
+        d.call.node].filter(Boolean).join(" · ");
+    } else {
+      $("bf-nosound").hidden = false;
+      // Wood Duck was heard exactly once and kept nothing, which rendered as
+      // "Heard 1 time, 2026-07-26 to 2026-07-26 — but no recording has been
+      // kept." True, but badly said. Read the dates properly and collapse a
+      // range whose ends are the same day.
+      var nice = function (iso) {
+        if (!iso) return "";
+        var d = new Date(iso + "T12:00:00");
+        return isNaN(d) ? iso : d.toLocaleDateString(undefined,
+          { day: "numeric", month: "short", year: "numeric" });
+      };
+      var span = "";
+      if (h.first && h.last && h.first !== h.last) span = " between " + nice(h.first) + " and " + nice(h.last);
+      else if (h.first) span = " on " + nice(h.first);
+      $("bf-nosoundtxt").textContent = (h.count > 0)
+        ? "Heard " + (h.count === 1 ? "once" : h.count.toLocaleString() + " times") +
+          span + ", but no recording was kept."
+        : "The yard microphone has never caught this one.";
+    }
+  }
+
+  var _leaflet = null, _map = null, _layer = null, _markers = {}, _bounds = [], _boop = null, _mapIO = null;
+
+  function fitAll() {
+    if (!_map || !_bounds.length) return;
+    if (_bounds.length === 1) _map.setView(_bounds[0], 13);
+    else _map.fitBounds(_bounds, { padding: [22, 22] });
+  }
+
+  /* Follow the photograph: when the frame changes, fly to where it was taken
+     and boop the marker. Frames carry a place name, so this matches on that —
+     any frame without one just resets to the whole range. */
+  function highlightPlace(where) {
+    if (!_map) return;
+    var mk = where ? _markers[String(where).toLowerCase()] : null;
+    Object.keys(_markers).forEach(function (k) {
+      _markers[k].setStyle({ fillOpacity: mk ? .35 : .9, weight: 2 });
+      _markers[k].setRadius(_markers[k]._base);
+    });
+    if (!mk) { fitAll(); return; }
+    mk.setStyle({ fillOpacity: 1, weight: 3 });
+    mk.bringToFront();
+    _map.flyTo(mk.getLatLng(), 14, { duration: .6 });
+    // One swell and settle. The previous version oscillated on a sine, which
+    // read as a shake rather than a beat.
+    if (_boop) cancelAnimationFrame(_boop);
+    var t0 = null, DUR = 420;
+    (function frame(ts) {
+      if (t0 === null) t0 = ts;
+      var p = Math.min(1, (ts - t0) / DUR);
+      var swell = Math.sin(p * Math.PI);             // 0 -> 1 -> 0, once
+      var ease = swell * swell * (3 - 2 * swell);    // smoothstep the edges
+      mk.setRadius(mk._base + 7 * ease);
+      if (p < 1) _boop = requestAnimationFrame(frame);
+      else { _boop = null; mk.setRadius(mk._base); }
+    })(performance.now());
+  }
+  /* Leaflet is served from our own static/vendor rather than a CDN: no
+     third-party fetch to fail silently, and it works offline. Loaded lazily
+     the first time a modal needs a map. */
+  function ensureLeaflet(cb) {
+    if (window.L && window.L.map) return cb();
+    if (_leaflet) { _leaflet.push(cb); return; }
+    _leaflet = [cb];
+    var css = document.createElement("link");
+    css.rel = "stylesheet";
+    css.href = "{{ url_for('static', filename='vendor/leaflet.css', v=asset_v) }}";
+    document.head.appendChild(css);
+    var js = document.createElement("script");
+    js.src = "{{ url_for('static', filename='vendor/leaflet.js', v=asset_v) }}";
+    js.onload = function () {
+      var q = _leaflet; _leaflet = null;          // null, not [] — an empty
+      q.forEach(function (f) { f(); });           // array is truthy and would
+    };                                            // swallow every later call
+    js.onerror = function () { _leaflet = null; };
+    document.head.appendChild(js);
+  }
+  function drawMap(places) {
+    var box0 = $("bf-omap");
+    box0.classList.remove("bf-mapfail");
+    var failTimer = setTimeout(function () {
+      // no tile painted after a beat: say so rather than showing a dead box
+      if (!box0.querySelector("img.leaflet-tile")) box0.classList.add("bf-mapfail");
+    }, 6000);
+    ensureLeaflet(function () {
+      clearTimeout(failTimer);
+      var box = $("bf-omap");
+      if (_map && !box.classList.contains("leaflet-container")) {
+        try { _map.remove(); } catch (e) {}      // container was replaced
+        _map = null; _layer = null;
+      }
+      if (!_map) {
+        // On touch, a draggable map inside a scrolling panel swallows the
+        // gesture and the sheet stops scrolling. Leaflet recommends exactly
+        // this guard.
+        _map = window.L.map(box, { zoomControl: false, scrollWheelZoom: false,
+                                   dragging: !window.L.Browser.mobile,
+                                   tap: false });
+        window.L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+          maxZoom: 17, minZoom: 3,
+          attribution: '&copy; OpenStreetMap'      // required by their tile policy
+        }).addTo(_map);
+      }
+      if (_layer) _layer.remove();
+      _layer = window.L.layerGroup().addTo(_map);
+      _markers = {}; _bounds = [];
+      var pts = [];
+      places.forEach(function (q) {
+        pts.push([q.lat, q.lng]);
+        var base = 5 + Math.min(7, Math.sqrt(q.count || 1));
+        var mk = window.L.circleMarker([q.lat, q.lng], {
+          radius: base, color: "#faf8f3", weight: 2,
+          fillColor: q.area === "away" ? "#e8b04b" : "#2f7d4f", fillOpacity: .9
+        }).bindTooltip(q.name + " · " + (q.count || 0) + " — click to filter")
+          .on("click", function () {
+            location.href = "/birds?loc=" + encodeURIComponent(q.name);
+          })
+          .addTo(_layer);
+        mk._base = base;
+        _markers[(q.name || "").toLowerCase()] = mk;
+      });
+      _bounds = pts;
+      // the modal has only just become visible, so the container may still
+      // measure zero; re-measure on the next frame before fitting
+      requestAnimationFrame(function () { _map.invalidateSize(); fitAll(); });
+      _map.invalidateSize();
+      fitAll();
+      // the frame on screen when the map finished loading gets the first boop
+      if (frames[fi]) highlightPlace(frames[fi].where);
+    });
+  }
+
+  function tick() {
+    var dur = audio.duration || 0, p = dur ? audio.currentTime / dur : 0;
+    $("bf-otime").textContent = fmt(audio.currentTime);
+    $("bf-odot").style.left = "calc(" + (p * 100).toFixed(2) + "% - 4px)";
+    $("bf-oplay").innerHTML = audio.paused ? "&#9654;" : "&#10074;&#10074;";
+    if (!audio.paused) raf = requestAnimationFrame(tick);
+    else if (raf) { cancelAnimationFrame(raf); raf = null; }
+  }
+  $("bf-oplay").addEventListener("click", function () {
+    if (audio.paused) { audio.play().catch(function () {}); tick(); } else { audio.pause(); tick(); }
+  });
+  $("bf-otrack").addEventListener("click", function (e) {
+    var r = this.getBoundingClientRect();
+    if (audio.duration) { audio.currentTime = ((e.clientX - r.left) / r.width) * audio.duration; tick(); }
+  });
+  audio.addEventListener("ended", tick);
+
+  /* Random bird — open a different species without leaving the modal.
+     Shuffle frames — reorder this bird's own frames and start again. */
+  var orand = $("bf-orandom"), oshuf = $("bf-oshuffle");
+  if (orand) orand.addEventListener("click", function () {
+    var pick, guard = 0;
+    do { pick = TILES[Math.floor(Math.random() * TILES.length)]; guard++; }
+    while (guard < 40 && pick && pick.slug === cur);   // not the one we're on
+    if (pick) openSpecies(pick);
+  });
+  if (oshuf) oshuf.addEventListener("click", function () {
+    if (frames.length < 2) return;
+    for (var i = frames.length - 1; i > 0; i--) {      // Fisher-Yates
+      var j = Math.floor(Math.random() * (i + 1));
+      var t = frames[i]; frames[i] = frames[j]; frames[j] = t;
+    }
+    $("bf-ostrip").innerHTML = frames.map(function (f) {
+      return '<img src="' + f.thumb + '" alt="" loading="lazy">';
+    }).join("");
+    showFrame(0);
+  });
+
+  /* Curate acts on the frame currently on the stage — never the species —
+     so the post id and image index travel with each frame and are re-read on
+     every frame change. Editing the wrong photo is the failure mode worth
+     designing against. */
+  var cAway = $("bf-caway"), cHide = $("bf-chide"), cLoc = $("bf-cloc");
+  function curateSync() {
+    if (!cAway) return;
+    var f = frames[fi];
+    var ok = !!(f && f.pid);
+    [cAway, cHide].forEach(function (b) { b.disabled = !ok; b.style.opacity = ok ? 1 : .4; });
+    cLoc.disabled = !ok;
+    $("bf-cwhich").textContent = ok
+      ? "frame " + (fi + 1) + " of " + frames.length + " · post " + f.pid + " · image " + f.idx
+      : "no editable frame";
+    if (ok) {
+      cLoc.value = f.where || "";
+      cAway.classList.toggle("on", !!f.away);
+    }
+  }
+  function post(url, body, done) {
+    fetch(url, { method: "POST", headers: { "Content-Type": "application/json" },
+                 body: JSON.stringify(body) })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (j) {
+        $("bf-csaved").textContent = j && j.ok ? "saved ✓" : "could not save";
+        setTimeout(function () { $("bf-csaved").textContent = ""; }, 2200);
+        if (j && j.ok && done) done();
+      })
+      .catch(function () { $("bf-csaved").textContent = "could not save"; });
+  }
+  if (cHide) cHide.addEventListener("click", function () {
+    var f = frames[fi]; if (!f || !f.pid) return;
+    post("/curate/exclude-image", { id: f.pid, index: f.idx }, function () {
+      frames.splice(fi, 1);                       // drop it from the strip too
+      $("bf-ostrip").innerHTML = frames.map(function (x) {
+        return '<img src="' + x.thumb + '" alt="" loading="lazy">';
+      }).join("");
+      if (frames.length) showFrame(Math.min(fi, frames.length - 1));
+    });
+  });
+  if (cAway) cAway.addEventListener("click", function () {
+    var f = frames[fi]; if (!f || !f.pid) return;
+    var next = f.away ? "local" : "away";
+    var arr = []; arr[f.idx] = next;
+    post("/curate/override", { id: f.pid, image_areas: arr }, function () {
+      f.away = next === "away" ? 1 : 0; curateSync();
+    });
+  });
+  if (cLoc) cLoc.addEventListener("change", function () {
+    var f = frames[fi]; if (!f || !f.pid) return;
+    var arr = []; arr[f.idx] = cLoc.value.trim();
+    post("/curate/override", { id: f.pid, image_locations: arr }, function () {
+      f.where = cLoc.value.trim(); curateSync();
+    });
+  });
+
+  /* #8 permalink — the same idea as the gallery's copy-link, scoped to the
+     exact frame on screen. #7 full screen uses the stage element so the
+     filmstrip and rail drop away. */
+  var oLink = $("bf-olink"), oFs = $("bf-ofs");
+  if (oLink) oLink.addEventListener("click", function () {
+    var f = frames[fi] || {};
+    var u = location.origin + "/birds/species/" + cur +
+            (f.pid ? "?frame=" + encodeURIComponent(f.pid + "-" + f.idx) : "");
+    (navigator.clipboard ? navigator.clipboard.writeText(u) : Promise.reject())
+      .then(function () {
+        oLink.classList.add("copied");
+        setTimeout(function () { oLink.classList.remove("copied"); }, 1200);
+      })
+      .catch(function () { prompt("Copy this link", u); });
+  });
+  if (oFs) oFs.addEventListener("click", function () {
+    var el = $("bf-oimg").parentNode;
+    if (document.fullscreenElement) document.exitFullscreen();
+    else if (el.requestFullscreen) el.requestFullscreen().catch(function () {});
+  });
+
+  /* #5 The mini-map expands to a real one: dragging and the wheel are enabled
+     only while it is large, so a small inline map never swallows a scroll. */
+  var mapBig = $("bf-mapbig");
+  if (mapBig) mapBig.addEventListener("click", function (e) {
+    e.stopPropagation();
+    var wrap = mapBig.parentNode, big = wrap.classList.toggle("big");
+    mapBig.innerHTML = big ? "&times;" : "&#9974;";
+    mapBig.title = big ? "Close the map" : "Expand the map";
+    if (_map) {
+      if (big) { _map.dragging.enable(); _map.scrollWheelZoom.enable(); _map.addControl(window.L.control.zoom()); }
+      else {
+        _map.scrollWheelZoom.disable();
+        if (window.L.Browser.mobile) _map.dragging.disable();
+      }
+      setTimeout(function () { _map.invalidateSize(); fitAll(); }, 210);
+    }
+  });
+
+  function closeOver() {
+    var v = $("bf-ovid");
+    if (v) { v.pause(); v.removeAttribute("src"); v.hidden = true; }
+    $("bf-oimg").hidden = false;
+    over.classList.remove("open"); document.body.style.overflow = ""; stop();
+  }
+  $("bf-oclose").addEventListener("click", closeOver);
+  over.addEventListener("click", function (e) {
+    if (e.target === over) closeOver();          // click the backdrop to dismiss
+  });
+  addEventListener("keydown", function (e) {
+    if (!over.classList.contains("open")) return;
+    if (e.key === "Escape") closeOver();
+    else if (e.key === "ArrowLeft") showFrame(fi - 1);
+    else if (e.key === "ArrowRight") showFrame(fi + 1);
+  });
+})();
+</script>
