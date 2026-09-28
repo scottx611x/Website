@@ -883,10 +883,22 @@ body.birdsfield .page{padding-top:.5rem!important}
         d.call.node].filter(Boolean).join(" · ");
     } else {
       $("bf-nosound").hidden = false;
+      // Wood Duck was heard exactly once and kept nothing, which rendered as
+      // "Heard 1 time, 2026-07-26 to 2026-07-26 — but no recording has been
+      // kept." True, but badly said. Read the dates properly and collapse a
+      // range whose ends are the same day.
+      var nice = function (iso) {
+        if (!iso) return "";
+        var d = new Date(iso + "T12:00:00");
+        return isNaN(d) ? iso : d.toLocaleDateString(undefined,
+          { day: "numeric", month: "short", year: "numeric" });
+      };
+      var span = "";
+      if (h.first && h.last && h.first !== h.last) span = " between " + nice(h.first) + " and " + nice(h.last);
+      else if (h.first) span = " on " + nice(h.first);
       $("bf-nosoundtxt").textContent = (h.count > 0)
-        ? "Heard " + h.count.toLocaleString() + (h.count === 1 ? " time" : " times") +
-          (h.first ? ", " + h.first + " to " + h.last : "") +
-          " — but no recording has been kept."
+        ? "Heard " + (h.count === 1 ? "once" : h.count.toLocaleString() + " times") +
+          span + ", but no recording was kept."
         : "The yard microphone has never caught this one.";
     }
   }
