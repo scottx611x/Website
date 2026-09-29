@@ -365,7 +365,12 @@
                         && !window.BIRDS_ACTIVE.sort && !window.CURATE_MODE) {
                     var p = new URLSearchParams(location.search);
                     p.set("seed", String(Math.floor(Math.random() * 1e9)));
-                    location.replace(location.pathname + "?" + p);
+                    // Carry the fragment. Without it, refreshing while a bird
+                    // was open reshuffled AND threw the bird away, because
+                    // location.replace() drops the hash — the two features
+                    // (refresh reshuffles, refresh keeps the detail) were
+                    // quietly fighting and the reshuffle always won.
+                    location.replace(location.pathname + "?" + p + location.hash);
                 }
             })();
         </script>

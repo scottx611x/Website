@@ -94,3 +94,11 @@ Append one line per landed change. Newest last.
   nav band ran off at an angle — tilt moved to `.wall-tilt`; (3) nav ink is
   dark by default and vanished on the dark wall. Nav-strip backdrop went from
   peak luminance 117 to 52.
+- **deep links finished**: `#bird/<slug>` and `#family/<slug>` now survive a
+  refresh. Two separate causes, both non-obvious: (1) `history.state` SURVIVES
+  a reload, so closeOver's "unwind my own entry" saw a stale marker and called
+  `history.back()` into the pre-redirect `/birds` — now gated on a
+  `pushedHere` flag scoped to this page load; (2) birds.html already had a
+  deliberate "a refresh reshuffles" feature whose `location.replace()` dropped
+  the fragment, so the two features fought and the reshuffle always won. It
+  carries `location.hash` through now — you get both.

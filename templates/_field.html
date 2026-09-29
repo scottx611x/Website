@@ -1397,6 +1397,8 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
      rather than another request. (?posted= is a post date, which frames do
      not carry, so it is not applied.) */
   var scoped = null, famMode = false;
+  // true only while THIS page load owns a history entry it pushed
+  var pushedHere = false;
   function scopeFrames(all) {
     var out = all;
     if (CTX.area === "local") out = out.filter(function (f) { return !f.away; });
@@ -1527,7 +1529,7 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
        gallery entirely. pushState, so there is a history entry to go back to. */
     var key = "#" + (famMode ? "family/" + CTX.family_slug : "bird/" + t.slug);
     if (location.hash !== key) {
-      try { history.pushState({ bf: 1 }, "", key); } catch (e) { /* file:// */ }
+      try { history.pushState({ bf: 1 }, "", key); pushedHere = true; } catch (e) { /* file:// */ }
     }
     fetch(famMode ? ("/birds/family/" + CTX.family_slug + ".json")
                   : ("/birds/species/" + t.slug + ".json"))
@@ -2000,8 +2002,12 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
   function closeOver(fromPop) {
     if (!fromPop && location.hash && /^#(bird|family)\//.test(location.hash)) {
       // Unwind our own entry so Back does not step through every bird you
-      // opened; popstate calls us again with fromPop and does the real work.
-      if (history.state && history.state.bf) { history.back(); return; }
+      // opened — but ONLY if we pushed it during this page's life. history
+      // state survives a reload, so trusting it meant a reloaded deep link
+      // called history.back() into the pre-redirect /birds entry, which the
+      // server answered with a fresh seed and no hash: the bird vanished and
+      // the field re-shuffled.
+      if (pushedHere) { pushedHere = false; history.back(); return; }
       try { history.replaceState(null, "", location.pathname + location.search); }
       catch (e) { /* ignore */ }
     }
@@ -2055,7 +2061,7 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
     var t = tileFor(m[2]) || { slug: m[2], name: "", fam: "", src: "" };
     openSpecies(t);
   }
-  addEventListener("popstate", openFromHash);
+  addEventListener("popstate", function () { pushedHere = false; openFromHash(); });
   if (/^#(bird|family)\//.test(location.hash || "")) {
     // after first paint, so TILES/SEQ and the canvas are ready
     requestAnimationFrame(openFromHash);
