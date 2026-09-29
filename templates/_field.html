@@ -398,6 +398,19 @@ body.field-view .gallery-header.is-stuck{
   padding:.18rem .4rem;border-radius:3px}
 /* Nothing is repeated in here — one tile per bird — so the lift can be bolder. */
 .bf-canvas.overview:not(.drag) .bf-tile:hover{--lift:1.6}
+/* Survey <-> photos. Scaling the outgoing frame the way the zoom is heading
+   makes the two representations feel like one thing at two distances. */
+html.bf-zooming::view-transition-old(root),
+html.bf-zooming::view-transition-new(root){
+  animation-duration:.46s;animation-timing-function:cubic-bezier(.22,1,.36,1)}
+html.bf-zooming.bf-zoom-out::view-transition-old(root){animation-name:bfZoomOutOld}
+html.bf-zooming.bf-zoom-out::view-transition-new(root){animation-name:bfZoomOutNew}
+html.bf-zooming.bf-zoom-in::view-transition-old(root){animation-name:bfZoomInOld}
+html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew}
+@keyframes bfZoomOutOld{to{opacity:0;transform:scale(1.18)}}
+@keyframes bfZoomOutNew{from{opacity:0;transform:scale(.9)}}
+@keyframes bfZoomInOld{to{opacity:0;transform:scale(.86)}}
+@keyframes bfZoomInNew{from{opacity:0;transform:scale(1.14)}}
 </style>
 
 <section class="page wide bf" id="bf-root">
@@ -1044,8 +1057,28 @@ body.field-view .gallery-header.is-stuck{
      the same scaler that pinch uses. */
   window.bfScale = function (next) { applyScale(next); };
   window.bfBaseW = function () { return window.innerWidth < 620 ? 150 : 240; };
+  var zooming = false;
   function setOverview(on) {
-    if (on === OVERVIEW) return;
+    if (on === OVERVIEW || zooming) return;
+    var run = function () { applyOverview(on); };
+    if (matchMedia("(prefers-reduced-motion: reduce)").matches || !document.startViewTransition) {
+      run(); return;
+    }
+    // The whole field is replaced, so this is a root transition — a dissolve
+    // with a little scale, so the two representations read as the same thing
+    // seen from different distances rather than as two different pages.
+    zooming = true;
+    document.documentElement.classList.add("bf-zooming", on ? "bf-zoom-out" : "bf-zoom-in");
+    var vt;
+    try { vt = document.startViewTransition(run); }
+    catch (e) { zooming = false; document.documentElement.classList.remove("bf-zooming", "bf-zoom-out", "bf-zoom-in"); run(); return; }
+    vt.finished.catch(function () {}).then(function () {
+      zooming = false;
+      document.documentElement.classList.remove("bf-zooming", "bf-zoom-out", "bf-zoom-in");
+    });
+  }
+
+  function applyOverview(on) {
     OVERVIEW = on;
     var src = on ? SEQ_SPECIES : SEQ_PHOTOS;
     SEQ.length = 0;
