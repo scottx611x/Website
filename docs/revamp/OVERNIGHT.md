@@ -111,15 +111,23 @@ Newest last. One commit each; `git log master..HEAD` has the reasoning.
 
 ## Next up (priority order)
 
-1. **Stats page.** Scott: "a fuck ton going on", too long a scroll. Untouched
-   so far. A dashboard redesign was already rejected once — the ask is fewer
-   things at once and a clearer spine, not more chrome.
+1. **Stats page, continued.** The section nav is done (three acts, see
+   "Landed" #8) but the page is still a 6,800px scroll of eleven sections.
+   Remaining idea: give each act a title card so the scroll reads as three
+   movements rather than one dump. A dashboard redesign was already rejected
+   once — fewer things at once, not more chrome.
 2. **Live page** (`/birds/live`) — the mic feed; it should feel alive. Inherit
    the field's motion vocabulary.
 3. **Photography page** — shares the gallery machinery; could take the field.
 4. **Echo on touch** — desktop-only today (`@media (hover: none)` hides it).
 5. **A way into survey mode** — semantic zoom is only reachable by pinching or
    the size slider. It deserves a control that names it.
+
+8. **Stats section nav** — ten equal pills became three named acts (Over
+   time / Which birds / When & where), contiguous in scroll order so nothing
+   had to move. Only the act you are in expands; the rest collapse to their
+   label. *Gotcha:* `.stat-jump` pinned at `top: 0`, the same place the site
+   nav pins, with a lower z-index — so it was invisible whenever you scrolled.
 
 ## Uncommitted right now
 

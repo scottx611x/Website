@@ -903,7 +903,10 @@ a.stat-card:hover { border-color: var(--green); }
 
 /* Jump nav for the stats page. Ten sections over ~8 screens is unnavigable
    without it. Sticky, and itself horizontally scrollable when space is tight. */
-.stat-jump { position: sticky; top: 0; z-index: 30; display: flex; gap: 4px;
+/* top: 0 put this directly under the site nav, which also pins at 0 and
+   carries a higher z-index — so the section nav was simply hidden behind it
+   the moment you scrolled. It sits below the nav now. */
+.stat-jump { position: sticky; top: 2.9rem; z-index: 30; display: flex; gap: 4px;
   overflow-x: auto; scrollbar-width: none; padding: 0.55rem 0; margin: 0 0 1rem;
   background: rgba(244, 241, 233, 0.92); backdrop-filter: blur(10px);
   border-bottom: 1px solid rgba(13, 18, 14, 0.1); }
@@ -916,7 +919,28 @@ a.stat-card:hover { border-color: var(--green); }
 .stat-jump a.on { color: var(--ink); background: var(--paper);
   border-color: rgba(13, 18, 14, 0.18); }
 /* so a jumped-to heading isn't hidden under the sticky bar */
-.stat-block { scroll-margin-top: 4.2rem; }
+.stat-block { scroll-margin-top: 7rem; }
+.sj-act { display: flex; align-items: center; gap: 4px; flex: none; }
+.sj-act + .sj-act { margin-left: 0.5rem; padding-left: 0.75rem; border-left: 1px solid var(--line); }
+.sj-act b {
+    font-family: var(--mono); font-size: 0.64rem; font-weight: 500;
+    letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted);
+    padding: 0 0.3rem; white-space: nowrap; transition: color 0.18s ease;
+}
+.sj-act.on b { color: var(--green); }
+/* Sections of the act you are NOT in collapse away, so the row carries three
+   names plus the handful you are among — not ten things to choose between. */
+.sj-act a {
+    max-width: 0; padding-left: 0; padding-right: 0; opacity: 0; overflow: hidden;
+    transition: max-width 0.28s cubic-bezier(.22,1,.36,1), opacity 0.2s ease,
+                padding 0.28s cubic-bezier(.22,1,.36,1);
+}
+.sj-act a { border-width: 0; }                 /* else a 2px sliver remains */
+.sj-act.on a, .stat-jump:hover .sj-act a, .stat-jump:focus-within .sj-act a { border-width: 1px; }
+.sj-act.on a { max-width: 12rem; opacity: 1; padding-left: 0.75rem; padding-right: 0.75rem; }
+.stat-jump:hover .sj-act a,
+.stat-jump:focus-within .sj-act a { max-width: 12rem; opacity: 1; padding-left: 0.75rem; padding-right: 0.75rem; }
+@media (prefers-reduced-motion: reduce) { .sj-act a { transition: none; } }
 @media (max-width: 560px) { .stat-jump { padding: 0.45rem 0; } .stat-jump a { font-size: 0.68rem; } }
 .stat-block h2 { font-family: var(--display); font-size: 1.35rem; font-weight: 500; margin: 0 0 0.15rem; }
 
