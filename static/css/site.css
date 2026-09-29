@@ -355,6 +355,44 @@ body.home .site-nav { z-index: 0; }
 }
 /* One control now carries both species and families, so give it room. */
 .filter-search input { min-width: 20rem; }
+
+/* Search combobox. The panel is anchored to the field rather than the page so
+   it follows the input wherever the header puts it — including the field's
+   fixed bar, where a page-anchored panel would be left behind. */
+.bird-combo { position: relative; }
+.bird-combo.is-open input { border-color: var(--green); box-shadow: 0 0 0 3px rgba(47, 125, 79, 0.16); }
+.bird-combo-pop {
+    position: absolute; top: calc(100% + 0.4rem); left: 0; right: 0; z-index: 90;
+    max-height: min(22rem, 60vh); overflow-y: auto; overscroll-behavior: contain;
+    padding: 0.35rem; text-align: left;
+    background: var(--paper); border: 1px solid var(--line); border-radius: 12px;
+    box-shadow: 0 24px 48px -24px rgba(13, 18, 14, 0.55);
+}
+.bird-combo-pop[hidden] { display: none; }
+.bc-head, .bc-none {
+    font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.09em;
+    text-transform: uppercase; color: var(--muted);
+    margin: 0.3rem 0.6rem 0.4rem;
+}
+.bc-none { text-transform: none; letter-spacing: 0; font-size: 0.8rem; }
+.bc-opt {
+    display: flex; align-items: baseline; gap: 0.7rem; justify-content: space-between;
+    padding: 0.5rem 0.6rem; border-radius: 8px; cursor: pointer;
+}
+/* Hover and keyboard share one highlight, so there is never a second,
+   competing idea of which row is selected. */
+.bc-opt.on { background: rgba(47, 125, 79, 0.1); }
+.bc-name { font-size: 0.95rem; color: var(--ink); }
+.bc-name b { font-weight: 600; color: var(--green); }
+.bc-name.is-fam { font-family: var(--display); font-size: 1rem; }
+.bc-meta {
+    font-family: var(--mono); font-size: 0.7rem; color: var(--muted);
+    white-space: nowrap; flex: 0 0 auto;
+}
+@media (max-width: 560px) {
+    .bc-opt { flex-wrap: wrap; gap: 0 0.5rem; }
+    .bc-meta { flex-basis: 100%; }
+}
 .filter-search input::-webkit-search-cancel-button { -webkit-appearance: none; }
 .bird-select { position: relative; display: inline-block; }
 .bird-select select { cursor: pointer; min-width: 13rem; padding-right: 2.6rem; }

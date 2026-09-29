@@ -43,32 +43,31 @@
             <p class="bird-stat">
                 <a href="/birds?area=local" class="bird-stat-link{% if active_area == 'local' %} is-active{% endif %}" onclick="return birdsGo(event,{area:'local'})"><strong>{{ local_count }}</strong> species here</a>{% if away_count %} &middot; <a href="/birds?area=elsewhere" class="bird-stat-link bird-stat-away{% if active_area == 'elsewhere' %} is-active{% endif %}" onclick="return birdsGo(event,{area:'elsewhere'})">{{ away_count }} outside North Andover&nbsp;{{ icon('alert') }}</a>{% endif %}
             </p>
-            {# Two pill-shaped controls side by side — "Search species…" and
-               "Browse by family…" — cost most of a row and asked you to know
-               in advance which kind of thing you were after. One field now
-               offers both: the datalist lists every family alongside every
-               species, so "wood" turns up Woodpeckers (the family) and the
-               woodpeckers themselves together. #}
+            {# A <datalist> cannot rank, group, or be styled: it matched on
+               raw substring, offered all 154 entries in one flat list, and
+               looked like nothing else on the site. This is a real combobox —
+               families and species ranked together, keyboard-driven, and
+               showing the families as a browsable menu when empty, which is
+               the job the old "Browse by family…" select used to do. #}
             <div class="filter-controls">
-                <div class="filter-search">
-                    <input type="search" id="speciesSearch" list="speciesList" autocomplete="off"
+                <div class="filter-search bird-combo" id="birdCombo">
+                    <input type="search" id="speciesSearch" autocomplete="off"
+                           role="combobox" aria-expanded="false" aria-controls="birdComboList"
+                           aria-autocomplete="list" aria-haspopup="listbox"
                            placeholder="{% if active_birds or active_family %}Add a bird or family&hellip;{% else %}Search birds &amp; families&hellip;{% endif %}" value=""
-                           aria-label="Search for a species or a family"
-                           onchange="birdPick(this.value)"
-                           onkeydown="if(event.key==='Enter'){birdPick(this.value);return false;}">
-                    <datalist id="speciesList">
-                        {% for family, sp in species_groups %}<option value="{{ family }} (family)">{{ sp|length }} species &middot; {{ family_counts[family] }} photos</option>{% for name, count in sp %}<option value="{{ name }}">{{ family }} &middot; {{ count }}</option>{% endfor %}{% endfor %}
-                    </datalist>
+                           aria-label="Search for a species or a family">
+                    <div class="bird-combo-pop" id="birdComboList" role="listbox" hidden
+                         aria-label="Species and families"></div>
                 </div>
+            </div>
             </div>
         </div>
         <script>
             var BIRD_FAMILIES = [{% for family, sp in species_groups %}{{ family|tojson }}{% if not loop.last %},{% endif %}{% endfor %}];
+            var BIRD_INDEX = {{ search_index|tojson }};
             function birdPick(v) {
                 v = (v || "").trim();
                 if (!v) return false;
-                var m = /^(.*)\s+\(family\)$/.exec(v);
-                if (m) return birdsGo(null, { family: m[1], bird: "" });
                 for (var i = 0; i < BIRD_FAMILIES.length; i++) {
                     if (BIRD_FAMILIES[i].toLowerCase() === v.toLowerCase()) {
                         return birdsGo(null, { family: BIRD_FAMILIES[i], bird: "" });
@@ -76,6 +75,161 @@
                 }
                 return birdsGo(null, { addBird: v });
             }
+
+            /* Search box.
+             *
+             * Ranking matters more than matching here: "wood" should put the
+             * Woodpeckers family and Wood Duck above Eastern Wood-Pewee, and a
+             * <datalist> has no way to express that. Prefix beats word-start
+             * beats anywhere, and within a tier the better-photographed bird
+             * wins, because that is what you are more likely to be after.
+             */
+            (function () {
+                var box = document.getElementById("birdCombo");
+                var input = document.getElementById("speciesSearch");
+                var pop = document.getElementById("birdComboList");
+                if (!box || !input || !pop) return;
+
+                var FAMS = (BIRD_INDEX.families || []).map(function (f) {
+                    return { kind: "family", name: f.n, count: f.c, meta: f.k + " species · " + f.c + " photos" };
+                });
+                var SPS = (BIRD_INDEX.species || []).map(function (s) {
+                    return { kind: "species", name: s.n, count: s.c,
+                             meta: s.f + " · " + s.c + (s.c === 1 ? " photo" : " photos"), fam: s.f };
+                });
+                var MAX = 10;
+                var items = [], active = -1, open = false;
+
+                function tier(hay, q) {
+                    var i = hay.toLowerCase().indexOf(q);
+                    if (i < 0) return -1;
+                    if (i === 0) return 0;
+                    return /[\s\-]/.test(hay.charAt(i - 1)) ? 1 : 2;   // word start, else inside
+                }
+
+                function rank(q) {
+                    var hits = [];
+                    FAMS.concat(SPS).forEach(function (o) {
+                        var t = tier(o.name, q);
+                        // A species also answers to its family name, one tier down,
+                        // so "hawk" surfaces the hawks even where the bird is an eagle.
+                        if (t < 0 && o.fam) { var ft = tier(o.fam, q); if (ft >= 0) t = ft + 3; }
+                        if (t < 0) return;
+                        // Families first within a tier: picking one is the broader,
+                        // more likely-useful move when the word matches both.
+                        hits.push({ o: o, t: t, f: o.kind === "family" ? 0 : 1 });
+                    });
+                    hits.sort(function (a, b) {
+                        return (a.t - b.t) || (a.f - b.f) || (b.o.count - a.o.count) ||
+                               a.o.name.localeCompare(b.o.name);
+                    });
+                    return hits.slice(0, MAX).map(function (x) { return x.o; });
+                }
+
+                function esc(s) {
+                    return String(s).replace(/[&<>"]/g, function (c) {
+                        return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c];
+                    });
+                }
+                function mark(name, q) {
+                    if (!q) return esc(name);
+                    var i = name.toLowerCase().indexOf(q);
+                    if (i < 0) return esc(name);
+                    return esc(name.slice(0, i)) + "<b>" + esc(name.slice(i, i + q.length)) +
+                           "</b>" + esc(name.slice(i + q.length));
+                }
+
+                function render(q) {
+                    // Empty box: offer the families as a menu. That is the job the
+                    // old "Browse by family…" select did, and losing it would make
+                    // the box useless until you already knew what to type.
+                    items = q ? rank(q) : FAMS.slice();
+                    active = -1;
+                    if (!items.length) {
+                        pop.innerHTML = '<p class="bc-none">No bird or family matches ' +
+                                        '“' + esc(q) + '”</p>';
+                        return;
+                    }
+                    pop.innerHTML = (q ? "" : '<p class="bc-head">Browse by family</p>') +
+                        items.map(function (o, i) {
+                            return '<div class="bc-opt" role="option" aria-selected="false" ' +
+                                   'id="bc-opt-' + i + '" data-i="' + i + '">' +
+                                   '<span class="bc-name' + (o.kind === "family" ? " is-fam" : "") + '">' +
+                                   mark(o.name, q) + '</span>' +
+                                   '<span class="bc-meta">' + esc(o.meta) + '</span></div>';
+                        }).join("");
+                }
+
+                function setOpen(v) {
+                    open = v;
+                    pop.hidden = !v;
+                    box.classList.toggle("is-open", v);
+                    input.setAttribute("aria-expanded", v ? "true" : "false");
+                    if (!v) { input.removeAttribute("aria-activedescendant"); active = -1; }
+                }
+                function highlight(i) {
+                    var opts = pop.querySelectorAll(".bc-opt");
+                    if (!opts.length) return;
+                    if (active >= 0 && opts[active]) {
+                        opts[active].classList.remove("on");
+                        opts[active].setAttribute("aria-selected", "false");
+                    }
+                    active = (i + opts.length) % opts.length;
+                    opts[active].classList.add("on");
+                    opts[active].setAttribute("aria-selected", "true");
+                    input.setAttribute("aria-activedescendant", opts[active].id);
+                    // keep the highlighted row in view when arrowing past the fold
+                    var o = opts[active], top = o.offsetTop, bot = top + o.offsetHeight;
+                    if (top < pop.scrollTop) pop.scrollTop = top;
+                    else if (bot > pop.scrollTop + pop.clientHeight) pop.scrollTop = bot - pop.clientHeight;
+                }
+                function choose(o) {
+                    if (!o) return;
+                    setOpen(false);
+                    if (o.kind === "family") birdsGo(null, { family: o.name, bird: "" });
+                    else birdsGo(null, { addBird: o.name });
+                }
+
+                input.addEventListener("input", function () {
+                    render(input.value.trim().toLowerCase());
+                    setOpen(true);
+                });
+                input.addEventListener("focus", function () {
+                    render(input.value.trim().toLowerCase());
+                    setOpen(true);
+                });
+                input.addEventListener("keydown", function (e) {
+                    if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+                        e.preventDefault();
+                        if (!open) { render(input.value.trim().toLowerCase()); setOpen(true); }
+                        highlight(active + (e.key === "ArrowDown" ? 1 : -1));
+                    } else if (e.key === "Enter") {
+                        e.preventDefault();
+                        // Enter with nothing highlighted takes the top match, which
+                        // is what "type and hit return" should obviously do.
+                        choose(active >= 0 ? items[active] : items[0]);
+                        if (!items.length) birdPick(input.value);
+                    } else if (e.key === "Escape") {
+                        if (open) { e.stopPropagation(); setOpen(false); }
+                    } else if (e.key === "Tab") {
+                        setOpen(false);
+                    }
+                });
+                pop.addEventListener("mousedown", function (e) {
+                    // mousedown, not click: blur would close the list first
+                    var o = e.target.closest(".bc-opt");
+                    if (!o) return;
+                    e.preventDefault();
+                    choose(items[+o.dataset.i]);
+                });
+                pop.addEventListener("mousemove", function (e) {
+                    var o = e.target.closest(".bc-opt");
+                    if (o) highlight(+o.dataset.i);
+                });
+                document.addEventListener("click", function (e) {
+                    if (!box.contains(e.target)) setOpen(false);
+                });
+            })();
         </script>
         <p class="media-stat mono">
             <a class="media-link{% if active_media == 'photo' %} on{% endif %}" onclick="birdsGo(null,{media:'{{ '' if active_media == 'photo' else 'photo' }}'})"><strong>{{ media_n.photos }}</strong> photo{{ 's' if media_n.photos != 1 }}</a>{% if media_n.videos %} &middot; <a class="media-link{% if active_media == 'video' %} on{% endif %}" onclick="birdsGo(null,{media:'{{ '' if active_media == 'video' else 'video' }}'})"><strong>{{ media_n.videos }}</strong> video{{ 's' if media_n.videos != 1 }}</a>{% endif %}

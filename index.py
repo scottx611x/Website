@@ -631,6 +631,15 @@ def birds_gallery():
         active_month_display=datetime.date(2000, month, 1).strftime("%B") if month else "",
         active_review=review,
         review_counts=review_counts,
+        # Flat, ranked-over-in-the-browser index for the search box. Built here
+        # rather than in the template because a species has to keep its family
+        # and the nested Jinja loop that would take is unreadable.
+        search_index={
+            "families": [{"n": fam, "k": len(sp), "c": family_counts.get(fam, 0)}
+                         for fam, sp in display_groups],
+            "species": [{"n": nm, "f": fam, "c": ct}
+                        for fam, sp in display_groups for nm, ct in sp],
+        },
         # What the gallery is currently scoped to, handed to the field so the
         # detail view can reflect it: a bird opened while browsing Woodpeckers
         # should say so and let you step through the rest of the family, and
