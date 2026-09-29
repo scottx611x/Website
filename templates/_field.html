@@ -336,6 +336,13 @@ body.field-view .gallery-header.is-stuck{
 .bf-ctxnav .bf-ico{width:22px;height:22px}
 .bf-ctxnav .bf-ico[disabled]{opacity:.3;cursor:default}
 .bf-scoped{color:rgba(244,241,233,.6);font-size:.7rem}
+.bf-fams{display:flex;flex-wrap:wrap;gap:.35rem;margin:.7rem 0 0}
+.bf-fams[hidden]{display:none}
+.bf-fams button{font:inherit;font-family:var(--mono);font-size:.72rem;cursor:pointer;
+  display:inline-flex;align-items:baseline;gap:.35rem;padding:.3rem .6rem;border-radius:999px;
+  background:rgba(244,241,233,.08);border:1px solid rgba(244,241,233,.18);color:rgba(244,241,233,.86)}
+.bf-fams button:hover{border-color:rgba(244,241,233,.5);background:rgba(244,241,233,.16)}
+.bf-fams button i{font-style:normal;color:rgba(244,241,233,.5)}
 </style>
 
 <section class="page wide bf" id="bf-root">
@@ -408,6 +415,7 @@ body.field-view .gallery-header.is-stuck{
       <div>
         <h3>By the numbers</h3>
         <dl class="bf-facts" id="bf-ofacts"></dl>
+        <div class="bf-fams" id="bf-ospecies" hidden></div>
       </div>
 
       <div>
@@ -547,10 +555,62 @@ body.field-view .gallery-header.is-stuck{
     }
     TOTAL = pre[L];
   }
+
+  /* A small set cannot fill an endless plane. Every column is the whole
+     sequence at a different rotation, so with a handful of frames the SAME
+     pictures appear several times on one screen — measured at 1440x860, two
+     frames showed four copies each and one frame showed eight. No spacing
+     trick fixes that; the plane is simply the wrong shape.
+
+     So below the point where the sequence can fill a couple of screens, the
+     field lays every frame out exactly once and stops wrapping. You pan a
+     finite block and reach its edges, which is honest, instead of walking
+     forever past the same bird. */
+  var FINITE = false, PLACE = null, CONTENT_W = 0, CONTENT_H = 0;
+
+  function perScreen() {
+    var cw = COL_W + GAP;
+    return Math.max(1, Math.ceil((canvas.clientWidth / cw) *
+                                 (canvas.clientHeight / (COL_W * 0.8 + GAP))));
+  }
+
+  function placeFinite() {
+    var cw = COL_W + GAP;
+    var nc = Math.max(1, Math.min(L, Math.floor((canvas.clientWidth - GAP) / cw)));
+    var cols = [], hs = [];
+    for (var c = 0; c < nc; c++) { cols.push([]); hs.push(0); }
+    for (var i = 0; i < L; i++) {
+      var th = Math.round(COL_W * ratio[i]);
+      var m = 0;
+      for (var c2 = 1; c2 < nc; c2++) if (hs[c2] < hs[m]) m = c2;   // shortest column
+      cols[m].push({ i: i, y: hs[m], h: th });
+      hs[m] += th + GAP;
+    }
+    PLACE = cols;
+    CONTENT_W = nc * cw - GAP;
+    CONTENT_H = Math.max.apply(null, hs) - GAP;
+  }
+
+  function planLayout() {
+    FINITE = L > 0 && L < perScreen() * 1.5;
+    if (FINITE) placeFinite(); else { PLACE = null; }
+  }
+
+  // After the var statements above, not before them: `var FINITE = false` runs
+  // at this point in the body, so calling planLayout() earlier set the flag
+  // and then had it reset out from under it — the finite layout was computed
+  // and then silently ignored.
   rebuild();
+  planLayout();
 
   // column c is the sequence rotated by c*STRIDE; y is a prefix difference
   function at(c, r) {
+    if (FINITE) {
+      var col = PLACE && PLACE[c];
+      if (!col || r < 0 || r >= col.length) return null;   // past the edge
+      var s = col[r];
+      return { i: s.i, t: TILES[SEQ[s.i]], y: s.y, h: s.h };
+    }
     var base = ((c * STRIDE) % L + L) % L;
     var k = base + r, lap = Math.floor(k / L), i = ((k % L) + L) % L;
     return { i: i, t: TILES[SEQ[i]],
@@ -558,6 +618,16 @@ body.field-view .gallery-header.is-stuck{
              h: Math.round(COL_W * ratio[i]) };
   }
   function slotAtY(c, y) {                 // invert: first slot at/after y
+    if (FINITE) {
+      var col = PLACE && PLACE[c];
+      if (!col) return 0;
+      var lo = 0, hi = col.length;
+      while (lo < hi) {
+        var mid = (lo + hi) >> 1;
+        if (col[mid].y + col[mid].h < y) lo = mid + 1; else hi = mid;
+      }
+      return lo;
+    }
     var base = ((c * STRIDE) % L + L) % L;
     var target = y + pre[base];
     var lap = Math.floor(target / TOTAL), rem = target - lap * TOTAL;
@@ -569,7 +639,9 @@ body.field-view .gallery-header.is-stuck{
   var live = {}, px = 0, py = 0, vx = 0, vy = 0, glide = null, pending = false;
 
   function build(c, r) {
-    var d = at(c, r), t = d.t;
+    var d = at(c, r);
+    if (!d) return null;
+    var t = d.t;
     var a = document.createElement("a");
     a.className = "bf-tile";
     a.href = "/birds/species/" + t.slug;
@@ -608,15 +680,35 @@ body.field-view .gallery-header.is-stuck{
       var r = slotAtY(c, -py - M);
       for (var guard = 0; guard < 80; guard++, r++) {
         var d = at(c, r);
+        if (!d) break;                     // finite: end of this column
         if (d.y > -py + vh + M) break;
         var k = c + "," + r;
         need[k] = 1;
-        if (!live[k]) live[k] = build(c, r);
+        if (!live[k]) { var el = build(c, r); if (el) live[k] = el; }
       }
     }
     for (var k2 in live) if (!need[k2]) { live[k2].remove(); delete live[k2]; }
   }
+  /* With no wrap there is an edge, so panning has to stop at it — otherwise
+     you drift off into blank paper and the field looks broken. A little
+     overscroll is allowed so the edge feels like an edge rather than a wall. */
+  function clampPan() {
+    if (!FINITE) return;
+    var vw = canvas.clientWidth, vh = canvas.clientHeight, PAD = 40;
+    if (CONTENT_W + PAD * 2 <= vw) {
+      px = Math.round((vw - CONTENT_W) / 2);          // narrower than the screen: centre it
+    } else {
+      px = Math.min(PAD, Math.max(vw - CONTENT_W - PAD, px));
+    }
+    if (CONTENT_H + PAD * 2 <= vh) {
+      py = Math.round((vh - CONTENT_H) / 2);
+    } else {
+      py = Math.min(PAD, Math.max(vh - CONTENT_H - PAD, py));
+    }
+  }
+
   function apply() {
+    clampPan();
     // Fractional, not rounded: the plane is its own composited layer, so
     // sub-pixel offsets cost nothing and a slow drift stops stepping 1px at
     // a time, which is what made the idle motion look jagged.
@@ -856,6 +948,7 @@ body.field-view .gallery-header.is-stuck{
     var fy = TOTAL ? (-py + vh / 2) / TOTAL : 0;
     COL_W = next;
     rebuild();
+    planLayout();
     px = -(fx * (COL_W + GAP) - vw / 2);
     py = -(fy * TOTAL - vh / 2);
     clearLive();
@@ -1153,6 +1246,7 @@ body.field-view .gallery-header.is-stuck{
   }
   function paintCtx(slug) {
     var box = $("bf-octx"), lab = $("bf-octxlab");
+    if (CTX.family_slug && !(CTX.birds && CTX.birds.length)) { box.hidden = true; return; }
     var label = ctxLabel(), i = ctxIndex(slug);
     // Nothing to say when the view is the whole collection and unfiltered.
     if ((!label && VIEW_SPECIES.length < 2) || i < 0) { box.hidden = true; return; }
@@ -1197,11 +1291,21 @@ body.field-view .gallery-header.is-stuck{
     $("bf-ostrip").innerHTML = new Array(9).join("x").split("x").map(function () {
       return '<span class="bf-sk" style="width:58px;height:58px;flex:none"></span>';
     }).join("");
-    $("bf-ofull").href = "/birds/species/" + t.slug;
+    // Browsing a family and clicking a bird used to drop you into that one
+    // species, losing the view you were in. Open the family instead; the
+    // individual birds are one click away inside it.
+    var famMode = !!(CTX.family_slug && !(CTX.birds && CTX.birds.length));
+    if (famMode) {
+      $("bf-otitle").textContent = CTX.family;
+      $("bf-ofam").textContent = "";
+    }
+    $("bf-ofull").href = famMode ? ("/birds?family=" + encodeURIComponent(CTX.family))
+                                 : ("/birds/species/" + t.slug);
     stop();
     scrollAt = window.scrollY || 0;
     over.classList.add("open"); document.body.style.overflow = "hidden";
-    fetch("/birds/species/" + t.slug + ".json")
+    fetch(famMode ? ("/birds/family/" + CTX.family_slug + ".json")
+                  : ("/birds/species/" + t.slug + ".json"))
       .then(function (r) {
         if (!r.ok) throw new Error("detail request failed: " + r.status);
         return r.json();
@@ -1225,16 +1329,44 @@ body.field-view .gallery-header.is-stuck{
     // "Frames" was jargon; say what they are, and only mention video when
     // there actually is some.
     var imgN = (d.images != null) ? d.images : (d.count || 0);
-    [[(d.videos ? "Images / Videos" : "Images"),
-      (d.videos ? imgN + " / " + d.videos : imgN)],
-     ["Lifer", (d.rank || "—") + "/" + (d.total || "—")],
-     ["Recordings", (h.count || 0).toLocaleString()],
-     ["Clearest call", h.max ? Math.round(h.max * 100) + "%" : "—"]
-    ].forEach(function (kv) {
+    var fam = d.kind === "family";
+    // A family has no lifer rank and no single call, so those rows would read
+    // as missing data rather than as not applicable.
+    (fam
+      ? [[(d.videos ? "Images / Videos" : "Images"),
+          (d.videos ? imgN + " / " + d.videos : imgN)],
+         ["Species", (d.species || []).length],
+         ["First seen", (d.first || "—").slice(0, 10)],
+         ["Latest", (d.last || "—").slice(0, 10)]]
+      : [[(d.videos ? "Images / Videos" : "Images"),
+          (d.videos ? imgN + " / " + d.videos : imgN)],
+         ["Lifer", (d.rank || "—") + "/" + (d.total || "—")],
+         ["Recordings", (h.count || 0).toLocaleString()],
+         ["Clearest call", h.max ? Math.round(h.max * 100) + "%" : "—"]]
+    ).forEach(function (kv) {
       var el = document.createElement("div");
       el.innerHTML = "<dt>" + esc(kv[0]) + "</dt><dd>" + esc(kv[1]) + "</dd>";
       $("bf-ofacts").appendChild(el);
     });
+
+    // The subtitle slot holds the family line ("2 species · 63 photos"),
+    // which openSpecies cleared because the tile's own family is wrong there.
+    if (fam) $("bf-ofam").textContent = d.family || "";
+
+    var sbox = $("bf-ospecies");
+    if (fam && (d.species || []).length) {
+      sbox.hidden = false;
+      sbox.innerHTML = d.species.map(function (s) {
+        return '<button type="button" data-slug="' + esc(s.slug) + '" data-name="' +
+               esc(s.name) + '">' + esc(s.name) + ' <i>' + s.count + '</i></button>';
+      }).join("");
+      sbox.onclick = function (e) {
+        var btn = e.target.closest("button"); if (!btn) return;
+        // Straight to that bird's own profile — the family view is the
+        // overview, not a dead end.
+        location.href = "/birds/species/" + btn.dataset.slug;
+      };
+    } else { sbox.hidden = true; sbox.innerHTML = ""; sbox.onclick = null; }
 
     frames = scopeFrames(d.frames || []);
     // Say so when the strip is showing a subset — otherwise a bird you know

@@ -239,7 +239,7 @@
         <div class="view-menu" id="viewMenu">
             <button type="button" class="vm-btn" id="vmBtn" aria-expanded="false" aria-haspopup="true" aria-controls="vmPop">
                 <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18"/><path d="M7 12h10"/><path d="M11 18h2"/></svg>
-                <span id="vmLabel">{% if view == 'field' %}{% if not active_sort %}Shuffled{% elif active_sort == 'oldest' %}Oldest{% else %}Newest{% endif %}{% else %}{% if not active_sort %}Shuffled{% elif active_sort == 'posted' %}Newest post{% elif active_sort == 'recent' %}Newest sighting{% else %}Oldest{% endif %}{% endif %}</span>
+                <span id="vmLabel">{% if not active_sort %}Shuffled{% elif active_sort == 'posted' %}Newest post{% elif active_sort == 'recent' %}Newest sighting{% else %}Oldest{% endif %}</span>
                 <svg class="vm-chev" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
             </button>
             <div class="vm-pop" id="vmPop" hidden role="menu" aria-label="View options">
@@ -247,9 +247,9 @@
 
                 <p class="vm-head">Order</p>
                 <button type="button" role="menuitemradio" class="vm-opt{% if not active_sort %} on{% endif %}" aria-checked="{{ 'true' if not active_sort else 'false' }}" onclick="birdsGo(null,{sort:'',seed:String(Math.floor(Math.random()*1e9))})">Shuffle<span class="vm-sub">a new arrangement each time</span></button>
-                {% if view != 'field' %}<button type="button" role="menuitemradio" class="vm-opt{% if active_sort == 'posted' %} on{% endif %}" aria-checked="{{ 'true' if active_sort == 'posted' else 'false' }}" onclick="birdsGo(null,{sort:'posted'})">Newest post<span class="vm-sub">when it went up</span></button>{% endif %}
-                <button type="button" role="menuitemradio" class="vm-opt{% if active_sort == 'recent' %} on{% endif %}" aria-checked="{{ 'true' if active_sort == 'recent' else 'false' }}" onclick="birdsGo(null,{sort:'recent'})">{% if view == 'field' %}Newest{% else %}Newest sighting{% endif %}<span class="vm-sub">{% if view == 'field' %}recent frames throughout{% else %}when the bird was seen{% endif %}</span></button>
-                <button type="button" role="menuitemradio" class="vm-opt{% if active_sort == 'oldest' %} on{% endif %}" aria-checked="{{ 'true' if active_sort == 'oldest' else 'false' }}" onclick="birdsGo(null,{sort:'oldest'})">Oldest<span class="vm-sub">{% if view == 'field' %}older frames throughout{% else %}from the beginning{% endif %}</span></button>
+                <button type="button" role="menuitemradio" class="vm-opt{% if active_sort == 'posted' %} on{% endif %}" aria-checked="{{ 'true' if active_sort == 'posted' else 'false' }}" onclick="birdsGo(null,{sort:'posted'})">Newest post<span class="vm-sub">when it went up</span></button>
+                <button type="button" role="menuitemradio" class="vm-opt{% if active_sort == 'recent' %} on{% endif %}" aria-checked="{{ 'true' if active_sort == 'recent' else 'false' }}" onclick="birdsGo(null,{sort:'recent'})">Newest sighting<span class="vm-sub">when the bird was seen</span></button>
+                <button type="button" role="menuitemradio" class="vm-opt{% if active_sort == 'oldest' %} on{% endif %}" aria-checked="{{ 'true' if active_sort == 'oldest' else 'false' }}" onclick="birdsGo(null,{sort:'oldest'})">Oldest<span class="vm-sub">from the beginning</span></button>
 
                 {% if media_n.videos %}
                 <p class="vm-head">Show</p>
