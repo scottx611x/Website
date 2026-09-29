@@ -21,3 +21,4 @@ birds/sound_export.err
 sound-station/exporter.env
 birds_incoming/
 manual_imports/
+.deploy-venv/
