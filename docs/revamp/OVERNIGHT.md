@@ -108,6 +108,11 @@ Newest last. One commit each; `git log master..HEAD` has the reasoning.
    bottom, `mix-blend-mode: difference` so it stays legible over any photo.
    Listens on the canvas, not per-tile, and only writes when the species
    actually changes.
+8. **Stats section nav** — ten equal pills became three named acts (Over
+   time / Which birds / When & where), contiguous in scroll order so nothing
+   had to move. Only the act you are in expands; the rest collapse to their
+   label. *Gotcha:* `.stat-jump` pinned at `top: 0`, the same place the site
+   nav pins, with a lower z-index — so it was invisible whenever you scrolled.
 
 ## Next up (priority order)
 
@@ -122,12 +127,6 @@ Newest last. One commit each; `git log master..HEAD` has the reasoning.
 4. **Echo on touch** — desktop-only today (`@media (hover: none)` hides it).
 5. **A way into survey mode** — semantic zoom is only reachable by pinching or
    the size slider. It deserves a control that names it.
-
-8. **Stats section nav** — ten equal pills became three named acts (Over
-   time / Which birds / When & where), contiguous in scroll order so nothing
-   had to move. Only the act you are in expands; the rest collapse to their
-   label. *Gotcha:* `.stat-jump` pinned at `top: 0`, the same place the site
-   nav pins, with a lower z-index — so it was invisible whenever you scrolled.
 
 ## Uncommitted right now
 
