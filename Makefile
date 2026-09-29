@@ -3,10 +3,35 @@
 ## deploy: stamp version.txt with HEAD (busts the 1-year asset cache) + zappa update.
 ## Always deploy with this, never bare `zappa update` — zappa zeroes file mtimes in
 ## the package, so version.txt is the ONLY thing that rotates the css/js cache key.
+## deploy: package from a clean production venv and ship it
+#
+# NOT from .venv. Zappa packages whatever virtualenv it is run from, and the
+# dev venv produced a zip with werkzeug MISSING — the Lambda then died at
+# import with "No module named 'werkzeug'" and the site 502'd. (Rolling back
+# was worse: the previous Lambda version was old enough to contain Python 2.7
+# bytecode, so it failed too.) A venv built from requirements.txt alone
+# packages cleanly.
+#
+# The zip is inspected before it goes anywhere, because "it uploaded" and "it
+# imports" turned out to be very different things.
+DEPLOY_VENV := .deploy-venv
+
 deploy:
+	@test -d $(DEPLOY_VENV) || python3.12 -m venv $(DEPLOY_VENV)
+	@$(DEPLOY_VENV)/bin/pip install -q --upgrade pip
+	@$(DEPLOY_VENV)/bin/pip install -q -r requirements.txt "zappa==0.62.1"
 	git rev-parse --short HEAD > version.txt
-	.venv/bin/zappa update production
+	@rm -f /tmp/zappa-pkg.zip
+	@VIRTUAL_ENV=$(PWD)/$(DEPLOY_VENV) PATH=$(PWD)/$(DEPLOY_VENV)/bin:$$PATH \
+		$(DEPLOY_VENV)/bin/zappa package production -o /tmp/zappa-pkg.zip >/dev/null
+	@python3 -c "import zipfile,sys; \
+		n=zipfile.ZipFile('/tmp/zappa-pkg.zip').namelist(); \
+		missing=[m for m in ('werkzeug/__init__.py','flask/__init__.py','jinja2/__init__.py','handler.py','index.py') if m not in n]; \
+		sys.exit('REFUSING TO DEPLOY - package is missing: %s' % missing) if missing else print('package OK (%d entries)' % len(n))"
+	@VIRTUAL_ENV=$(PWD)/$(DEPLOY_VENV) PATH=$(PWD)/$(DEPLOY_VENV)/bin:$$PATH \
+		$(DEPLOY_VENV)/bin/zappa update production
 	@echo "deployed $$(cat version.txt)"
+	@curl -sL -o /dev/null -w "live check: / = %{http_code}\n" --max-time 45 https://www.scott-ouellette.com/
 
 ## ci: run the containerized test suite via Earthly (local CI)
 ci:
