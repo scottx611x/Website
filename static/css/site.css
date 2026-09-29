@@ -1177,15 +1177,22 @@ a.ear-daily:hover .ear-day:not(.zero) { filter: brightness(1.08); }
     opacity: 0; transform: translateY(-3px); pointer-events: none; transition: opacity 0.15s ease, transform 0.15s ease;
 }
 .away-badge:hover::after, .away-badge:focus::after { opacity: 1; transform: translateY(0); }
-/* Where the card is too narrow for the note, it spans the card: the badge is
-   0.5rem in from the right, so matching that on both sides lines it up. */
+/* Keep the note inside the card. It stays anchored to the badge's right edge
+   and is simply never allowed to be wider than the card minus its margins —
+   the earlier version computed a negative `left` from the card width by hand,
+   which put the box's left edge outside the card on some sizes, where
+   overflow:hidden sliced the text off and left a dark empty sliver. */
 @supports (width: 1cqw) {
     .shot { container-type: inline-size; }
-    @container (max-width: 17rem) {
-        .away-badge::after {
-            right: 0; left: calc(-1 * (100cqw - 2.7rem));
-            width: auto; max-width: none; white-space: normal;
-        }
+    .away-badge::after {
+        max-width: min(15rem, calc(100cqw - 1rem));
+        white-space: normal; overflow-wrap: anywhere;
+    }
+    /* At the smallest thumbnail sizes the card is narrower than the words, so
+       the note becomes a one-character-wide column fourteen lines tall. The
+       badge still says "out of area" and the caption still names the place. */
+    @container (max-width: 10rem) {
+        .away-badge::after { display: none; }
     }
 }
 /* In curate mode the × lives top-right, so shift the ⚠️ badge clear of it. */
