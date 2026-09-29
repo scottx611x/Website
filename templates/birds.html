@@ -43,33 +43,40 @@
             <p class="bird-stat">
                 <a href="/birds?area=local" class="bird-stat-link{% if active_area == 'local' %} is-active{% endif %}" onclick="return birdsGo(event,{area:'local'})"><strong>{{ local_count }}</strong> species here</a>{% if away_count %} &middot; <a href="/birds?area=elsewhere" class="bird-stat-link bird-stat-away{% if active_area == 'elsewhere' %} is-active{% endif %}" onclick="return birdsGo(event,{area:'elsewhere'})">{{ away_count }} outside North Andover&nbsp;{{ icon('alert') }}</a>{% endif %}
             </p>
+            {# Two pill-shaped controls side by side — "Search species…" and
+               "Browse by family…" — cost most of a row and asked you to know
+               in advance which kind of thing you were after. One field now
+               offers both: the datalist lists every family alongside every
+               species, so "wood" turns up Woodpeckers (the family) and the
+               woodpeckers themselves together. #}
             <div class="filter-controls">
                 <div class="filter-search">
                     <input type="search" id="speciesSearch" list="speciesList" autocomplete="off"
-                           placeholder="{% if active_birds %}Add another species&hellip;{% else %}Search species&hellip;{% endif %}" value=""
-                           aria-label="Search species"
-                           onchange="birdsGo(null,{addBird:this.value})"
-                           onkeydown="if(event.key==='Enter')birdsGo(null,{addBird:this.value})">
+                           placeholder="{% if active_birds or active_family %}Add a bird or family&hellip;{% else %}Search birds &amp; families&hellip;{% endif %}" value=""
+                           aria-label="Search for a species or a family"
+                           onchange="birdPick(this.value)"
+                           onkeydown="if(event.key==='Enter'){birdPick(this.value);return false;}">
                     <datalist id="speciesList">
-                        {% for family, sp in species_groups %}{% for name, count in sp %}<option value="{{ name }}">{{ family }} ({{ count }})</option>{% endfor %}{% endfor %}
+                        {% for family, sp in species_groups %}<option value="{{ family }} (family)">{{ sp|length }} species &middot; {{ family_counts[family] }} photos</option>{% for name, count in sp %}<option value="{{ name }}">{{ family }} &middot; {{ count }}</option>{% endfor %}{% endfor %}
                     </datalist>
-                </div>
-                <div class="bird-select">
-                    <select id="familyFilter" aria-label="Browse by family or species"
-                            onchange="var v=this.value; if(v.indexOf('fam:')===0){birdsGo(null,{family:v.slice(4),bird:''})}else if(v){birdsGo(null,{addBird:v})}">
-                        <option value="">{% if active_birds %}Add another family&hellip;{% else %}Browse by family&hellip;{% endif %}</option>
-                        {% for family, sp in species_groups %}
-                        <optgroup label="{{ family }}">
-                            <option value="fam:{{ family }}"{% if family == active_family and not active_birds %} selected{% endif %}>&#9656; All {{ family }} ({{ family_counts[family] }})</option>
-                            {% for name, count in sp %}
-                            <option value="{{ name }}">{{ name }} ({{ count }})</option>
-                            {% endfor %}
-                        </optgroup>
-                        {% endfor %}
-                    </select>
                 </div>
             </div>
         </div>
+        <script>
+            var BIRD_FAMILIES = [{% for family, sp in species_groups %}{{ family|tojson }}{% if not loop.last %},{% endif %}{% endfor %}];
+            function birdPick(v) {
+                v = (v || "").trim();
+                if (!v) return false;
+                var m = /^(.*)\s+\(family\)$/.exec(v);
+                if (m) return birdsGo(null, { family: m[1], bird: "" });
+                for (var i = 0; i < BIRD_FAMILIES.length; i++) {
+                    if (BIRD_FAMILIES[i].toLowerCase() === v.toLowerCase()) {
+                        return birdsGo(null, { family: BIRD_FAMILIES[i], bird: "" });
+                    }
+                }
+                return birdsGo(null, { addBird: v });
+            }
+        </script>
         <p class="media-stat mono">
             <a class="media-link{% if active_media == 'photo' %} on{% endif %}" onclick="birdsGo(null,{media:'{{ '' if active_media == 'photo' else 'photo' }}'})"><strong>{{ media_n.photos }}</strong> photo{{ 's' if media_n.photos != 1 }}</a>{% if media_n.videos %} &middot; <a class="media-link{% if active_media == 'video' %} on{% endif %}" onclick="birdsGo(null,{media:'{{ '' if active_media == 'video' else 'video' }}'})"><strong>{{ media_n.videos }}</strong> video{{ 's' if media_n.videos != 1 }}</a>{% endif %}
             &middot; order: <a class="media-link{% if not active_sort %} on{% endif %}" onclick="birdsGo(null,{sort:'',seed:String(Math.floor(Math.random()*1e9))})">shuffle</a> &middot; <a class="media-link{% if active_sort == 'posted' %} on{% endif %}" onclick="birdsGo(null,{sort:'posted'})">newest (post date)</a> &middot; <a class="media-link{% if active_sort == 'recent' %} on{% endif %}" onclick="birdsGo(null,{sort:'recent'})">newest (sighting date)</a> &middot; <a class="media-link{% if active_sort == 'oldest' %} on{% endif %}" onclick="birdsGo(null,{sort:'oldest'})">oldest</a>

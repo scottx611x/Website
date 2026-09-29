@@ -58,10 +58,32 @@ body.field-view .bf-canvas{position:fixed;inset:0;height:auto;min-height:0;margi
      through the gaps between tiles as stray text and dark bands. */
   background:var(--paper)}
 body.field-view .page.wide{padding-top:0;padding-bottom:0}
+/* The compact bar drops the counts row, which is right when it is a scroll
+   state you can undo by scrolling back up — but in the field the bar is the
+   only header there is, and that row carries the order links and the size
+   slider. Keep it, on its own line. */
+body.field-view .gallery-header.is-stuck .media-stat{
+  display:block;flex:1 1 100%;margin:0;text-align:center;
+}
+@media (max-width:720px){
+  /* A third of a phone screen was going to chrome. Tighter type, and the size
+     slider goes — pinch already does that job on touch, better. */
+  /* One swipeable line rather than three wrapped ones. */
+  body.field-view .gallery-header.is-stuck .media-stat{
+    font-size:.72rem;white-space:nowrap;overflow-x:auto;text-align:left;
+    scrollbar-width:none;-webkit-overflow-scrolling:touch;
+  }
+  body.field-view .gallery-header.is-stuck .media-stat::-webkit-scrollbar{display:none}
+  body.field-view .gallery-header.is-stuck .thumb-zoom{display:none}
+  /* Same treatment for the Gallery/Stats/Live/Map pills. */
+  body.field-view .gallery-header.is-stuck .birds-subnav{
+    flex:1 1 100%;min-width:0;overflow-x:auto;scrollbar-width:none;
+  }
+  body.field-view .gallery-header.is-stuck .birds-subnav::-webkit-scrollbar{display:none}
+}
 body.field-view .site-nav,
 body.field-view .gallery-header.is-stuck{
   background:color-mix(in srgb, var(--paper) 90%, transparent);
-  border-bottom:1px solid var(--line);
   -webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);
 }
 @supports not (backdrop-filter: blur(1px)){
@@ -69,8 +91,12 @@ body.field-view .gallery-header.is-stuck{
   body.field-view .site-nav,
   body.field-view .gallery-header.is-stuck{background:var(--paper)}
 }
+/* The nav and the bar read as one block of chrome, so only the bottom of the
+   block gets a rule — a line under each gave two hairlines 50px apart. */
+body.field-view .site-nav{border-bottom:0}
 body.field-view .gallery-header.is-stuck{
   position:fixed;top:var(--bf-navh,65px);left:0;right:0;z-index:40;
+  border-bottom:1px solid var(--line);
   padding-left:clamp(1rem,3vw,2.6rem);padding-right:clamp(1rem,3vw,2.6rem);
   margin:0;
 }
@@ -296,6 +322,16 @@ body.field-view .gallery-header.is-stuck{
   .bf-side{grid-column:1;grid-row:2;max-height:none}
   .bf-oimg{max-height:56svh}
 }
+@media (max-width:720px){
+  /* Bottom-right is already spoken for by the site's Curate chip, which was
+     sitting on top of the tilt button and clipping the hint. Note this block
+     lives AFTER the .bf-tilt/.bf-hint rules it overrides: same specificity,
+     so source order decides, and an earlier copy of this silently left the
+     button stretched the full width of the screen. */
+  .bf-tilt{left:.6rem;right:auto}
+  .bf-hint{bottom:3.4rem;max-width:calc(100% - 1.2rem);white-space:nowrap;
+    overflow:hidden;text-overflow:ellipsis;font-size:.66rem}
+}
 </style>
 
 <section class="page wide bf" id="bf-root">
@@ -430,11 +466,21 @@ body.field-view .gallery-header.is-stuck{
     var nav = document.querySelector(".site-nav");
     var bar = document.querySelector(".gallery-header.is-stuck");
     var r = document.documentElement.style;
-    r.setProperty("--bf-navh", Math.round(nav ? nav.getBoundingClientRect().height : 65) + "px");
-    r.setProperty("--bf-barh", Math.round(bar ? bar.getBoundingClientRect().height : 0) + "px");
+    // NOT rounded. The nav is 65.63px tall; rounding to 66 left a 0.38px gap
+    // between it and the bar below, which renders as a hairline across the
+    // whole screen — the seam that made the chrome look broken.
+    r.setProperty("--bf-navh", (nav ? nav.getBoundingClientRect().height : 65).toFixed(2) + "px");
+    r.setProperty("--bf-barh", (bar ? bar.getBoundingClientRect().height : 0).toFixed(2) + "px");
   }
   measureChrome();
   addEventListener("resize", measureChrome, { passive: true });
+  // Webfonts land after first paint and change the nav's height, so measure
+  // again when they do, and keep watching in case anything else resizes it.
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(measureChrome);
+  if (window.ResizeObserver) {
+    var nav0 = document.querySelector(".site-nav");
+    if (nav0) new ResizeObserver(measureChrome).observe(nav0);
+  }
   var plane = document.getElementById("bf-plane");
   var esc = function (s) { var d = document.createElement("i"); d.textContent = s == null ? "" : s; return d.innerHTML; };
 
@@ -765,6 +811,11 @@ body.field-view .gallery-header.is-stuck{
      naive resize throws the view somewhere else. Hold the viewport centre's
      fractional position across the rebuild instead. */
   var MINW = 110, MAXW = 460;   // below ~110 the field is more DOM than picture
+  /* The "size:" slider in the header drove the masonry's column count and
+     nothing else, so in the field view it moved and nothing happened. Hand it
+     the same scaler that pinch uses. */
+  window.bfScale = function (next) { applyScale(next); };
+  window.bfBaseW = function () { return window.innerWidth < 620 ? 150 : 240; };
   function applyScale(next) {
     next = Math.round(Math.max(MINW, Math.min(MAXW, next)));
     if (next === COL_W) return;

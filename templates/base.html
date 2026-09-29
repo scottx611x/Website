@@ -36,13 +36,40 @@
         {% else %}
         <a class="brand" href="/">scott&nbsp;ouellette</a>
         {% endif %}
-        <nav>
+        {# On a phone the four links wrapped onto their own line under the
+           brand, costing ~70px of every screen before the page even began.
+           They fold into this button instead; it is display:none above the
+           breakpoint, so desktop is untouched. #}
+        <button type="button" class="nav-burger" id="navBurger" aria-expanded="false"
+                aria-controls="navLinks" aria-label="Menu">
+            <span></span><span></span><span></span>
+        </button>
+        <nav id="navLinks">
             <a href="/birds" class="{{ 'on' if request.path.startswith('/birds') }}">Birds</a>
             <a href="/photography" class="{{ 'on' if request.path.startswith('/photography') }}">Photography</a>
             <a href="/projects" class="{{ 'on' if request.path.startswith('/projects') }}">Projects</a>
             <a class="nav-archive" href="/archive">old site</a>
         </nav>
     </header>
+
+    <script>
+        (function () {
+            var btn = document.getElementById("navBurger"), nav = document.getElementById("navLinks");
+            if (!btn || !nav) return;
+            function set(open) {
+                btn.setAttribute("aria-expanded", open ? "true" : "false");
+                document.body.classList.toggle("nav-open", open);
+            }
+            btn.addEventListener("click", function (e) {
+                e.stopPropagation();
+                set(btn.getAttribute("aria-expanded") !== "true");
+            });
+            // Tapping anywhere else, or following a link, closes it again.
+            addEventListener("click", function () { set(false); });
+            nav.addEventListener("click", function () { set(false); });
+            addEventListener("keydown", function (e) { if (e.key === "Escape") set(false); });
+        })();
+    </script>
 
     <main class="content">
         {% block content %}{% endblock %}
@@ -732,6 +759,12 @@
             window.setThumbZoom = function (v) {
                 try { localStorage.setItem("birdsThumbZoom", String(v)); } catch (_) {}
                 layoutAll();
+                // The field sizes itself in pixels rather than columns, so the
+                // same slider maps to a tile width there.
+                if (window.bfScale) {
+                    var z = Math.max(-3, Math.min(3, parseInt(v, 10) || 0));
+                    window.bfScale(window.bfBaseW() * Math.pow(1.32, z));
+                }
             };
             layoutAll();
             var t;

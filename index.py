@@ -26,6 +26,32 @@ SITE_URL = "https://www.scott-ouellette.com"
 # css/js so a deploy busts the cache (see _asset_version below).
 app.config["SEND_FILE_MAX_AGE_DEFAULT"] = 31536000
 
+
+@app.after_request
+def _fresh_static_in_dev(resp):
+    """A year-long max-age is for Lambda, not for a laptop.
+
+    `make run` uses `flask --app index run --debug`, so __main__ never runs and
+    config set there would not apply; this is keyed off app.debug instead.
+    """
+    if app.debug and request.path.startswith("/static/"):
+        resp.cache_control.max_age = 0
+        resp.cache_control.no_cache = True
+    return resp
+
+
+def asset_version():
+    """ASSET_V is fixed at boot, which is right in production and wrong in dev.
+
+    Editing a .css file does not restart the reloader (only .py does), so the
+    boot-time version stays put while Cache-Control says max-age=1y — the
+    browser then serves the stale stylesheet indefinitely and the page renders
+    with half its rules missing. In debug we recompute per request instead.
+    """
+    if app.debug:
+        return "{}-{}".format(_asset_version(), APP_VERSION)
+    return ASSET_V
+
 # Gallery grids render S3 thumbnails; the lightbox keeps the full image.
 app.add_template_filter(birds.thumb_url, "thumb")
 app.add_template_filter(birds._species_slug, "slug")  # species name -> /birds/species/<slug>
@@ -77,7 +103,7 @@ ASSET_V = "{}-{}".format(_asset_version(), APP_VERSION)
 
 @app.context_processor
 def _inject_asset_version():
-    return {"asset_v": ASSET_V, "app_version": APP_VERSION, "site_url": SITE_URL,
+    return {"asset_v": asset_version(), "app_version": APP_VERSION, "site_url": SITE_URL,
             "curate_authed": (not _is_local()) and _curate_authed()}
 
 
