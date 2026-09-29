@@ -70,3 +70,16 @@ Append one line per landed change. Newest last.
   holding one name is an error). Verified: group animates 520ms with the custom
   easing, root cross-fades 300ms, no stranded `view-transition-name`, works in
   both directions.
+- **depth**: `--age` per tile, 0 = newest frame in view, 1 = oldest; drives a
+  slight scale/saturation recession so the archive sits further back. Ranked,
+  not raw-date-scaled. Pointer lift on hover (CSS only, no per-frame JS).
+  Gotcha: AGE is keyed by TILE index, `at()` returns a SEQ position — looking
+  up the wrong one gave plausible-but-scrambled depth. Verified 0 order
+  mismatches across 70 tiles; 84-103 frames rendered during a 1s drag.
+- **semantic zoom**: below 150px tile width the field swaps representation —
+  one tile per species (newest frame), height encoding the species' frame
+  count (sqrt-scaled), name always-on in Fraunces, tally chip. `setOverview()`
+  swaps SEQ between SEQ_PHOTOS/SEQ_SPECIES and reseats. Gotchas: counting SEQ
+  occurrences reports 8 for everything (the server caps the round-robin at 8)
+  — use `t.n`; and `.bf-count` was already the stage's frame counter, so the
+  chip needed its own class (`.bf-tally`).

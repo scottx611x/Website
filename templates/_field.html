@@ -96,8 +96,32 @@ body.field-view .gallery-header.is-stuck{
 .bf-plane{position:absolute;top:0;left:0;will-change:transform}
 
 /* the tile itself, matching the gallery's look */
+/* Depth, and it means something: --age runs 0 for the newest frame in the
+   view to 1 for the oldest, so the archive literally sits further back. Kept
+   deliberately slight — enough to feel like air between the layers, not
+   enough to read as "some of these photos are broken". */
 .bf-tile{position:absolute;display:block;overflow:hidden;background:#e9e4d8;
-  text-decoration:none;color:inherit;border-radius:2px}
+  text-decoration:none;color:inherit;border-radius:2px;--age:0;--lift:0;
+  transform:scale(calc(1 - .022 * var(--age) + .03 * var(--lift)));
+  transition:transform .42s cubic-bezier(.22,1,.36,1),
+             box-shadow .42s cubic-bezier(.22,1,.36,1),
+             filter .42s ease;
+  filter:saturate(calc(1 - .26 * var(--age))) brightness(calc(1 - .07 * var(--age)));
+  will-change:transform}
+/* Nearest thing to picking one up. The whole field keeps still; only the tile
+   under the pointer comes forward. */
+.bf-canvas:not(.drag) .bf-tile:hover{
+  --lift:1;z-index:3;
+  filter:saturate(1) brightness(1.02);
+  box-shadow:0 22px 40px -18px rgba(13,18,14,.55)}
+@media (prefers-reduced-motion: reduce){
+  .bf-tile{transition:none}
+  .bf-canvas:not(.drag) .bf-tile:hover{--lift:0}
+}
+@media (hover: none){
+  /* No pointer, no lift — on touch it would just fire on tap and stick. */
+  .bf-canvas:not(.drag) .bf-tile:hover{--lift:0;box-shadow:none}
+}
 .bf-tile img,.bf-tile video{width:100%;height:100%;object-fit:cover;display:block}
 .bf-tile figcaption b{display:block;font-weight:600}
 .bf-tile figcaption span{display:block;font-size:.66rem;opacity:.8}
@@ -359,6 +383,21 @@ body.field-view .gallery-header.is-stuck{
     animation-duration:.3s;animation-timing-function:ease;
   }
 }
+/* Survey mode. The caption stops being a footnote and becomes the label,
+   because at this scale the name is the information and the photo is the
+   swatch. */
+.bf-canvas.overview .bf-tile figcaption{
+  opacity:1;font-size:.82rem;padding:1.6rem .55rem .5rem;
+  background:linear-gradient(to top,rgba(13,18,14,.82),rgba(13,18,14,.36) 62%,transparent)}
+.bf-canvas.overview .bf-tile figcaption b{font-family:var(--display);font-weight:500;
+  font-size:1.02rem;letter-spacing:-.01em;line-height:1.15}
+.bf-canvas.overview .bf-tile figcaption span{display:none}
+.bf-canvas.overview .bf-tile .bf-badge{display:none}
+.bf-tally{position:absolute;top:.4rem;left:.4rem;font-family:var(--mono);
+  font-size:.68rem;line-height:1;color:#fff;background:rgba(13,18,14,.6);
+  padding:.18rem .4rem;border-radius:3px}
+/* Nothing is repeated in here — one tile per bird — so the lift can be bolder. */
+.bf-canvas.overview:not(.drag) .bf-tile:hover{--lift:1.6}
 </style>
 
 <section class="page wide bf" id="bf-root">
@@ -567,6 +606,12 @@ body.field-view .gallery-header.is-stuck{
       var t = TILES[SEQ[i]];
       var rr = (t.w > 0 && t.h > 0) ? (t.h / t.w) : 1;
       ratio[i] = Math.max(0.6, Math.min(1.85, rr));
+      if (OVERVIEW) {
+        // sqrt, not linear: 202 frames next to 1 would otherwise make a tower
+        // beside a sliver and nothing in between would be legible.
+        var share = Math.sqrt((SPECIES_N[SEQ[i]] || 1) / SPECIES_MAX);
+        ratio[i] = 0.62 + share * 1.5;
+      }
       pre[i + 1] = pre[i] + Math.round(COL_W * ratio[i]) + GAP;
     }
     TOTAL = pre[L];
@@ -583,6 +628,45 @@ body.field-view .gallery-header.is-stuck{
      finite block and reach its edges, which is honest, instead of walking
      forever past the same bird. */
   var FINITE = false, PLACE = null, CONTENT_W = 0, CONTENT_H = 0;
+
+  /* --age per tile: 0 = newest frame in this view, 1 = oldest. Ranked rather
+     than scaled by raw date, so a collection with one ancient outlier does not
+     push everything else into the same bucket. Undated frames read as oldest,
+     which is where they belong. */
+  /* Semantic zoom. Below a certain tile width a photo stops being a photo —
+     it is a 110px smudge, and 1,700 of them say nothing. So past that point
+     the field changes what it is showing rather than just how big it is: one
+     tile per species, its newest frame, and the tile's HEIGHT carries how
+     many photos of that bird there are. Zoom out to survey the collection,
+     zoom in to look at pictures. */
+  var OVER_W = 150;                       // below this, switch representation
+  var OVERVIEW = false, SEQ_PHOTOS = SEQ.slice();
+  var SPECIES_N = {};                     // tile index -> frames of that species
+  var SEQ_SPECIES = (function () {
+    var best = {}, n = {};
+    SEQ.forEach(function (i) {
+      var t = TILES[i], k = t.slug || t.name;
+      // t.n is the species' true frame count in this view, computed before the
+      // round-robin caps it at 8 — counting SEQ entries would report 8 for
+      // every abundant bird, which is exactly as useful as reporting nothing.
+      n[k] = t.n || 1;
+      if (!best[k] || String(t.date || "") > String(TILES[best[k]].date || "")) best[k] = i;
+    });
+    var out = Object.keys(best).map(function (k) { SPECIES_N[best[k]] = n[k]; return best[k]; });
+    // Commonest first reads as a ranking, which is the point of the view.
+    out.sort(function (a, b) { return SPECIES_N[b] - SPECIES_N[a]; });
+    return out;
+  })();
+  var SPECIES_MAX = Math.max.apply(null, [1].concat(SEQ_SPECIES.map(function (i) { return SPECIES_N[i] || 1; })));
+
+  var AGE = (function () {
+    var idx = SEQ.slice().sort(function (a, b) {
+      return String(TILES[b].date || "").localeCompare(String(TILES[a].date || ""));
+    });
+    var m = {}, n = Math.max(1, idx.length - 1);
+    idx.forEach(function (i, rank) { m[i] = rank / n; });
+    return m;
+  })();
 
   function perScreen() {
     var cw = COL_W + GAP;
@@ -678,9 +762,13 @@ body.field-view .gallery-header.is-stuck{
       (t.n > 1 ? '<span class="bf-badge" title="' + t.n + ' images in this post">'
                  + '\u29C9 ' + t.n + '</span>' : '') +
       (t.vid ? '<span class="bf-badge" title="video">&#9654;</span>' : '') +
+      (OVERVIEW ? '<span class="bf-tally">' + (SPECIES_N[SEQ[d.i]] || 1) + '</span>' : '') +
       '<figcaption><b>' + esc(t.name) + '</b>' +
         (t.date ? '<span>' + esc(t.date) + (t.where ? ' · ' + esc(t.where) : '') + '</span>' : '') +
       '</figcaption>';
+    // AGE is keyed by TILE index; d.i is a position in SEQ. Looking up by the
+    // wrong one silently produced a plausible-looking but scrambled depth.
+    a.style.setProperty("--age", (AGE[SEQ[d.i]] || 0).toFixed(3));
     a._t = t;
     plane.appendChild(a);
     return a;
@@ -956,6 +1044,21 @@ body.field-view .gallery-header.is-stuck{
      the same scaler that pinch uses. */
   window.bfScale = function (next) { applyScale(next); };
   window.bfBaseW = function () { return window.innerWidth < 620 ? 150 : 240; };
+  function setOverview(on) {
+    if (on === OVERVIEW) return;
+    OVERVIEW = on;
+    var src = on ? SEQ_SPECIES : SEQ_PHOTOS;
+    SEQ.length = 0;
+    for (var i = 0; i < src.length; i++) SEQ.push(src[i]);
+    L = SEQ.length;
+    canvas.classList.toggle("overview", on);
+    // AGE is keyed by tile index and SEQ_SPECIES is a subset of the photos,
+    // so it stays valid across the switch — no recompute.
+    rebuild();
+    planLayout();
+    reseat();
+  }
+
   function applyScale(next) {
     next = Math.round(Math.max(MINW, Math.min(MAXW, next)));
     if (next === COL_W) return;
@@ -963,6 +1066,9 @@ body.field-view .gallery-header.is-stuck{
     var fx = (-px + vw / 2) / (COL_W + GAP);
     var fy = TOTAL ? (-py + vh / 2) / TOTAL : 0;
     COL_W = next;
+    // Crossing the threshold changes WHAT is shown, so let setOverview own the
+    // rebuild; otherwise the layout is computed twice from different sequences.
+    if ((next < OVER_W) !== OVERVIEW) { setOverview(next < OVER_W); return; }
     rebuild();
     planLayout();
     px = -(fx * (COL_W + GAP) - vw / 2);
