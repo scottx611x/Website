@@ -514,6 +514,11 @@ body.home .site-nav { z-index: 0; }
 }
 .birds-fill .gallery-header.is-stuck .bird-stat { display: none; }
 .birds-fill .gallery-header.is-stuck .birds-subnav { margin: 0; flex: 0 0 auto; }
+/* The focus chip carries a top margin from when it sat on its own line under
+   the centred subnav. As a flex sibling in the one-row bar that margin just
+   drops it below everything else — it rode 5px low against the pills, the
+   search field and the menu button. */
+.birds-fill .gallery-header.is-stuck .subnav-focus { margin: 0; }
 .birds-fill .gallery-header.is-stuck .bird-filter {
     margin: 0; flex: 1 1 320px; min-width: 0;
 }

@@ -596,7 +596,10 @@ def birds_gallery():
         view = "field"
     field_tiles, field_seq, field_stride = [], [], 1
     if view == "field":
-        field_tiles, field_seq, field_stride, _ = _field_tiles(shots)
+        # On a wrapping plane a date SORT has no visible beginning, so the
+        # date modes become a lean applied across the whole field instead.
+        lean = "old" if sort == "oldest" else ("recent" if sort in ("recent", "posted") else None)
+        field_tiles, field_seq, field_stride, _ = _field_tiles(shots, lean=lean)
     return render_template(
         "birds.html",
         title="Birds of North Andover",
@@ -666,7 +669,51 @@ def birds_gallery():
     )
 
 
-def _field_tiles(shots):
+# Four slots of newest, two of second-newest, one each of the older halves.
+# Any eight consecutive frames from one species therefore carry the same
+# recency mix, wherever on the plane they land.
+_WEAVE = (0, 1, 0, 2, 0, 1, 0, 3)
+
+
+def _weave_tiers(tiers, phase):
+    """Deal from recency tiers on a repeating pattern.
+
+    Sorting the field by date put the newest frame of every species in the
+    first round of the round-robin, which places them all near the origin —
+    so "newest first" only meant anything if you happened to be looking at
+    the middle of an endless plane, and panning anywhere else took you
+    steadily further into the archive.
+
+    Dealing from tiers instead gives every region the same mix. The pattern
+    is rotated per species so that a single row of the field — consecutive
+    entries across DIFFERENT species — samples several tiers rather than all
+    landing on the same one.
+
+    The tiers are GLOBAL, not per-species: a 2026 frame is recent whether or
+    not the bird has newer ones, and tiering within each species just meant
+    every bird contributed its own newest first, which is the behaviour this
+    is meant to remove.
+    """
+    tiers = [list(t) for t in tiers]
+    out, i = [], 0
+    while any(tiers):
+        want = _WEAVE[(i + phase) % len(_WEAVE)]
+        i += 1
+        pick = None
+        # nearest non-empty tier, so a species with nothing recent degrades
+        # to whatever it does have instead of stalling
+        for d in range(4):
+            for c in (want + d, want - d):
+                if 0 <= c < 4 and tiers[c]:
+                    pick = c
+                    break
+            if pick is not None:
+                break
+        out.append(tiers[pick].pop(0))
+    return out
+
+
+def _field_tiles(shots, lean=None):
     """One tile per FRAME, plus a viewing order and a column stride.
 
     Shared by /birds/field and the classic gallery's field view, so both get
@@ -713,6 +760,20 @@ def _field_tiles(shots):
     for t in tiles:
         t["n"] = len(by_species.get(t["name"]) or []) or 1
 
+    # Bias the whole plane toward recent (or toward the archive) rather than
+    # ordering it, since a plane that wraps has no beginning to put things at.
+    if lean in ("recent", "old"):
+        ranked = sorted(range(len(tiles)),
+                        key=lambda k: (tiles[k].get("date") or ""),
+                        reverse=(lean == "recent"))
+        rank = {k: i for i, k in enumerate(ranked)}
+        step = max(1, len(ranked) // 4)
+        for si, nm in enumerate(order):
+            buckets = [[], [], [], []]
+            for k in sorted(by_species[nm], key=lambda k: rank[k]):
+                buckets[min(3, rank[k] // step)].append(k)
+            by_species[nm] = _weave_tiers(buckets, si)
+
     # Round-robin across species, capped, so a bird never lands beside itself
     # and the tail does not degenerate into whichever species has the most.
     #
@@ -750,7 +811,7 @@ def _field_tiles(shots):
 def birds_field():
     """The endless field over the whole collection (unfiltered)."""
     shots = birds.load_gallery(shuffle=False)
-    tiles, seq, stride, species_n = _field_tiles(shots)
+    tiles, seq, stride, species_n = _field_tiles(shots, lean="recent")
     gstats = birds.gallery_stats(shots)
     return render_template(
         "birds_field.html", title="Birds of North Andover",
