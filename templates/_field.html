@@ -344,6 +344,21 @@ body.field-view .gallery-header.is-stuck{
 .bf-fams button.on{border-color:var(--neon);color:#fff;background:rgba(244,241,233,.2)}
 .bf-fams button:hover{border-color:rgba(244,241,233,.5);background:rgba(244,241,233,.16)}
 .bf-fams button i{font-style:normal;color:rgba(244,241,233,.5)}
+/* The morph carries the weight; the rest of the page just steps aside. */
+@media (prefers-reduced-motion: no-preference) {
+  ::view-transition-group(bf-hero){
+    animation-duration:.52s;
+    animation-timing-function:cubic-bezier(.22,1,.36,1);
+  }
+  ::view-transition-old(bf-hero),::view-transition-new(bf-hero){
+    /* no cross-fade on the photo itself — fading it looks like two pictures,
+       and it is meant to read as one picture moving */
+    animation:none;mix-blend-mode:normal;height:100%;overflow:clip;
+  }
+  ::view-transition-old(root),::view-transition-new(root){
+    animation-duration:.3s;animation-timing-function:ease;
+  }
+}
 </style>
 
 <section class="page wide bf" id="bf-root">
@@ -1036,7 +1051,10 @@ body.field-view .gallery-header.is-stuck{
   canvas.addEventListener("pointerup", function (e) {
     if (!down) return;
     down = false; canvas.classList.remove("drag");
-    if (hit && moved <= 6 && hit._t) openSpecies(hit._t);
+    if (hit && moved <= 6 && hit._t) {
+      var el = hit;                                   // morph FROM this tile
+      withHero(el, function () { openSpecies(el._t); });
+    }
     else if (!glide) glide = requestAnimationFrame(decay);
     hit = null;
   });
@@ -1293,6 +1311,38 @@ body.field-view .gallery-header.is-stuck{
   }
   $("bf-octxprev").addEventListener("click", function (e) { e.stopPropagation(); stepCtx(-1); });
   $("bf-octxnext").addEventListener("click", function (e) { e.stopPropagation(); stepCtx(1); });
+
+  /* Opening a bird was a modal appearing over the field: the photo you
+     clicked stayed where it was and a different, larger copy of it faded in
+     somewhere else. A View Transition morphs the one you clicked into the
+     one on the stage, so the gesture reads as moving INTO the picture rather
+     than summoning a dialog.
+
+     The name has to live on exactly one element per snapshot, so the tile
+     carries it for the outgoing frame and the stage carries it for the
+     incoming one — swapped inside the callback, between the two captures. */
+  var HERO = "bf-hero";
+  function heroImg(el) { return el && (el.querySelector ? el.querySelector("img,video") : null); }
+
+  function withHero(from, mutate) {
+    var reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduced || !document.startViewTransition) { mutate(); return; }
+    var src = heroImg(from);
+    if (src) src.style.viewTransitionName = HERO;
+    var dst = $("bf-oimg");
+    var vt;
+    try {
+      vt = document.startViewTransition(function () {
+        if (src) src.style.viewTransitionName = "";   // free the name first
+        mutate();
+        if (dst) dst.style.viewTransitionName = HERO;
+      });
+    } catch (e) { mutate(); return; }
+    vt.finished.catch(function () {}).then(function () {
+      if (src) src.style.viewTransitionName = "";
+      if (dst) dst.style.viewTransitionName = "";
+    });
+  }
 
   function openSpecies(t) {
     cur = t.slug; frames = []; fi = 0;
@@ -1828,7 +1878,27 @@ body.field-view .gallery-header.is-stuck{
     window.scrollTo(0, scrollAt);
     stop();
   }
-  $("bf-oclose").addEventListener("click", function () { closeOver(); });
+  $("bf-oclose").addEventListener("click", function () {
+    // Morph back to the tile the bird occupies now, if it is still on screen.
+    var back = null;
+    for (var k in live) { if (live[k] && live[k]._t && live[k]._t.slug === cur) { back = live[k]; break; } }
+    if (!back || !document.startViewTransition ||
+        matchMedia("(prefers-reduced-motion: reduce)").matches) { closeOver(); return; }
+    var dst = $("bf-oimg"), srcEl = heroImg(back);
+    dst.style.viewTransitionName = HERO;
+    var vt;
+    try {
+      vt = document.startViewTransition(function () {
+        dst.style.viewTransitionName = "";
+        closeOver();
+        if (srcEl) srcEl.style.viewTransitionName = HERO;
+      });
+    } catch (e) { closeOver(); return; }
+    vt.finished.catch(function () {}).then(function () {
+      dst.style.viewTransitionName = "";
+      if (srcEl) srcEl.style.viewTransitionName = "";
+    });
+  });
 
   /* Back/forward, and the initial load, both come through here. */
   function openFromHash() {
