@@ -58,23 +58,9 @@ body.field-view .bf-canvas{position:fixed;inset:0;height:auto;min-height:0;margi
      through the gaps between tiles as stray text and dark bands. */
   background:var(--paper)}
 body.field-view .page.wide{padding-top:0;padding-bottom:0}
-/* The compact bar drops the counts row, which is right when it is a scroll
-   state you can undo by scrolling back up — but in the field the bar is the
-   only header there is, and that row carries the order links and the size
-   slider. Keep it, on its own line. */
-body.field-view .gallery-header.is-stuck .media-stat{
-  display:block;flex:1 1 100%;margin:0;text-align:center;
-}
 @media (max-width:720px){
   /* A third of a phone screen was going to chrome. Tighter type, and the size
      slider goes — pinch already does that job on touch, better. */
-  /* One swipeable line rather than three wrapped ones. */
-  body.field-view .gallery-header.is-stuck .media-stat{
-    font-size:.72rem;white-space:nowrap;overflow-x:auto;text-align:left;
-    scrollbar-width:none;-webkit-overflow-scrolling:touch;
-  }
-  body.field-view .gallery-header.is-stuck .media-stat::-webkit-scrollbar{display:none}
-  body.field-view .gallery-header.is-stuck .thumb-zoom{display:none}
   /* Same treatment for the Gallery/Stats/Live/Map pills. */
   body.field-view .gallery-header.is-stuck .birds-subnav{
     flex:1 1 100%;min-width:0;overflow-x:auto;scrollbar-width:none;
@@ -860,6 +846,25 @@ body.field-view .gallery-header.is-stuck{
   /* The "size:" slider in the header drove the masonry's column count and
      nothing else, so in the field view it moved and nothing happened. Hand it
      the same scaler that pinch uses. */
+  /* "Oldest first" is a claim about a list, and the field is a plane that
+     wraps forever — there is no first tile to be at. What the ordering really
+     does is lay the sequence out from the origin outward, and the field opens
+     there, so it means "oldest nearest the centre". That only stays true if
+     you can get back to the centre, hence this. */
+  window.bfRecentre = function () {
+    if (glide) { cancelAnimationFrame(glide); glide = null; }
+    ambStop(); if (idleTimer) clearTimeout(idleTimer);
+    var x0 = px, y0 = py, t0 = null, MS = 520;
+    (function step(ts) {
+      if (t0 === null) t0 = ts;
+      var k = Math.min(1, (ts - t0) / MS);
+      var e = 1 - Math.pow(1 - k, 3);
+      px = x0 * (1 - e); py = y0 * (1 - e);
+      apply();
+      if (k < 1) requestAnimationFrame(step);
+      else { px = 0; py = 0; apply(); idleTimer = setTimeout(ambStart, 2600); }
+    })(performance.now());
+  };
   window.bfScale = function (next) { applyScale(next); };
   window.bfBaseW = function () { return window.innerWidth < 620 ? 150 : 240; };
   function applyScale(next) {

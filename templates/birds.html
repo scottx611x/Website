@@ -231,17 +231,71 @@
                 });
             })();
         </script>
-        <p class="media-stat mono">
-            <a class="media-link{% if active_media == 'photo' %} on{% endif %}" onclick="birdsGo(null,{media:'{{ '' if active_media == 'photo' else 'photo' }}'})"><strong>{{ media_n.photos }}</strong> photo{{ 's' if media_n.photos != 1 }}</a>{% if media_n.videos %} &middot; <a class="media-link{% if active_media == 'video' %} on{% endif %}" onclick="birdsGo(null,{media:'{{ '' if active_media == 'video' else 'video' }}'})"><strong>{{ media_n.videos }}</strong> video{{ 's' if media_n.videos != 1 }}</a>{% endif %}
-            &middot; order: <a class="media-link{% if not active_sort %} on{% endif %}" onclick="birdsGo(null,{sort:'',seed:String(Math.floor(Math.random()*1e9))})">shuffle</a> &middot; <a class="media-link{% if active_sort == 'posted' %} on{% endif %}" onclick="birdsGo(null,{sort:'posted'})">newest (post date)</a> &middot; <a class="media-link{% if active_sort == 'recent' %} on{% endif %}" onclick="birdsGo(null,{sort:'recent'})">newest (sighting date)</a> &middot; <a class="media-link{% if active_sort == 'oldest' %} on{% endif %}" onclick="birdsGo(null,{sort:'oldest'})">oldest</a>
-            <span class="thumb-zoom"><span class="tz-dot">&middot;</span>
-                <label for="thumbZoom">size:</label>
-                <span class="tz-glyph tz-sm" aria-hidden="true">&#9642;</span>
-                <input type="range" id="thumbZoom" min="-3" max="3" step="1" value="0"
-                       aria-label="Thumbnail size" oninput="setThumbZoom(this.value)">
-                <span class="tz-glyph tz-lg" aria-hidden="true">&#9642;</span>
-            </span>
-        </p>
+        {# Eleven controls at equal weight needed two rows and still felt
+           cramped while a third of the bar sat empty. Order, size and the
+           photo/video split are things you set occasionally, not things you
+           read — so they live behind one button that shows the current state,
+           and the bar goes back to a single row. #}
+        <div class="view-menu" id="viewMenu">
+            <button type="button" class="vm-btn" id="vmBtn" aria-expanded="false" aria-haspopup="true" aria-controls="vmPop">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18"/><path d="M7 12h10"/><path d="M11 18h2"/></svg>
+                <span id="vmLabel">{% if not active_sort %}Shuffled{% elif active_sort == 'posted' %}Newest post{% elif active_sort == 'recent' %}Newest sighting{% else %}Oldest{% endif %}</span>
+                <svg class="vm-chev" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+            </button>
+            <div class="vm-pop" id="vmPop" hidden role="menu" aria-label="View options">
+                <p class="vm-count mono">{{ media_n.photos }} photo{{ 's' if media_n.photos != 1 }}{% if media_n.videos %} &middot; {{ media_n.videos }} video{{ 's' if media_n.videos != 1 }}{% endif %}</p>
+
+                {% if view == 'field' %}
+                <p class="vm-head">Arrangement</p>
+                <button type="button" role="menuitem" class="vm-opt" onclick="window.bfRecentre &amp;&amp; window.bfRecentre()">Back to the centre<span class="vm-sub">where the order starts</span></button>
+                {% else %}
+                <p class="vm-head">Order</p>
+                {% endif %}
+                <button type="button" role="menuitemradio" class="vm-opt{% if not active_sort %} on{% endif %}" aria-checked="{{ 'true' if not active_sort else 'false' }}" onclick="birdsGo(null,{sort:'',seed:String(Math.floor(Math.random()*1e9))})">Shuffle<span class="vm-sub">{% if view == 'field' %}re-deal the field{% else %}a new arrangement each time{% endif %}</span></button>
+                <button type="button" role="menuitemradio" class="vm-opt{% if active_sort == 'posted' %} on{% endif %}" aria-checked="{{ 'true' if active_sort == 'posted' else 'false' }}" onclick="birdsGo(null,{sort:'posted'})">Newest post<span class="vm-sub">{% if view == 'field' %}newest posts near the centre{% else %}when it went up{% endif %}</span></button>
+                <button type="button" role="menuitemradio" class="vm-opt{% if active_sort == 'recent' %} on{% endif %}" aria-checked="{{ 'true' if active_sort == 'recent' else 'false' }}" onclick="birdsGo(null,{sort:'recent'})">Newest sighting<span class="vm-sub">{% if view == 'field' %}newest sightings near the centre{% else %}when the bird was seen{% endif %}</span></button>
+                <button type="button" role="menuitemradio" class="vm-opt{% if active_sort == 'oldest' %} on{% endif %}" aria-checked="{{ 'true' if active_sort == 'oldest' else 'false' }}" onclick="birdsGo(null,{sort:'oldest'})">Oldest<span class="vm-sub">{% if view == 'field' %}oldest near the centre{% else %}from the beginning{% endif %}</span></button>
+
+                {% if media_n.videos %}
+                <p class="vm-head">Show</p>
+                <button type="button" role="menuitemradio" class="vm-opt{% if not active_media %} on{% endif %}" aria-checked="{{ 'true' if not active_media else 'false' }}" onclick="birdsGo(null,{media:''})">Everything</button>
+                <button type="button" role="menuitemradio" class="vm-opt{% if active_media == 'photo' %} on{% endif %}" aria-checked="{{ 'true' if active_media == 'photo' else 'false' }}" onclick="birdsGo(null,{media:'photo'})">Photos only<span class="vm-num">{{ media_n.photos }}</span></button>
+                <button type="button" role="menuitemradio" class="vm-opt{% if active_media == 'video' %} on{% endif %}" aria-checked="{{ 'true' if active_media == 'video' else 'false' }}" onclick="birdsGo(null,{media:'video'})">Videos only<span class="vm-num">{{ media_n.videos }}</span></button>
+                {% endif %}
+
+                <p class="vm-head">Size</p>
+                <div class="vm-size">
+                    <span class="tz-glyph tz-sm" aria-hidden="true">&#9642;</span>
+                    <input type="range" id="thumbZoom" min="-3" max="3" step="1" value="0"
+                           aria-label="Thumbnail size" oninput="setThumbZoom(this.value)">
+                    <span class="tz-glyph tz-lg" aria-hidden="true">&#9642;</span>
+                </div>
+            </div>
+        </div>
+        <script>
+            (function () {
+                var box = document.getElementById("viewMenu");
+                var btn = document.getElementById("vmBtn");
+                var pop = document.getElementById("vmPop");
+                if (!box || !btn || !pop) return;
+                function set(v) {
+                    pop.hidden = !v;
+                    box.classList.toggle("is-open", v);
+                    btn.setAttribute("aria-expanded", v ? "true" : "false");
+                }
+                btn.addEventListener("click", function (e) {
+                    e.stopPropagation();
+                    set(pop.hidden);
+                });
+                // The size slider lives in here, so dragging it must not count
+                // as "clicked away".
+                pop.addEventListener("click", function (e) { e.stopPropagation(); });
+                document.addEventListener("click", function () { set(false); });
+                document.addEventListener("keydown", function (e) {
+                    if (e.key === "Escape" && !pop.hidden) { set(false); btn.focus(); }
+                });
+            })();
+        </script>
         <script>
             // Restore the saved size before first paint of the slider.
             (function () {
