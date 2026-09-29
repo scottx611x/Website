@@ -353,7 +353,93 @@ body.home .site-nav { z-index: 0; }
     box-shadow: 0 1px 2px rgba(13, 18, 14, 0.04);
     transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
-.filter-search input { min-width: 15rem; }
+/* One control now carries both species and families, so give it room. */
+.filter-search input { min-width: 20rem; }
+
+/* Search combobox. The panel is anchored to the field rather than the page so
+   it follows the input wherever the header puts it — including the field's
+   fixed bar, where a page-anchored panel would be left behind. */
+/* View menu: order, media split and thumbnail size behind one button that
+   states the current order, so the bar stays a single row. */
+.view-menu { position: relative; flex: 0 0 auto; }
+.vm-btn {
+    display: inline-flex; align-items: center; gap: 0.45rem;
+    font-family: var(--mono); font-size: 0.82rem; color: var(--ink);
+    padding: 0.45rem 0.85rem; background: var(--paper); cursor: pointer;
+    border: 1px solid rgba(47, 125, 79, 0.32); border-radius: 999px;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.vm-btn:hover { border-color: var(--green); }
+.view-menu.is-open .vm-btn { border-color: var(--green); box-shadow: 0 0 0 3px rgba(47, 125, 79, 0.16); }
+.view-menu.is-open .vm-chev { transform: rotate(180deg); }
+.vm-chev { transition: transform 0.16s ease; }
+.vm-pop {
+    position: absolute; top: calc(100% + 0.4rem); right: 0; z-index: 90;
+    min-width: 17.5rem; max-height: min(26rem, 70vh); overflow-y: auto;
+    padding: 0.4rem; text-align: left;
+    background: var(--paper); border: 1px solid var(--line); border-radius: 12px;
+    box-shadow: 0 24px 48px -24px rgba(13, 18, 14, 0.55);
+}
+.vm-pop[hidden] { display: none; }
+.vm-count {
+    font-size: 0.7rem; color: var(--muted); margin: 0.35rem 0.6rem 0.5rem;
+}
+.vm-head {
+    font-family: var(--mono); font-size: 0.64rem; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--muted);
+    margin: 0.7rem 0.6rem 0.3rem;
+}
+.vm-head:first-of-type { margin-top: 0.2rem; }
+.vm-opt {
+    display: flex; align-items: baseline; justify-content: space-between; gap: 0.8rem;
+    width: 100%; text-align: left; cursor: pointer;
+    padding: 0.45rem 0.6rem; border: 0; border-radius: 8px; background: none;
+    font-family: inherit; font-size: 0.9rem; color: var(--ink); white-space: nowrap;
+}
+.vm-opt:hover, .vm-opt:focus-visible { background: rgba(47, 125, 79, 0.1); outline: none; }
+/* The current choice is marked by a check, not by color alone. */
+.vm-opt.on { color: var(--green); }
+.vm-opt.on::after { content: "\2713"; margin-left: auto; font-size: 0.8rem; }
+.vm-sub, .vm-num { font-family: var(--mono); font-size: 0.68rem; color: var(--muted); white-space: nowrap; }
+.vm-opt.on .vm-sub, .vm-opt.on .vm-num { color: var(--green); opacity: 0.7; }
+.vm-size { display: flex; align-items: center; gap: 0.5rem; padding: 0.3rem 0.6rem 0.5rem; }
+.vm-size input[type=range] { flex: 1 1 auto; }
+
+.bird-combo { position: relative; }
+.bird-combo.is-open input { border-color: var(--green); box-shadow: 0 0 0 3px rgba(47, 125, 79, 0.16); }
+.bird-combo-pop {
+    position: absolute; top: calc(100% + 0.4rem); left: 0; right: 0; z-index: 90;
+    max-height: min(22rem, 60vh); overflow-y: auto; overscroll-behavior: contain;
+    padding: 0.35rem; text-align: left;
+    background: var(--paper); border: 1px solid var(--line); border-radius: 12px;
+    box-shadow: 0 24px 48px -24px rgba(13, 18, 14, 0.55);
+}
+.bird-combo-pop[hidden] { display: none; }
+.bc-head, .bc-none {
+    font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.09em;
+    text-transform: uppercase; color: var(--muted);
+    margin: 0.3rem 0.6rem 0.4rem;
+}
+.bc-none { text-transform: none; letter-spacing: 0; font-size: 0.8rem; }
+.bc-opt {
+    display: flex; align-items: baseline; gap: 0.7rem; justify-content: space-between;
+    padding: 0.5rem 0.6rem; border-radius: 8px; cursor: pointer;
+}
+/* Hover and keyboard share one highlight, so there is never a second,
+   competing idea of which row is selected. */
+.bc-opt.on { background: rgba(47, 125, 79, 0.1); }
+.bc-name { font-size: 0.95rem; color: var(--ink); }
+.bc-name b { font-weight: 600; color: var(--green); }
+.bc-name.is-fam { font-family: var(--display); font-size: 1rem; }
+.bc-meta {
+    font-family: var(--mono); font-size: 0.7rem; color: var(--muted);
+    white-space: nowrap; flex: 0 0 auto;
+}
+@media (max-width: 560px) {
+    .bc-opt { flex-wrap: wrap; gap: 0 0.5rem; }
+    .bc-meta { flex-basis: 100%; }
+}
+
 .filter-search input::-webkit-search-cancel-button { -webkit-appearance: none; }
 .bird-select { position: relative; display: inline-block; }
 .bird-select select { cursor: pointer; min-width: 13rem; padding-right: 2.6rem; }
@@ -1077,15 +1163,31 @@ a.ear-daily:hover .ear-day:not(.zero) { filter: brightness(1.08); }
 .cap-away .ic, .lightbox-area .ic { color: #f2b544; width: 0.95rem; height: 0.95rem; }
 .filter-chips .chip .ic { color: inherit; vertical-align: -0.16em; }
 .stats .stat-lbl .ic, .map-legend .ic, .bird-stat-away .ic { color: #d9863b; width: 0.82rem; height: 0.82rem; vertical-align: -0.12em; }
+/* The note used to hang off the badge at a fixed 15rem, which is wider than
+   a thumbnail at most slider sizes — so on a narrow card it ran off the left
+   edge and the card's overflow:hidden sliced the first few characters off
+   every line ("ed outside North Andover"). Anchored to the card instead, it
+   is always exactly as wide as there is room for. */
 .away-badge::after {
-    content: attr(data-note); position: absolute; top: calc(100% + 0.4rem); right: 0;
-    width: max-content; max-width: 15rem; z-index: 5;
+    content: attr(data-note); position: absolute; top: calc(100% + 0.4rem);
+    right: 0; left: auto; width: max-content; max-width: 15rem; z-index: 5;
     font-family: var(--mono); font-size: 0.68rem; line-height: 1.35; text-align: left;
     color: #fff; background: rgba(20, 16, 8, 0.95); padding: 0.4rem 0.6rem; border-radius: 6px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.35);
     opacity: 0; transform: translateY(-3px); pointer-events: none; transition: opacity 0.15s ease, transform 0.15s ease;
 }
 .away-badge:hover::after, .away-badge:focus::after { opacity: 1; transform: translateY(0); }
+/* Where the card is too narrow for the note, it spans the card: the badge is
+   0.5rem in from the right, so matching that on both sides lines it up. */
+@supports (width: 1cqw) {
+    .shot { container-type: inline-size; }
+    @container (max-width: 17rem) {
+        .away-badge::after {
+            right: 0; left: calc(-1 * (100cqw - 2.7rem));
+            width: auto; max-width: none; white-space: normal;
+        }
+    }
+}
 /* In curate mode the × lives top-right, so shift the ⚠️ badge clear of it. */
 .shot.curating .away-badge { right: 2.9rem; }
 

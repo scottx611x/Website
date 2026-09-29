@@ -5,7 +5,7 @@
 ## the package, so version.txt is the ONLY thing that rotates the css/js cache key.
 deploy:
 	git rev-parse --short HEAD > version.txt
-	zappa update production
+	.venv/bin/zappa update production
 	@echo "deployed $$(cat version.txt)"
 
 ## ci: run the containerized test suite via Earthly (local CI)

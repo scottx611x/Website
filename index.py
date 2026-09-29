@@ -564,6 +564,15 @@ def birds_gallery():
         title="Birds of North Andover",
         shots=shots,
         species_groups=display_groups,
+        # Flat, ranked-over-in-the-browser index for the search box. Built here
+        # rather than in the template because a species has to keep its family
+        # and the nested Jinja loop that would take is unreadable.
+        search_index={
+            "families": [{"n": fam, "k": len(sp), "c": family_counts.get(fam, 0)}
+                         for fam, sp in display_groups],
+            "species": [{"n": nm, "f": fam, "c": ct}
+                        for fam, sp in display_groups for nm, ct in sp],
+        },
         family_counts=family_counts,
         species_count=total,
         local_count=total - away,
