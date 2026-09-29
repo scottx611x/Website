@@ -341,6 +341,7 @@ body.field-view .gallery-header.is-stuck{
 .bf-fams button{font:inherit;font-family:var(--mono);font-size:.72rem;cursor:pointer;
   display:inline-flex;align-items:baseline;gap:.35rem;padding:.3rem .6rem;border-radius:999px;
   background:rgba(244,241,233,.08);border:1px solid rgba(244,241,233,.18);color:rgba(244,241,233,.86)}
+.bf-fams button.on{border-color:var(--neon);color:#fff;background:rgba(244,241,233,.2)}
 .bf-fams button:hover{border-color:rgba(244,241,233,.5);background:rgba(244,241,233,.16)}
 .bf-fams button i{font-style:normal;color:rgba(244,241,233,.5)}
 </style>
@@ -1090,7 +1091,10 @@ body.field-view .gallery-header.is-stuck{
     var upto = Math.min(frames.length, stripShown + n);
     var frag = "";
     for (var i = stripShown; i < upto; i++) {
-      frag += '<img src="' + frames[i].thumb + '" alt="" loading="lazy" data-i="' + i + '">';
+      var nm = frames[i].name || "";
+      frag += '<img src="' + frames[i].thumb + '" alt="' + esc(nm) + '" title="' +
+              esc(nm + (frames[i].date ? " · " + frames[i].date : "")) +
+              '" loading="lazy" data-i="' + i + '">';
     }
     if (!stripEnd) {
       stripEnd = document.createElement("span");
@@ -1114,9 +1118,31 @@ body.field-view .gallery-header.is-stuck{
   }
 
   function strip0() { return $("bf-ostrip"); }
+  /* Off the DOM, not a closure variable: paintCaption and openSpecies did
+     not resolve the same `famMode`, so the caption silently stayed in
+     species mode while everything else switched. */
+  function isFam() {
+    var o = document.getElementById("bf-over");
+    return !!(o && o.dataset.kind === "family");
+  }
   function paintCaption(f) {
-    $("bf-ocount").textContent = (fi + 1) + " / " + frames.length +
+    // In a family view the title is the family, so without this the stage
+    // never says whether you are looking at a Mourning Dove or a Rock Pigeon.
+    $("bf-ocount").textContent =
+      ((isFam() && f.name) ? f.name + "  ·  " : "") +
+      (fi + 1) + " / " + frames.length +
       (f.where ? "  ·  " + f.where : "") + (f.date ? "  ·  " + f.date : "");
+    if (isFam()) markMember(f.name);
+  }
+
+  /* And light up that bird in the member list, so the chips double as a
+     legend for where you are in the family. */
+  function markMember(name) {
+    var box = $("bf-ospecies");
+    if (!box || box.hidden) return;
+    box.querySelectorAll("button").forEach(function (b) {
+      b.classList.toggle("on", b.dataset.name === name);
+    });
   }
   function syncStrip(strip) {
     while (stripShown <= fi && stripShown < frames.length) growStrip(24);
@@ -1183,8 +1209,10 @@ body.field-view .gallery-header.is-stuck{
       img.classList.remove("loading");
       stage.classList.remove("busy");
     }
-    $("bf-ocount").textContent = (fi + 1) + " / " + frames.length +
-      (f.where ? "  ·  " + f.where : "") + (f.date ? "  ·  " + f.date : "");
+    // One caption writer, not two: this path had its own inline copy, so
+    // adding the species name to paintCaption() only ever showed up on video
+    // frames — every photo kept the old text.
+    paintCaption(f);
     var strip = $("bf-ostrip");
     while (stripShown <= fi && stripShown < frames.length) growStrip(24);
     strip.querySelectorAll("img").forEach(function (im) {
@@ -1211,7 +1239,7 @@ body.field-view .gallery-header.is-stuck{
      per-frame facts needed are already on each frame, so this is a filter
      rather than another request. (?posted= is a post date, which frames do
      not carry, so it is not applied.) */
-  var scoped = null;
+  var scoped = null, famMode = false;
   function scopeFrames(all) {
     var out = all;
     if (CTX.area === "local") out = out.filter(function (f) { return !f.away; });
@@ -1272,7 +1300,8 @@ body.field-view .gallery-header.is-stuck{
     $("bf-otitle").textContent = t.name;
     $("bf-ofam").textContent = t.fam || "";
     paintCtx(t.slug);
-    $("bf-oimg").src = t.src; $("bf-oimg").alt = t.name;
+    if (t.src) { $("bf-oimg").src = t.src; } else { $("bf-oimg").removeAttribute("src"); }
+    $("bf-oimg").alt = t.name || "";
     $("bf-ocount").textContent = "";
     $("bf-ofacts").innerHTML = ""; $("bf-ostrip").innerHTML = "";
     $("bf-oplaces").innerHTML = "";
@@ -1294,7 +1323,7 @@ body.field-view .gallery-header.is-stuck{
     // Browsing a family and clicking a bird used to drop you into that one
     // species, losing the view you were in. Open the family instead; the
     // individual birds are one click away inside it.
-    var famMode = !!(CTX.family_slug && !(CTX.birds && CTX.birds.length));
+    famMode = !!(CTX.family_slug && !(CTX.birds && CTX.birds.length));
     if (famMode) {
       $("bf-otitle").textContent = CTX.family;
       $("bf-ofam").textContent = "";
@@ -1304,6 +1333,13 @@ body.field-view .gallery-header.is-stuck{
     stop();
     scrollAt = window.scrollY || 0;
     over.classList.add("open"); document.body.style.overflow = "hidden";
+    /* The detail view is a place, so give it an address: refreshing keeps it
+       open, the link is shareable, and Back closes it instead of leaving the
+       gallery entirely. pushState, so there is a history entry to go back to. */
+    var key = "#" + (famMode ? "family/" + CTX.family_slug : "bird/" + t.slug);
+    if (location.hash !== key) {
+      try { history.pushState({ bf: 1 }, "", key); } catch (e) { /* file:// */ }
+    }
     fetch(famMode ? ("/birds/family/" + CTX.family_slug + ".json")
                   : ("/birds/species/" + t.slug + ".json"))
       .then(function (r) {
@@ -1330,6 +1366,8 @@ body.field-view .gallery-header.is-stuck{
     // there actually is some.
     var imgN = (d.images != null) ? d.images : (d.count || 0);
     var fam = d.kind === "family";
+    famMode = fam;
+    over.dataset.kind = fam ? "family" : "species";
     // A family has no lifer rank and no single call, so those rows would read
     // as missing data rather than as not applicable.
     (fam
@@ -1770,7 +1808,14 @@ body.field-view .gallery-header.is-stuck{
   });
 
   var scrollAt = 0;
-  function closeOver() {
+  function closeOver(fromPop) {
+    if (!fromPop && location.hash && /^#(bird|family)\//.test(location.hash)) {
+      // Unwind our own entry so Back does not step through every bird you
+      // opened; popstate calls us again with fromPop and does the real work.
+      if (history.state && history.state.bf) { history.back(); return; }
+      try { history.replaceState(null, "", location.pathname + location.search); }
+      catch (e) { /* ignore */ }
+    }
     var v = $("bf-ovid");
     if (v) { v.pause(); v.removeAttribute("src"); v.hidden = true; }
     $("bf-oimg").hidden = false;
@@ -1783,7 +1828,29 @@ body.field-view .gallery-header.is-stuck{
     window.scrollTo(0, scrollAt);
     stop();
   }
-  $("bf-oclose").addEventListener("click", closeOver);
+  $("bf-oclose").addEventListener("click", function () { closeOver(); });
+
+  /* Back/forward, and the initial load, both come through here. */
+  function openFromHash() {
+    var m = /^#(bird|family)\/(.+)$/.exec(location.hash || "");
+    if (!m) { if (over.classList.contains("open")) closeOver(true); return; }
+    if (over.classList.contains("open")) return;
+    if (m[1] === "family") {
+      if (!CTX.family_slug) return;
+      var t0 = TILES[SEQ[0]];
+      if (t0) openSpecies(t0);
+      return;
+    }
+    // Prefer a tile from this view so the modal opens on a real photo; a bird
+    // that is not in the current filter still works, just without one.
+    var t = tileFor(m[2]) || { slug: m[2], name: "", fam: "", src: "" };
+    openSpecies(t);
+  }
+  addEventListener("popstate", openFromHash);
+  if (/^#(bird|family)\//.test(location.hash || "")) {
+    // after first paint, so TILES/SEQ and the canvas are ready
+    requestAnimationFrame(openFromHash);
+  }
   over.addEventListener("click", function (e) {
     if (e.target === over) closeOver();          // click the backdrop to dismiss
   });
