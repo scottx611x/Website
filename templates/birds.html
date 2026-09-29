@@ -7,6 +7,7 @@
 <script>
     // The gallery always uses the full screen width.
     document.body.classList.add("birds-fill");
+    {% if view == 'field' %}document.body.classList.add("field-view");{% endif %}
     /* Collapse the header once you leave the top. Plain scrollY rather than a
        sentinel + observer: the header is itself sticky, so a sentinel would
        have to sit outside it and be offset by the nav height, and this is one

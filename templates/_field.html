@@ -45,6 +45,35 @@ body.birdsfield .page{padding-top:.5rem!important}
 .bf-canvas{position:relative;overflow:hidden;cursor:grab;touch-action:none;
   height:calc(100svh - 118px);min-height:340px;margin:0 calc(50% - 50vw)}
 .bf-canvas.drag{cursor:grabbing}
+
+/* The field IS the page, so it takes the whole viewport and the chrome floats
+   on top of it. The alternative — reserving a strip for the nav and the filter
+   bar and squeezing the field into the remainder — was costing 180px at the
+   top, and the leftover `calc(100svh - 118px)` height (tuned for a taller
+   header that no longer exists) ran the canvas 62px PAST the fold on top of
+   that. Fixed to the viewport there is no arithmetic left to get wrong. */
+body.field-view .bf-canvas{position:fixed;inset:0;height:auto;min-height:0;margin:0;z-index:1;
+  /* Fixed means it no longer covers its siblings by sitting in the flow above
+     them, so it needs its own ground — otherwise the rest of the page shows
+     through the gaps between tiles as stray text and dark bands. */
+  background:var(--paper)}
+body.field-view .page.wide{padding-top:0;padding-bottom:0}
+body.field-view .site-nav,
+body.field-view .gallery-header.is-stuck{
+  background:color-mix(in srgb, var(--paper) 90%, transparent);
+  border-bottom:1px solid var(--line);
+  -webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);
+}
+@supports not (backdrop-filter: blur(1px)){
+  /* Without blur the translucency just looks like a printing error. */
+  body.field-view .site-nav,
+  body.field-view .gallery-header.is-stuck{background:var(--paper)}
+}
+body.field-view .gallery-header.is-stuck{
+  position:fixed;top:var(--bf-navh,65px);left:0;right:0;z-index:40;
+  padding-left:clamp(1rem,3vw,2.6rem);padding-right:clamp(1rem,3vw,2.6rem);
+  margin:0;
+}
 .bf-plane{position:absolute;top:0;left:0;will-change:transform}
 
 /* the tile itself, matching the gallery's look */
@@ -395,6 +424,17 @@ body.birdsfield .page{padding-top:.5rem!important}
 
   var MEDIA = "https://birds-scott-ouellette.s3.amazonaws.com/birds/sounds/clips/";
   var canvas = document.getElementById("bf-canvas");
+  /* The floating bars are sized by their own content (and wrap on narrow
+     screens), so their heights are measured rather than assumed. */
+  function measureChrome() {
+    var nav = document.querySelector(".site-nav");
+    var bar = document.querySelector(".gallery-header.is-stuck");
+    var r = document.documentElement.style;
+    r.setProperty("--bf-navh", Math.round(nav ? nav.getBoundingClientRect().height : 65) + "px");
+    r.setProperty("--bf-barh", Math.round(bar ? bar.getBoundingClientRect().height : 0) + "px");
+  }
+  measureChrome();
+  addEventListener("resize", measureChrome, { passive: true });
   var plane = document.getElementById("bf-plane");
   var esc = function (s) { var d = document.createElement("i"); d.textContent = s == null ? "" : s; return d.innerHTML; };
 
