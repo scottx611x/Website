@@ -1,104 +1,127 @@
 # Overnight run — gallery / site revamp
 
-**Branch:** `nocturne` (off `stats-revamp` @ 5859aaa). **NEVER deploy from here.**
-Prod is `master` @ b1af8c9 and must stay that way.
+**If you are a fresh context: read this whole file, then run**
+`git log --oneline master..HEAD` **to see how far the run got.**
 
-Read this first after any context reset, then `git log --oneline master..HEAD`
-to see how far the run got.
+- **Branch:** `nocturne`, off `stats-revamp` @ 5859aaa.
+- **NEVER deploy from this branch.** Prod is `master` (@ b1af8c9) and Scott
+  said explicitly: DO NOT PUSH ANYTHING TO PROD.
+- **Never open a browser tab.** Standing constraint — someone else is using
+  the machine. Everything visual goes through the headless probes below.
 
 ## The brief
 
-Scott: "act as a super hip designer... revamp in any way you deem fitting while
-keeping my design holistic... make it sick... draw inspiration from awwwards...
-have fun, be quirky, go wild... whole site is up for grabs. DO NOT PUSH TO PROD."
+> "act as a super hip designer... revamp in any way you deem fitting while
+> keeping my design holistic... make it sick... draw inspiration from
+> awwwards... have fun, be quirky, go wild... whole site is up for grabs.
+> DO NOT PUSH TO PROD."
 
-Standing constraint from earlier in the session: **never open a browser tab** —
-his wife is using the laptop. All visual checks go through the headless probe
-(see Tooling).
+Rules he set: don't stop until out of tokens; craft the run so it recovers
+from context resets (that is what this file and `probes/` are for); whole site
+is fair game.
+
+## How to work
+
+```bash
+make run                              # local server on :5055
+docs/revamp/probes/run.sh             # list probes
+docs/revamp/probes/run.sh sweep2      # run one
+```
+
+`run.sh` installs `playwright-core` + `pngjs` into `~/.cache/birds-probes` on
+first use and drives the cached `chrome-headless-shell`. Nothing probe-related
+lands in the repo. If chromium is missing it prints the one command to fix it.
+
+Dev static is no-cache (`_fresh_static_in_dev` in index.py), so CSS/template
+edits show up on reload without restarting the server. **This matters:** a
+stale `site.css` once made a whole redesign look broken for an hour. See the
+`website-deploy` memory.
+
+### The probes
+
+| probe | what it answers |
+|---|---|
+| `sweep2` | chrome height / field share / seam / no x-scroll at 4 widths |
+| `finite` | small sets never repeat on screen, panning stays in bounds |
+| `rep`, `fallback` | repetition by collection size |
+| `zoom`, `zoomanim` | semantic zoom both ways, transition timing, thrash |
+| `depth2` | `--age` tracks date with 0 order mismatches |
+| `echo` | typographic echo appears/clears, never sticks after a drag |
+| `vt`, `vtanim` | view transition fires both ways, no stranded names |
+| `deep`, `hash`, `reload` | deep links survive refresh, Back, close |
+| `fam` | family detail view, member chips, per-frame species |
+| `combo`, `clip` | search ranking, keyboard, panel fits |
+| `menu` | view menu, one-row bar |
+| `contrast`, `navband` | measured luminance behind text |
+| `page` | screenshot any route: `run.sh page /birds out.png 900` |
+
+Screenshots go to whatever path you pass — your scratchpad, not the repo.
 
 ## What must not break
 
-The field earned its behaviour through a lot of rejected attempts. Do not
-re-litigate these:
+The field earned its behaviour through many rejected attempts. Do not
+re-litigate:
 
-- Endless pan in any direction, drag anywhere, pinch to resize.
+- Endless pan in any direction; drag anywhere; pinch to resize.
 - A species never lands beside itself (round-robin + computed stride).
-- Small sets get a FINITE layout, not a wrapping one (< ~1.5 screens of tiles).
-- Detail overlay: frames scoped to the current filter, family mode when a
-  family is active, close returns you to the same scroll position.
+- Small sets (< ~1.5 screens) get a FINITE layout, not a wrapping one, with
+  panning clamped to the block. Scott explicitly rejected falling back to the
+  masonry grid for small sets — keep it in the field.
+- Detail overlay: frames scoped to the current filter; family mode when a
+  family is active; close returns to the same scroll position.
 - Curate mode must keep working.
-- Brand: warm paper `--paper`, `--ink`, green `--green`, Fraunces (display),
-  Space Grotesk (body), JetBrains Mono (mono). Keep it. "Holistic" was the ask.
+- Brand: `--paper`, `--ink`, `--green`; Fraunces (display), Space Grotesk
+  (body), JetBrains Mono (mono). "Holistic" was the ask — keep it.
 - `prefers-reduced-motion` respected everywhere.
+- **Rejected outright earlier, do not bring back:** scroll-jacking; a
+  dashboard-style stats redesign; recency "weaving" that reorders the field;
+  jargon labels ("lean recent", "Back to the centre").
 
-## Design direction (chosen)
+## Landed so far
 
-Working title: **Nocturne** — the field as a living plane you fly over.
+Newest last. One commit each; `git log master..HEAD` has the reasoning.
 
-1. **Shared-element transitions** (View Transitions API) tile → detail, so
-   opening a bird is a continuous move rather than a modal appearing.
-2. **Depth**: tiles parallax in layers; the layer comes from data (frequency /
-   recency), so the depth *means* something.
-3. **Semantic zoom**: pinch out past a threshold and the field resolves into
-   species clusters; pinch in and it becomes photos again.
-4. **Kinetic type**: species names as a typographic layer that reacts to pan.
-5. **Cohesion**: home, stats and live inherit the same motion vocabulary.
+1. **View transitions** — tile → detail morphs via `document.startViewTransition`.
+   The name must be on exactly one element per snapshot, so the tile carries it
+   for the outgoing frame and the stage image for the incoming one, swapped
+   inside the callback between the two captures.
+2. **Depth** — `--age` per tile (0 = newest in view, 1 = oldest), ranked not
+   raw-scaled, driving a slight scale/saturation recession. CSS-only hover
+   lift. *Gotcha:* AGE is keyed by TILE index; `at()` returns a SEQ position.
+3. **Semantic zoom** — below 150px tile width the field swaps to one tile per
+   species, height ∝ frame count (sqrt), name always-on, tally chip.
+   *Gotchas:* counts must come from `t.n` (counting SEQ entries returns 8 for
+   everything — the server caps the round-robin at 8); `.bf-count` was already
+   the stage's frame counter, so the chip needed `.bf-tally`.
+4. **Zoom dissolve** — the mode swap runs inside a view transition, guarded
+   against pinch thrash.
+5. **Home hero** — the stock fjord replaced by a drifting wall of his own
+   birds; six columns, CSS-only seamless loop. *Gotchas:* `#bg-effect` lived
+   inside `.content` (z-index 1) so it painted over the nav — base.html now
+   has a `page_background` block outside `.content`; and the tilt shared an
+   element with `.bg-scrim`, so the scrim's gradients rotated with it.
+6. **Deep links finished** — `#bird/<slug>`, `#family/<slug>` survive a
+   refresh. *Gotchas:* `history.state` survives a reload (so "unwind my own
+   entry" needs a page-scoped flag); and birds.html's existing "a refresh
+   reshuffles" feature dropped the fragment in `location.replace`.
+7. **Typographic echo** — hovering a tile names it huge in Fraunces along the
+   bottom, `mix-blend-mode: difference` so it stays legible over any photo.
+   Listens on the canvas, not per-tile, and only writes when the species
+   actually changes.
 
-## Tooling (headless, no tabs)
+## Next up (priority order)
 
-Probes live in the scratchpad, driven by `playwright-core` + the cached
-`chrome-headless-shell`. Pattern:
+1. **Stats page.** Scott: "a fuck ton going on", too long a scroll. Untouched
+   so far. A dashboard redesign was already rejected once — the ask is fewer
+   things at once and a clearer spine, not more chrome.
+2. **Live page** (`/birds/live`) — the mic feed; it should feel alive. Inherit
+   the field's motion vocabulary.
+3. **Photography page** — shares the gallery machinery; could take the field.
+4. **Echo on touch** — desktop-only today (`@media (hover: none)` hides it).
+5. **A way into survey mode** — semantic zoom is only reachable by pinching or
+   the size slider. It deserves a control that names it.
 
-    SP=<scratchpad>
-    SP=$SP node $SP/<probe>.js
+## Uncommitted right now
 
-Existing probes worth reusing: `sweep2.js` (viewport sweep), `finite.js`
-(repetition), `fam.js` (family detail), `combo.js` (search), `deep.js`
-(deep links), `menu.js` (view menu).
-
-Local server: `make run` on :5055. Dev static is no-cache (see
-`_fresh_static_in_dev`), so CSS edits show up without a restart.
-
-## Log
-
-Append one line per landed change. Newest last.
-
-- setup: branch created, brief written.
-- **view transitions**: tile -> detail morphs via `document.startViewTransition`.
-  The name lives on the tile for the outgoing snapshot and the stage image for
-  the incoming one, swapped inside the callback between captures (two elements
-  holding one name is an error). Verified: group animates 520ms with the custom
-  easing, root cross-fades 300ms, no stranded `view-transition-name`, works in
-  both directions.
-- **depth**: `--age` per tile, 0 = newest frame in view, 1 = oldest; drives a
-  slight scale/saturation recession so the archive sits further back. Ranked,
-  not raw-date-scaled. Pointer lift on hover (CSS only, no per-frame JS).
-  Gotcha: AGE is keyed by TILE index, `at()` returns a SEQ position — looking
-  up the wrong one gave plausible-but-scrambled depth. Verified 0 order
-  mismatches across 70 tiles; 84-103 frames rendered during a 1s drag.
-- **semantic zoom**: below 150px tile width the field swaps representation —
-  one tile per species (newest frame), height encoding the species' frame
-  count (sqrt-scaled), name always-on in Fraunces, tally chip. `setOverview()`
-  swaps SEQ between SEQ_PHOTOS/SEQ_SPECIES and reseats. Gotchas: counting SEQ
-  occurrences reports 8 for everything (the server caps the round-robin at 8)
-  — use `t.n`; and `.bf-count` was already the stage's frame counter, so the
-  chip needed its own class (`.bf-tally`).
-- **home hero**: the stock fjord is replaced by a wall of Scott's own birds —
-  six columns, one frame per species, drifting at prime-ish durations in
-  alternating directions, each column holding its list twice and translating
-  -50% for a seamless CSS-only loop. Three gotchas, all found by measuring:
-  (1) `#bg-effect` lived INSIDE `.content` (z-index:1) while the nav is
-  z-index:0, so the wall painted over the nav — base.html now has a
-  `page_background` block outside `.content`; (2) the tilt was on the same
-  element as `.bg-scrim`, so the scrim's gradients rotated with it and the
-  nav band ran off at an angle — tilt moved to `.wall-tilt`; (3) nav ink is
-  dark by default and vanished on the dark wall. Nav-strip backdrop went from
-  peak luminance 117 to 52.
-- **deep links finished**: `#bird/<slug>` and `#family/<slug>` now survive a
-  refresh. Two separate causes, both non-obvious: (1) `history.state` SURVIVES
-  a reload, so closeOver's "unwind my own entry" saw a stale marker and called
-  `history.back()` into the pre-redirect `/birds` — now gated on a
-  `pushedHere` flag scoped to this page load; (2) birds.html already had a
-  deliberate "a refresh reshuffles" feature whose `location.replace()` dropped
-  the fragment, so the two features fought and the reshuffle always won. It
-  carries `location.hash` through now — you get both.
+Nothing intentionally. If `git status` is dirty on resume, read the diff first
+— it is probably a half-finished item from "Next up".

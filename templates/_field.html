@@ -411,6 +411,23 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
 @keyframes bfZoomOutNew{from{opacity:0;transform:scale(.9)}}
 @keyframes bfZoomInOld{to{opacity:0;transform:scale(.86)}}
 @keyframes bfZoomInNew{from{opacity:0;transform:scale(1.14)}}
+/* A typographic echo of whatever you are pointing at. Difference blending
+   means it is legible over any photograph without a scrim, and it reads as
+   part of the design rather than as a tooltip. */
+.bf-echo{position:absolute;left:0;right:0;bottom:2.2rem;z-index:2;
+  pointer-events:none;padding:0 clamp(1rem,3vw,2.6rem);
+  mix-blend-mode:difference;color:#fff;
+  opacity:0;transform:translateY(14px);
+  transition:opacity .34s cubic-bezier(.22,1,.36,1),transform .34s cubic-bezier(.22,1,.36,1)}
+.bf-echo.on{opacity:1;transform:none}
+.bf-echo b{display:block;font-family:var(--display);font-weight:400;
+  font-size:clamp(2.2rem,7.5vw,6.5rem);line-height:.92;letter-spacing:-.025em;
+  text-wrap:balance}
+.bf-echo i{display:block;font-style:normal;font-family:var(--mono);
+  font-size:.74rem;letter-spacing:.14em;text-transform:uppercase;
+  margin-top:.5rem;opacity:.75}
+@media (hover: none){.bf-echo{display:none}}
+@media (prefers-reduced-motion: reduce){.bf-echo{transition:none}}
 </style>
 
 <section class="page wide bf" id="bf-root">
@@ -434,6 +451,7 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
 
   <div class="bf-canvas" id="bf-canvas">
     <div class="bf-plane" id="bf-plane"></div>
+    <div class="bf-echo" id="bf-echo" aria-hidden="true"><b></b><i></i></div>
     <button type="button" class="bf-tilt" id="bf-tilt" hidden
             title="Steer by tilting the phone" aria-pressed="false">Tilt</button>
     <span class="bf-hint">drag anywhere &middot; pinch to resize &middot; it keeps going</span>
@@ -1170,6 +1188,32 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
   if (sizer) sizer.addEventListener("input", function () {
     applyScale(+sizer.value);             // same path as pinch, so both agree
   });
+
+  /* The echo names what is under the pointer. It listens on the canvas rather
+     than per-tile, so recycled tiles need no wiring, and it only touches the
+     DOM when the species actually changes — moving across twelve frames of
+     one bird rewrites nothing. */
+  // getElementById, not the $() helper: this block sits above where $ is
+  // defined, and a hoisted `var $` is undefined until that line runs.
+  var echo = document.getElementById("bf-echo"), echoName = null, echoT = null;
+  function setEcho(t) {
+    var nm = t ? t.name : null;
+    if (nm === echoName) return;
+    echoName = nm;
+    if (echoT) { clearTimeout(echoT); echoT = null; }
+    if (!nm) { echo.classList.remove("on"); return; }
+    echo.querySelector("b").textContent = nm;
+    echo.querySelector("i").textContent = (t.fam || "") +
+      (t.n > 1 ? "  \u00b7  " + t.n + " frames" : "");
+    echo.classList.add("on");
+  }
+  canvas.addEventListener("pointermove", function (e) {
+    if (down || e.pointerType === "touch") return;
+    var el = e.target.closest ? e.target.closest(".bf-tile") : null;
+    setEcho(el && el._t);
+  }, { passive: true });
+  canvas.addEventListener("pointerleave", function () { setEcho(null); }, { passive: true });
+  canvas.addEventListener("pointerdown", function () { setEcho(null); }, { passive: true });
 
   var down = false, lx = 0, ly = 0, moved = 0, hit = null;
   canvas.addEventListener("pointerdown", function (e) {
