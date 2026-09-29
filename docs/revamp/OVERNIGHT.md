@@ -113,19 +113,18 @@ Newest last. One commit each; `git log master..HEAD` has the reasoning.
    had to move. Only the act you are in expands; the rest collapse to their
    label. *Gotcha:* `.stat-jump` pinned at `top: 0`, the same place the site
    nav pins, with a lower z-index — so it was invisible whenever you scrolled.
+9. **Stats act cards** — a title card opens each act (numeral, Fraunces
+   title, one-line lede, hairline rule) so the scroll reads as three movements
+   rather than one dump. Deliberately quiet: the charts are the content, this
+   is punctuation. Probe: `actcard`.
 
 ## Next up (priority order)
 
-1. **Stats page, continued.** The section nav is done (three acts, see
-   "Landed" #8) but the page is still a 6,800px scroll of eleven sections.
-   Remaining idea: give each act a title card so the scroll reads as three
-   movements rather than one dump. A dashboard redesign was already rejected
-   once — fewer things at once, not more chrome.
-2. **Live page** (`/birds/live`) — the mic feed; it should feel alive. Inherit
-   the field's motion vocabulary.
-3. **Photography page** — shares the gallery machinery; could take the field.
-4. **Echo on touch** — desktop-only today (`@media (hover: none)` hides it).
-5. **A way into survey mode** — semantic zoom is only reachable by pinching or
+1. **Live page** (`/birds/live`) — the mic feed; it should feel alive.
+   Inherit the field's motion vocabulary.
+2. **Photography page** — shares the gallery machinery; could take the field.
+3. **Echo on touch** — desktop-only today (`@media (hover: none)` hides it).
+4. **A way into survey mode** — semantic zoom is only reachable by pinching or
    the size slider. It deserves a control that names it.
 
 ## Uncommitted right now

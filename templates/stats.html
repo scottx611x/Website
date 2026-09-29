@@ -87,6 +87,11 @@
     </nav>
 
     <div class="stat-grid">
+        <div class="act-card stat-span-2" id="act-1" data-act="1">
+            <span class="act-num mono">I</span>
+            <h2 class="act-title">Over time</h2>
+            <p class="act-lede">How the collection accumulated &mdash; the first sighting of each bird, year by year, and the days spent out with a camera.</p>
+        </div>
         <!-- Life list accumulation: scrub the timeline; the lifer card floats in
              the empty upper-left (a cumulative curve is monotonic, so that region
              is always clear). -->
@@ -145,6 +150,11 @@
             <div id="cal-chart" class="d3-chart cal-scroll"></div>
         </div>
 
+        <div class="act-card stat-span-2" id="act-2" data-act="2">
+            <span class="act-num mono">II</span>
+            <h2 class="act-title">Which birds</h2>
+            <p class="act-lede">Who actually turns up &mdash; the most photographed, how they group into families, and what the microphone hears that the lens never sees.</p>
+        </div>
         <!-- Most photographed -->
         <div class="stat-block" id="board">
             <h2>Most photographed</h2>
@@ -219,6 +229,11 @@
         </div>
         {% endif %}
 
+        <div class="act-card stat-span-2" id="act-3" data-act="3">
+            <span class="act-num mono">III</span>
+            <h2 class="act-title">When &amp; where</h2>
+            <p class="act-lede">The shape of a day, the yard itself, and the places a bird is worth walking to.</p>
+        </div>
         <!-- The daily rhythm: species x hour-of-day, each row lit against its own busiest hour -->
         {% if rhythm and rhythm.species %}
         <div class="stat-block stat-span-2" id="rhythm-block">
