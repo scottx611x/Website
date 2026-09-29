@@ -83,3 +83,14 @@ Append one line per landed change. Newest last.
   occurrences reports 8 for everything (the server caps the round-robin at 8)
   — use `t.n`; and `.bf-count` was already the stage's frame counter, so the
   chip needed its own class (`.bf-tally`).
+- **home hero**: the stock fjord is replaced by a wall of Scott's own birds —
+  six columns, one frame per species, drifting at prime-ish durations in
+  alternating directions, each column holding its list twice and translating
+  -50% for a seamless CSS-only loop. Three gotchas, all found by measuring:
+  (1) `#bg-effect` lived INSIDE `.content` (z-index:1) while the nav is
+  z-index:0, so the wall painted over the nav — base.html now has a
+  `page_background` block outside `.content`; (2) the tilt was on the same
+  element as `.bg-scrim`, so the scrim's gradients rotated with it and the
+  nav band ran off at an angle — tilt moved to `.wall-tilt`; (3) nav ink is
+  dark by default and vanished on the dark wall. Nav-strip backdrop went from
+  peak luminance 117 to 52.

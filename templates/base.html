@@ -30,6 +30,12 @@
     {% block head %}{% endblock %}
 </head>
 <body class="{% block body_class %}{% endblock %}">
+    {# Page background lives OUTSIDE .content on purpose. .content is
+       z-index:1 in the root stacking context and the nav is z-index:0, so
+       anything rendered inside .content — including a z-index:-1 backdrop —
+       paints above the nav and hides it. #}
+    {% block page_background %}{% endblock %}
+
     <header class="site-nav" id="nav">
         {% if request.endpoint == 'index' %}
         <span class="brand-spacer" aria-hidden="true"></span>
