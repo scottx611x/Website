@@ -631,6 +631,21 @@ def birds_gallery():
         active_month_display=datetime.date(2000, month, 1).strftime("%B") if month else "",
         active_review=review,
         review_counts=review_counts,
+        # What the gallery is currently scoped to, handed to the field so the
+        # detail view can reflect it: a bird opened while browsing Woodpeckers
+        # should say so and let you step through the rest of the family, and
+        # its filmstrip should show the frames this view is actually showing
+        # rather than every frame of that species ever taken.
+        view_ctx={
+            "family": family or "",
+            "birds": active_birds,
+            "area": area or "",
+            "media": media or "",
+            "loc": place["name"] if place else "",
+            "month": month or 0,
+            "on": on or "",
+            "posted": posted or "",
+        },
         media_n=dict(zip(("photos", "videos"),
                          birds.media_counts(all_shots, bird, family, area, out_of_area,
                                             month=month or None))),

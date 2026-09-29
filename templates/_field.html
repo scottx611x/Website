@@ -81,22 +81,29 @@ body.field-view .gallery-header.is-stuck .media-stat{
   }
   body.field-view .gallery-header.is-stuck .birds-subnav::-webkit-scrollbar{display:none}
 }
+/* ONE pane of glass behind the whole chrome block, not one per bar.
+   backdrop-filter samples only what is behind its own element, so two
+   adjacent blurred bars do not blend across the boundary between them and
+   the junction renders as a faint line all the way across the screen. A
+   single fixed scrim spanning both removes the boundary entirely. */
 body.field-view .site-nav,
-body.field-view .gallery-header.is-stuck{
+body.field-view .gallery-header.is-stuck{background:transparent}
+body.field-view::before{
+  content:"";position:fixed;top:0;left:0;right:0;z-index:39;pointer-events:none;
+  height:calc(var(--bf-navh,65px) + var(--bf-barh,50px));
   background:color-mix(in srgb, var(--paper) 90%, transparent);
   -webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--line);
 }
 @supports not (backdrop-filter: blur(1px)){
   /* Without blur the translucency just looks like a printing error. */
-  body.field-view .site-nav,
-  body.field-view .gallery-header.is-stuck{background:var(--paper)}
+  body.field-view::before{background:var(--paper)}
 }
 /* The nav and the bar read as one block of chrome, so only the bottom of the
    block gets a rule — a line under each gave two hairlines 50px apart. */
 body.field-view .site-nav{border-bottom:0}
 body.field-view .gallery-header.is-stuck{
   position:fixed;top:var(--bf-navh,65px);left:0;right:0;z-index:40;
-  border-bottom:1px solid var(--line);
   padding-left:clamp(1rem,3vw,2.6rem);padding-right:clamp(1rem,3vw,2.6rem);
   margin:0;
 }
@@ -129,10 +136,14 @@ body.field-view .gallery-header.is-stuck{
 .bf-canvas.bf-touched .bf-hint{opacity:0}   /* it has served its purpose */
 
 /* ---------- detail modal: image-led, in the site's own type ---------- */
+/* z-40, not z-6: on phones .bf-viewer is sticky at z-20 and painted straight
+   over the close button, so the tap landed on the photo and the modal could
+   not be dismissed at all. Nothing else inside the overlay sits above 20
+   except the expanded map, which carries its own close. */
 .bf-over{position:fixed;inset:0;z-index:130;background:rgba(13,18,14,.94);
   display:none;overflow-y:auto;padding:0}
 .bf-over.open{display:block}
-.bf-oclose{position:fixed;top:.8rem;right:1rem;z-index:6;border:0;color:#fff;
+.bf-oclose{position:fixed;top:.8rem;right:1rem;z-index:40;border:0;color:#fff;
   font-size:1.6rem;line-height:1;cursor:pointer;opacity:.95;
   background:rgba(13,18,14,.55);border-radius:50%;width:38px;height:38px;
   display:grid;place-items:center;backdrop-filter:blur(4px)}
@@ -332,6 +343,13 @@ body.field-view .gallery-header.is-stuck{
   .bf-hint{bottom:3.4rem;max-width:calc(100% - 1.2rem);white-space:nowrap;
     overflow:hidden;text-overflow:ellipsis;font-size:.66rem}
 }
+.bf-ctxnav{display:flex;align-items:center;gap:.5rem;margin:.45rem 0 0;
+  font-family:var(--mono);font-size:.72rem;color:rgba(244,241,233,.72)}
+.bf-ctxnav[hidden]{display:none}
+.bf-ctxnav span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bf-ctxnav .bf-ico{width:22px;height:22px}
+.bf-ctxnav .bf-ico[disabled]{opacity:.3;cursor:default}
+.bf-scoped{color:rgba(244,241,233,.6);font-size:.7rem}
 </style>
 
 <section class="page wide bf" id="bf-root">
@@ -364,6 +382,7 @@ body.field-view .gallery-header.is-stuck{
 <script src="{{ url_for('static', filename='js/playhead.js', v=asset_v) }}"></script>
 <script id="bf-tiles" type="application/json">{{ tiles|tojson }}</script>
 <script id="bf-seq" type="application/json">{{ seq|tojson }}</script>
+<script id="bf-ctx" type="application/json">{{ (view_ctx if view_ctx is defined else {})|tojson }}</script>
 
 <div class="bf-over" id="bf-over" role="dialog" aria-modal="true" aria-label="Species detail">
   <button class="bf-oclose" id="bf-oclose" aria-label="Close">&times;</button>
@@ -386,6 +405,12 @@ body.field-view .gallery-header.is-stuck{
       <div>
         <h2 id="bf-otitle"></h2>
         <p class="fam" id="bf-ofam"></p>
+        <div class="bf-ctxnav" id="bf-octx" hidden>
+          <button type="button" class="bf-ico" id="bf-octxprev" aria-label="Previous species in this view"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>
+          <span id="bf-octxlab"></span>
+          <button type="button" class="bf-ico" id="bf-octxnext" aria-label="Next species in this view"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg></button>
+        </div>
+        <p class="bf-scoped" id="bf-oscope" hidden></p>
         <div class="bf-ocontrols">
           <button type="button" id="bf-orandom" class="bf-ico" title="Another bird at random" aria-label="Another bird at random"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.6-6.4"/><path d="M21 3v6h-6"/></svg></button>
           <button type="button" id="bf-oshuffle" class="bf-ico" title="Shuffle this bird's frames" aria-label="Shuffle this bird's frames"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 3h5v5"/><path d="M4 20 21 3"/><path d="M21 16v5h-5"/><path d="m15 15 6 6"/><path d="M4 4l5 5"/></svg></button>
@@ -455,6 +480,27 @@ body.field-view .gallery-header.is-stuck{
   try {
     TILES = JSON.parse(document.getElementById("bf-tiles").textContent);
     SEQ = JSON.parse(document.getElementById("bf-seq").textContent);
+  var CTX = {};
+  try { CTX = JSON.parse(document.getElementById("bf-ctx").textContent) || {}; } catch (e) { CTX = {}; }
+  /* The species this view contains, in the order the field deals them. The
+     detail view steps through THIS list rather than the whole collection, so
+     opening a flicker while browsing Woodpeckers keeps you in Woodpeckers. */
+  var VIEW_SPECIES = (function () {
+    var seen = {}, out = [];
+    SEQ.forEach(function (i) {
+      var t = TILES[i]; if (!t || seen[t.slug]) return;
+      seen[t.slug] = 1; out.push({ slug: t.slug, name: t.name, fam: t.fam });
+    });
+    return out;
+  })();
+  function ctxLabel() {
+    if (CTX.family) return CTX.family;
+    if (CTX.birds && CTX.birds.length > 1) return CTX.birds.length + " species";
+    if (CTX.loc) return CTX.loc;
+    if (CTX.area === "elsewhere") return "outside North Andover";
+    if (CTX.area === "local") return "North Andover";
+    return "";
+  }
   } catch (_) { return; }
   if (!TILES.length || !SEQ.length) return;
 
@@ -1080,11 +1126,72 @@ body.field-view .gallery-header.is-stuck{
   $("bf-prev").addEventListener("click", function () { showFrame(fi - 1); });
   $("bf-next").addEventListener("click", function () { showFrame(fi + 1); });
 
+  /* The profile endpoint returns every frame of a species. When the gallery
+     is filtered, showing all of them contradicts the view you opened it from
+     — browsing videos and tapping a bird should not hand you its stills. The
+     per-frame facts needed are already on each frame, so this is a filter
+     rather than another request. (?posted= is a post date, which frames do
+     not carry, so it is not applied.) */
+  var scoped = null;
+  function scopeFrames(all) {
+    var out = all;
+    if (CTX.area === "local") out = out.filter(function (f) { return !f.away; });
+    else if (CTX.area === "elsewhere") out = out.filter(function (f) { return !!f.away; });
+    if (CTX.media === "photo") out = out.filter(function (f) { return !f.vid; });
+    else if (CTX.media === "video") out = out.filter(function (f) { return !!f.vid; });
+    if (CTX.loc) out = out.filter(function (f) { return (f.where || "") === CTX.loc; });
+    if (CTX.month) out = out.filter(function (f) {
+      return parseInt(String(f.date || "").slice(5, 7), 10) === CTX.month;
+    });
+    if (CTX.on) out = out.filter(function (f) { return String(f.date || "").slice(0, 10) === CTX.on; });
+    // A filter that excludes everything would leave an empty modal, which is
+    // worse than showing the species whole.
+    if (!out.length) { scoped = null; return all; }
+    scoped = out.length < all.length ? { shown: out.length, all: all.length } : null;
+    return out;
+  }
+
+  /* Stepping between species stays inside the current view. */
+  function ctxIndex(slug) {
+    for (var i = 0; i < VIEW_SPECIES.length; i++) {
+      if (VIEW_SPECIES[i].slug === slug) return i;
+    }
+    return -1;
+  }
+  function tileFor(slug) {
+    for (var i = 0; i < SEQ.length; i++) {
+      var t = TILES[SEQ[i]];
+      if (t && t.slug === slug) return t;
+    }
+    return null;
+  }
+  function paintCtx(slug) {
+    var box = $("bf-octx"), lab = $("bf-octxlab");
+    var label = ctxLabel(), i = ctxIndex(slug);
+    // Nothing to say when the view is the whole collection and unfiltered.
+    if ((!label && VIEW_SPECIES.length < 2) || i < 0) { box.hidden = true; return; }
+    box.hidden = false;
+    lab.textContent = (label ? label + " \u00b7 " : "") +
+                      (i + 1) + " of " + VIEW_SPECIES.length;
+    $("bf-octxprev").disabled = VIEW_SPECIES.length < 2;
+    $("bf-octxnext").disabled = VIEW_SPECIES.length < 2;
+  }
+  function stepCtx(d) {
+    var i = ctxIndex(cur);
+    if (i < 0 || VIEW_SPECIES.length < 2) return;
+    var n = (i + d + VIEW_SPECIES.length) % VIEW_SPECIES.length;
+    var t = tileFor(VIEW_SPECIES[n].slug);
+    if (t) openSpecies(t);
+  }
+  $("bf-octxprev").addEventListener("click", function (e) { e.stopPropagation(); stepCtx(-1); });
+  $("bf-octxnext").addEventListener("click", function (e) { e.stopPropagation(); stepCtx(1); });
+
   function openSpecies(t) {
     cur = t.slug; frames = []; fi = 0;
     wantSrc = t.src;            // open on the frame that was actually clicked
     $("bf-otitle").textContent = t.name;
     $("bf-ofam").textContent = t.fam || "";
+    paintCtx(t.slug);
     $("bf-oimg").src = t.src; $("bf-oimg").alt = t.name;
     $("bf-ocount").textContent = "";
     $("bf-ofacts").innerHTML = ""; $("bf-ostrip").innerHTML = "";
@@ -1143,7 +1250,14 @@ body.field-view .gallery-header.is-stuck{
       $("bf-ofacts").appendChild(el);
     });
 
-    frames = d.frames || [];
+    frames = scopeFrames(d.frames || []);
+    // Say so when the strip is showing a subset — otherwise a bird you know
+    // has 50 photos appears to have lost most of them.
+    var sc = $("bf-oscope");
+    if (scoped) {
+      sc.hidden = false;
+      sc.textContent = scoped.shown + " of " + scoped.all + " frames match this view";
+    } else { sc.hidden = true; sc.textContent = ""; }
     if (frames.length) {
       // Barred Owl has 202 frames. Building every thumbnail up front is what
       // made opening a bird feel heavy, so render a first page and extend it
