@@ -126,6 +126,12 @@ Newest last. One commit each; `git log master..HEAD` has the reasoning.
     *Gotcha:* the collapse is worthless without `position: sticky`, which was
     still scoped to `.birds-fill`; the header shrank and then scrolled away.
     Probe: `collapse`.
+11. **Survey has a name** — "Survey every species" in the view menu, under
+    Size, toggling to "Back to photos". The field owns the threshold and
+    exposes `bfSurvey`/`bfIsSurvey`; entering survey dispatches a
+    `bf:overview` event so the label follows a PINCH as well as its own
+    button. Two places deciding what "survey" means would drift. Probe:
+    `survey`.
 
 ## Next up (priority order)
 
@@ -135,8 +141,7 @@ Newest last. One commit each; `git log master..HEAD` has the reasoning.
    machinery is there; what is missing is *felt* liveness.
 2. **Photography page** — shares the gallery machinery; could take the field.
 3. **Echo on touch** — desktop-only today (`@media (hover: none)` hides it).
-4. **A way into survey mode** — semantic zoom is only reachable by pinching or
-   the size slider. It deserves a control that names it.
+
 
 ## Uncommitted right now
 

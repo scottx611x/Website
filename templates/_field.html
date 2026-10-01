@@ -1074,6 +1074,11 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
      nothing else, so in the field view it moved and nothing happened. Hand it
      the same scaler that pinch uses. */
   window.bfScale = function (next) { applyScale(next); };
+  /* The survey view is reachable by pinching past a threshold, which is not a
+     discoverable gesture. Expose it by name; the threshold stays the field's
+     business so the two cannot disagree about what "survey" means. */
+  window.bfIsSurvey = function () { return OVERVIEW; };
+  window.bfSurvey = function (on) { applyScale(on ? OVER_W - 25 : 250); };
   window.bfBaseW = function () { return window.innerWidth < 620 ? 150 : 240; };
   var zooming = false;
   function setOverview(on) {
@@ -1103,6 +1108,9 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
     for (var i = 0; i < src.length; i++) SEQ.push(src[i]);
     L = SEQ.length;
     canvas.classList.toggle("overview", on);
+    // so the menu's label can follow a pinch, not just its own button
+    try { dispatchEvent(new CustomEvent("bf:overview", { detail: { on: on } })); }
+    catch (e) { /* older browsers: the control just keeps its label */ }
     // AGE is keyed by tile index and SEQ_SPECIES is a subset of the photos,
     // so it stays valid across the switch — no recompute.
     rebuild();

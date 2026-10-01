@@ -249,6 +249,16 @@
                            aria-label="Thumbnail size" oninput="setThumbZoom(this.value)">
                     <span class="tz-glyph tz-lg" aria-hidden="true">&#9642;</span>
                 </div>
+                {% if view == 'field' %}
+                {# Zooming far enough out turns the field into one tile per
+                   species — but the only way in was to pinch past a threshold,
+                   which nobody discovers. Here it has a name. #}
+                <button type="button" class="vm-opt vm-survey" id="vmSurvey"
+                        aria-pressed="false">
+                    <span data-on="Back to photos" data-off="Survey every species">Survey every species</span>
+                    <span class="vm-sub" data-on="one tile each" data-off="one tile each">one tile each</span>
+                </button>
+                {% endif %}
             </div>
         </div>
         <script>
@@ -273,6 +283,27 @@
                 document.addEventListener("keydown", function (e) {
                     if (e.key === "Escape" && !pop.hidden) { set(false); btn.focus(); }
                 });
+
+                /* Survey toggle. The field owns the threshold, so this just
+                   drives the width across it and lets setOverview react — two
+                   places deciding what "survey" means would drift apart. */
+                var sv = document.getElementById("vmSurvey");
+                if (sv) {
+                    sv.addEventListener("click", function () {
+                        if (!window.bfSurvey) return;
+                        window.bfSurvey(!window.bfIsSurvey || !window.bfIsSurvey());
+                        set(false);
+                    });
+                    addEventListener("bf:overview", function (e) {
+                        var on = !!(e.detail && e.detail.on);
+                        sv.setAttribute("aria-pressed", on ? "true" : "false");
+                        sv.classList.toggle("on", on);
+                        sv.querySelectorAll("span").forEach(function (s) {
+                            var t = s.getAttribute(on ? "data-on" : "data-off");
+                            if (t) s.textContent = t;
+                        });
+                    });
+                }
             })();
         </script>
         <script>

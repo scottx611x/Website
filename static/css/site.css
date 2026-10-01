@@ -471,6 +471,9 @@ body.home .site-nav { z-index: 0; }
 .vm-sub, .vm-num { font-family: var(--mono); font-size: 0.68rem; color: var(--muted); white-space: nowrap; }
 .vm-opt.on .vm-sub, .vm-opt.on .vm-num { color: var(--green); opacity: 0.7; }
 .vm-size { display: flex; align-items: center; gap: 0.5rem; padding: 0.3rem 0.6rem 0.5rem; }
+.vm-survey { margin-top: 0.15rem; }
+.vm-survey.on { color: var(--green); }
+.vm-survey.on::after { content: "\2713"; margin-left: auto; font-size: 0.8rem; }
 .vm-size input[type=range] { flex: 1 1 auto; }
 
 .bird-combo { position: relative; }
