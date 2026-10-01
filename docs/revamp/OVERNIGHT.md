@@ -117,11 +117,22 @@ Newest last. One commit each; `git log master..HEAD` has the reasoning.
    title, one-line lede, hairline rule) so the scroll reads as three movements
    rather than one dump. Deliberately quiet: the charts are the content, this
    is punctuation. Probe: `actcard`.
+10. **Shared header collapse** — the gallery's collapsing header is now a
+    general behaviour: opt in with `data-collapse` on `.gallery-header`, and
+    the script lives in base.html. Live uses it (188px -> 59px, and the
+    "listening · updated 1m ago" line stays pinned, which is the point of a
+    live page). Stats deliberately does NOT — it already has the sticky act
+    nav, and two stacked persistent bars on a busy page is worse than one.
+    *Gotcha:* the collapse is worthless without `position: sticky`, which was
+    still scoped to `.birds-fill`; the header shrank and then scrolled away.
+    Probe: `collapse`.
 
 ## Next up (priority order)
 
-1. **Live page** (`/birds/live`) — the mic feed; it should feel alive.
-   Inherit the field's motion vocabulary.
+1. **Live page, more.** The header is shared/compact now, but the page still
+   presents a live feed fairly statically. It already polls every 60s and
+   restamps times every 30s, and has `lvIn` / `lv-tkpulse` keyframes — so the
+   machinery is there; what is missing is *felt* liveness.
 2. **Photography page** — shares the gallery machinery; could take the field.
 3. **Echo on touch** — desktop-only today (`@media (hover: none)` hides it).
 4. **A way into survey mode** — semantic zoom is only reachable by pinching or

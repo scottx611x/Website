@@ -334,7 +334,7 @@
 {% macro feather(fill) %}<span class="feather" style="background-image:url('data:image/svg+xml;utf8,{{ ('<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"' ~ fill ~ '\"><path d=\"M23 6c-1 0-1.8.3-2.5.9C19 5.6 16.8 4.7 14 5.2c-4 .7-5.6 4-9 4.3-2 .2-3.3-.6-3.3-.6S2 12 6 12.6c-.7 1-2 1.7-3.5 1.9 0 0 1.2 1.5 3.6 1.1-.5.9-1.6 2-3.6 2.4 0 0 3.4 1.6 6.9-.6 2.9-1.8 4-4.8 6.1-6.9C22.5 9.4 24 8 23 6z\"/></svg>') }}')"></span>{% endmacro %}
 
 <section class="page wide livewire" id="lv-root">
-    <header class="gallery-header">
+    <header class="gallery-header" data-collapse="1">
         <h1>Live from the yard</h1>
         {% set subnav_active = 'live' %}{% include '_birds_nav.html' %}
         <p class="lv-status mono"><span class="lv-dot"></span> <span id="lv-upd">{% if has_data %}listening &middot; North Andover, MA{% else %}mic online &middot; warming up{% endif %}</span></p>

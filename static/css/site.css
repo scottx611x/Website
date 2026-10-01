@@ -559,53 +559,59 @@ body.home .site-nav { z-index: 0; }
 .birds-fill .media-stat { margin-top: 0.5rem; }
 .birds-fill .bird-active { margin-top: 0.9rem; }
 
+/* ...and once you scroll, get out of the way entirely. Opt-in per page via
+   `data-collapse` on the header (see base.html); the rules below are no longer
+   scoped to .birds-fill so stats and live can share them. */
 /* ...and once you scroll, get out of the way entirely. The full header is
    worth its height when you arrive — it is how you pick a bird — but it is
    dead weight the moment you are looking at photos. On scroll it collapses
    to a single sticky line carrying the same controls, so the filters stay
    one click away without costing a third of the screen. Sits below the site
    nav, which is itself sticky and shrinks to ~2.6rem. */
-.birds-fill .gallery-header {
+/* Sticky is what makes the collapse worth anything: without it the header
+   shrinks and then scrolls off, which is the same as not being there. Keyed to
+   the opt-in attribute so a page that wants the collapse gets both. */
+.gallery-header[data-collapse] {
     position: sticky; top: 2.55rem; z-index: 40;
     background: var(--paper);
     transition: padding 0.18s ease, box-shadow 0.18s ease;
 }
-.birds-fill .gallery-header.is-stuck {
+.gallery-header.is-stuck {
     display: flex; align-items: center; flex-wrap: wrap; gap: 0.7rem 1.2rem;
     text-align: left;
     margin-bottom: 0.9rem; padding: 0.7rem 0 0.75rem;
     border-bottom: 1px solid var(--line);
     box-shadow: 0 12px 16px -16px rgba(0, 0, 0, 0.55);
 }
-.birds-fill .gallery-header.is-stuck h1 {
+.gallery-header.is-stuck h1 {
     font-size: 1.02rem; margin: 0; white-space: nowrap; flex: 0 0 auto;
 }
-.birds-fill .gallery-header.is-stuck .bird-stat { display: none; }
-.birds-fill .gallery-header.is-stuck .birds-subnav { margin: 0; flex: 0 0 auto; }
+.gallery-header.is-stuck .bird-stat { display: none; }
+.gallery-header.is-stuck .birds-subnav { margin: 0; flex: 0 0 auto; }
 /* The focus chip carries a top margin from when it sat on its own line under
    the centred subnav. As a flex sibling in the one-row bar that margin just
    drops it below everything else — it rode 5px low against the pills, the
    search field and the menu button. */
-.birds-fill .gallery-header.is-stuck .subnav-focus { margin: 0; }
-.birds-fill .gallery-header.is-stuck .bird-filter {
+.gallery-header.is-stuck .subnav-focus { margin: 0; }
+.gallery-header.is-stuck .bird-filter {
     margin: 0; flex: 1 1 320px; min-width: 0;
 }
-.birds-fill .gallery-header.is-stuck .filter-controls {
+.gallery-header.is-stuck .filter-controls {
     margin: 0; justify-content: flex-end;
 }
 /* The search and family inputs carry min-widths sized for the full header.
    In one compressed row they refuse to shrink, overflow LEFT past their own
    container, and land on top of the active-species chip. Let them shrink. */
-.birds-fill .gallery-header.is-stuck .birds-subnav { flex: 0 1 auto; min-width: 0; }
-.birds-fill .gallery-header.is-stuck .filter-search,
-.birds-fill .gallery-header.is-stuck .bird-select { min-width: 0; }
-.birds-fill .gallery-header.is-stuck .filter-search input,
-.birds-fill .gallery-header.is-stuck .bird-select select {
+.gallery-header.is-stuck .birds-subnav { flex: 0 1 auto; min-width: 0; }
+.gallery-header.is-stuck .filter-search,
+.gallery-header.is-stuck .bird-select { min-width: 0; }
+.gallery-header.is-stuck .filter-search input,
+.gallery-header.is-stuck .bird-select select {
     min-width: 0; width: 100%;
 }
-.birds-fill .gallery-header.is-stuck .filter-search { flex: 1 1 12rem; max-width: 26rem; }
-.birds-fill .gallery-header.is-stuck .bird-select { flex: 1 1 9rem; max-width: 18rem; }
-.birds-fill .gallery-header.is-stuck .bird-active { margin: 0; flex: 1 1 100%; }
+.gallery-header.is-stuck .filter-search { flex: 1 1 12rem; max-width: 26rem; }
+.gallery-header.is-stuck .bird-select { flex: 1 1 9rem; max-width: 18rem; }
+.gallery-header.is-stuck .bird-active { margin: 0; flex: 1 1 100%; }
 /* Mobile nav: brand + a button, with the links in a panel underneath. */
 .nav-burger { display: none; }
 @media (max-width: 720px) {
@@ -639,13 +645,13 @@ body.home .site-nav { z-index: 0; }
 @media (max-width: 720px) {
     /* The title reads as the page's name, so it stays — the nav only says
        "Birds". Folding the site links into the burger paid for it. */
-    .birds-fill .gallery-header.is-stuck h1 { font-size: 0.95rem; flex: 1 1 100%; }
+    .gallery-header.is-stuck h1 { font-size: 0.95rem; flex: 1 1 100%; }
     /* Search and the view menu share a line. They sit in different parents,
        so without this the search claims the full width and pushes the menu
        onto a row of its own — which cost more height than the two-row bar it
        replaced. */
-    .birds-fill .gallery-header.is-stuck .bird-filter { flex: 1 1 8rem; }
-    .birds-fill .gallery-header.is-stuck .filter-search { max-width: none; }
+    .gallery-header.is-stuck .bird-filter { flex: 1 1 8rem; }
+    .gallery-header.is-stuck .filter-search { max-width: none; }
     .vm-btn { padding: 0.45rem 0.6rem; }
     /* Stays anchored to the button's right edge — switching it to the left
        pushed the panel straight off the side of the screen, since the button

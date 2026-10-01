@@ -77,6 +77,29 @@
         })();
     </script>
 
+    <script>
+        /* Collapse a page header once you leave the top. Opt in with
+           data-collapse on the header; data-pinned keeps it collapsed always
+           (the bird field, whose canvas is fixed so there is no scroll to
+           trigger it). Lives here rather than in birds.html so the gallery,
+           stats and live all behave the same way — they have the same header
+           and the same complaint about it. */
+        (function () {
+            var hdr, tick = false;
+            function read() {
+                tick = false;
+                hdr = hdr || document.querySelector(".gallery-header[data-collapse]");
+                if (!hdr || hdr.dataset.pinned) return;
+                hdr.classList.toggle("is-stuck", window.scrollY > 48);
+            }
+            addEventListener("scroll", function () {
+                if (!tick) { tick = true; requestAnimationFrame(read); }
+            }, { passive: true });
+            addEventListener("DOMContentLoaded", read);
+            read();
+        })();
+    </script>
+
     <main class="content">
         {% block content %}{% endblock %}
     </main>
