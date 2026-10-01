@@ -576,42 +576,42 @@ body.home .site-nav { z-index: 0; }
     background: var(--paper);
     transition: padding 0.18s ease, box-shadow 0.18s ease;
 }
-.gallery-header.is-stuck {
+.page .gallery-header.is-stuck {
     display: flex; align-items: center; flex-wrap: wrap; gap: 0.7rem 1.2rem;
     text-align: left;
     margin-bottom: 0.9rem; padding: 0.7rem 0 0.75rem;
     border-bottom: 1px solid var(--line);
     box-shadow: 0 12px 16px -16px rgba(0, 0, 0, 0.55);
 }
-.gallery-header.is-stuck h1 {
+.page .gallery-header.is-stuck h1 {
     font-size: 1.02rem; margin: 0; white-space: nowrap; flex: 0 0 auto;
 }
-.gallery-header.is-stuck .bird-stat { display: none; }
-.gallery-header.is-stuck .birds-subnav { margin: 0; flex: 0 0 auto; }
+.page .gallery-header.is-stuck .bird-stat { display: none; }
+.page .gallery-header.is-stuck .birds-subnav { margin: 0; flex: 0 0 auto; }
 /* The focus chip carries a top margin from when it sat on its own line under
    the centred subnav. As a flex sibling in the one-row bar that margin just
    drops it below everything else — it rode 5px low against the pills, the
    search field and the menu button. */
-.gallery-header.is-stuck .subnav-focus { margin: 0; }
-.gallery-header.is-stuck .bird-filter {
+.page .gallery-header.is-stuck .subnav-focus { margin: 0; }
+.page .gallery-header.is-stuck .bird-filter {
     margin: 0; flex: 1 1 320px; min-width: 0;
 }
-.gallery-header.is-stuck .filter-controls {
+.page .gallery-header.is-stuck .filter-controls {
     margin: 0; justify-content: flex-end;
 }
 /* The search and family inputs carry min-widths sized for the full header.
    In one compressed row they refuse to shrink, overflow LEFT past their own
    container, and land on top of the active-species chip. Let them shrink. */
-.gallery-header.is-stuck .birds-subnav { flex: 0 1 auto; min-width: 0; }
-.gallery-header.is-stuck .filter-search,
-.gallery-header.is-stuck .bird-select { min-width: 0; }
-.gallery-header.is-stuck .filter-search input,
-.gallery-header.is-stuck .bird-select select {
+.page .gallery-header.is-stuck .birds-subnav { flex: 0 1 auto; min-width: 0; }
+.page .gallery-header.is-stuck .filter-search,
+.page .gallery-header.is-stuck .bird-select { min-width: 0; }
+.page .gallery-header.is-stuck .filter-search input,
+.page .gallery-header.is-stuck .bird-select select {
     min-width: 0; width: 100%;
 }
-.gallery-header.is-stuck .filter-search { flex: 1 1 12rem; max-width: 26rem; }
-.gallery-header.is-stuck .bird-select { flex: 1 1 9rem; max-width: 18rem; }
-.gallery-header.is-stuck .bird-active { margin: 0; flex: 1 1 100%; }
+.page .gallery-header.is-stuck .filter-search { flex: 1 1 12rem; max-width: 26rem; }
+.page .gallery-header.is-stuck .bird-select { flex: 1 1 9rem; max-width: 18rem; }
+.page .gallery-header.is-stuck .bird-active { margin: 0; flex: 1 1 100%; }
 /* Mobile nav: brand + a button, with the links in a panel underneath. */
 .nav-burger { display: none; }
 @media (max-width: 720px) {
@@ -645,13 +645,13 @@ body.home .site-nav { z-index: 0; }
 @media (max-width: 720px) {
     /* The title reads as the page's name, so it stays — the nav only says
        "Birds". Folding the site links into the burger paid for it. */
-    .gallery-header.is-stuck h1 { font-size: 0.95rem; flex: 1 1 100%; }
+    .page .gallery-header.is-stuck h1 { font-size: 0.95rem; flex: 1 1 100%; }
     /* Search and the view menu share a line. They sit in different parents,
        so without this the search claims the full width and pushes the menu
        onto a row of its own — which cost more height than the two-row bar it
        replaced. */
-    .gallery-header.is-stuck .bird-filter { flex: 1 1 8rem; }
-    .gallery-header.is-stuck .filter-search { max-width: none; }
+    .page .gallery-header.is-stuck .bird-filter { flex: 1 1 8rem; }
+    .page .gallery-header.is-stuck .filter-search { max-width: none; }
     .vm-btn { padding: 0.45rem 0.6rem; }
     /* Stays anchored to the button's right edge — switching it to the left
        pushed the panel straight off the side of the screen, since the button
