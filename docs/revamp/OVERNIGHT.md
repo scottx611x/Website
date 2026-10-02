@@ -144,7 +144,17 @@ Newest last. One commit each; `git log master..HEAD` has the reasoning.
     from `LIVE.recent`, which already carries audio/spec/photo/conf/t — no new
     endpoint. *Gotcha:* `LIVE` is a local of the page's IIFE, not a global;
     `window.LIVE` is undefined and the guard silently emptied the section.
-    Probe: `chorus`.
+    Probe: `chorus`. Then extended: the spectrogram of the mark you are on
+    renders behind the ribbon, and "Play the day" walks it on its own —
+    driven by the audio's `ended` event, not a timer, so the yard plays back
+    at the pace it was recorded. More gotchas, all found by probing:
+    the ribbon was scaled px-per-HOUR while `recent` can span 46 minutes, so
+    every mark sat inside 115px and one drag flew past the whole day (it is
+    derived from the real span now, ruler interval included); the clip URL
+    needs `MEDIA + r.audio` like every other player here, and the bare
+    filename 404'd in a way that looked exactly like an autoplay block; and
+    the drag's `setPointerCapture` on the section retargeted the pointer
+    stream so the play button never received a click.
 
 ## Next up (priority order)
 
