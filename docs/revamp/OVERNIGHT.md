@@ -81,8 +81,17 @@ re-litigate:
   bug found underneath it was kept: `.stat-jump` pinned at `top: 0`, the same
   place the site nav pins and with a lower z-index, so the section nav was
   invisible the moment you scrolled.
-- Scott's verdict on 2026-10-01: the gallery direction is working; stats is
-  not. Leave stats alone unless he asks.
+- Scott's verdict, repeatedly: **the gallery direction is working.** Stats is
+  not (2026-10-01). The live page is not (2026-10-02) — "not wowed by the live
+  page updates at all". Both reverted in full.
+- **Also rejected: The Chorus** — the day's recordings as a scrubbable ribbon
+  on /birds/live, with the sky as a clock, the bird's photo and voice inline,
+  and the spectrogram behind it. Built, shown, reverted. The live page keeps
+  only the shared header collapse.
+- Pattern worth heeding: the wins have all come from REMOVING things on the
+  gallery (eleven controls to one row, ten section links to one search field,
+  575px of header to 57px). Every attempt to ADD a new structure elsewhere —
+  stats acts, the chorus — has been rejected. Spend effort on the field.
 
 ## Landed so far
 
@@ -136,25 +145,6 @@ Newest last. One commit each; `git log master..HEAD` has the reasoning.
     `bf:overview` event so the label follows a PINCH as well as its own
     button. Two places deciding what "survey" means would drift. Probe:
     `survey`.
-11. **The Chorus** (`/birds/live`) — the day as a scrubbable instrument. Every
-    recording the mic made, placed by the minute it happened across a 24h
-    ribbon; drag to move the day under a fixed playhead; the sky behind it IS
-    the clock (night ink -> dawn amber -> daylight), the bird under the head
-    names itself in Fraunces and plays its actual recording. Built entirely
-    from `LIVE.recent`, which already carries audio/spec/photo/conf/t — no new
-    endpoint. *Gotcha:* `LIVE` is a local of the page's IIFE, not a global;
-    `window.LIVE` is undefined and the guard silently emptied the section.
-    Probe: `chorus`. Then extended: the spectrogram of the mark you are on
-    renders behind the ribbon, and "Play the day" walks it on its own —
-    driven by the audio's `ended` event, not a timer, so the yard plays back
-    at the pace it was recorded. More gotchas, all found by probing:
-    the ribbon was scaled px-per-HOUR while `recent` can span 46 minutes, so
-    every mark sat inside 115px and one drag flew past the whole day (it is
-    derived from the real span now, ruler interval included); the clip URL
-    needs `MEDIA + r.audio` like every other player here, and the bare
-    filename 404'd in a way that looked exactly like an autoplay block; and
-    the drag's `setPointerCapture` on the section retargeted the pointer
-    stream so the play button never received a click.
 
 ## Next up (priority order)
 
