@@ -929,59 +929,6 @@ a.stat-card:hover { border-color: var(--green); }
   border-color: rgba(13, 18, 14, 0.18); }
 /* so a jumped-to heading isn't hidden under the sticky bar */
 .stat-block { scroll-margin-top: 7rem; }
-/* Act cards. Eleven sections in one 6,800px scroll reads as a dump; three
-   title cards turn it into three movements you can feel yourself entering.
-   They are deliberately quiet — a numeral, a name, a sentence — because the
-   charts are the content and this is only punctuation. */
-.act-card {
-    grid-column: 1 / -1;
-    display: grid; grid-template-columns: auto 1fr; gap: 0 clamp(1rem, 3vw, 2.4rem);
-    align-items: start;
-    margin: clamp(2rem, 5vw, 4rem) 0 clamp(0.6rem, 1.5vw, 1.2rem);
-    padding-top: clamp(1.2rem, 3vw, 2.2rem);
-    border-top: 1px solid var(--line);
-}
-.act-card:first-child { margin-top: 0; border-top: 0; padding-top: 0; }
-.act-num {
-    grid-row: 1 / span 2;
-    font-size: clamp(1.6rem, 4vw, 2.6rem); line-height: 1;
-    color: var(--green); opacity: 0.5; letter-spacing: 0.02em;
-}
-.act-title {
-    font-family: var(--display); font-weight: 400;
-    font-size: clamp(1.8rem, 4.6vw, 3rem); line-height: 1.02;
-    letter-spacing: -0.02em; margin: 0; text-wrap: balance;
-}
-.act-lede {
-    margin: 0.5rem 0 0; max-width: 46ch;
-    color: var(--muted); font-size: 0.95rem; line-height: 1.5;
-}
-@media (max-width: 640px) {
-    .act-card { grid-template-columns: 1fr; }
-    .act-num { grid-row: auto; font-size: 1.1rem; }
-}
-
-.sj-act { display: flex; align-items: center; gap: 4px; flex: none; }
-.sj-act + .sj-act { margin-left: 0.5rem; padding-left: 0.75rem; border-left: 1px solid var(--line); }
-.sj-act b {
-    font-family: var(--mono); font-size: 0.64rem; font-weight: 500;
-    letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted);
-    padding: 0 0.3rem; white-space: nowrap; transition: color 0.18s ease;
-}
-.sj-act.on b { color: var(--green); }
-/* Sections of the act you are NOT in collapse away, so the row carries three
-   names plus the handful you are among — not ten things to choose between. */
-.sj-act a {
-    max-width: 0; padding-left: 0; padding-right: 0; opacity: 0; overflow: hidden;
-    transition: max-width 0.28s cubic-bezier(.22,1,.36,1), opacity 0.2s ease,
-                padding 0.28s cubic-bezier(.22,1,.36,1);
-}
-.sj-act a { border-width: 0; }                 /* else a 2px sliver remains */
-.sj-act.on a, .stat-jump:hover .sj-act a, .stat-jump:focus-within .sj-act a { border-width: 1px; }
-.sj-act.on a { max-width: 12rem; opacity: 1; padding-left: 0.75rem; padding-right: 0.75rem; }
-.stat-jump:hover .sj-act a,
-.stat-jump:focus-within .sj-act a { max-width: 12rem; opacity: 1; padding-left: 0.75rem; padding-right: 0.75rem; }
-@media (prefers-reduced-motion: reduce) { .sj-act a { transition: none; } }
 @media (max-width: 560px) { .stat-jump { padding: 0.45rem 0; } .stat-jump a { font-size: 0.68rem; } }
 .stat-block h2 { font-family: var(--display); font-size: 1.35rem; font-weight: 500; margin: 0 0 0.15rem; }
 

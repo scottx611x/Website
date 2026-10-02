@@ -59,39 +59,22 @@
 
     {# Ten sections over roughly eight screens — without wayfinding you scroll
        blind. Sticky, scroll-spied, horizontally scrollable when narrow. #}
-    {# Ten equal pills in a row is a list of ten things to decide between. The
-       page already runs in three movements — how the collection grew, which
-       birds are in it, and when and where they turn up — and those happen to
-       be contiguous in scroll order, so grouping costs no reordering. The act
-       you are in is named; the others collapse to their label. #}
+    {# Ten sections over roughly eight screens — without wayfinding you scroll
+       blind. Sticky, scroll-spied, horizontally scrollable when narrow. #}
     <nav class="stat-jump" id="stat-jump" aria-label="Jump to section">
-      <span class="sj-act" data-act="1">
-        <b>Over time</b>
-        <a href="#s-life">Life list</a>
-        <a href="#s-year">Year</a>
-        <a href="#days">Shooting days</a>
-      </span>
-      <span class="sj-act" data-act="2">
-        <b>Which birds</b>
-        <a href="#board">Most shot</a>
-        <a href="#s-family">Families</a>
-        <a href="#ear-block">Heard</a>
-      </span>
-      <span class="sj-act" data-act="3">
-        <b>When &amp; where</b>
-        <a href="#rhythm-block">Rhythm</a>
-        <a href="#geo-block">Yard</a>
-        <a href="#places-block">Places</a>
-        <a href="#s-river">River</a>
-      </span>
+      <a href="#s-life">Life list</a>
+      <a href="#s-year">Year</a>
+      <a href="#days">Shooting days</a>
+      <a href="#board">Most shot</a>
+      <a href="#s-family">Families</a>
+      <a href="#ear-block">Heard</a>
+      <a href="#rhythm-block">Rhythm</a>
+      <a href="#geo-block">Yard</a>
+      <a href="#places-block">Places</a>
+      <a href="#s-river">River</a>
     </nav>
 
     <div class="stat-grid">
-        <div class="act-card stat-span-2" id="act-1" data-act="1">
-            <span class="act-num mono">I</span>
-            <h2 class="act-title">Over time</h2>
-            <p class="act-lede">How the collection accumulated &mdash; the first sighting of each bird, year by year, and the days spent out with a camera.</p>
-        </div>
         <!-- Life list accumulation: scrub the timeline; the lifer card floats in
              the empty upper-left (a cumulative curve is monotonic, so that region
              is always clear). -->
@@ -150,11 +133,6 @@
             <div id="cal-chart" class="d3-chart cal-scroll"></div>
         </div>
 
-        <div class="act-card stat-span-2" id="act-2" data-act="2">
-            <span class="act-num mono">II</span>
-            <h2 class="act-title">Which birds</h2>
-            <p class="act-lede">Who actually turns up &mdash; the most photographed, how they group into families, and what the microphone hears that the lens never sees.</p>
-        </div>
         <!-- Most photographed -->
         <div class="stat-block" id="board">
             <h2>Most photographed</h2>
@@ -229,11 +207,6 @@
         </div>
         {% endif %}
 
-        <div class="act-card stat-span-2" id="act-3" data-act="3">
-            <span class="act-num mono">III</span>
-            <h2 class="act-title">When &amp; where</h2>
-            <p class="act-lede">The shape of a day, the yard itself, and the places a bird is worth walking to.</p>
-        </div>
         <!-- The daily rhythm: species x hour-of-day, each row lit against its own busiest hour -->
         {% if rhythm and rhythm.species %}
         <div class="stat-block stat-span-2" id="rhythm-block">
@@ -1780,14 +1753,9 @@
     var best = null, bestV = 0;
     Object.keys(seen).forEach(function (k) { if (seen[k] > bestV) { bestV = seen[k]; best = k; } });
     nav.querySelectorAll("a").forEach(function (a) { a.classList.remove("on"); });
-    nav.querySelectorAll(".sj-act").forEach(function (s) { s.classList.remove("on"); });
     if (best && links[best]) {
       var a = links[best];
       a.classList.add("on");
-      // Light the act too: the others stay collapsed to their name, so the row
-      // shows three labels plus the handful of sections you are actually in.
-      var act = a.closest(".sj-act");
-      if (act) act.classList.add("on");
       var l = a.offsetLeft, w = a.offsetWidth;
       if (l < nav.scrollLeft || l + w > nav.scrollLeft + nav.clientWidth) {
         nav.scrollTo({ left: Math.max(0, l - nav.clientWidth / 2 + w / 2), behavior: "smooth" });

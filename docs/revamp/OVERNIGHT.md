@@ -73,9 +73,16 @@ re-litigate:
 - Brand: `--paper`, `--ink`, `--green`; Fraunces (display), Space Grotesk
   (body), JetBrains Mono (mono). "Holistic" was the ask — keep it.
 - `prefers-reduced-motion` respected everywhere.
-- **Rejected outright earlier, do not bring back:** scroll-jacking; a
-  dashboard-style stats redesign; recency "weaving" that reorders the field;
-  jargon labels ("lean recent", "Back to the centre").
+- **Rejected outright, do not bring back:** scroll-jacking; a dashboard-style
+  stats redesign; recency "weaving" that reorders the field; jargon labels
+  ("lean recent", "Back to the centre"); **and the stats act structure** —
+  grouping the ten section pills into three named acts and opening each with
+  a chapter card. Built, shown, called trash, reverted in full. The genuine
+  bug found underneath it was kept: `.stat-jump` pinned at `top: 0`, the same
+  place the site nav pins and with a lower z-index, so the section nav was
+  invisible the moment you scrolled.
+- Scott's verdict on 2026-10-01: the gallery direction is working; stats is
+  not. Leave stats alone unless he asks.
 
 ## Landed so far
 
@@ -108,16 +115,7 @@ Newest last. One commit each; `git log master..HEAD` has the reasoning.
    bottom, `mix-blend-mode: difference` so it stays legible over any photo.
    Listens on the canvas, not per-tile, and only writes when the species
    actually changes.
-8. **Stats section nav** — ten equal pills became three named acts (Over
-   time / Which birds / When & where), contiguous in scroll order so nothing
-   had to move. Only the act you are in expands; the rest collapse to their
-   label. *Gotcha:* `.stat-jump` pinned at `top: 0`, the same place the site
-   nav pins, with a lower z-index — so it was invisible whenever you scrolled.
-9. **Stats act cards** — a title card opens each act (numeral, Fraunces
-   title, one-line lede, hairline rule) so the scroll reads as three movements
-   rather than one dump. Deliberately quiet: the charts are the content, this
-   is punctuation. Probe: `actcard`.
-10. **Shared header collapse** — the gallery's collapsing header is now a
+8. **Shared header collapse** — the gallery's collapsing header is now a
     general behaviour: opt in with `data-collapse` on `.gallery-header`, and
     the script lives in base.html. Live uses it (188px -> 59px, and the
     "listening · updated 1m ago" line stays pinned, which is the point of a
@@ -126,7 +124,7 @@ Newest last. One commit each; `git log master..HEAD` has the reasoning.
     *Gotcha:* the collapse is worthless without `position: sticky`, which was
     still scoped to `.birds-fill`; the header shrank and then scrolled away.
     Probe: `collapse`.
-11. **Survey has a name** — "Survey every species" in the view menu, under
+9. **Survey has a name** — "Survey every species" in the view menu, under
     Size, toggling to "Back to photos". The field owns the threshold and
     exposes `bfSurvey`/`bfIsSurvey`; entering survey dispatches a
     `bf:overview` event so the label follows a PINCH as well as its own
@@ -135,11 +133,11 @@ Newest last. One commit each; `git log master..HEAD` has the reasoning.
 
 ## Next up (priority order)
 
-1. **Live page, more.** The header is shared/compact now, but the page still
+1. **Photography page** — shares the gallery machinery; could take the field.
+2. **Live page, more.** The header is shared/compact now, but the page still
    presents a live feed fairly statically. It already polls every 60s and
    restamps times every 30s, and has `lvIn` / `lv-tkpulse` keyframes — so the
    machinery is there; what is missing is *felt* liveness.
-2. **Photography page** — shares the gallery machinery; could take the field.
 3. **Echo on touch** — desktop-only today (`@media (hover: none)` hides it).
 
 
