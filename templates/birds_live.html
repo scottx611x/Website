@@ -4,6 +4,67 @@
 {% block content %}
 {% from '_icons.html' import icon %}
 <style>
+/* ============================ THE CHORUS ============================
+   Full-bleed, dark, and audible. Everything else on this page is paper; this
+   is the yard at whatever hour you are scrubbing, so it carries its own sky. */
+.chorus{position:relative;margin:0 calc(50% - 50vw) 2.6rem;padding:0;
+  height:clamp(320px,52vh,520px);overflow:hidden;background:#0d120e;
+  color:#f4f1e9;user-select:none;touch-action:pan-y;cursor:grab;isolation:isolate}
+.chorus.drag{cursor:grabbing}
+/* The sky is the clock: night ink, dawn amber, daylight, dusk. Driven by one
+   custom property so the scrub moves the sun rather than a label. */
+.ch-sky{position:absolute;inset:0;z-index:0;
+  background:
+    linear-gradient(180deg,
+      color-mix(in oklab, #0b1a2e calc(100% - var(--day, 0) * 100%), #a9c7d8 calc(var(--day,0) * 100%)) 0%,
+      color-mix(in oklab, #10211c calc(100% - var(--day, 0) * 100%), #e7e2d4 calc(var(--day,0) * 100%)) 62%,
+      #0d120e 100%),
+    radial-gradient(70% 55% at var(--sun, 50%) 86%,
+      rgba(255,183,84, calc(var(--glow, 0) * .55)) 0%, transparent 70%);
+  transition:background .25s linear}
+.ch-stage{position:absolute;left:0;right:0;top:0;z-index:3;
+  padding:clamp(1rem,3vw,2rem) clamp(1rem,3vw,2.6rem) 0;pointer-events:none}
+.ch-eyebrow{font-size:.66rem;letter-spacing:.18em;text-transform:uppercase;
+  color:rgba(244,241,233,.55);margin:0}
+.ch-name{margin-top:.5rem;min-height:4.6rem}
+.ch-name b{display:block;font-family:var(--display);font-weight:400;
+  font-size:clamp(1.9rem,5.4vw,4.2rem);line-height:.98;letter-spacing:-.025em;
+  opacity:0;transform:translateY(12px);
+  transition:opacity .3s cubic-bezier(.22,1,.36,1),transform .3s cubic-bezier(.22,1,.36,1)}
+.ch-name i{display:block;font-style:normal;font-size:.72rem;letter-spacing:.12em;
+  text-transform:uppercase;color:rgba(244,241,233,.6);margin-top:.45rem;
+  opacity:0;transition:opacity .3s ease .05s}
+.chorus.has .ch-name b,.chorus.has .ch-name i{opacity:1;transform:none}
+/* The marks: one per recording, placed by the minute it happened. Height is
+   confidence, so a wall of tall marks IS a loud, certain morning. */
+.ch-track{position:absolute;left:0;right:0;bottom:2.4rem;top:auto;height:52%;z-index:2}
+.ch-marks{position:absolute;inset:0;will-change:transform}
+.ch-mark{position:absolute;bottom:0;width:3px;border-radius:2px;
+  background:linear-gradient(180deg,#5ee39c,#2f7d4f);
+  opacity:.5;transform-origin:50% 100%;
+  transition:opacity .2s ease,transform .2s ease,box-shadow .2s ease}
+.ch-mark.near{opacity:.92}
+.ch-mark.on{opacity:1;transform:scaleX(2.4);
+  box-shadow:0 0 18px rgba(94,227,156,.75)}
+.ch-playhead{position:absolute;left:50%;top:18%;bottom:2.4rem;width:1px;z-index:4;
+  background:linear-gradient(180deg,transparent,rgba(244,241,233,.75) 22%,rgba(244,241,233,.9));
+  pointer-events:none}
+.ch-playhead::after{content:"";position:absolute;left:50%;bottom:-4px;width:9px;height:9px;
+  margin-left:-4.5px;border-radius:50%;background:#5ee39c;
+  box-shadow:0 0 14px rgba(94,227,156,.9)}
+.ch-ruler{position:absolute;left:0;right:0;bottom:.75rem;height:1rem;z-index:3;
+  pointer-events:none;font-size:.6rem;letter-spacing:.1em;
+  color:rgba(244,241,233,.42)}
+.ch-ruler span{position:absolute;transform:translateX(-50%);white-space:nowrap}
+.ch-hint{position:absolute;right:clamp(1rem,3vw,2.6rem);top:clamp(1rem,3vw,2rem);
+  z-index:3;font-family:var(--mono);font-size:.64rem;letter-spacing:.1em;
+  text-transform:uppercase;color:rgba(244,241,233,.4);pointer-events:none;
+  transition:opacity .4s ease}
+.chorus.touched .ch-hint{opacity:0}
+@media (prefers-reduced-motion: reduce){
+  .ch-sky,.ch-name b,.ch-name i,.ch-mark{transition:none}
+}
+
   /* Light like every other bird page; ink on paper, green accents, neon fills. */
   .livewire .mono{font-family:var(--mono); font-variant-numeric:tabular-nums}
   .livewire .lv-kick{font-family:var(--mono); font-size:.7rem; text-transform:uppercase; letter-spacing:.16em; color:var(--green); margin:0 0 1rem}
@@ -352,6 +413,34 @@
       <p>A microphone in the yard, running a neural net that names birds by ear. Detections show up here the moment it's sure of one. Nothing over the confidence bar just yet.</p>
     </div>
     {% else %}
+
+    {# ------------------------------------------------------------------
+       THE CHORUS
+
+       The microphone is the thing nobody else has, and it was being presented
+       as a list. This is the day as an instrument: every recording the yard
+       made, laid out left to right across the hours, drag to move through it,
+       and whatever sits under the playhead plays itself.
+
+       Same gestures as the field (drag anywhere, kinetic type naming what you
+       are on), same palette, so it reads as one site rather than a widget.
+       ------------------------------------------------------------------ #}
+    <section class="chorus" id="chorus" aria-label="The day in bird song">
+      <div class="ch-sky" id="ch-sky" aria-hidden="true"></div>
+      <div class="ch-stage">
+        <p class="ch-eyebrow mono">The chorus &middot; drag through the day</p>
+        <div class="ch-name" id="ch-name" aria-live="polite">
+          <b></b><i class="mono"></i>
+        </div>
+      </div>
+      <div class="ch-track" id="ch-track" role="group" aria-label="Recordings by time of day">
+        <div class="ch-marks" id="ch-marks"></div>
+      </div>
+      <div class="ch-ruler mono" id="ch-ruler" aria-hidden="true"></div>
+      <p class="ch-hint">drag the day</p>
+      <div class="ch-playhead" aria-hidden="true"></div>
+      <audio id="ch-audio" preload="none"></audio>
+    </section>
 
     <div class="stat-cards" id="lv-counts">
         <a class="stat-card" href="#lv-wall"><span class="stat-num">{{ sound.counts.speciesToday or 0 }}</span><span class="stat-lbl">species today</span></a>
@@ -1518,6 +1607,7 @@
   function apply(data, isFirst) {
     var prevTop = LIVE.recent && LIVE.recent[0] && LIVE.recent[0].t;
     LIVE = data;
+    if (window.chorusRebuild) window.chorusRebuild();
     // Nodes can appear/vanish between polls (a second mic comes online) — recompute
     // so MULTI, the filter, and every dot track the live roster.
     NODES = (data.nodes || []).filter(function (n) { return n && n.name; });
@@ -1666,6 +1756,168 @@
   if (feedEl) feedEl.addEventListener("scroll", feedFade, { passive: true });
 
   poll();  // embedded data may be a cached/bfcache snapshot — pull live at once
+
+  /* ======================= THE CHORUS =======================
+     The day as something you scrub. Marks are placed by the minute they
+     happened across a 24h span; dragging moves the day under a fixed
+     playhead; whatever lands under it names itself and plays.
+
+     Built from LIVE.recent, which already carries audio, spectrogram, photo,
+     confidence and timestamp per detection — so this needs no new endpoint. */
+  (function () {
+    var root = document.getElementById("chorus");
+    if (!root) return;
+    var marksEl = document.getElementById("ch-marks");
+    var rulerEl = document.getElementById("ch-ruler");
+    var nameEl  = document.getElementById("ch-name");
+    var skyEl   = document.getElementById("ch-sky");
+    var audio   = document.getElementById("ch-audio");
+    var trackEl = document.getElementById("ch-track");
+    var SPAN_H  = 24;                       // hours shown end to end
+    var PPH     = 150;                      // px per hour
+    var W       = SPAN_H * PPH;
+    var items = [], x = 0, cur = -1, down = false, lastX = 0, vel = 0, glide = null;
+
+    function minutes(t) {
+      var d = new Date(t);
+      return isNaN(d) ? null : d.getHours() * 60 + d.getMinutes() + d.getSeconds() / 60;
+    }
+
+    function build() {
+      // LIVE is a local of the page's IIFE, not a global — this block runs
+      // inside that same closure, so reach it directly. `window.LIVE` is
+      // undefined and the guard silently emptied the whole section.
+      var src = (typeof LIVE !== "undefined" && LIVE && LIVE.recent) || [];
+      items = src.map(function (r) {
+        var m = minutes(r.t);
+        return m === null ? null : { r: r, m: m, px: (m / 60) * PPH };
+      }).filter(Boolean).sort(function (a, b) { return a.m - b.m; });
+      if (!items.length) { root.hidden = true; return; }
+
+      marksEl.innerHTML = items.map(function (it, i) {
+        var conf = Math.max(0.15, Math.min(1, +it.r.conf || 0.5));
+        return '<i class="ch-mark" data-i="' + i + '" style="left:' + it.px.toFixed(1) +
+               'px;height:' + (18 + conf * 78).toFixed(0) + '%"></i>';
+      }).join("");
+
+      rulerEl.innerHTML = [0, 3, 6, 9, 12, 15, 18, 21, 24].map(function (hr) {
+        var lbl = hr === 0 ? "12a" : hr === 12 ? "12p" : hr === 24 ? "12a"
+                : (hr > 12 ? (hr - 12) + "p" : hr + "a");
+        return '<span style="left:' + (hr * PPH) + 'px">' + lbl + '</span>';
+      }).join("");
+
+      // open on the most recent recording rather than at midnight
+      center(items[items.length - 1].px);
+      apply(true);
+    }
+
+    function center(px) { x = root.clientWidth / 2 - px; }
+
+    function clamp() {
+      var half = root.clientWidth / 2;
+      x = Math.min(half, Math.max(half - W, x));
+    }
+
+    /* The sky IS the clock: scrubbing moves the sun, so 5am looks like 5am. */
+    function paintSky(hour) {
+      var day = Math.max(0, Math.sin(Math.PI * Math.max(0, (hour - 5)) / 14));
+      var glow = Math.max(0, 1 - Math.abs(hour - 6) / 2.2, 1 - Math.abs(hour - 18.5) / 2.2);
+      skyEl.style.setProperty("--day", day.toFixed(3));
+      skyEl.style.setProperty("--glow", Math.min(1, glow).toFixed(3));
+      skyEl.style.setProperty("--sun", ((hour / 24) * 100).toFixed(1) + "%");
+    }
+
+    function nearest() {
+      var at = root.clientWidth / 2 - x;      // track px under the playhead
+      var best = -1, bd = 1e9;
+      for (var i = 0; i < items.length; i++) {
+        var d = Math.abs(items[i].px - at);
+        if (d < bd) { bd = d; best = i; }
+      }
+      return { i: best, d: bd };
+    }
+
+    function apply(quiet) {
+      clamp();
+      marksEl.style.transform = "translate3d(" + x.toFixed(1) + "px,0,0)";
+      rulerEl.style.transform = "translate3d(" + x.toFixed(1) + "px,0,0)";
+      var at = root.clientWidth / 2 - x;
+      paintSky((at / PPH) % 24);
+
+      var n = nearest();
+      marksEl.querySelectorAll(".ch-mark.near").forEach(function (e) { e.classList.remove("near"); });
+      for (var i = Math.max(0, n.i - 6); i < Math.min(items.length, n.i + 7); i++) {
+        var el = marksEl.children[i]; if (el) el.classList.add("near");
+      }
+      if (n.i !== cur && n.d < 90) {
+        if (cur >= 0 && marksEl.children[cur]) marksEl.children[cur].classList.remove("on");
+        cur = n.i;
+        var el2 = marksEl.children[cur];
+        if (el2) el2.classList.add("on");
+        var r = items[cur].r;
+        nameEl.querySelector("b").textContent = r.common || r.display || "";
+        nameEl.querySelector("i").textContent =
+          (r.fam ? r.fam + "  ·  " : "") + fmtClock(items[cur].m) +
+          (r.conf ? "  ·  " + Math.round(r.conf * 100) + "%" : "");
+        root.classList.add("has");
+        if (!quiet) playCurrent();
+      }
+    }
+
+    function fmtClock(m) {
+      var hh = Math.floor(m / 60), mm = Math.floor(m % 60);
+      var ap = hh >= 12 ? "PM" : "AM", h12 = hh % 12 || 12;
+      return h12 + ":" + (mm < 10 ? "0" : "") + mm + " " + ap;
+    }
+
+    /* Only play once you have settled — playing on every mark you sweep past
+       would be a machine gun, not a chorus. */
+    var playT = null;
+    function playCurrent() {
+      if (playT) clearTimeout(playT);
+      playT = setTimeout(function () {
+        var r = items[cur] && items[cur].r;
+        if (!r || !r.audio || down) return;
+        if (audio.getAttribute("src") !== r.audio) audio.setAttribute("src", r.audio);
+        audio.currentTime = 0;
+        audio.play().catch(function () { /* autoplay policy: a tap will do it */ });
+      }, 260);
+    }
+
+    root.addEventListener("pointerdown", function (e) {
+      down = true; lastX = e.clientX; vel = 0;
+      root.classList.add("drag", "touched");
+      if (glide) { cancelAnimationFrame(glide); glide = null; }
+      try { root.setPointerCapture(e.pointerId); } catch (err) {}
+    });
+    root.addEventListener("pointermove", function (e) {
+      if (!down) return;
+      var dx = e.clientX - lastX; lastX = e.clientX;
+      x += dx; vel = dx; apply();
+    });
+    function release() {
+      if (!down) return;
+      down = false; root.classList.remove("drag");
+      if (!glide) glide = requestAnimationFrame(decay);
+    }
+    root.addEventListener("pointerup", release);
+    root.addEventListener("pointercancel", release);
+    function decay() {
+      if (Math.abs(vel) < 0.4) { glide = null; playCurrent(); return; }
+      x += vel; vel *= 0.93; apply();
+      glide = requestAnimationFrame(decay);
+    }
+    root.addEventListener("wheel", function (e) {
+      if (Math.abs(e.deltaX) < Math.abs(e.deltaY)) return;   // leave vertical scroll alone
+      e.preventDefault(); root.classList.add("touched");
+      x -= e.deltaX; apply();
+    }, { passive: false });
+    addEventListener("resize", function () { apply(true); }, { passive: true });
+
+    build();
+    window.chorusRebuild = build;
+  })();
+
   setInterval(poll, 60000);
   setInterval(stampTimes, 30000);
   // A backgrounded or bfcache-restored tab (common on phones) can show a stale

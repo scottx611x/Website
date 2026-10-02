@@ -136,6 +136,15 @@ Newest last. One commit each; `git log master..HEAD` has the reasoning.
     `bf:overview` event so the label follows a PINCH as well as its own
     button. Two places deciding what "survey" means would drift. Probe:
     `survey`.
+11. **The Chorus** (`/birds/live`) — the day as a scrubbable instrument. Every
+    recording the mic made, placed by the minute it happened across a 24h
+    ribbon; drag to move the day under a fixed playhead; the sky behind it IS
+    the clock (night ink -> dawn amber -> daylight), the bird under the head
+    names itself in Fraunces and plays its actual recording. Built entirely
+    from `LIVE.recent`, which already carries audio/spec/photo/conf/t — no new
+    endpoint. *Gotcha:* `LIVE` is a local of the page's IIFE, not a global;
+    `window.LIVE` is undefined and the guard silently emptied the section.
+    Probe: `chorus`.
 
 ## Next up (priority order)
 
