@@ -76,7 +76,7 @@
                 padding:.16rem .5rem; border-radius:999px; background:rgba(192,71,59,.9); color:#fff; }
 </style>
 <section class="page wide">
-    <header class="gallery-header">
+    <header class="gallery-header" data-collapse="1">
         <div class="pg-head">
             <h1>Photography</h1>
             {% if photo_count %}
@@ -228,4 +228,22 @@
     }
 </script>
 {% endif %}
+<script>
+    /* When the header collapses the tag row becomes a single scrolling line,
+       so the selected tag can end up out of view. Nudge it into the middle
+       once, the first time we collapse. */
+    (function () {
+        var row = document.querySelector(".pg-filter");
+        var on = row && row.querySelector(".pg-chip.on");
+        if (!row || !on) return;
+        var done = false;
+        addEventListener("scroll", function () {
+            if (done || !row.closest(".gallery-header.is-stuck")) return;
+            done = true;
+            var l = on.offsetLeft, w = on.offsetWidth;
+            row.scrollTo({ left: Math.max(0, l - row.clientWidth / 2 + w / 2), behavior: "smooth" });
+        }, { passive: true });
+    })();
+</script>
+
 {% endblock %}

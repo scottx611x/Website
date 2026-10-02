@@ -124,7 +124,13 @@ Newest last. One commit each; `git log master..HEAD` has the reasoning.
     *Gotcha:* the collapse is worthless without `position: sticky`, which was
     still scoped to `.birds-fill`; the header shrank and then scrolled away.
     Probe: `collapse`.
-9. **Survey has a name** — "Survey every species" in the view menu, under
+9. **Photography takes the collapse** — same header, same 575px-before-a-
+   photograph complaint. Opted in; its contents differ (a counts line and 14
+   tag chips, not a subnav and a search box) so it has its own compact
+   arrangement: title and counts left, chips on one scrolling line. 242px ->
+   57px. *Gotcha:* `justify-content: flex-end` pushes the overflow off the
+   LEFT, hiding "all" and the selected tag.
+10. **Survey has a name** — "Survey every species" in the view menu, under
     Size, toggling to "Back to photos". The field owns the threshold and
     exposes `bfSurvey`/`bfIsSurvey`; entering survey dispatches a
     `bf:overview` event so the label follows a PINCH as well as its own
@@ -133,7 +139,6 @@ Newest last. One commit each; `git log master..HEAD` has the reasoning.
 
 ## Next up (priority order)
 
-1. **Photography page** — shares the gallery machinery; could take the field.
 2. **Live page, more.** The header is shared/compact now, but the page still
    presents a live feed fairly statically. It already polls every 60s and
    restamps times every 30s, and has `lvIn` / `lv-tkpulse` keyframes — so the

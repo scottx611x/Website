@@ -645,6 +645,27 @@ body.home .site-nav { z-index: 0; }
     body.nav-open .site-nav nav { opacity: 1; visibility: visible; transform: none; }
     .site-nav.scrolled nav a, body.nav-open .site-nav.scrolled nav a { color: var(--ink); }
 }
+/* Photography takes the same collapse as the gallery — same header, same
+   complaint about 575px of it before a photograph. Its contents are different
+   (a stats line and a row of tag chips, not a subnav and a search box), so it
+   needs its own compact arrangement: title and counts left, chips scrolling
+   along the right rather than wrapping to two rows. */
+.page .gallery-header.is-stuck .pg-head {
+    display: flex; align-items: baseline; gap: 0.8rem; flex: 0 0 auto; margin: 0;
+}
+.page .gallery-header.is-stuck .pg-head h1 { font-size: 1.02rem; margin: 0; white-space: nowrap; }
+.page .gallery-header.is-stuck .pg-stats { margin: 0; font-size: 0.7rem; white-space: nowrap; }
+.page .gallery-header.is-stuck .pg-stats span:nth-child(n+3) { display: none; }
+.page .gallery-header.is-stuck .pg-filter {
+    flex: 1 1 12rem; min-width: 0; margin: 0;
+    /* flex-start, not flex-end: ending the row pushes the overflow off the
+       LEFT, which hides "all" and whichever tag is actually selected. */
+    display: flex; flex-wrap: nowrap; justify-content: flex-start;
+    gap: 0.4rem; overflow-x: auto; scrollbar-width: none;
+}
+.page .gallery-header.is-stuck .pg-filter::-webkit-scrollbar { display: none; }
+.page .gallery-header.is-stuck .pg-chip { flex: none; }
+
 @media (max-width: 720px) {
     /* The title reads as the page's name, so it stays — the nav only says
        "Birds". Folding the site links into the burger paid for it. */
