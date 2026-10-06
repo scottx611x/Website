@@ -2957,6 +2957,8 @@ def stats_series(shots, top_n=15):
     sp_total = collections.Counter()
     sp_family = {}
     first_seen = {}  # name -> (date, first-sighting image url)
+    first_loc = {}   # name -> where that first sighting happened (life lists
+                     # record a locality; a date alone is only half an entry)
     best_shot = {}   # name -> (post weight, image url) for the avatar
     sp_imgs = collections.defaultdict(dict)  # name -> {image url: best weight}
     for shot in shots:
@@ -2983,6 +2985,9 @@ def stats_series(shots, top_n=15):
                     sp_month_best[name][d.month - 1] = (weight, images[i])
                 if name not in first_seen or d < first_seen[name][0]:
                     first_seen[name] = (d, images[i])
+                    locs = shot.get("image_locations") or []
+                    first_loc[name] = ((locs[i] if i < len(locs) and locs[i] else None)
+                                       or shot.get("location") or "")
                 if name not in best_shot or weight > best_shot[name][0]:
                     best_shot[name] = (weight, images[i])
                 img = images[i]
@@ -3007,7 +3012,9 @@ def stats_series(shots, top_n=15):
         # Curated backdrop wins; otherwise the best shot of the species (which
         # frames the bird better than its very first, often rougher, sighting).
         src = cur.get("src") or (thumb_url(best_shot[s][1]) if s in best_shot else thumb_url(img))
-        return {"d": d.isoformat(), "s": s, "img": src, "fam": sp_family[s],
+        return {"d": d.isoformat(), "dd": d.strftime("%d %b %Y"),
+                "s": s, "img": src, "fam": sp_family[s],
+                "where": first_loc.get(s, ""),
                 "total": sp_total[s], "pos": cur.get("pos", 0.35),  # bias toward heads
                 "posx": cur.get("posx", 0.5), "zoom": cur.get("zoom"), "cands": cands}
     accum = [accum_entry(s, d, img)

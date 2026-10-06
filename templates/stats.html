@@ -78,7 +78,34 @@
              is always clear). -->
         <div class="stat-block stat-span-2" id="s-life">
             <h2>The life list</h2>
-            <p class="stat-sub mono">every species, the day I first photographed it. scrub to explore.</p>
+            <p class="stat-sub mono">every species, in the order I first photographed it.</p>
+            {# A life list is a real artefact — a numbered, dated ledger a birder
+               keeps for decades — and it was being drawn as a cumulative area
+               curve, which is an analytics chart that happens to contain birds.
+               This is the list itself: rank, species, where and when it was
+               first photographed. The rank is the point; #1 is not a data
+               point, it is the first bird he ever got. #}
+            <div class="lifelist-stage">
+              <ol class="lifelist" id="lifelist">
+                {% for a in series.accum %}
+                <li class="ll-row">
+                  <a href="/birds?bird={{ a.s | urlencode }}" data-img="{{ a.img }}">
+                    <span class="ll-n mono">{{ "%03d" % loop.index }}</span>
+                    <span class="ll-name">{{ a.s }}</span>
+                    <span class="ll-fam mono">{{ a.fam }}</span>
+                    <span class="ll-rule" aria-hidden="true"></span>
+                    <span class="ll-where mono">{{ a.where }}</span>
+                    <span class="ll-date mono">{{ a.dd or a.d }}</span>
+                  </a>
+                </li>
+                {% endfor %}
+              </ol>
+              {# His own photograph of the bird the cursor is on. A life list
+                 kept by a photographer should show the photograph. #}
+              <figure class="ll-plate" id="ll-plate" aria-hidden="true"><img alt=""></figure>
+            </div>
+
+            {% if curate %}
             <div class="accum-stage">
                 <div id="accum-chart" class="d3-chart" tabindex="0" role="application"
                      aria-label="Life list timeline. Use left and right arrow keys to step through species."></div>
@@ -104,6 +131,7 @@
                     <button type="button" id="lc-reset" title="clear this override">reset</button>
                     <span id="lc-saved" class="lc-saved"></span>
                 </div>
+            {% endif %}
                 {% endif %}
             </div>
         </div>
@@ -415,7 +443,7 @@
         // Sequential green ramp (one hue, light->dark) shared by matrix, calendar,
         // and treemap. Zero stays a faint neutral so "few" never reads as "none".
         var RAMP = ["#d8ead0", "#a9d6a0", "#74c07a", "#3f9d63", "#2c7a4a", "#155232", "#0a3520"];
-        var ZERO = "rgba(13,18,14,0.05)";
+        var ZERO = "rgba(13, 18, 14,0.05)";
         var MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
         if (typeof d3 === "undefined") return;   // CDN blocked? page still works
 
@@ -455,6 +483,9 @@
         // ---- The life list: scrub the timeline, meet every lifer ----
         function renderAccum() {
             var el = document.getElementById("accum-chart");
+            // The cumulative curve is curate-only now — the life list itself is
+            // the public artefact — so this DOM is absent for visitors.
+            if (!el) return;
             el.innerHTML = "";
             var W = chartWidth(el), narrow = W < 520, H = narrow ? 300 : 380,
                 m = { t: 20, r: narrow ? 16 : 24, b: 26, l: narrow ? 28 : 34 };
@@ -522,7 +553,7 @@
                 .call(d3.axisBottom(x).ticks(narrow ? 4 : 6).tickSizeOuter(0));
             svg.append("g").attr("transform", "translate(" + m.l + ",0)")
                 .call(d3.axisLeft(y).ticks(5).tickSizeOuter(0));
-            svg.selectAll(".domain, .tick line").attr("stroke", "rgba(13,18,14,0.2)");
+            svg.selectAll(".domain, .tick line").attr("stroke", "rgba(13, 18, 14,0.2)");
             svg.selectAll(".tick text").attr("fill", MUTED);
             // Milestones: #1, every 25th, and the latest lifer.
             var marks = [0, 24, 49, 74, data.length - 1].filter(function (i, k, a) {
@@ -923,7 +954,7 @@
                 if (!day) {   // empty day: a faint tick; today keeps its amber ring
                     svg.append("circle").attr("cx", cx).attr("cy", cy)
                         .attr("r", isToday(d) ? rMax : 1).attr("fill", "none")
-                        .attr("stroke", isToday(d) ? "#e8b04b" : "rgba(13,18,14,0.16)")
+                        .attr("stroke", isToday(d) ? "#e8b04b" : "rgba(13, 18, 14,0.16)")
                         .attr("stroke-width", isToday(d) ? 1.5 : 1);
                     return;
                 }
@@ -1735,6 +1766,25 @@
         window.__statsRefocus = runFocus;
         setTimeout(runFocus, 500);
     })();
+</script>
+
+<script>
+/* The life list shows the photograph of whichever bird you are on. One shared
+   plate, swapped on hover, rather than 121 images mounted up front. */
+(function () {
+  var list = document.getElementById("lifelist"), plate = document.getElementById("ll-plate");
+  if (!list || !plate) return;
+  var img = plate.querySelector("img"), last = null;
+  list.addEventListener("pointerover", function (e) {
+    var a = e.target.closest && e.target.closest("a[data-img]");
+    if (!a || a === last) return;
+    last = a;
+    img.src = a.dataset.img;
+    img.alt = (a.querySelector(".ll-name") || {}).textContent || "";
+    plate.classList.add("on");
+  });
+  list.addEventListener("pointerleave", function () { plate.classList.remove("on"); last = null; });
+})();
 </script>
 
 <script>
