@@ -1196,6 +1196,11 @@ def _sound_log_merged():
     return birds._memoed("sound_log_merged:%s|%s" % gen, birds._MEMO_TTL, _build)
 
 
+# Days of recordings embedded in the log page. The whole archive is far past
+# Lambda's 6 MB response ceiling; older days load via ?day=.
+LOG_DAYS = 14
+
+
 def _log_view():
     """The full browsable detection log, enriched with display names + photos."""
     data = _sound_log_merged()
@@ -1219,6 +1224,22 @@ def _log_view():
         return out
 
     log = data.get("log", []) if data else []
+    # The archive is 81 days and ~28,000 recordings. Embedding all of it put a
+    # 12 MB page through a Lambda whose response ceiling is 6 MB, so the route
+    # 502'd outright. The page shows one day at a time anyway, so it carries a
+    # recent window and the rest stays reachable by ?day=.
+    want = (request.args.get("day") or "").strip()[:10]
+    days = []
+    for e in log:
+        d = (e.get("t") or "")[:10]
+        if d and (not days or days[-1] != d):
+            if d not in days:
+                days.append(d)
+    if want:
+        log = [e for e in log if (e.get("t") or "")[:10] == want]
+    else:
+        keep = set(days[:LOG_DAYS])
+        log = [e for e in log if (e.get("t") or "")[:10] in keep]
     enriched = [enrich(e) for e in log]
     # Distinct nodes seen in the log, newest first — so the log can filter by node.
     seen, nodes = set(), []
@@ -1227,7 +1248,8 @@ def _log_view():
         if nm and nm not in seen:
             seen.add(nm)
             nodes.append(nm)
-    return {"generated": (data or {}).get("generated"),
+    return {"all_days": days, "day": want or None,
+            "generated": (data or {}).get("generated"),
             "log": enriched, "nodes": nodes}
 
 
