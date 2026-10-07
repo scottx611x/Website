@@ -246,7 +246,7 @@
   .lv-toprow .tn{flex:0 0 11rem; font-family:var(--display); white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
   .lv-toprow .tn a{text-decoration:none} .lv-toprow .tn a:hover{color:var(--accent)}
   .lv-toprow .tb{flex:1; height:8px; border-radius:4px; background:rgba(13, 18, 14,.08); overflow:hidden}
-  .lv-toprow .tb>i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),var(--lift))}
+  .lv-toprow .tb>i{display:block;height:100%;background:var(--tkc, var(--accent))}
   .lv-toprow .tc{font-family:var(--mono); font-size:.7rem; color:var(--muted); width:3rem; text-align:right}
 
   /* Today's soundtrack: one 24h band per species, every recording a tick. */
@@ -263,7 +263,7 @@
   .lv-trow .tband::before{content:""; position:absolute; left:0; right:0; top:50%; height:1px;
     background:rgba(13, 18, 14,.09)}
   .lv-tk{position:absolute; top:3px; bottom:3px; width:2px; border-radius:1px;
-    background:var(--accent); opacity:.8; border:0; padding:0}
+    background:var(--tkc, var(--accent)); opacity:.85; border:0; padding:0}
   .lv-tk.miss{background:var(--amber)}
   .lv-tk.lo{opacity:.22}
   button.lv-tk{cursor:pointer}
@@ -306,7 +306,7 @@
   /* Most vocal today: ranked rows, count bar, clearest clip playable. */
   .lv-boardrows{display:flex; flex-direction:column; gap:10px; max-width:46rem}
   .lv-brow{display:flex; align-items:center; gap:12px}
-  .lv-brow .brk{font-family:var(--display); font-size:1.15rem; color:var(--accent); flex:0 0 1.6rem; text-align:right}
+  .lv-brow .brk{font-family:var(--display); font-size:1.15rem; color:var(--tkc, var(--accent)); flex:0 0 1.6rem; text-align:right}
   .lv-brow .lv-av{width:34px; height:34px; flex:0 0 34px}
   .lv-brow .bmain{flex:1; min-width:0}
   .lv-brow .bname{font-size:.85rem; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
@@ -314,7 +314,7 @@
   .lv-brow .bname a:hover{color:var(--accent)}
   .lv-brow .bname .bfam{font-family:var(--mono); font-weight:400; font-size:.64rem; color:var(--muted); margin-left:.45rem}
   .lv-brow .bbar{height:6px; border-radius:3px; background:rgba(13, 18, 14,.08); overflow:hidden; margin:.3rem 0}
-  .lv-brow .bbar>i{display:block; height:100%; background:linear-gradient(90deg,var(--accent),var(--lift))}
+  .lv-brow .bbar>i{display:block; height:100%; background:var(--tkc, var(--accent))}
   .lv-brow .bmeta{font-family:var(--mono); font-size:.66rem; color:var(--muted)}
   .lv-brow .lv-rowplay{flex:0 0 auto}
 
@@ -1035,19 +1035,60 @@
     if (MULTI && nodeSel) recs = recs.filter(function (r) { return r.node === nodeSel; });
     return recs;
   }
+  /* Colour carries the FAMILY, not the row's position, so a bird keeps its
+     hue when a filter changes the list — the one rule that makes a
+     categorical palette mean anything. Five validated hues; everything
+     beyond the five commonest families in view shares --s-other rather than
+     inventing a sixth that collapses under protanopia. */
+  var SERIES = ["--s-forest", "--s-cardinal", "--s-jay", "--s-goldfinch", "--s-grackle"];
+  var famSlot = {};
+  function assignFamilies(recs) {
+    var n = {};
+    recs.forEach(function (r) {
+      var f = r.fam || r.family || "";
+      if (f) n[f] = (n[f] || 0) + 1;
+    });
+    famSlot = {};
+    Object.keys(n).sort(function (a, b) { return n[b] - n[a] || a.localeCompare(b); })
+      .forEach(function (f, i) { famSlot[f] = i < SERIES.length ? SERIES[i] : "--s-other"; });
+  }
+  function famColor(r) {
+    return "var(" + (famSlot[r.fam || r.family || ""] || "--s-other") + ")";
+  }
+  /* The history leaderboard works from species NAMES, not records, so it needs
+     its own way back to a family. LIVE.species carries both. */
+  var FAM_OF = null;
+  function famOfName(n) {
+    if (!FAM_OF) {
+      FAM_OF = {};
+      ((typeof LIVE !== "undefined" && LIVE && LIVE.species) || []).forEach(function (s) {
+        var k = s.display || s.common;
+        if (k) FAM_OF[k] = s.fam || "";
+      });
+    }
+    return FAM_OF[n] || "";
+  }
+  function famColorName(n) { return famColor({ fam: famOfName(n) }); }
+
   function tickHTML(r, thr) {
     var cls = "lv-tk" + (r.shot ? "" : " miss") + ((r.conf || 0) < thr ? " lo" : "");
     var tip = clock(r.t) + " · " + esc(r.display) + " · " + Math.round((r.conf || 0) * 100) + "%";
     if (r.audio) trackRecs[r.audio] = r;
+    var sty = "left:" + dayPct(r.t) + "%;--tkc:" + famColor(r);
     return r.audio
-      ? '<button type="button" class="' + cls + '" style="left:' + dayPct(r.t) + '%" data-audio="' + esc(r.audio) + '" title="' + tip + ' — play" aria-label="play the ' + esc(r.display) + ' recording from ' + clock(r.t) + '"></button>'
-      : '<i class="' + cls + '" style="left:' + dayPct(r.t) + '%" title="' + tip + '"></i>';
+      ? '<button type="button" class="' + cls + '" style="' + sty + '" data-audio="' + esc(r.audio) + '" title="' + tip + ' — play" aria-label="play the ' + esc(r.display) + ' recording from ' + clock(r.t) + '"></button>'
+      : '<i class="' + cls + '" style="' + sty + '" title="' + tip + '"></i>';
   }
   function renderTrack() {
     var sec = document.getElementById("lv-track"), rows = document.getElementById("lv-trackrows");
     var marks = document.getElementById("lv-trackmarks");
     if (!sec || !rows) return;
     trackRecs = {};
+    // Assign from the records this render will actually draw. Today's track
+    // comes from todayScoped(), not HIST (which is null until you step off
+    // today), so seeding from HIST left every family unassigned and the whole
+    // chart fell back to the neutral.
+    assignFamilies(trackMode === "today" ? todayScoped() : histScoped());
     var thr = confMin / 100;
     var yester = localISO(new Date(Date.now() - 86400000));
     var kick = document.getElementById("lv-trackkick"), ds = document.getElementById("lv-daystep");
@@ -1158,7 +1199,10 @@
         ? '<span class="lv-av" style="background-image:url(\'' + m.photo + '\')"></span>'
         : '<span class="lv-av miss"></span>';
       var span = clock(c.first) + (c.n > 1 ? " &rarr; " + clock(c.last) : "");
-      return '<div class="lv-brow"><span class="brk">' + (i + 1) + '</span>' + av +
+      // on the ROW, so the rank numeral and the bar share one hue — they are
+      // one object, and a custom property only cascades to descendants
+      return '<div class="lv-brow" style="--tkc:' + famColor(c) + '">' +
+        '<span class="brk">' + (i + 1) + '</span>' + av +
         '<div class="bmain"><div class="bname"><a href="' + birdHref(c.display) + '">' + esc(c.display) + '</a>' +
         (c.fam ? '<span class="bfam">' + esc(c.fam) + '</span>' : '') + '</div>' +
         '<div class="bbar"><i style="width:' + Math.max(4, Math.round(c.n / max * 100)) + '%"></i></div>' +
@@ -1487,8 +1531,13 @@
 
     names.sort(function (a, b2) { return sp[b2] - sp[a]; });
     var topMax = sp[names[0]] || 1;
+    // Seed from the eight rows actually DRAWN, not all 31 species in range:
+    // seeding from the full set spent the five hues on families that never
+    // appear, and most visible rows fell back to the neutral.
+    assignFamilies(names.slice(0, 8).map(function (n) { return { fam: famOfName(n) }; }));
     document.getElementById("lv-top").innerHTML = names.slice(0, 8).map(function (n) {
-      return '<div class="lv-toprow"><span class="tn"><a href="' + birdHref(n) + '">' + esc(n) + '</a></span>' +
+      return '<div class="lv-toprow" style="--tkc:' + famColorName(n) + '">' +
+        '<span class="tn"><a href="' + birdHref(n) + '">' + esc(n) + '</a></span>' +
         '<span class="tb"><i style="width:' + Math.round(sp[n] / topMax * 100) + '%"></i></span>' +
         '<span class="tc">' + sp[n] + '&times;</span></div>';
     }).join("");

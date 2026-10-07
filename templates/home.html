@@ -26,30 +26,11 @@
 {% set bg = url_for('static', filename='img/' + background_image) %}
 
 {% block page_background %}
-    {# The hero was a stock fjord — handsome, and nothing to do with what this
-       site is about. It is his own birds now: six columns of photographs
-       drifting at different speeds, which is both the subject and the proof.
-       Each column holds its list twice so the loop is seamless, and the whole
-       thing is aria-hidden decoration. #}
-    <div id="bg-effect" class="{% if hero_tiles %}bg-wall{% endif %}" aria-hidden="true">
-        {% if hero_tiles %}
-        <div class="wall-tilt">
-        {% set cols = 6 %}
-        {% for c in range(cols) %}
-        {% set colset = hero_tiles[c::cols] %}
-        {% if colset %}
-        <div class="wall-col wall-col-{{ c }}">
-            <div class="wall-run">
-                {% for pass_ in range(2) %}{% for t in colset %}<img src="{{ t.src }}" alt=""
-                     loading="{{ 'eager' if loop.first and pass_ == 0 else 'lazy' }}" decoding="async">{% endfor %}{% endfor %}
-            </div>
-        </div>
-        {% endif %}
-        {% endfor %}
-        </div>
-        {% else %}
+    {# The landscape, not a wall of thumbnails: it is the quiet ground the
+       name sits on. The hero's neon pop is gone regardless — that lived in
+       the type, not the picture. #}
+    <div id="bg-effect" aria-hidden="true">
         <img class="back" src="{{ bg }}" alt="" fetchpriority="high">
-        {% endif %}
         <div class="bg-scrim"></div>
     </div>
 {% endblock %}
@@ -57,7 +38,6 @@
 {% block content %}
     <!-- ============ HERO ============ -->
     <section class="hero">
-        <p class="hero-eyebrow">North Andover, Massachusetts</p>
         <h1 class="hero-title">Scott Ouellette</h1>
         <p class="hero-sub">
             Software Infrastructure Engineer that <span id="hero-tagline" class="hero-tagline"></span>
@@ -184,8 +164,8 @@
     {% if species %}
     <div class="ticker">
         <div class="ticker-track" style="animation-duration: {{ [species|length * 4, 40]|max }}s">
-            {% for s in species %}<a class="ticker-bird" href="/birds/species/{{ s|slug }}">{{ s }}</a><span class="sep" aria-hidden="true">&bull;</span>{% endfor %}
-            {% for s in species %}<a class="ticker-bird" href="/birds/species/{{ s|slug }}" tabindex="-1" aria-hidden="true">{{ s }}</a><span class="sep" aria-hidden="true">&bull;</span>{% endfor %}
+            {% for s in species %}<a class="ticker-bird" href="/birds?bird={{ s|urlencode }}#bird/{{ s|slug }}">{{ s }}</a><span class="sep" aria-hidden="true">&bull;</span>{% endfor %}
+            {% for s in species %}<a class="ticker-bird" href="/birds?bird={{ s|urlencode }}#bird/{{ s|slug }}" tabindex="-1" aria-hidden="true">{{ s }}</a><span class="sep" aria-hidden="true">&bull;</span>{% endfor %}
         </div>
     </div>
     {% endif %}
@@ -236,7 +216,7 @@
         <div class="strip-head">
             <div>
                 <h2>Photography</h2>
-                <p class="lede">Beyond the birds &mdash; the mammals, insects, and other wildlife I run into.</p>
+                <p class="lede">Everything else I point a lens at.</p>
             </div>
         </div>
         <div class="feature-grid">

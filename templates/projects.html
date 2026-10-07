@@ -16,7 +16,7 @@
     <p class="empty" style="color:var(--ink);max-width:40rem;">
         Things I'm building. The full list lives on GitHub. Everything here is hand-picked.
     </p>
-    <p><a class="btn btn-inline" style="background:var(--green);color:#fff;border-color:var(--green);" href="https://github.com/{{ github_user }}">View all on GitHub &rarr;</a></p>
+    <p><a class="btn btn-inline" style="background:var(--accent);color:#fff;border-color:var(--accent);" href="https://github.com/{{ github_user }}">View all on GitHub &rarr;</a></p>
 
     {% if curate %}
     <p class="curate-note mono"><strong>Curate mode.</strong> Edit any field (auto-saves), reorder with &uarr;&darr;, &#9733; feature, hide, or &times; delete.</p>
@@ -122,7 +122,7 @@
 
     {% if not visible %}
     <p class="empty mono">// highlights coming soon. browse the latest at
-        <a href="https://github.com/{{ github_user }}" style="color:var(--green);">github.com/{{ github_user }}</a>.
+        <a href="https://github.com/{{ github_user }}" style="color:var(--accent);">github.com/{{ github_user }}</a>.
     </p>
     {% endif %}
     <p id="projectEmpty" class="empty mono" hidden>// no projects match that. try another term.</p>

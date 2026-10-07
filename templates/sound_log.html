@@ -6,58 +6,58 @@
 <style>
   .dlog .mono{font-family:var(--mono); font-variant-numeric:tabular-nums}
   .dl-status{display:flex; justify-content:center; align-items:flex-start; gap:.5rem; color:var(--muted); font-size:.78rem; margin:.9rem 0 0}
-  .dl-dot{width:9px;height:9px;border-radius:50%;flex:0 0 auto;margin-top:.26rem;background:var(--neon);box-shadow:0 0 4px 0 rgba(56,224,138,.4);animation:dotGlow 3.4s ease-in-out infinite}
-  .dl-back{display:inline-flex; align-items:center; gap:.4rem; font-family:var(--mono); font-size:.72rem; text-transform:uppercase; letter-spacing:.1em; color:var(--green); text-decoration:none; margin-top:.5rem}
-  .dl-back:hover{color:var(--neon)}
+  .dl-dot{width:9px;height:9px;border-radius:50%;flex:0 0 auto;margin-top:.26rem;background:var(--lift);box-shadow:0 0 4px 0 rgba(56, 224, 138,.4);animation:dotGlow 3.4s ease-in-out infinite}
+  .dl-back{display:inline-flex; align-items:center; gap:.4rem; font-family:var(--mono); font-size:.72rem; text-transform:uppercase; letter-spacing:.1em; color:var(--accent); text-decoration:none; margin-top:.5rem}
+  .dl-back:hover{color:var(--lift)}
 
   /* Day navigator: prev / current day / next, with a date jump. */
   .dl-daynav{display:flex; align-items:center; justify-content:center; gap:1rem; margin:2.4rem 0 0}
-  .dl-arrow{flex:0 0 auto; width:44px; height:44px; border-radius:50%; border:1px solid rgba(13,18,14,.18); background:var(--paper); color:var(--ink); font-size:1.1rem; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:background .15s,border-color .15s,color .15s}
+  .dl-arrow{flex:0 0 auto; width:44px; height:44px; border-radius:50%; border:1px solid rgba(13, 18, 14,.18); background:var(--paper); color:var(--ink); font-size:1.1rem; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:background .15s,border-color .15s,color .15s}
   .dl-arrow:hover:not(:disabled){background:var(--ink); color:var(--paper); border-color:var(--ink)}
   .dl-arrow:disabled{opacity:.3; cursor:default}
   .dl-daycenter{text-align:center; min-width:min(18rem,74vw)}
   .dl-daytitle{font-family:var(--display); font-weight:500; font-size:1.5rem; line-height:1.1}
   .dl-daysum{font-size:.74rem; color:var(--muted); margin-top:.15rem}
   .dl-jump{display:inline-flex; align-items:center; gap:.4rem; margin-top:.55rem; font-family:var(--mono); font-size:.66rem; text-transform:uppercase; letter-spacing:.08em; color:var(--muted)}
-  .dl-jump input{font-family:var(--mono); font-size:.74rem; color:var(--ink); background:var(--paper); border:1px solid rgba(13,18,14,.18); border-radius:999px; padding:.3rem .6rem; color-scheme:light}
+  .dl-jump input{font-family:var(--mono); font-size:.74rem; color:var(--ink); background:var(--paper); border:1px solid rgba(13, 18, 14,.18); border-radius:999px; padding:.3rem .6rem; color-scheme:light}
 
-  .dl-search{display:block; margin:1.4rem auto .2rem; font-family:var(--mono); font-size:.82rem; color:var(--ink); background:var(--paper); border:1px solid rgba(13,18,14,.18); border-radius:999px; padding:.5rem 1.1rem; min-width:min(16rem,80vw); -webkit-appearance:none; appearance:none}
+  .dl-search{display:block; margin:1.4rem auto .2rem; font-family:var(--mono); font-size:.82rem; color:var(--ink); background:var(--paper); border:1px solid rgba(13, 18, 14,.18); border-radius:999px; padding:.5rem 1.1rem; min-width:min(16rem,80vw); -webkit-appearance:none; appearance:none}
   .dl-sort{display:flex; justify-content:center; margin:.8rem auto 0}
-  .dl-sort{border:1px solid rgba(13,18,14,.18); border-radius:999px; overflow:hidden; width:max-content}
+  .dl-sort{border:1px solid rgba(13, 18, 14,.18); border-radius:999px; overflow:hidden; width:max-content}
   .dl-sort button{font-family:var(--mono); font-size:.68rem; letter-spacing:.03em; padding:.35rem .9rem; border:none; background:transparent; color:var(--ink); cursor:pointer}
-  .dl-sort button+button{border-left:1px solid rgba(13,18,14,.12)}
-  .dl-sort button.on{background:var(--green); color:#fff}
+  .dl-sort button+button{border-left:1px solid rgba(13, 18, 14,.12)}
+  .dl-sort button.on{background:var(--accent); color:#fff}
 
   /* Species-of-the-day rows (one row per species, expandable to its recordings). */
   .dl-splist{margin-top:1.4rem}
-  .dl-sprow{border-top:1px solid rgba(13,18,14,.08)}
+  .dl-sprow{border-top:1px solid rgba(13, 18, 14,.08)}
   .dl-sprow:first-child{border-top:none}
   .dl-sphead{display:grid; grid-template-columns:2.6rem minmax(0,1fr) minmax(150px,30%); gap:.9rem; align-items:center; padding:.7rem .2rem; cursor:pointer}
-  @media(hover:hover){.dl-sphead:hover{background:rgba(47,125,79,.04)}}
-  .dl-av{width:2.6rem; height:2.6rem; border-radius:50%; object-fit:cover; background:var(--paper-2); border:1.5px solid rgba(47,125,79,.35)}
+  @media(hover:hover){.dl-sphead:hover{background:rgba(47, 125, 79,.04)}}
+  .dl-av{width:2.6rem; height:2.6rem; border-radius:50%; object-fit:cover; background:var(--paper-2); border:1.5px solid rgba(47, 125, 79,.35)}
   .dl-av.ear{display:flex; align-items:center; justify-content:center; font-size:1rem; border:1.5px dashed rgba(176,125,36,.55)}
   .dl-av.ear .ic{width:1.35rem; height:1.35rem; color:#a9761f}
   .dl-share .ic{width:1rem; height:1rem}
   .dl-spmain{min-width:0}
   .dl-nm{font-family:var(--display); font-size:1.12rem; line-height:1.12; text-decoration:none; color:var(--ink)}
-  .dl-nm:hover{color:var(--green)}
+  .dl-nm:hover{color:var(--accent)}
   .dl-spmeta{display:flex; align-items:center; gap:.5rem; flex-wrap:wrap; margin-top:.2rem}
   .dl-time{font-family:var(--mono); font-size:.68rem; color:var(--ink); white-space:nowrap}
   .dl-fam{font-family:var(--mono); font-size:.62rem; text-transform:uppercase; letter-spacing:.06em; color:var(--muted)}
   .dl-hi .cl{color:var(--muted); font-size:.82em; font-weight:400; letter-spacing:.02em; margin-right:.1em}
-  .dl-tag{font-family:var(--mono); font-size:.56rem; text-transform:uppercase; letter-spacing:.07em; padding:.14rem .48rem; border-radius:999px; border:1px solid rgba(47,125,79,.4); color:var(--green); white-space:nowrap}
+  .dl-tag{font-family:var(--mono); font-size:.56rem; text-transform:uppercase; letter-spacing:.07em; padding:.14rem .48rem; border-radius:999px; border:1px solid rgba(47, 125, 79,.4); color:var(--accent); white-space:nowrap}
   .dl-tag.ear{color:#a9761f; border-color:rgba(176,125,36,.45)}
-  .dl-hi{font-size:.72rem; font-weight:600; color:var(--green)}
+  .dl-hi{font-size:.72rem; font-weight:600; color:var(--accent)}
   /* ×N chip is a button that expands the day's recordings for this species */
-  .dl-count{font:inherit; font-family:var(--mono); font-size:.58rem; text-transform:uppercase; letter-spacing:.05em; color:var(--green); background:rgba(47,125,79,.09); border:1px solid rgba(47,125,79,.3); border-radius:999px; padding:.16rem .55rem; white-space:nowrap; cursor:pointer}
-  .dl-count:hover{background:var(--green); color:var(--paper); border-color:var(--green)}
+  .dl-count{font:inherit; font-family:var(--mono); font-size:.58rem; text-transform:uppercase; letter-spacing:.05em; color:var(--accent); background:rgba(47, 125, 79,.09); border:1px solid rgba(47, 125, 79,.3); border-radius:999px; padding:.16rem .55rem; white-space:nowrap; cursor:pointer}
+  .dl-count:hover{background:var(--accent); color:var(--paper); border-color:var(--accent)}
   .dl-sprow.open .dl-count{background:var(--ink); color:var(--paper); border-color:var(--ink)}
   .dl-spright{justify-self:stretch; display:flex}
 
   /* Play button + spectrogram thumb — stretches to fill its column. */
-  .dl-play{--p:0; flex:1; width:100%; min-width:0; height:40px; border-radius:8px; border:1px solid rgba(13,18,14,.14); background:var(--ink); position:relative; cursor:pointer; overflow:hidden; padding:0}
+  .dl-play{--p:0; flex:1; width:100%; min-width:0; height:40px; border-radius:8px; border:1px solid rgba(13, 18, 14,.14); background:var(--ink); position:relative; cursor:pointer; overflow:hidden; padding:0}
   .dl-play img{position:absolute; inset:0; width:100%; height:100%; object-fit:fill; opacity:.85}
-  .dl-play .dl-needle{position:absolute; top:0; bottom:0; left:calc(var(--p)*100%); width:2px; margin-left:-1px; background:linear-gradient(180deg,#eafff4,var(--neon)); box-shadow:0 0 8px 1px rgba(56,224,138,.8); opacity:0}
+  .dl-play .dl-needle{position:absolute; top:0; bottom:0; left:calc(var(--p)*100%); width:2px; margin-left:-1px; background:linear-gradient(180deg,#eafff4,var(--lift)); box-shadow:0 0 8px 1px rgba(56, 224, 138,.8); opacity:0}
   .dl-play.playing .dl-needle{opacity:1}
   .dl-play .dl-ico{position:absolute; inset:0; display:flex; align-items:center; justify-content:center; color:#eafff4; font-size:.8rem; text-shadow:0 1px 6px rgba(0,0,0,.6); transition:opacity .2s}
   .dl-play.playing .dl-ico{opacity:0}
@@ -65,17 +65,17 @@
 
   .dl-subs{display:none; padding:0 .2rem .6rem 3.4rem}
   .dl-sprow.open .dl-subs{display:block}
-  .dl-sub{display:grid; grid-template-columns:5rem auto auto 1fr; gap:.7rem; align-items:center; padding:.32rem 0; border-top:1px solid rgba(13,18,14,.05)}
+  .dl-sub{display:grid; grid-template-columns:5rem auto auto 1fr; gap:.7rem; align-items:center; padding:.32rem 0; border-top:1px solid rgba(13, 18, 14,.05)}
   .dl-sub .st{font-family:var(--mono); font-size:.72rem; color:var(--muted); white-space:nowrap}
-  .dl-sub .sc{font-family:var(--mono); font-size:.68rem; color:var(--green)}
+  .dl-sub .sc{font-family:var(--mono); font-size:.68rem; color:var(--accent)}
   .dl-sub .dl-play{justify-self:end}
   /* Copy-a-permalink to one recording (mirrors the photo lightbox's share). */
-  .dl-share{flex:0 0 auto; width:34px; height:34px; border-radius:8px; border:1px solid rgba(13,18,14,.14); background:transparent; color:var(--muted); cursor:pointer; font-size:.82rem; margin-right:.45rem; display:flex; align-items:center; justify-content:center; transition:color .15s, border-color .15s}
-  .dl-share:hover{color:var(--green); border-color:var(--green)}
-  .dl-share.ok{color:var(--green); border-color:var(--green)}
+  .dl-share{flex:0 0 auto; width:34px; height:34px; border-radius:8px; border:1px solid rgba(13, 18, 14,.14); background:transparent; color:var(--muted); cursor:pointer; font-size:.82rem; margin-right:.45rem; display:flex; align-items:center; justify-content:center; transition:color .15s, border-color .15s}
+  .dl-share:hover{color:var(--accent); border-color:var(--accent)}
+  .dl-share.ok{color:var(--accent); border-color:var(--accent)}
   .dl-sub .dl-share{width:28px; height:28px; font-size:.72rem; margin-right:0; justify-self:end}
   .dl-flash{border-radius:10px; animation:dlFlash 2.2s ease}
-  @keyframes dlFlash{0%,100%{background:transparent}10%,30%{background:rgba(56,224,138,.16)}}
+  @keyframes dlFlash{0%,100%{background:transparent}10%,30%{background:rgba(56, 224, 138,.16)}}
   @media(max-width:560px){
     .dl-daytitle{font-size:1.25rem}
     .dl-sphead{grid-template-columns:2.4rem minmax(0,1fr); grid-template-rows:auto auto; gap:.3rem .7rem}

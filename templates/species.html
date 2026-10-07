@@ -5,24 +5,24 @@
 {% block content %}
 {% from '_icons.html' import icon %}
 <style>
-  .sppage .sp-eyebrow{font-family:var(--mono); font-size:.72rem; letter-spacing:.15em; text-transform:uppercase; color:var(--green); margin:0 0 .3rem}
-  .sppage .sp-eyebrow a{color:inherit; text-decoration:none; border-bottom:1px dotted rgba(47,125,79,.5)}
+  .sppage .sp-eyebrow{font-family:var(--mono); font-size:.72rem; letter-spacing:.15em; text-transform:uppercase; color:var(--accent); margin:0 0 .3rem}
+  .sppage .sp-eyebrow a{color:inherit; text-decoration:none; border-bottom:1px dotted rgba(47, 125, 79,.5)}
   .sppage .sp-eyebrow a:hover{border-bottom-style:solid}
   .sppage h1{margin-bottom:.7rem}
   /* A tappable STAT line, deliberately unlike the pill subnav above it (no
      borders, number-forward, muted labels) so the two rows don't read alike. */
   .sp-chips{display:flex; flex-wrap:wrap; justify-content:center; align-items:center; gap:.5rem 1.6rem; margin-top:1.7rem}
   .sp-chip{font-family:var(--mono); font-size:.82rem; text-decoration:none; color:var(--muted); display:inline-flex; align-items:center; gap:.4rem; white-space:nowrap; transition:color .15s ease}
-  .sp-chip .ic{color:var(--green); opacity:.9}
+  .sp-chip .ic{color:var(--accent); opacity:.9}
   .sp-chip b{font-weight:600; color:var(--ink); font-size:1.05rem; letter-spacing:-.01em}
-  .sp-chip:hover{color:var(--green)} .sp-chip:hover b{color:var(--green)}
-  @media(hover:hover){.sp-chip{border-bottom:1px dotted transparent} .sp-chip:hover{border-color:var(--green)}}
+  .sp-chip:hover{color:var(--accent)} .sp-chip:hover b{color:var(--accent)}
+  @media(hover:hover){.sp-chip{border-bottom:1px dotted transparent} .sp-chip:hover{border-color:var(--accent)}}
 
   .sp-sec{margin-top:3.2rem; scroll-margin-top:1.5rem}
   .sp-sec-h{display:flex; align-items:baseline; justify-content:space-between; gap:1rem; margin-bottom:1.1rem}
-  .sp-kick{font-family:var(--mono); font-size:.7rem; letter-spacing:.16em; text-transform:uppercase; color:var(--green); margin:0}
+  .sp-kick{font-family:var(--mono); font-size:.7rem; letter-spacing:.16em; text-transform:uppercase; color:var(--accent); margin:0}
   .sp-more{font-family:var(--mono); font-size:.74rem; text-decoration:none; color:var(--muted); white-space:nowrap}
-  .sp-more:hover{color:var(--green)}
+  .sp-more:hover{color:var(--accent)}
 
   /* Sound: the yard-mic call, in the live page's dark idiom. */
   .sp-sound{display:grid; grid-template-columns:minmax(0,1.4fr) minmax(0,1fr); gap:1.2rem; align-items:stretch}
@@ -31,37 +31,37 @@
   /* FILL (stretch the whole recording to the width), not cover — the strip is a
      scrubber, so the needle at --p*100% must map to the full call, not a crop. */
   .sp-player .sp-spec{position:absolute; inset:0; background-size:100% 100%; background-position:center}
-  .sp-player .sp-needle{position:absolute; top:0; bottom:0; left:calc(var(--p,0)*100%); width:2px; margin-left:-1px; background:linear-gradient(180deg,#eafff4,var(--neon)); box-shadow:0 0 10px 1px rgba(56,224,138,.85); opacity:0}
+  .sp-player .sp-needle{position:absolute; top:0; bottom:0; left:calc(var(--p,0)*100%); width:2px; margin-left:-1px; background:linear-gradient(180deg,#eafff4,var(--lift)); box-shadow:0 0 10px 1px rgba(56, 224, 138,.85); opacity:0}
   .sp-player.playing .sp-needle{opacity:1}
   .sp-player .sp-veil{position:absolute; top:0; bottom:0; left:calc(var(--p,0)*100%); right:0; background:linear-gradient(90deg,rgba(6,10,7,0),rgba(6,10,7,.5) 24px); opacity:0; transition:opacity .3s}
   .sp-player.playing .sp-veil{opacity:1}
   .sp-pbar{position:relative; z-index:2; display:flex; align-items:center; gap:.7rem; padding:.7rem .8rem; background:linear-gradient(transparent,rgba(6,10,7,.75))}
-  .sp-play{flex:0 0 auto; width:40px; height:40px; border-radius:50%; border:none; background:var(--neon); color:var(--ink); font-size:.95rem; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:transform .12s}
+  .sp-play{flex:0 0 auto; width:40px; height:40px; border-radius:50%; border:none; background:var(--lift); color:var(--ink); font-size:.95rem; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:transform .12s}
   .sp-play:active{transform:scale(.92)}
   .sp-ptxt{flex:1; min-width:0; color:var(--paper)}
-  .sp-ptxt b{display:block; font-family:var(--mono); font-size:.7rem; letter-spacing:.1em; text-transform:uppercase; color:var(--neon)}
-  .sp-ptxt span{font-family:var(--mono); font-size:.68rem; color:rgba(244,241,233,.7)}
-  .sp-toggle{flex:0 0 auto; display:inline-flex; border:1px solid rgba(244,241,233,.28); border-radius:999px; overflow:hidden}
-  .sp-toggle button{font-family:var(--mono); font-size:.6rem; letter-spacing:.05em; text-transform:uppercase; padding:.28rem .6rem; border:none; background:transparent; color:rgba(244,241,233,.7); cursor:pointer}
-  .sp-toggle button+button{border-left:1px solid rgba(244,241,233,.18)}
-  .sp-toggle button.on{background:var(--neon); color:var(--ink)}
+  .sp-ptxt b{display:block; font-family:var(--mono); font-size:.7rem; letter-spacing:.1em; text-transform:uppercase; color:var(--lift)}
+  .sp-ptxt span{font-family:var(--mono); font-size:.68rem; color:rgba(244, 241, 233,.7)}
+  .sp-toggle{flex:0 0 auto; display:inline-flex; border:1px solid rgba(244, 241, 233,.28); border-radius:999px; overflow:hidden}
+  .sp-toggle button{font-family:var(--mono); font-size:.6rem; letter-spacing:.05em; text-transform:uppercase; padding:.28rem .6rem; border:none; background:transparent; color:rgba(244, 241, 233,.7); cursor:pointer}
+  .sp-toggle button+button{border-left:1px solid rgba(244, 241, 233,.18)}
+  .sp-toggle button.on{background:var(--lift); color:var(--ink)}
   /* Browse every recording for this species: a sortable list that loads into the player. */
   .sp-recs{margin-top:1rem}
   .sp-recs-bar{display:flex; align-items:center; gap:.9rem; flex-wrap:wrap}
-  .sp-recs-toggle{font-family:var(--mono); font-size:.72rem; letter-spacing:.05em; color:var(--green); background:none; border:none; cursor:pointer; padding:.2rem 0}
-  .sp-recs-sort{display:inline-flex; border:1px solid rgba(13,18,14,.18); border-radius:999px; overflow:hidden}
+  .sp-recs-toggle{font-family:var(--mono); font-size:.72rem; letter-spacing:.05em; color:var(--accent); background:none; border:none; cursor:pointer; padding:.2rem 0}
+  .sp-recs-sort{display:inline-flex; border:1px solid rgba(13, 18, 14,.18); border-radius:999px; overflow:hidden}
   .sp-recs-sort button{font-family:var(--mono); font-size:.62rem; letter-spacing:.03em; padding:.25rem .65rem; border:none; background:transparent; color:var(--ink); cursor:pointer}
-  .sp-recs-sort button+button{border-left:1px solid rgba(13,18,14,.12)}
-  .sp-recs-sort button.on{background:var(--green); color:#fff}
-  .sp-recs-list{margin-top:.7rem; display:flex; flex-direction:column; max-height:300px; overflow-y:auto; border:1px solid rgba(13,18,14,.1); border-radius:10px; scrollbar-width:thin}
+  .sp-recs-sort button+button{border-left:1px solid rgba(13, 18, 14,.12)}
+  .sp-recs-sort button.on{background:var(--accent); color:#fff}
+  .sp-recs-list{margin-top:.7rem; display:flex; flex-direction:column; max-height:300px; overflow-y:auto; border:1px solid rgba(13, 18, 14,.1); border-radius:10px; scrollbar-width:thin}
   /* the class display: must not win over the hidden attribute (drawer stayed open) */
   .sp-recs-sort[hidden],.sp-recs-list[hidden]{display:none}
-  .sp-recrow{border-bottom:1px solid rgba(13,18,14,.06)}
+  .sp-recrow{border-bottom:1px solid rgba(13, 18, 14,.06)}
   .sp-recrow:last-child{border-bottom:none}
   .sp-rechead{display:flex; align-items:center; gap:.7rem; padding:.5rem .7rem; background:none; border:none; cursor:pointer; text-align:left; width:100%}
-  .sp-recrow:hover .sp-rechead{background:rgba(47,125,79,.06)}
-  .sp-recrow.on .sp-rechead{background:rgba(47,125,79,.1)}
-  .sp-rechead .rp{flex:0 0 auto; width:26px; height:26px; border-radius:50%; background:var(--green); color:#fff; display:flex; align-items:center; justify-content:center; font-size:.58rem}
+  .sp-recrow:hover .sp-rechead{background:rgba(47, 125, 79,.06)}
+  .sp-recrow.on .sp-rechead{background:rgba(47, 125, 79,.1)}
+  .sp-rechead .rp{flex:0 0 auto; width:26px; height:26px; border-radius:50%; background:var(--accent); color:#fff; display:flex; align-items:center; justify-content:center; font-size:.58rem}
   .sp-recrow.on .rp{background:var(--ink)}
   .sp-rechead .rw{flex:1; font-family:var(--mono); font-size:.72rem; color:var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
   .sp-rechead .rc{flex:0 0 auto; font-family:var(--mono); font-size:.62rem; font-weight:600; padding:.1rem .42rem; border-radius:999px}
@@ -69,39 +69,39 @@
      right in the row, instead of hijacking the big hero player up top. */
   .sp-rowspec{--p:0; display:none; position:relative; margin:0 .7rem .6rem 2.9rem; border-radius:8px; overflow:hidden; background:var(--ink); cursor:pointer}
   .sp-rowspec img{display:block; width:100%; height:60px; object-fit:fill}
-  .sp-rowneedle{position:absolute; top:0; bottom:0; left:calc(var(--p,0)*100%); width:2px; margin-left:-1px; background:linear-gradient(180deg,#eafff4,var(--neon)); box-shadow:0 0 10px 1px rgba(56,224,138,.85); opacity:0}
+  .sp-rowneedle{position:absolute; top:0; bottom:0; left:calc(var(--p,0)*100%); width:2px; margin-left:-1px; background:linear-gradient(180deg,#eafff4,var(--lift)); box-shadow:0 0 10px 1px rgba(56, 224, 138,.85); opacity:0}
   .sp-recrow.on .sp-rowspec{display:block}
   .sp-recrow.on .sp-rowneedle{opacity:1}
   @media(max-width:520px){ .sp-rowspec{margin-left:.7rem} .sp-rowspec img{height:76px} }
-  .sp-recrow .rc.hi{background:rgba(47,125,79,.15); color:var(--green)}
-  .sp-recrow .rc.mid{background:rgba(13,18,14,.07); color:var(--ink)}
+  .sp-recrow .rc.hi{background:rgba(47, 125, 79,.15); color:var(--accent)}
+  .sp-recrow .rc.mid{background:rgba(13, 18, 14,.07); color:var(--ink)}
   .sp-recrow .rc.lo{background:rgba(169,118,31,.16); color:#a9761f}
-  .sp-expand{position:absolute; top:.5rem; right:.5rem; z-index:3; width:30px; height:30px; border-radius:50%; border:none; background:rgba(6,10,7,.6); color:var(--neon); font-size:.8rem; cursor:pointer; display:flex; align-items:center; justify-content:center}
+  .sp-expand{position:absolute; top:.5rem; right:.5rem; z-index:3; width:30px; height:30px; border-radius:50%; border:none; background:rgba(6,10,7,.6); color:var(--lift); font-size:.8rem; cursor:pointer; display:flex; align-items:center; justify-content:center}
   .sp-expand:hover{background:rgba(6,10,7,.9)}
   /* Full-screen call viewer, same idiom as the live page. */
   .sp-zoom{position:fixed; inset:0; z-index:1000; background:rgba(6,10,7,.97); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:1rem; padding:1.2rem; animation:spZoomIn .18s ease; cursor:zoom-out}
   @keyframes spZoomIn{from{opacity:0}}
-  .sp-zclose{position:absolute; top:.9rem; right:.9rem; width:38px; height:38px; border-radius:50%; border:1px solid rgba(244,241,233,.25); background:rgba(6,10,7,.6); color:var(--paper); font-size:1.1rem; cursor:pointer}
-  .sp-zclose:hover{border-color:var(--neon); color:var(--neon)}
+  .sp-zclose{position:absolute; top:.9rem; right:.9rem; width:38px; height:38px; border-radius:50%; border:1px solid rgba(244, 241, 233,.25); background:rgba(6,10,7,.6); color:var(--paper); font-size:1.1rem; cursor:pointer}
+  .sp-zclose:hover{border-color:var(--lift); color:var(--lift)}
   .sp-zwrap{position:relative; width:min(92vw,1100px); border-radius:12px; overflow:hidden; background:var(--ink); cursor:crosshair}
   .sp-zwrap img{display:block; width:100%; height:min(42vh,320px); object-fit:fill}
   @media(max-width:560px){.sp-zwrap img{height:min(30vh,240px)}}
-  .sp-zwrap .zneedle{position:absolute; top:0; bottom:0; left:calc(var(--zp,0)*100%); width:2px; margin-left:-1px; background:linear-gradient(180deg,#eafff4,var(--neon)); box-shadow:0 0 10px 1px rgba(56,224,138,.85); opacity:0}
+  .sp-zwrap .zneedle{position:absolute; top:0; bottom:0; left:calc(var(--zp,0)*100%); width:2px; margin-left:-1px; background:linear-gradient(180deg,#eafff4,var(--lift)); box-shadow:0 0 10px 1px rgba(56, 224, 138,.85); opacity:0}
   .sp-zwrap.playing .zneedle{opacity:1}
   .sp-zbar{display:flex; align-items:center; gap:.75rem; width:min(92vw,1100px); color:var(--paper)}
-  .sp-zplay{flex:0 0 auto; width:42px; height:42px; border-radius:50%; border:none; background:var(--neon); color:var(--ink); font-size:.95rem; cursor:pointer}
+  .sp-zplay{flex:0 0 auto; width:42px; height:42px; border-radius:50%; border:none; background:var(--lift); color:var(--ink); font-size:.95rem; cursor:pointer}
   .sp-zbar b{font-family:var(--display); font-weight:600; font-size:1rem}
-  .sp-zbar .sub{font-family:var(--mono); font-size:.68rem; color:rgba(244,241,233,.65)}
-  .sp-ztime{margin-left:auto; font-family:var(--mono); font-size:.72rem; color:var(--neon)}
-  .sp-heard{border:1px solid rgba(13,18,14,.12); border-radius:14px; padding:1.1rem 1.2rem; background:#fbf9f3; display:flex; flex-direction:column; justify-content:center; gap:.55rem}
+  .sp-zbar .sub{font-family:var(--mono); font-size:.68rem; color:rgba(244, 241, 233,.65)}
+  .sp-ztime{margin-left:auto; font-family:var(--mono); font-size:.72rem; color:var(--lift)}
+  .sp-heard{border:1px solid rgba(13, 18, 14,.12); border-radius:14px; padding:1.1rem 1.2rem; background:#fbf9f3; display:flex; flex-direction:column; justify-content:center; gap:.55rem}
   .sp-heard .row{display:flex; justify-content:space-between; align-items:baseline; font-size:.86rem; color:var(--muted)}
   .sp-heard .row b{font-family:var(--display); font-size:1.15rem; color:var(--ink); font-weight:600}
-  .sp-heard a{font-family:var(--mono); font-size:.74rem; color:var(--green); text-decoration:none; margin-top:.2rem}
+  .sp-heard a{font-family:var(--mono); font-size:.74rem; color:var(--accent); text-decoration:none; margin-top:.2rem}
   .sp-heard .sp-heardon{align-items:center}
   /* Daily rhythm mini-chart: when this bird is heard, hour by hour (all-time). */
   .sp-day{display:flex; align-items:flex-end; gap:1.5px; height:34px; margin-top:.5rem}
-  .sp-day .sp-hr{flex:1; min-height:2px; border-radius:1.5px; background:rgba(47,125,79,.28)}
-  .sp-day .sp-hr.pk{background:var(--green)}
+  .sp-day .sp-hr{flex:1; min-height:2px; border-radius:1.5px; background:rgba(47, 125, 79,.28)}
+  .sp-day .sp-hr.pk{background:var(--accent)}
   /* When two mics heard this bird, each hour bar stacks their share (colors match
      the legend). Same bar heights as the flat chart — just split by mic. */
   .sp-day .sp-hr.stk{background:none; display:flex; flex-direction:column-reverse; overflow:hidden; gap:0}
@@ -115,19 +115,19 @@
   .sp-year{display:flex; align-items:flex-end; gap:.4rem; height:108px}
   .sp-mo{flex:1; height:100%; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; gap:.35rem}
   .sp-mo .bar{transition:filter .15s} .sp-mo a.bar:hover{filter:brightness(1.15)}
-  .sp-mo .bar{width:100%; max-width:34px; background:linear-gradient(180deg,var(--green),rgba(47,125,79,.28)); border-radius:3px 3px 0 0; min-height:2px}
-  .sp-mo .bar.zero{background:rgba(13,18,14,.07)}
-  .sp-mo .bar.peak{background:linear-gradient(180deg,var(--neon),rgba(56,224,138,.35))}
+  .sp-mo .bar{width:100%; max-width:34px; background:linear-gradient(180deg,var(--accent),rgba(47, 125, 79,.28)); border-radius:3px 3px 0 0; min-height:2px}
+  .sp-mo .bar.zero{background:rgba(13, 18, 14,.07)}
+  .sp-mo .bar.peak{background:linear-gradient(180deg,var(--lift),rgba(56, 224, 138,.35))}
   .sp-mo .ml{font-family:var(--mono); font-size:.6rem; color:var(--muted)}
 
   /* Places */
   .sp-places{display:flex; flex-direction:column; gap:.1rem; max-width:34rem}
-  .sp-place{display:flex; align-items:center; gap:.7rem; padding:.55rem 0; border-top:1px solid rgba(13,18,14,.08); text-decoration:none; color:var(--ink)}
+  .sp-place{display:flex; align-items:center; gap:.7rem; padding:.55rem 0; border-top:1px solid rgba(13, 18, 14,.08); text-decoration:none; color:var(--ink)}
   .sp-place:first-child{border-top:none}
-  .sp-place .pin{width:34px; height:34px; border-radius:50%; flex:0 0 auto; background-size:cover; background-position:center; border:2px solid var(--green)}
+  .sp-place .pin{width:34px; height:34px; border-radius:50%; flex:0 0 auto; background-size:cover; background-position:center; border:2px solid var(--accent)}
   .sp-place.away .pin{border-color:#d9863b}
   .sp-place .nm{flex:1; font-family:var(--display); font-size:1rem}
-  .sp-place:hover .nm{color:var(--green)}
+  .sp-place:hover .nm{color:var(--accent)}
   .sp-place .ct{font-family:var(--mono); font-size:.72rem; color:var(--muted)}
   .sp-place .aw{font-size:.7rem; display:inline-flex}
   .sp-place .aw .ic{width:.9rem; height:.9rem; color:#d9863b}

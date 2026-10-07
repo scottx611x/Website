@@ -225,26 +225,9 @@ def _home_context():
         areas = s.get("image_areas")
         return not areas or any(a != "away" for a in areas)
     home_preview = [s for s in shots if _local_cover(s)][:5]
-    # The hero drifts a wall of his own photographs rather than a stock
-    # landscape. One frame per species so the wall is varied rather than eight
-    # Barred Owls, newest first, local only — this is the hometown page.
-    hero_seen, hero_tiles = set(), []
-    for s in sorted((x for x in shots if _local_cover(x)),
-                    key=lambda x: x.get("_sort") or x.get("date") or "", reverse=True):
-        nm = (s.get("species") or "").strip()
-        if not nm or nm in hero_seen:
-            continue
-        imgs = s.get("images") or []
-        if not imgs:
-            continue
-        hero_seen.add(nm)
-        hero_tiles.append({"src": birds.thumb_url(imgs[0]), "name": nm})
-        if len(hero_tiles) >= 54:
-            break
     local_shots = [s for s in shots if _has_local(s)]
     return {
         "title": TITLE,
-        "hero_tiles": hero_tiles,
         "bird_stats": {
             "species": stats["species"],
             "photos": stats["photos"] + stats["videos"],

@@ -15,6 +15,21 @@
     --rust: #a8502c;
     --amber: #e8b04b;
     --muted: #8a9486;
+    /* Categorical series palette for the charts, named for the birds the hues
+       come from. Every chart was a single green, so nothing could be told
+       apart without reading a label.
+
+       Validated rather than eyeballed (docs/revamp/palcheck.js): worst pair
+       separation is dE 16.4 normal (floor 15) and 8.5-10.4 under simulated
+       deuteranopia, protanopia and tritanopia (floor 8). Five is the honest
+       ceiling here — six collapses blue against purple under protanopia. A
+       sixth series folds into --s-other rather than inventing a hue. */
+    --s-forest: #17493a;
+    --s-cardinal: #c0392b;
+    --s-jay: #3a7fc1;
+    --s-goldfinch: #e8b532;
+    --s-grackle: #5b3a7a;
+    --s-other: #8a8578;
     --line: rgba(255,255,255,0.14);
     --display: "Fraunces", Georgia, serif;
     --ui: "Space Grotesk", -apple-system, BlinkMacSystemFont, sans-serif;
@@ -136,73 +151,12 @@ body.has-effect .site-footer { position: relative; z-index: 1; }
 
 /* Soft-tactile press lives at the very end of this file (search "SOFT-PRESS")
    so its transform transition wins source-order over component transitions. */
-/* The hero wall: six columns of his own photographs drifting at different
-   speeds and directions. Each column repeats its list twice and translates by
-   exactly -50%, so the loop is seamless with no JS and no measuring.
-
-   The scrim does the heavy lifting — at full strength the photographs would
-   fight the name for attention, and the name has to win. */
-#bg-effect.bg-wall { display: block; }
-/* The tilt lives on an inner wrapper, not on #bg-effect, because the scrim is
-   a sibling: rotating their shared parent rotated the scrim's gradients too,
-   so the band meant to sit under the nav ran off at an angle and the nav strip
-   stayed bright. */
-.wall-tilt {
-    position: absolute; inset: 0;
-    display: flex; gap: clamp(8px, 1vw, 16px);
-    padding: 0 clamp(8px, 1vw, 16px);
-    transform: rotate(-4deg) scale(1.28);
-    transform-origin: center;
-}
-.wall-col { flex: 1 1 0; min-width: 0; overflow: hidden; }
-.wall-run {
-    display: flex; flex-direction: column; gap: clamp(8px, 1vw, 16px);
-    animation: wall-run 96s linear infinite;
-    will-change: transform;
-}
-.wall-run img {
-    width: 100%; aspect-ratio: 4 / 5; object-fit: cover;
-    border-radius: 3px; display: block; background: rgba(13, 18, 14,.2);
-    /* The wall is texture, not content. At full strength the photographs win
-       the page and the name becomes something you have to hunt for. */
-    filter: saturate(.72) brightness(.66) contrast(.95);
-}
-/* Alternating direction and prime-ish durations, so the columns never fall
-   into step with each other and the wall keeps churning. */
-.wall-col-0 .wall-run { animation-duration: 79s; }
-.wall-col-1 .wall-run { animation-duration: 103s; animation-direction: reverse; }
-.wall-col-2 .wall-run { animation-duration: 67s; }
-.wall-col-3 .wall-run { animation-duration: 113s; animation-direction: reverse; }
-.wall-col-4 .wall-run { animation-duration: 89s; }
-.wall-col-5 .wall-run { animation-duration: 71s; animation-direction: reverse; }
-@keyframes wall-run { to { transform: translateY(-50%); } }
-@media (prefers-reduced-motion: reduce) {
-    .wall-run { animation: none; }
-}
-@media (max-width: 720px) {
-    /* Six columns of thumbnails on a phone is a mosaic, not a photograph. */
-    .wall-tilt { transform: rotate(-5deg) scale(1.45); }
-    .wall-col-4, .wall-col-5 { display: none; }
-}
-
 .bg-scrim {
     position: absolute; inset: 0; z-index: 1;
     background:
         linear-gradient(180deg, rgba(13, 18, 14,0.35) 0%, rgba(13, 18, 14,0.15) 30%, rgba(13, 18, 14,0.45) 70%, rgba(13, 18, 14,0.8) 100%),
         linear-gradient(90deg, rgba(13, 18, 14,0.55) 0%, rgba(13, 18, 14,0.1) 45%, transparent 75%);
     pointer-events: none;
-}
-/* Over a moving wall of 54 photographs the single-photo scrim is nowhere near
-   enough: every word sat on a different background from one second to the
-   next. This one is heavy under the type and lifts toward the edges, so the
-   wall still reads as photographs at the margins. */
-.bg-wall .bg-scrim {
-    background:
-        /* a dedicated band under the nav: white links over a moving wall need
-           a floor, and the brightest photo patches were reaching L=117 */
-        linear-gradient(180deg, rgba(13, 18, 14,.82) 0px, rgba(13, 18, 14,.5) 72px, transparent 140px),
-        radial-gradient(95% 80% at 24% 60%, rgba(13, 18, 14,.88) 0%, rgba(13, 18, 14,.6) 40%, rgba(13, 18, 14,.2) 74%, rgba(13, 18, 14,.06) 100%),
-        linear-gradient(180deg, rgba(13, 18, 14,.5) 0%, rgba(13, 18, 14,.12) 28%, rgba(13, 18, 14,.26) 70%, rgba(13, 18, 14,.72) 100%);
 }
 /* The nav sits on the wall now. Its default ink-on-paper colours vanished
    against dark photographs, so on the home page it inverts until you scroll
@@ -232,19 +186,6 @@ body.home .site-nav:not(.scrolled) .nav-burger span { background: rgba(244, 241,
     margin: 0 auto;
     padding: 4rem 1.6rem 2rem;
     color: #fff;
-}
-/* This line is a collection locality — the same thing written on a specimen
-   tag — so it is set like one: a rule, then small tracked caps, quiet. In an
-   accent colour it was just another coloured kicker. */
-.hero-eyebrow {
-    display: flex; align-items: center; gap: 0.9rem;
-    font-family: var(--mono); font-size: 0.72rem; letter-spacing: 0.22em;
-    text-transform: uppercase; color: rgba(244, 241, 233,0.6); margin: 0 0 1.1rem;
-    text-shadow: 0 1px 8px rgba(0,0,0,0.7);
-}
-.hero-eyebrow::before {
-    content: ""; width: 2.4rem; height: 1px; flex: none;
-    background: rgba(244, 241, 233,0.45);
 }
 .hero-title {
     font-family: var(--display);
