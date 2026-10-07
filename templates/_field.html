@@ -448,6 +448,12 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
 .bf-famlink{color:inherit;text-decoration:none;border-bottom:1px solid transparent;
   transition:color .15s,border-color .15s}
 .bf-famlink:hover{color:var(--accent);border-bottom-color:currentColor}
+.bf-orig{position:absolute;right:.9rem;bottom:.55rem;z-index:3;font-size:.66rem;
+  letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.75);
+  text-decoration:none;padding:.25rem .5rem;border-radius:3px;
+  background:rgba(13,18,14,.45);backdrop-filter:blur(4px)}
+.bf-orig:hover{color:#fff;background:rgba(13,18,14,.7)}
+.bf-orig[hidden]{display:none}
 </style>
 
 <section class="page wide bf" id="bf-root">
@@ -496,6 +502,8 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
       <button type="button" class="bf-fsx" id="bf-fsx" title="Leave full screen" aria-label="Leave full screen">&times;</button>
       <button class="bf-arrow bf-next" id="bf-next" aria-label="Next frame">&#8250;</button>
       <span class="bf-count" id="bf-ocount"></span>
+      <a class="bf-orig mono" id="bf-orig" hidden target="_blank" rel="noopener"
+         title="Open the full-resolution frame">full size &#8599;</a>
     </div>
     <div class="bf-strip" id="bf-ostrip"></div>
     </div>
@@ -1359,6 +1367,15 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
     var o = document.getElementById("bf-over");
     return !!(o && o.dataset.kind === "family");
   }
+  function paintOriginal(f) {
+    var a = $("bf-orig");
+    if (!a) return;
+    // Only the frames whose originals were still on disk have one, so this is
+    // absent rather than broken for the older archive.
+    if (f && f.orig) { a.href = f.orig; a.hidden = false; }
+    else { a.hidden = true; a.removeAttribute("href"); }
+  }
+
   function paintCaption(f) {
     // In a family view the title is the family, so without this the stage
     // never says whether you are looking at a Mourning Dove or a Rock Pigeon.
@@ -1367,6 +1384,7 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
       (fi + 1) + " / " + frames.length +
       (f.where ? "  ·  " + f.where : "") + (f.date ? "  ·  " + f.date : "");
     if (isFam()) markMember(f.name);
+    paintOriginal(f);
   }
 
   /* And light up that bird in the member list, so the chips double as a

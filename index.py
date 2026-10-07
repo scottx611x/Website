@@ -825,6 +825,7 @@ def birds_family_json(slug):
                 continue
             frames.append({
                 "thumb": birds.thumb_url(src), "full": src, "name": nm,
+                "orig": birds.original_url(src) if birds.has_original(src) else None,
                 "date": (dates[i] if (i < len(dates) and dates[i])
                          else (sh.get("_sort") or sh.get("date"))),
                 "where": (locs[i] if (i < len(locs) and locs[i]) else sh.get("location")),
@@ -895,6 +896,8 @@ def birds_species_json(slug):
         idxs = f.get("image_indices") or []
         areas = f.get("image_areas") or []
         frames.append({"thumb": birds.thumb_url(imgs[0]), "full": imgs[0],
+                       # the full-res export, when one was still on disk to upload
+                       "orig": birds.original_url(imgs[0]) if birds.has_original(imgs[0]) else None,
                        "date": f.get("_sort") or f.get("date"),
                        "where": (locs[0] if locs else None),
                        "vid": 1 if (vids and vids[0]) else 0,

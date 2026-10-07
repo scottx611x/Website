@@ -2339,6 +2339,46 @@ def thumb_url(url):
     return url
 
 
+def original_url(url):
+    """The full-resolution export for a re-hosted image, or None.
+
+    birds/originals/<post>-<index>.jpg mirrors birds/images/, so the mapping is
+    the same filename under a different prefix.
+    """
+    marker = "/{}/images/".format(S3_PREFIX)
+    if marker in (url or ""):
+        return url.replace(marker, "/{}/originals/".format(S3_PREFIX))
+    return None
+
+
+_ORIGINALS = None
+
+
+def has_original(url):
+    """True when a full-res counterpart exists.
+
+    Only frames whose originals were still on disk have one, so this cannot be
+    assumed from the URL. The key set is listed once and memoised — a HEAD per
+    frame would be thousands of round trips per page.
+    """
+    global _ORIGINALS
+    if _ORIGINALS is None:
+        _ORIGINALS = set()
+        if os.environ.get("BIRDS_USE_S3"):
+            try:
+                import boto3
+
+                pg = boto3.client("s3").get_paginator("list_objects_v2")
+                for page in pg.paginate(Bucket=S3_BUCKET,
+                                        Prefix="{}/originals/".format(S3_PREFIX)):
+                    for o in page.get("Contents") or []:
+                        _ORIGINALS.add(o["Key"].rsplit("/", 1)[-1])
+            except Exception:  # noqa: BLE001 - absent prefix is not fatal
+                pass
+    u = original_url(url)
+    return bool(u) and u.rsplit("/", 1)[-1] in _ORIGINALS
+
+
 # Thumb pixel sizes gathered while syncing ("<post id>-<index>" -> [w, h]).
 # Rendered as width/height attributes so the grid reserves space before images
 # load (no layout jumps). Seeded from the previous manifest for already-archived
