@@ -2339,16 +2339,37 @@ def thumb_url(url):
     return url
 
 
-def original_url(url):
-    """The full-resolution export for a re-hosted image, or None.
+def original_key(url):
+    """S3 key of the full-resolution export for a re-hosted image, or None.
 
     birds/originals/<post>-<index>.jpg mirrors birds/images/, so the mapping is
     the same filename under a different prefix.
     """
     marker = "/{}/images/".format(S3_PREFIX)
     if marker in (url or ""):
-        return url.replace(marker, "/{}/originals/".format(S3_PREFIX))
+        return "{}/originals/{}".format(S3_PREFIX, url.rsplit("/", 1)[-1])
     return None
+
+
+def original_url(url, expires=3600):
+    """A time-limited link to the full-resolution export, or None.
+
+    Presigned rather than public on purpose. The web copies are 2.4 MP and
+    openly readable; these are the 20-24 MP print files, and the bucket policy
+    is an explicit allow-list that does not include them. A signed URL lets the
+    site show the full frame without putting a year of print-quality work on
+    the open internet.
+    """
+    key = original_key(url)
+    if not key or not os.environ.get("BIRDS_USE_S3"):
+        return None
+    try:
+        import boto3
+
+        return boto3.client("s3").generate_presigned_url(
+            "get_object", Params={"Bucket": S3_BUCKET, "Key": key}, ExpiresIn=expires)
+    except Exception:  # noqa: BLE001
+        return None
 
 
 _ORIGINALS = None
@@ -2375,8 +2396,8 @@ def has_original(url):
                         _ORIGINALS.add(o["Key"].rsplit("/", 1)[-1])
             except Exception:  # noqa: BLE001 - absent prefix is not fatal
                 pass
-    u = original_url(url)
-    return bool(u) and u.rsplit("/", 1)[-1] in _ORIGINALS
+    key = original_key(url)
+    return bool(key) and key.rsplit("/", 1)[-1] in _ORIGINALS
 
 
 # Thumb pixel sizes gathered while syncing ("<post id>-<index>" -> [w, h]).
