@@ -6,10 +6,10 @@
 <style>
   /* Light like every other bird page; ink on paper, green accents, neon fills. */
   .livewire .mono{font-family:var(--mono); font-variant-numeric:tabular-nums}
-  .livewire .lv-kick{font-family:var(--mono); font-size:.7rem; text-transform:uppercase; letter-spacing:.16em; color:var(--green); margin:0 0 1rem}
+  .livewire .lv-kick{font-family:var(--mono); font-size:.7rem; text-transform:uppercase; letter-spacing:.16em; color:var(--accent); margin:0 0 1rem}
   .livewire section{margin-top:3.2rem}
   .lv-status{display:flex; justify-content:center; align-items:flex-start; gap:.5rem; color:var(--muted); font-size:.78rem; margin:.9rem 0 0}
-  .lv-dot{width:9px;height:9px;border-radius:50%;flex:0 0 auto;margin-top:.26rem;background:var(--neon);box-shadow:0 0 4px 0 rgba(56,224,138,.4);animation:dotGlow 3.4s ease-in-out infinite}
+  .lv-dot{width:9px;height:9px;border-radius:50%;flex:0 0 auto;margin-top:.26rem;background:var(--lift);box-shadow:0 0 4px 0 rgba(56, 224, 138,.4);animation:dotGlow 3.4s ease-in-out infinite}
   /* Station offline / stale: the dot stops glowing, and an honest banner shows. */
   .lv-status.stale .lv-dot{background:#c0392b;box-shadow:none;animation:none}
   .lv-offline{max-width:640px;margin:1rem auto 0;padding:.7rem 1rem;border-radius:10px;
@@ -23,7 +23,7 @@
   .lv-now > *{min-width:0}
   @media(max-width:860px){.lv-now{grid-template-columns:minmax(0,1fr)}}
   /* One "just heard" object: the bird's portrait and its actual voice, one card. */
-  .lv-herocard{position:relative; border-radius:16px; overflow:hidden; border:1px solid rgba(13,18,14,.12); background:var(--ink); box-shadow:0 14px 38px -20px rgba(13,18,14,.55)}
+  .lv-herocard{position:relative; border-radius:16px; overflow:hidden; border:1px solid rgba(13, 18, 14,.12); background:var(--ink); box-shadow:0 14px 38px -20px rgba(13, 18, 14,.55)}
   .lv-portrait{position:relative; aspect-ratio:3/2; overflow:hidden; background-size:cover; background-position:center}
   .lv-portrait::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 24%,rgba(6,10,7,.5) 58%,rgba(6,10,7,.92))}
   .lv-portrait .lv-body{text-shadow:0 1px 10px rgba(6,10,7,.65)}
@@ -32,24 +32,24 @@
   .lv-body{position:absolute; z-index:2; left:0; right:0; bottom:0; padding:1rem 1.2rem}
   .lv-portrait .lv-body,.lv-portrait .lv-body a{color:var(--paper)}
   .lv-ghostcard .lv-body{position:relative; color:var(--ink)}
-  .lv-when{font-family:var(--mono); font-size:.7rem; letter-spacing:.09em; text-transform:uppercase; color:var(--neon)}
+  .lv-when{font-family:var(--mono); font-size:.7rem; letter-spacing:.09em; text-transform:uppercase; color:var(--lift)}
   .lv-ghostcard .lv-when{color:#a9761f}
   .lv-nm{font-family:var(--display); font-size:clamp(1.6rem,3.6vw,2.4rem); line-height:1.03; margin:.12rem 0 0}
-  .lv-nm a{text-decoration:none} .lv-nm a:hover{color:var(--neon)}
+  .lv-nm a{text-decoration:none} .lv-nm a:hover{color:var(--lift)}
   .lv-meta{display:flex; align-items:center; gap:.6rem; flex-wrap:wrap; margin-top:.5rem}
-  .lv-tag{font-family:var(--mono); font-size:.62rem; text-transform:uppercase; letter-spacing:.09em; padding:.2rem .55rem; border-radius:999px; border:1px solid rgba(244,241,233,.35); color:rgba(244,241,233,.9)}
-  .lv-ghostcard .lv-tag{border-color:rgba(13,18,14,.25); color:var(--ink)}
-  .lv-tag.new{color:var(--neon); border-color:rgba(56,224,138,.55)}
-  .lv-ghostcard .lv-tag.new{color:var(--green); border-color:rgba(47,125,79,.5)}
+  .lv-tag{font-family:var(--mono); font-size:.62rem; text-transform:uppercase; letter-spacing:.09em; padding:.2rem .55rem; border-radius:999px; border:1px solid rgba(244, 241, 233,.35); color:rgba(244, 241, 233,.9)}
+  .lv-ghostcard .lv-tag{border-color:rgba(13, 18, 14,.25); color:var(--ink)}
+  .lv-tag.new{color:var(--lift); border-color:rgba(56, 224, 138,.55)}
+  .lv-ghostcard .lv-tag.new{color:var(--accent); border-color:rgba(47, 125, 79,.5)}
   .lv-conf{display:flex; align-items:center; gap:.5rem; font-family:var(--mono); font-size:.72rem}
-  .lv-meter{width:86px;height:6px;border-radius:3px;background:rgba(244,241,233,.28);overflow:hidden}
-  .lv-ghostcard .lv-meter{background:rgba(13,18,14,.15)}
-  .lv-meter>i{display:block;height:100%;background:linear-gradient(90deg,var(--green),var(--neon))}
+  .lv-meter{width:86px;height:6px;border-radius:3px;background:rgba(244, 241, 233,.28);overflow:hidden}
+  .lv-ghostcard .lv-meter{background:rgba(13, 18, 14,.15)}
+  .lv-meter>i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),var(--lift))}
 
   /* The sound itself: BirdNET's real spectrogram as the scrubber. */
   /* The voice: integrated as a band under the portrait, not a separate card. */
   .lv-player{position:relative; border:none; border-radius:0; background:var(--ink); overflow:hidden}
-  .lv-player::before{content:"";position:absolute;top:0;left:0;right:0;height:1px;z-index:5;background:linear-gradient(90deg,transparent,rgba(56,224,138,.65),transparent)}
+  .lv-player::before{content:"";position:absolute;top:0;left:0;right:0;height:1px;z-index:5;background:linear-gradient(90deg,transparent,rgba(56, 224, 138,.65),transparent)}
   .lv-spec{position:relative; cursor:pointer; background:var(--ink); min-height:74px}
   /* fill, not cover: the strip is a scrubber, so the whole call must be on
      screen — cropping the time axis makes the needle and seek positions lie. */
@@ -58,19 +58,19 @@
      from rAF, so the playhead glides and every layer below (needle, played wash,
      unplayed veil) tracks it in lockstep. --hp is the hover-scrub position. */
   .lv-spec,.lv-rowspec,.lv-zwrap{--p:0; --hp:0}
-  .lv-needle{position:absolute; top:0; bottom:0; left:calc(var(--p)*100%); width:2px; margin-left:-1px; background:linear-gradient(180deg,#eafff4,var(--neon)); box-shadow:0 0 10px 1px rgba(56,224,138,.85), 0 0 24px 4px rgba(56,224,138,.4); opacity:0; pointer-events:none; will-change:left}
-  .lv-needle::after{content:""; position:absolute; top:0; bottom:0; left:-30px; width:30px; background:linear-gradient(90deg,rgba(56,224,138,0),rgba(56,224,138,.28))} /* neon wake trailing the played side */
+  .lv-needle{position:absolute; top:0; bottom:0; left:calc(var(--p)*100%); width:2px; margin-left:-1px; background:linear-gradient(180deg,#eafff4,var(--lift)); box-shadow:0 0 10px 1px rgba(56, 224, 138,.85), 0 0 24px 4px rgba(56, 224, 138,.4); opacity:0; pointer-events:none; will-change:left}
+  .lv-needle::after{content:""; position:absolute; top:0; bottom:0; left:-30px; width:30px; background:linear-gradient(90deg,rgba(56, 224, 138,0),rgba(56, 224, 138,.28))} /* neon wake trailing the played side */
   /* Played glows, unplayed dims — the call lights up as it sounds. */
   .lv-veil{position:absolute; top:0; bottom:0; left:calc(var(--p)*100%); right:0; background:linear-gradient(90deg,rgba(6,10,7,0),rgba(6,10,7,.5) 24px); opacity:0; transition:opacity .3s; pointer-events:none}
-  .lv-wash{position:absolute; top:0; bottom:0; left:0; width:calc(var(--p)*100%); background:linear-gradient(90deg,rgba(56,224,138,.04),rgba(56,224,138,.16)); mix-blend-mode:screen; opacity:0; transition:opacity .3s; pointer-events:none}
+  .lv-wash{position:absolute; top:0; bottom:0; left:0; width:calc(var(--p)*100%); background:linear-gradient(90deg,rgba(56, 224, 138,.04),rgba(56, 224, 138,.16)); mix-blend-mode:screen; opacity:0; transition:opacity .3s; pointer-events:none}
   .lv-player.playing .lv-veil,.lv-player.playing .lv-wash,
   .lv-rowwrap.playing .lv-veil,.lv-rowwrap.playing .lv-wash,
   .lv-zoom.zplaying .lv-veil,.lv-zoom.zplaying .lv-wash{opacity:1}
   /* Hover to scrub: a ghost needle + time bubble track the cursor (pointer devices). */
-  .lv-ghost{position:absolute; top:0; bottom:0; left:calc(var(--hp)*100%); width:1px; background:rgba(244,241,233,.6); opacity:0; transition:opacity .12s; pointer-events:none}
+  .lv-ghost{position:absolute; top:0; bottom:0; left:calc(var(--hp)*100%); width:1px; background:rgba(244, 241, 233,.6); opacity:0; transition:opacity .12s; pointer-events:none}
   .lv-htip{position:absolute; top:5px; left:calc(var(--hp)*100%); transform:translateX(-50%); font-family:var(--mono); font-size:.6rem; padding:.08rem .32rem; border-radius:4px; background:rgba(6,10,7,.82); color:var(--paper); opacity:0; transition:opacity .12s; pointer-events:none; white-space:nowrap}
   @media(hover:hover){.lv-spec:hover .lv-ghost,.lv-spec:hover .lv-htip,.lv-rowspec:hover .lv-ghost,.lv-rowspec:hover .lv-htip,.lv-zwrap:hover .lv-ghost,.lv-zwrap:hover .lv-htip{opacity:1}}
-  .lv-expand{position:absolute; top:.35rem; right:.35rem; z-index:2; width:26px; height:26px; border-radius:50%; border:none; background:rgba(6,10,7,.65); color:var(--neon); font-size:.72rem; cursor:pointer; display:flex; align-items:center; justify-content:center}
+  .lv-expand{position:absolute; top:.35rem; right:.35rem; z-index:2; width:26px; height:26px; border-radius:50%; border:none; background:rgba(6,10,7,.65); color:var(--lift); font-size:.72rem; cursor:pointer; display:flex; align-items:center; justify-content:center}
   .lv-expand:hover{background:rgba(6,10,7,.9)}
   .lv-expand::after,.lv-rowplay::after{content:""; position:absolute; inset:-9px} /* thumb-sized hit area behind the small glyph */
 
@@ -80,8 +80,8 @@
      strips of page peeking around the old overlay. */
   .lv-zoom{position:fixed; inset:0; margin:0; z-index:1000; background:rgba(6,10,7,.97); display:flex; flex-direction:column; overflow:hidden; overscroll-behavior:contain; animation:lvZoomIn .18s ease}
   @keyframes lvZoomIn{from{opacity:0}}
-  .lv-zclose{position:absolute; top:max(.7rem, env(safe-area-inset-top)); right:.9rem; z-index:3; width:38px; height:38px; border-radius:50%; border:1px solid rgba(244,241,233,.25); background:rgba(6,10,7,.6); color:var(--paper); font-size:1.1rem; line-height:1; cursor:pointer}
-  .lv-zclose:hover{border-color:var(--neon); color:var(--neon)}
+  .lv-zclose{position:absolute; top:max(.7rem, env(safe-area-inset-top)); right:.9rem; z-index:3; width:38px; height:38px; border-radius:50%; border:1px solid rgba(244, 241, 233,.25); background:rgba(6,10,7,.6); color:var(--paper); font-size:1.1rem; line-height:1; cursor:pointer}
+  .lv-zclose:hover{border-color:var(--lift); color:var(--lift)}
   .lv-zstage{flex:1; min-height:0; display:flex; align-items:center; justify-content:center; cursor:zoom-out}
   .lv-zwrap{position:relative; flex:0 0 auto; width:min(92vw,1100px); border-radius:12px; overflow:hidden; background:var(--ink); box-shadow:0 24px 70px -24px rgba(0,0,0,.9); cursor:crosshair}
   .lv-zwrap img{display:block; width:100%; height:min(42vh,320px); object-fit:fill}
@@ -89,26 +89,26 @@
   .lv-zoom .lv-needle{transition:opacity .2s}
   .lv-zoom.zplaying .lv-needle{opacity:1}
   .lv-zbar{display:flex; align-items:center; gap:.75rem; width:min(92vw,1100px); margin:0 auto; padding:.7rem 1rem calc(.7rem + env(safe-area-inset-bottom)); color:var(--paper)}
-  .lv-zplay{flex:0 0 auto; width:42px; height:42px; border-radius:50%; border:none; background:var(--neon); color:var(--ink); font-size:.95rem; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:transform .12s}
+  .lv-zplay{flex:0 0 auto; width:42px; height:42px; border-radius:50%; border:none; background:var(--lift); color:var(--ink); font-size:.95rem; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:transform .12s}
   .lv-zplay:active{transform:scale(.92)}
-  .lv-zrate{flex:0 0 auto; font-family:var(--mono); font-size:.7rem; letter-spacing:.02em; padding:.32rem .55rem; border-radius:999px; border:1px solid rgba(244,241,233,.3); background:transparent; color:var(--paper); cursor:pointer}
-  .lv-zrate.on{background:var(--neon); color:var(--ink); border-color:var(--neon)}
-  .lv-zshare{flex:0 0 auto; width:38px; height:38px; border-radius:50%; border:1px solid rgba(244,241,233,.3); background:transparent; color:var(--paper); font-size:.85rem; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:border-color .15s, color .15s}
-  .lv-zshare:hover,.lv-zshare.on{border-color:var(--neon); color:var(--neon)}
+  .lv-zrate{flex:0 0 auto; font-family:var(--mono); font-size:.7rem; letter-spacing:.02em; padding:.32rem .55rem; border-radius:999px; border:1px solid rgba(244, 241, 233,.3); background:transparent; color:var(--paper); cursor:pointer}
+  .lv-zrate.on{background:var(--lift); color:var(--ink); border-color:var(--lift)}
+  .lv-zshare{flex:0 0 auto; width:38px; height:38px; border-radius:50%; border:1px solid rgba(244, 241, 233,.3); background:transparent; color:var(--paper); font-size:.85rem; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:border-color .15s, color .15s}
+  .lv-zshare:hover,.lv-zshare.on{border-color:var(--lift); color:var(--lift)}
   .lv-ztxt{flex:1; min-width:0; line-height:1.3}
   .lv-ztxt b{display:block; font-family:var(--display); font-weight:600; font-size:1.05rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
-  .lv-ztxt .sub{display:block; font-family:var(--mono); font-size:.66rem; color:rgba(244,241,233,.6); letter-spacing:.04em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
-  .lv-ztime{font-family:var(--mono); font-size:.72rem; color:var(--neon)}
+  .lv-ztxt .sub{display:block; font-family:var(--mono); font-size:.66rem; color:rgba(244, 241, 233,.6); letter-spacing:.04em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+  .lv-ztime{font-family:var(--mono); font-size:.72rem; color:var(--lift)}
   .lv-player.playing .lv-needle{opacity:1}
   /* Controls float on the voiceprint; the play button is the focal "listen". */
   .lv-pctl{position:absolute; z-index:6; left:0; right:0; bottom:0; display:flex; align-items:center; gap:.7rem; padding:.6rem .85rem; background:linear-gradient(transparent,rgba(6,10,7,.6)); pointer-events:none}
   .lv-pctl>*{pointer-events:auto}
-  .lv-playbtn{flex:0 0 auto; width:48px;height:48px;border-radius:50%;border:none;background:var(--neon);color:var(--ink);font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:transform .12s;box-shadow:0 4px 18px rgba(56,224,138,.5)}
+  .lv-playbtn{flex:0 0 auto; width:48px;height:48px;border-radius:50%;border:none;background:var(--lift);color:var(--ink);font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:transform .12s;box-shadow:0 4px 18px rgba(56, 224, 138,.5)}
   .lv-playbtn:hover{transform:scale(1.08)}
   .lv-ptxt{display:none}
   .lv-pname{font-family:var(--display); font-size:1rem; line-height:1.15; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
   .lv-psub{font-family:var(--mono); font-size:.68rem; color:var(--muted)}
-  .lv-ptime{margin-left:auto; font-family:var(--mono); font-size:.74rem; color:var(--neon); text-shadow:0 1px 6px rgba(6,10,7,.8)}
+  .lv-ptime{margin-left:auto; font-family:var(--mono); font-size:.74rem; color:var(--lift); text-shadow:0 1px 6px rgba(6,10,7,.8)}
   .no-media .lv-player{display:none}
   .no-media .lv-rowplay{display:none}
 
@@ -118,48 +118,48 @@
   .lv-hbarwrap{position:relative}
   .lv-hmarks{position:absolute; inset:0; pointer-events:none}
   /* Sunrise/sunset: a faint dotted line up the strip with a tiny dot at the top. */
-  .lv-hmk{position:absolute; top:-3px; bottom:0; width:0; border-left:1px dotted rgba(13,18,14,.28)}
+  .lv-hmk{position:absolute; top:-3px; bottom:0; width:0; border-left:1px dotted rgba(13, 18, 14,.28)}
   .lv-hmk::before{content:""; position:absolute; top:-2px; left:-3px; width:6px; height:6px; border-radius:50%}
   .lv-hmk.sunrise::before{background:var(--amber); box-shadow:0 0 5px 1px rgba(232,176,75,.5)}
   .lv-hmk.sunset::before{background:#6f7b8a}
   .lv-hbars{display:flex; align-items:flex-end; gap:2px; height:38px; position:relative}
   /* Faint all-time "typical day" behind today's bars, same geometry. */
   .lv-hhist{position:absolute; inset:0; display:flex; align-items:flex-end; gap:2px; pointer-events:none}
-  .lv-hhist span{flex:1; min-width:2px; background:rgba(13,18,14,.07); border-radius:2px 2px 0 0}
+  .lv-hhist span{flex:1; min-width:2px; background:rgba(13, 18, 14,.07); border-radius:2px 2px 0 0}
   .lv-hb{flex:1; min-width:2px; border:none; padding:0; background:linear-gradient(180deg,var(--amber),rgba(232,176,75,.3)); border-radius:2px 2px 0 0; cursor:pointer}
-  .lv-hb.zero{background:rgba(13,18,14,.08); height:3px !important; cursor:default}
-  .lv-hb:hover:not(.zero){background:var(--neon)}
-  .lv-hb.sel{background:var(--green); box-shadow:0 0 0 1.5px rgba(13,18,14,.45)}
-  .lv-hb:focus-visible{outline:2px solid var(--green); outline-offset:2px}
+  .lv-hb.zero{background:rgba(13, 18, 14,.08); height:3px !important; cursor:default}
+  .lv-hb:hover:not(.zero){background:var(--lift)}
+  .lv-hb.sel{background:var(--accent); box-shadow:0 0 0 1.5px rgba(13, 18, 14,.45)}
+  .lv-hb:focus-visible{outline:2px solid var(--accent); outline-offset:2px}
   .lv-hax{display:flex; justify-content:space-between; font-size:.6rem; color:var(--muted); margin-top:.15rem}
   .lv-feednote{font-size:.72rem; color:#a9761f; margin:.7rem 0 0}
   .lv-feednote b{color:var(--ink)}
   /* Confidence filter: show the species you can trust; note the quieter ones. */
   .lv-confbar{display:flex; align-items:center; gap:.6rem; margin:.9rem 0 0; font-size:.72rem; color:var(--muted); flex-wrap:wrap}
-  .lv-confbar label{white-space:nowrap} .lv-confbar label b{color:var(--green); font-weight:600}
+  .lv-confbar label{white-space:nowrap} .lv-confbar label b{color:var(--accent); font-weight:600}
   /* accent-color tints the native slider green on iOS/desktop reliably — the
      appearance:none custom-thumb route was being ignored on iOS (default blue). */
   #lv-confrange{flex:1; min-width:120px; accent-color:#2f7d4f; cursor:pointer; height:22px}
   .lv-confnote{white-space:nowrap}
-  .lv-lowtoggle{border:none; background:none; color:var(--green); font-family:var(--mono); font-size:.72rem; cursor:pointer; padding:0; text-decoration:underline; text-underline-offset:2px}
-  .lv-lowdiv{font-size:.62rem; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); margin:.8rem 0 .2rem; padding-top:.5rem; border-top:1px dashed rgba(13,18,14,.16)}
+  .lv-lowtoggle{border:none; background:none; color:var(--accent); font-family:var(--mono); font-size:.72rem; cursor:pointer; padding:0; text-decoration:underline; text-underline-offset:2px}
+  .lv-lowdiv{font-size:.62rem; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); margin:.8rem 0 .2rem; padding-top:.5rem; border-top:1px dashed rgba(13, 18, 14,.16)}
   .lv-lowgroup{opacity:.62}
   .lv-nofeed{font-size:.78rem; color:var(--muted); padding:1rem 0}
 
   /* The feed scrolls the whole backlog; a bottom fade hints there's more. */
-  .lv-feed{margin-top:.9rem; max-height:min(52vh,430px); overflow-y:auto; scrollbar-width:thin; scrollbar-color:rgba(13,18,14,.25) transparent; padding-right:.3rem; container-type:inline-size} /* no overscroll-behavior:contain — reaching the list's end must hand the scroll back to the page. container-type: the row layout keys off the feed COLUMN width, not the viewport (the feed is a narrow column even on desktop). */
+  .lv-feed{margin-top:.9rem; max-height:min(52vh,430px); overflow-y:auto; scrollbar-width:thin; scrollbar-color:rgba(13, 18, 14,.25) transparent; padding-right:.3rem; container-type:inline-size} /* no overscroll-behavior:contain — reaching the list's end must hand the scroll back to the page. container-type: the row layout keys off the feed COLUMN width, not the viewport (the feed is a narrow column even on desktop). */
   .lv-feed.scrolly{-webkit-mask-image:linear-gradient(180deg,#000 calc(100% - 30px),transparent); mask-image:linear-gradient(180deg,#000 calc(100% - 30px),transparent)}
-  .lv-chain{border-top:1px solid rgba(13,18,14,.09)}
+  .lv-chain{border-top:1px solid rgba(13, 18, 14,.09)}
   .lv-chain:first-child{border-top:none}
   /* A run of the same species collapses to one row; ×N expands the calls. */
-  .lv-xn{flex:0 0 auto; font-family:var(--mono); font-size:.62rem; letter-spacing:.02em; padding:.14rem .48rem; border-radius:999px; border:1px solid rgba(47,125,79,.35); background:rgba(47,125,79,.08); color:var(--green); cursor:pointer}
-  .lv-xn:hover{background:var(--green); color:var(--paper); border-color:var(--green)}
-  .lv-chain.x .lv-xn{background:var(--ink); color:var(--neon); border-color:var(--ink)}
-  .lv-sub{display:none; margin:0 0 .5rem 2.55rem; border-left:2px solid rgba(47,125,79,.25); padding-left:.65rem}
+  .lv-xn{flex:0 0 auto; font-family:var(--mono); font-size:.62rem; letter-spacing:.02em; padding:.14rem .48rem; border-radius:999px; border:1px solid rgba(47, 125, 79,.35); background:rgba(47, 125, 79,.08); color:var(--accent); cursor:pointer}
+  .lv-xn:hover{background:var(--accent); color:var(--paper); border-color:var(--accent)}
+  .lv-chain.x .lv-xn{background:var(--ink); color:var(--lift); border-color:var(--ink)}
+  .lv-sub{display:none; margin:0 0 .5rem 2.55rem; border-left:2px solid rgba(47, 125, 79,.25); padding-left:.65rem}
   .lv-chain.x .lv-sub{display:block}
   .lv-sub .lv-row{padding:.26rem 0}
   .lv-sub .rt2{flex:1; min-width:0; font-family:var(--mono); font-size:.7rem; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
-  .lv-sub .rt2 .bb{color:var(--green)}
+  .lv-sub .rt2 .bb{color:var(--accent)}
   .lv-sub .lv-rowspec{margin-left:0}
   /* Desktop: the meta wrapper is invisible to layout; phones re-grid the row so
      the species name gets the full line and the meta drops underneath. */
@@ -181,7 +181,7 @@
   .lv-hide .ic{width:1rem; height:1rem}
   .lv-toast{position:fixed; left:50%; bottom:1.4rem; transform:translateX(-50%); z-index:60; display:flex; align-items:center; gap:.9rem; background:var(--ink); color:var(--paper); padding:.6rem .7rem .6rem 1rem; border-radius:10px; box-shadow:0 6px 24px rgba(0,0,0,.25); font-size:.82rem}
   .lv-toast[hidden]{display:none}
-  .lv-toast-undo{border:none; background:rgba(255,255,255,.14); color:var(--neon); font-family:var(--mono); font-size:.74rem; padding:.3rem .7rem; border-radius:7px; cursor:pointer}
+  .lv-toast-undo{border:none; background:rgba(255,255,255,.14); color:var(--lift); font-family:var(--mono); font-size:.74rem; padding:.3rem .7rem; border-radius:7px; cursor:pointer}
   .lv-toast-undo:hover{background:rgba(255,255,255,.24)}
   .lv-supbar{display:flex; flex-wrap:wrap; align-items:center; gap:.5rem; margin:1rem 0 0; font-family:var(--mono); font-size:.72rem; color:var(--muted)}
   .lv-supchip{display:inline-flex; align-items:center; gap:.35rem; padding:.2rem .6rem; border-radius:999px; border:1px solid rgba(176,125,36,.5); color:#a9761f; background:rgba(176,125,36,.08); cursor:pointer}
@@ -189,18 +189,18 @@
   .lv-row{cursor:pointer}
   .lv-row .rn a{cursor:pointer}
   .lv-row.flash{animation:lvIn .9s ease}
-  @keyframes lvIn{from{background:rgba(56,224,138,.25)}to{background:transparent}}
-  .lv-av{width:34px;height:34px;border-radius:50%;flex:0 0 auto;background-size:cover;background-position:center;border:1.5px solid rgba(13,18,14,.15)}
+  @keyframes lvIn{from{background:rgba(56, 224, 138,.25)}to{background:transparent}}
+  .lv-av{width:34px;height:34px;border-radius:50%;flex:0 0 auto;background-size:cover;background-position:center;border:1.5px solid rgba(13, 18, 14,.15)}
   .lv-av.miss{border:1.5px dashed rgba(176,125,36,.6);background:var(--paper-2) no-repeat center/60%}
   .lv-row .rn{flex:1; min-width:0; font-family:var(--display); font-size:1rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
-  .lv-row .rn a{text-decoration:none} .lv-row .rn a:hover{color:var(--green)}
+  .lv-row .rn a{text-decoration:none} .lv-row .rn a:hover{color:var(--accent)}
   .lv-row .rt{font-family:var(--mono); font-size:.7rem; color:var(--muted); white-space:nowrap}
   .rfam{font-family:var(--mono); font-size:.6rem; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0}
-  .lv-row .rc{font-family:var(--mono); font-size:.7rem; color:var(--green); text-align:right; white-space:nowrap}
+  .lv-row .rc{font-family:var(--mono); font-size:.7rem; color:var(--accent); text-align:right; white-space:nowrap}
   .lv-row .rc .cl{color:var(--muted); font-size:.82em; letter-spacing:.02em; margin-right:.12em}
-  .lv-rowplay{position:relative; flex:0 0 auto; width:26px;height:26px;border-radius:50%;border:1px solid rgba(13,18,14,.2);background:transparent;color:var(--ink);font-size:.6rem;cursor:pointer;display:flex;align-items:center;justify-content:center}
-  .lv-rowplay:hover{background:var(--ink);color:var(--neon);border-color:var(--ink)}
-  .lv-rowplay.on{background:var(--ink);color:var(--neon);border-color:var(--ink)}
+  .lv-rowplay{position:relative; flex:0 0 auto; width:26px;height:26px;border-radius:50%;border:1px solid rgba(13, 18, 14,.2);background:transparent;color:var(--ink);font-size:.6rem;cursor:pointer;display:flex;align-items:center;justify-content:center}
+  .lv-rowplay:hover{background:var(--ink);color:var(--lift);border-color:var(--ink)}
+  .lv-rowplay.on{background:var(--ink);color:var(--lift);border-color:var(--ink)}
   /* Each row keeps its own picture of its sound: an inline strip, not a hijacked shared view. */
   .lv-rowspec{display:none; position:relative; margin:.1rem 0 .55rem 2.55rem; border-radius:8px; overflow:hidden; background:var(--ink); cursor:pointer}
   .lv-rowspec img{display:block; width:100%; height:64px; object-fit:fill}
@@ -210,33 +210,33 @@
   .lv-wall{display:grid; grid-template-columns:repeat(auto-fill,minmax(92px,1fr)); gap:.55rem}
   .lv-wall-empty{text-align:center; color:var(--muted); font-size:.8rem; padding:1.4rem 0 .4rem}
   .lv-wall-empty[hidden]{display:none}
-  .lv-chip{position:relative; aspect-ratio:1/1; border-radius:10px; overflow:hidden; background-size:cover; background-position:center; border:1px solid rgba(13,18,14,.12); text-decoration:none}
+  .lv-chip{position:relative; aspect-ratio:1/1; border-radius:10px; overflow:hidden; background-size:cover; background-position:center; border:1px solid rgba(13, 18, 14,.12); text-decoration:none}
   .lv-chip .cl{position:absolute;left:0;right:0;bottom:0;font-size:.6rem;line-height:1.1;padding:.5rem .3rem .3rem;background:linear-gradient(transparent,rgba(6,10,7,.9));color:var(--paper)}
   .lv-chip.miss{border:1.5px dashed rgba(176,125,36,.55);background:var(--paper-2)}
   .lv-chip.miss .cl{color:#a9761f;background:none}
   .lv-chip.miss .feather{position:absolute;inset:0;background:no-repeat center 40%/44%;opacity:.3}
   /* Deep-link focus (/birds/live?bird=X): the bird pops, everything else recedes. */
-  .lv-focusbar{display:inline-flex; align-items:center; gap:.4rem; margin:.9rem auto 0; font-family:var(--mono); font-size:.76rem; color:var(--green); padding:.3rem .8rem; border:1px solid rgba(47,125,79,.35); border-radius:999px}
-  .lv-focusbar a{color:var(--muted); text-decoration:none} .lv-focusbar a:hover{color:var(--green)}
+  .lv-focusbar{display:inline-flex; align-items:center; gap:.4rem; margin:.9rem auto 0; font-family:var(--mono); font-size:.76rem; color:var(--accent); padding:.3rem .8rem; border:1px solid rgba(47, 125, 79,.35); border-radius:999px}
+  .lv-focusbar a{color:var(--muted); text-decoration:none} .lv-focusbar a:hover{color:var(--accent)}
   .lv-wall.focusing .lv-chip{transition:opacity .3s, filter .3s}
   .lv-wall.focusing .lv-chip:not(.lv-match){opacity:.28; filter:grayscale(.5)}
-  .lv-chip.lv-match{outline:2.5px solid var(--neon); outline-offset:2px; box-shadow:0 0 14px rgba(56,224,138,.5)}
+  .lv-chip.lv-match{outline:2.5px solid var(--lift); outline-offset:2px; box-shadow:0 0 14px rgba(56, 224, 138,.5)}
   .lv-feed.focusing .lv-chain{transition:opacity .3s}
   .lv-feed.focusing .lv-chain:not(.lv-match){opacity:.3}
-  .lv-chain.lv-match{background:rgba(56,224,138,.07); border-radius:8px}
+  .lv-chain.lv-match{background:rgba(56, 224, 138,.07); border-radius:8px}
 
   /* History: one strip, four lenses. */
   .lv-ranges{display:flex; gap:.4rem; flex-wrap:wrap; margin-bottom:1rem}
-  .lv-range{font-family:var(--mono); font-size:.68rem; letter-spacing:.08em; text-transform:uppercase; padding:.34rem .8rem; border-radius:999px; border:1px solid rgba(13,18,14,.2); background:transparent; color:var(--ink); cursor:pointer}
-  .lv-range.on{background:var(--ink); color:var(--neon); border-color:var(--ink)}
+  .lv-range{font-family:var(--mono); font-size:.68rem; letter-spacing:.08em; text-transform:uppercase; padding:.34rem .8rem; border-radius:999px; border:1px solid rgba(13, 18, 14,.2); background:transparent; color:var(--ink); cursor:pointer}
+  .lv-range.on{background:var(--ink); color:var(--lift); border-color:var(--ink)}
   .lv-chart{display:flex; align-items:flex-end; gap:2px; height:96px; margin-bottom:.3rem}
-  .lv-bar{flex:1; min-width:2px; background:linear-gradient(180deg,var(--green),rgba(47,125,79,.25)); border-radius:2px 2px 0 0; position:relative; cursor:default}
-  .lv-bar.zero{background:rgba(13,18,14,.07); height:3px !important}
+  .lv-bar{flex:1; min-width:2px; background:linear-gradient(180deg,var(--accent),rgba(47, 125, 79,.25)); border-radius:2px 2px 0 0; position:relative; cursor:default}
+  .lv-bar.zero{background:rgba(13, 18, 14,.07); height:3px !important}
   .lv-bar{cursor:pointer}
-  .lv-bar:hover{background:var(--neon)}
-  .lv-bar.sel{background:var(--amber); box-shadow:0 0 0 1.5px rgba(13,18,14,.5)}
-  .lv-bar:focus-visible{outline:2px solid var(--green); outline-offset:2px}
-  .lv-clear{font-family:var(--mono); font-size:.62rem; letter-spacing:.06em; text-transform:uppercase; margin-left:.5rem; padding:.14rem .5rem; border-radius:999px; border:1px solid rgba(13,18,14,.25); background:transparent; color:var(--muted); cursor:pointer; vertical-align:middle}
+  .lv-bar:hover{background:var(--lift)}
+  .lv-bar.sel{background:var(--amber); box-shadow:0 0 0 1.5px rgba(13, 18, 14,.5)}
+  .lv-bar:focus-visible{outline:2px solid var(--accent); outline-offset:2px}
+  .lv-clear{font-family:var(--mono); font-size:.62rem; letter-spacing:.06em; text-transform:uppercase; margin-left:.5rem; padding:.14rem .5rem; border-radius:999px; border:1px solid rgba(13, 18, 14,.25); background:transparent; color:var(--muted); cursor:pointer; vertical-align:middle}
   .lv-clear:hover{background:var(--ink); color:var(--paper); border-color:var(--ink)}
   .lv-axis{display:flex; justify-content:space-between; font-family:var(--mono); font-size:.64rem; color:var(--muted); margin-bottom:1rem}
   .lv-sum{display:flex; gap:1.6rem; flex-wrap:wrap; font-size:.78rem; color:var(--muted); margin-bottom:1.1rem}
@@ -244,9 +244,9 @@
   .lv-top{display:flex; flex-direction:column; gap:.35rem; max-width:34rem}
   .lv-toprow{display:flex; align-items:center; gap:.6rem; font-size:.85rem}
   .lv-toprow .tn{flex:0 0 11rem; font-family:var(--display); white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
-  .lv-toprow .tn a{text-decoration:none} .lv-toprow .tn a:hover{color:var(--green)}
-  .lv-toprow .tb{flex:1; height:8px; border-radius:4px; background:rgba(13,18,14,.08); overflow:hidden}
-  .lv-toprow .tb>i{display:block;height:100%;background:linear-gradient(90deg,var(--green),var(--neon))}
+  .lv-toprow .tn a{text-decoration:none} .lv-toprow .tn a:hover{color:var(--accent)}
+  .lv-toprow .tb{flex:1; height:8px; border-radius:4px; background:rgba(13, 18, 14,.08); overflow:hidden}
+  .lv-toprow .tb>i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),var(--lift))}
   .lv-toprow .tc{font-family:var(--mono); font-size:.7rem; color:var(--muted); width:3rem; text-align:right}
 
   /* Today's soundtrack: one 24h band per species, every recording a tick. */
@@ -257,20 +257,34 @@
   .lv-trow .tl{flex:0 0 var(--tl); font-family:var(--mono); font-size:.7rem; text-align:right;
     overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
   .lv-trow .tl a{color:var(--ink); text-decoration:none}
-  .lv-trow .tl a:hover{color:var(--green)}
+  .lv-trow .tl a:hover{color:var(--accent)}
   .lv-trow .tl .miss{color:var(--amber)}
   .lv-trow .tband{position:relative; flex:1; height:20px}
   .lv-trow .tband::before{content:""; position:absolute; left:0; right:0; top:50%; height:1px;
-    background:rgba(13,18,14,.09)}
+    background:rgba(13, 18, 14,.09)}
   .lv-tk{position:absolute; top:3px; bottom:3px; width:2px; border-radius:1px;
-    background:var(--green); opacity:.8; border:0; padding:0}
+    background:var(--accent); opacity:.8; border:0; padding:0}
   .lv-tk.miss{background:var(--amber)}
   .lv-tk.lo{opacity:.22}
   button.lv-tk{cursor:pointer}
-  button.lv-tk:hover{width:4px; opacity:1; box-shadow:0 0 5px 1px rgba(47,125,79,.4)}
-  button.lv-tk.playing{width:4px; opacity:1; background:var(--neon);
-    box-shadow:0 0 7px 2px rgba(57,217,138,.55); animation:lv-tkpulse 1.1s ease-in-out infinite}
-  @keyframes lv-tkpulse{50%{box-shadow:0 0 3px 1px rgba(57,217,138,.3)}}
+  button.lv-tk:hover{width:4px; opacity:1; box-shadow:0 0 5px 1px rgba(47, 125, 79,.4)}
+  button.lv-tk.playing{width:4px; opacity:1; background:var(--lift);
+    box-shadow:0 0 7px 2px rgba(56, 224, 138,.55); animation:lv-tkpulse 1.1s ease-in-out infinite}
+  @keyframes lv-tkpulse{50%{box-shadow:0 0 3px 1px rgba(56, 224, 138,.3)}}
+  /* On a phone the 10rem label column took 99px of 390 and left 230px for a
+     whole day — 9.6px an hour. The name goes above its band instead, so the
+     band gets the full width, and rows grow enough to be tappable. */
+  @media (max-width: 720px){
+    .lv-trackwrap{--tl:0}
+    .lv-trow{display:block; margin-bottom:.1rem}
+    .lv-trow .tl{flex:none; width:auto; text-align:left; font-size:.68rem;
+      line-height:1.25; padding:0 0 1px}
+    .lv-trow .tband{height:26px}
+    .lv-trackrows{gap:9px}
+    .lv-trackmarks{left:0}
+    .lv-tk{width:3px}
+    button.lv-tk{width:3px}
+  }
   .lv-trackctl{margin:-.2rem 0 .7rem}
   .lv-daystep{display:inline-flex; align-items:center; gap:.4rem; margin-left:.5rem}
   .lv-daystep b{font-family:var(--mono); font-size:.72rem; font-weight:600}
@@ -278,10 +292,10 @@
   .lv-trow .tl .tn2{color:var(--muted); margin-left:.4rem; font-weight:400}
   .lv-trackmarks{position:absolute; left:calc(var(--tl) + 10px); right:0; top:0; bottom:1.35rem;
     pointer-events:none}
-  .lv-tmk{position:absolute; top:0; bottom:0; border-left:1px dashed rgba(13,18,14,.16)}
+  .lv-tmk{position:absolute; top:0; bottom:0; border-left:1px dashed rgba(13, 18, 14,.16)}
   .lv-tmk.sunrise{border-left-color:rgba(232,176,75,.6)}
   .lv-tmk.sunset{border-left-color:rgba(111,123,138,.55)}
-  .lv-tmk.now{border-left:1px solid var(--green); opacity:.45}
+  .lv-tmk.now{border-left:1px solid var(--accent); opacity:.45}
   .lv-tmk::after{content:""; position:absolute; top:-3px; left:-3px; width:5px; height:5px; border-radius:50%}
   .lv-tmk.sunrise::after{background:var(--amber); box-shadow:0 0 5px 1px rgba(232,176,75,.5)}
   .lv-tmk.sunset::after{background:#6f7b8a}
@@ -292,15 +306,15 @@
   /* Most vocal today: ranked rows, count bar, clearest clip playable. */
   .lv-boardrows{display:flex; flex-direction:column; gap:10px; max-width:46rem}
   .lv-brow{display:flex; align-items:center; gap:12px}
-  .lv-brow .brk{font-family:var(--display); font-size:1.15rem; color:var(--green); flex:0 0 1.6rem; text-align:right}
+  .lv-brow .brk{font-family:var(--display); font-size:1.15rem; color:var(--accent); flex:0 0 1.6rem; text-align:right}
   .lv-brow .lv-av{width:34px; height:34px; flex:0 0 34px}
   .lv-brow .bmain{flex:1; min-width:0}
   .lv-brow .bname{font-size:.85rem; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
   .lv-brow .bname a{color:var(--ink); text-decoration:none}
-  .lv-brow .bname a:hover{color:var(--green)}
+  .lv-brow .bname a:hover{color:var(--accent)}
   .lv-brow .bname .bfam{font-family:var(--mono); font-weight:400; font-size:.64rem; color:var(--muted); margin-left:.45rem}
-  .lv-brow .bbar{height:6px; border-radius:3px; background:rgba(13,18,14,.08); overflow:hidden; margin:.3rem 0}
-  .lv-brow .bbar>i{display:block; height:100%; background:linear-gradient(90deg,var(--green),var(--neon))}
+  .lv-brow .bbar{height:6px; border-radius:3px; background:rgba(13, 18, 14,.08); overflow:hidden; margin:.3rem 0}
+  .lv-brow .bbar>i{display:block; height:100%; background:linear-gradient(90deg,var(--accent),var(--lift))}
   .lv-brow .bmeta{font-family:var(--mono); font-size:.66rem; color:var(--muted)}
   .lv-brow .lv-rowplay{flex:0 0 auto}
 
@@ -323,8 +337,8 @@
     .lv-trow .tl{font-size:.6rem}
     .lv-brow .bname .bfam{display:none}
   }
-  .lv-logmore{display:inline-block; margin-top:1rem; font-size:.72rem; text-transform:uppercase; letter-spacing:.1em; color:var(--green); text-decoration:none; border-bottom:1px solid transparent}
-  .lv-logmore:hover{color:var(--neon); border-color:currentColor}
+  .lv-logmore{display:inline-block; margin-top:1rem; font-size:.72rem; text-transform:uppercase; letter-spacing:.1em; color:var(--accent); text-decoration:none; border-bottom:1px solid transparent}
+  .lv-logmore:hover{color:var(--lift); border-color:currentColor}
   .lv-empty{padding:3rem 0 1rem; text-align:center}
   .lv-empty h2{font-family:var(--display); font-weight:500; font-size:1.6rem; margin-bottom:.5rem}
   .lv-empty p{color:var(--muted); max-width:32rem; margin:.4rem auto}
@@ -880,6 +894,22 @@
         rw.classList.toggle("open", !wasOpen);
       }
       return;
+    }
+    // A tick is 2px wide. On a phone that is 230px of band for 24 hours, so a
+    // fingertip spans ~4.6 hours and can never land on one. Tapping anywhere
+    // on a species' band picks the nearest recording in time instead, which
+    // makes the whole 20px row the target rather than a 2px sliver.
+    var band = e.target.closest(".tband");
+    if (band && !e.target.closest("button.lv-tk")) {
+      var bb = band.getBoundingClientRect();
+      var pct = ((e.clientX - bb.left) / bb.width) * 100;
+      var best = null, bestD = Infinity;
+      band.querySelectorAll("button.lv-tk").forEach(function (t) {
+        var d = Math.abs(parseFloat(t.style.left) - pct);
+        if (d < bestD) { bestD = d; best = t; }
+      });
+      // only within a reasonable reach, so tapping empty space does nothing
+      if (best && bestD * bb.width / 100 <= 28) { best.click(); return; }
     }
     var tk = e.target.closest("button.lv-tk");
     if (tk) {
