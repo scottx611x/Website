@@ -462,14 +462,25 @@ class BirdsTestCase(unittest.TestCase):
             self.assertEqual(lead, posts)
 
     def test_seed_pins_filtered_views_too(self):
-        import index, re
+        """A ?seed pins the arrangement of a FILTERED view, and a different
+        seed changes it.
+
+        Reads the field's own order (the #bf-seq payload) rather than the
+        masonry's data-id attributes: the field is the gallery's default view
+        now, and it renders its sequence as JSON rather than as server-side
+        figure markup — so the old assertion was matching a JS template
+        literal against itself and could never fail.
+        """
+        import index, re, json
         client = index.app.test_client()
-        def ids(url):
-            return re.findall(r'data-id="([^"]+)"',
-                              client.get(url).get_data(as_text=True))[:8]
+        def order(url):
+            html = client.get(url).get_data(as_text=True)
+            m = re.search(r'id="bf-seq"[^>]*>(.*?)</script>', html, re.S)
+            return json.loads(m.group(1))[:8] if m else None
         url = "/birds?loc=Annie%20L.%20Sargent%20School&seed="
-        self.assertEqual(ids(url + "42"), ids(url + "42"))
-        self.assertNotEqual(ids(url + "42"), ids(url + "43"))
+        self.assertIsNotNone(order(url + "42"), "field sequence should render")
+        self.assertEqual(order(url + "42"), order(url + "42"))
+        self.assertNotEqual(order(url + "42"), order(url + "43"))
 
     def test_gallery_seed_pins_the_shuffle(self):
         import index

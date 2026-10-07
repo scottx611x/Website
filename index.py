@@ -1188,7 +1188,12 @@ def _sound_log_merged():
         rows.sort(key=lambda r: r.get("t") or "", reverse=True)
         return {"generated": (arch.get("generated") or live.get("generated")), "log": rows}
 
-    return birds._memoed("sound_log_merged", birds._MEMO_TTL, _build)
+    # Key on the inputs' own generations, not a bare name. A derived view cached
+    # under a fixed key never notices its sources changing — which also made it
+    # survive a test that patches load_sound_log, so the patch did nothing.
+    gen = ((birds.load_sound_archive() or {}).get("generated"),
+           (birds.load_sound_log() or {}).get("generated"))
+    return birds._memoed("sound_log_merged:%s|%s" % gen, birds._MEMO_TTL, _build)
 
 
 def _log_view():

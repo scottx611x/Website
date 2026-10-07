@@ -171,16 +171,17 @@ _TAXONOMY = [
         "Barrow's Goldeneye", "Hooded Merganser", "Common Merganser", "Red-breasted Merganser",
         "Ruddy Duck", "Greylag Goose", "Tufted Duck", "Domestic Mallard"]),
     ("Turkeys & Grouse", [
+        "Chicken (Domestic)",
         "Wild Turkey", "Ruffed Grouse", "Spruce Grouse", "Northern Bobwhite", "Ring-necked Pheasant",
         "Indian Peafowl"]),
     ("Grebes", [
         "Pied-billed Grebe", "Horned Grebe", "Red-necked Grebe", "Eared Grebe", "Western Grebe"]),
     ("Pigeons & Doves", [
-        "Rock Pigeon", "Band-tailed Pigeon", "Eurasian Collared-Dove", "Common Ground Dove",
-        "White-winged Dove", "Mourning Dove"]),
+        "Rock Pigeon", "Common Wood Pigeon", "Band-tailed Pigeon", "Eurasian Collared-Dove",
+        "Common Ground Dove", "White-winged Dove", "Mourning Dove"]),
     ("Cuckoos", ["Yellow-billed Cuckoo", "Black-billed Cuckoo"]),
     ("Nightjars", ["Common Nighthawk", "Eastern Whip-poor-will", "Chuck-will's-widow"]),
-    ("Swifts", ["Chimney Swift"]),
+    ("Swifts", ["Chimney Swift", "Pallid Swift"]),
     ("Hummingbirds", [
         "Ruby-throated Hummingbird", "Rufous Hummingbird", "Anna's Hummingbird",
         "Black-chinned Hummingbird"]),
@@ -200,6 +201,7 @@ _TAXONOMY = [
         "American Woodcock", "Wilson's Snipe", "Spotted Sandpiper", "Solitary Sandpiper",
         "Greater Yellowlegs", "Willet", "Lesser Yellowlegs", "Pectoral Sandpiper"]),
     ("Gulls & Terns", [
+        "Yellow-legged Gull",
         "Bonaparte's Gull", "Laughing Gull", "Ring-billed Gull", "American Herring Gull",
         "Great Black-backed Gull", "Lesser Black-backed Gull", "Iceland Gull", "Glaucous Gull",
         "European Herring Gull",
@@ -217,6 +219,7 @@ _TAXONOMY = [
     ("New World Vultures", ["Black Vulture", "Turkey Vulture"]),
     ("Ospreys", ["Osprey"]),
     ("Hawks & Eagles", [
+        "Booted Eagle", "Red Kite",
         "Golden Eagle", "Northern Harrier", "Sharp-shinned Hawk", "Cooper's Hawk", "Northern Goshawk",
         "Bald Eagle", "Mississippi Kite", "Swallow-tailed Kite", "Red-shouldered Hawk",
         "Broad-winged Hawk", "Red-tailed Hawk", "Rough-legged Hawk", "Swainson's Hawk"]),
@@ -227,7 +230,8 @@ _TAXONOMY = [
     ("Woodpeckers", [
         "Red-headed Woodpecker", "Red-bellied Woodpecker", "Yellow-bellied Sapsucker",
         "Downy Woodpecker", "Hairy Woodpecker", "Northern Flicker", "Pileated Woodpecker"]),
-    ("Falcons", ["American Kestrel", "Merlin", "Peregrine Falcon"]),
+    ("Falcons", [
+        "Common Kestrel","American Kestrel", "Merlin", "Peregrine Falcon"]),
     ("Tyrant Flycatchers", [
         "Eastern Wood-Pewee", "Acadian Flycatcher", "Alder Flycatcher", "Willow Flycatcher",
         "Least Flycatcher", "Eastern Phoebe", "Great Crested Flycatcher", "Eastern Kingbird"]),
@@ -238,7 +242,8 @@ _TAXONOMY = [
     ("Crows & Jays", ["Blue Jay", "American Crow", "Fish Crow", "Common Raven",
         "Hooded Crow", "Eurasian Magpie"]),
     ("Larks", ["Horned Lark"]),
-    ("Chickadees & Titmice", ["Black-capped Chickadee", "Carolina Chickadee", "Tufted Titmouse"]),
+    ("Chickadees & Titmice", [
+        "Eurasian Blue Tit", "Great Tit", "European Crested Tit","Black-capped Chickadee", "Carolina Chickadee", "Tufted Titmouse"]),
     ("Swallows", [
         "Northern Rough-winged Swallow", "Purple Martin", "Tree Swallow", "Bank Swallow",
         "Barn Swallow", "Cliff Swallow"]),
@@ -249,9 +254,17 @@ _TAXONOMY = [
     ("Wrens", [
         "Carolina Wren", "Northern House Wren", "Winter Wren", "Sedge Wren", "Marsh Wren"]),
     ("Starlings", ["European Starling"]),
+    # Species from trips abroad. They are tagged out-of-area in the captions,
+    # but the taxonomy still has to KNOW them: an unknown name makes
+    # _canon_species return None, which makes match_post_records reject the
+    # pipeline's ground-truth record for the whole post.
+    ("Parrots", ["Monk Parakeet"]),
+    ("Old World Vultures", ["Eurasian Griffon", "Cinereous Vulture"]),
+    ("Old World Flycatchers", ["Spotted Flycatcher", "European Robin"]),
+    ("Old World Warblers", ["Sardinian Warbler", "Eurasian Blackcap", "Common Chiffchaff"]),
     ("Mockingbirds & Thrashers", ["Gray Catbird", "Brown Thrasher", "Northern Mockingbird"]),
     ("Thrushes", [
-        "Eastern Bluebird", "Veery", "Gray-cheeked Thrush", "Swainson's Thrush", "Hermit Thrush",
+        "Eurasian Blackbird", "Eastern Bluebird", "Veery", "Gray-cheeked Thrush", "Swainson's Thrush", "Hermit Thrush",
         "Wood Thrush", "American Robin"]),
     ("Waxwings", ["Cedar Waxwing", "Bohemian Waxwing"]),
     ("Old World Sparrows", ["House Sparrow"]),
@@ -308,7 +321,6 @@ _SPECIES_ALIAS = {
     "canadian goose": "canada goose",  # colloquial name for Canada Goose
     "herring gull": "european herring gull",  # the ones I've shot are the European sp.
     "rock dove": "rock pigeon",
-    "common wood pigeon": "rock pigeon",
     "not a north andover bird": None,
 }
 
@@ -1103,8 +1115,18 @@ def match_post_records(shots):
             rec = min(recs, key=_delta)
         names = []
         for raw in rec.get("species") or []:
-            canon = _canon_species(raw.replace("️", "").replace("⚠", "").strip())
-            names.append(canon[0] if canon else None)
+            clean = raw.replace("️", "").replace("⚠", "").strip()
+            canon = _canon_species(clean)
+            if canon:
+                names.append(canon[0])
+                continue
+            # A frame can legitimately hold two birds ("European Starling &
+            # House Sparrow"). _canon_species only reads single names, so the
+            # compound returned None and sank the WHOLE post back to the
+            # caption heuristic. Keep the label when the list form resolves it;
+            # the store holds multi-species labels and the readers split them.
+            multi = _canon_species_list(clean)
+            names.append(" & ".join(c[0] for c in multi) if multi else None)
         if len(names) == n and all(names):
             store[pid] = names
             added += 1
