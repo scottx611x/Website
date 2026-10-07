@@ -843,27 +843,69 @@
             }, { passive: true });
         })();
 
-        // Hover-autoplay a muted preview of video covers (pointer devices only).
+        /* Video covers play themselves once they scroll into view: muted,
+           looping, inline. They used to play only on hover AND only on
+           pointer devices, which meant a phone never saw one move — the
+           gallery just showed a still with a play badge on it.
+
+           The element only exists while the card is on screen, so the number
+           playing is bounded by the viewport rather than by the collection,
+           and scrolling past reclaims the decoder. Hover remains the trigger
+           where autoplay is unwanted (reduced motion). */
         (function () {
-            if (!window.matchMedia || !matchMedia("(hover: hover)").matches) return;
             function videoUrl(card) {
                 try { var v = JSON.parse(card.getAttribute("data-image-videos") || "[]"); return v[0] || null; }
                 catch (_) { return null; }
             }
-            document.addEventListener("mouseover", function (e) {
-                var card = e.target.closest(".shot[data-image-videos]");
-                if (!card || card._hoverVid) return;
+            function attach(card) {
+                if (card._hoverVid) return;
                 var url = videoUrl(card); if (!url) return;
                 var v = document.createElement("video");
                 v.src = url; v.muted = true; v.loop = true; v.playsInline = true;
+                v.preload = "metadata";
                 v.className = "hover-video";
                 card.appendChild(v); card._hoverVid = v;
                 v.play().catch(function () {});
+            }
+            function detach(card) {
+                if (!card._hoverVid) return;
+                card._hoverVid.pause();
+                card._hoverVid.removeAttribute("src");
+                card._hoverVid.remove();
+                card._hoverVid = null;
+            }
+            var reduced = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+            if (!reduced && window.IntersectionObserver) {
+                var io = new IntersectionObserver(function (entries) {
+                    entries.forEach(function (en) {
+                        if (en.isIntersecting) attach(en.target); else detach(en.target);
+                    });
+                }, { rootMargin: "120px 0px" });
+                var watched = new WeakSet ? new WeakSet() : null;
+                function scan() {
+                    document.querySelectorAll(".shot[data-image-videos]").forEach(function (card) {
+                        if (watched && watched.has(card)) return;
+                        if (!videoUrl(card)) return;      // photo-only cards need no observer
+                        if (watched) watched.add(card);
+                        io.observe(card);
+                    });
+                }
+                scan();
+                // The masonry re-deals cards on resize and the gallery pages in
+                // more of them, so pick up whatever appears later too.
+                addEventListener("load", scan);
+                setTimeout(scan, 1200);
+                return;
+            }
+            if (!window.matchMedia || !matchMedia("(hover: hover)").matches) return;
+            document.addEventListener("mouseover", function (e) {
+                var card = e.target.closest(".shot[data-image-videos]");
+                if (card) attach(card);
             });
             document.addEventListener("mouseout", function (e) {
                 var card = e.target.closest(".shot[data-image-videos]");
-                if (!card || !card._hoverVid || card.contains(e.relatedTarget)) return;
-                card._hoverVid.pause(); card._hoverVid.remove(); card._hoverVid = null;
+                if (!card || card.contains(e.relatedTarget)) return;
+                detach(card);
             });
         })();
 
