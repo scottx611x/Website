@@ -1074,6 +1074,30 @@ def _norm_caption(text):
     return " ".join((text or "").split()).lower()
 
 
+def _species_key(text):
+    """The set of real species named in a caption or record, order-insensitive.
+
+    Survives the edits a caption picks up in Buffer — an added ⚠️, a trimmed
+    "(female)", two species swapped — because none of those change WHICH birds
+    are named.
+    """
+    low = " " + re.sub(r"[^a-z0-9'\- ]+", " ", (text or "").lower()) + " "
+    low = re.sub(r"\s+", " ", low)
+    # Scan for KNOWN species names rather than splitting the text and asking
+    # what each piece is: _canon_species_list keeps unrecognised bird-ish
+    # labels, which turned "Mallorca" and "Spain" into species.
+    hits = set()
+    for key, (display, _fam) in _BIRDS.items():
+        if " " + key + " " in low or " " + key.replace("-", " ") + " " in low:
+            hits.add(display)
+    for key, target in _SPECIES_ALIAS.items():
+        if target and (" " + key + " ") in low and target in _BIRDS:
+            hits.add(_BIRDS[target][0])
+    # "American Herring Gull" also contains "Herring Gull"; keep the longer.
+    return tuple(sorted(h for h in hits
+                        if not any(h != o and h in o for o in hits)))
+
+
 def match_post_records(shots):
     """Bake per-frame species for posts the pipeline recorded at post time.
 
@@ -1089,10 +1113,13 @@ def match_post_records(shots):
     store = load_image_species()
     dstore = load_image_dates()
     added_dates = 0
-    by_key = {}
+    by_key, by_species = {}, {}
     for rec in records:
-        key = (_norm_caption(rec.get("caption")), len(rec.get("files") or []))
-        by_key.setdefault(key, []).append(rec)
+        nfiles = len(rec.get("files") or [])
+        by_key.setdefault((_norm_caption(rec.get("caption")), nfiles), []).append(rec)
+        skey = _species_key(" ".join(rec.get("species") or []))
+        if skey:
+            by_species.setdefault((skey, nfiles), []).append(rec)
     added = 0
     for shot in shots:
         pid, n = shot.get("id"), len(shot.get("images") or [])
@@ -1100,7 +1127,16 @@ def match_post_records(shots):
             continue
         recs = by_key.get((_norm_caption(shot.get("caption")), n))
         if not recs:
-            continue
+            # The caption gets hand-edited in Buffer between recording and
+            # publishing — a ⚠️ added, a "(female)" trimmed, two species
+            # swapped — and exact matching throws the record away. The SPECIES
+            # SET and the frame count survive all of those, so fall back to
+            # them. Only when exactly one record fits: an ambiguous match would
+            # bake the wrong bird onto real photographs, which is worse than
+            # falling through to the caption heuristic.
+            recs = by_species.get((_species_key(shot.get("caption")), n)) or []
+            if len(recs) != 1:
+                continue
         rec = recs[0]
         if len(recs) > 1 and shot.get("timestamp"):
             def _delta(r):
