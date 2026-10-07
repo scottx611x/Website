@@ -1311,8 +1311,21 @@ def apply_overrides(shots, overrides=None, apply_exclusions=True):
             n = len(shot.get("images") or [])
             base = _base_image_species(shot, n, per_image)
             existing = shot.get("image_species") or []
-            filled = [(existing[i] if i < len(existing) and existing[i] else base[i])
-                      for i in range(n)]
+            truth = per_image.get(shot.get("id"))
+            if truth and len(truth) == n and any(truth):
+                # The pipeline's record is what Scott actually typed against each
+                # photo at post time. It has to OUTRANK the manifest's baked
+                # array, which is the caption heuristic — it guesses placement by
+                # dividing the frames evenly among the species the caption names.
+                #
+                # "Preserve what's there, only fill the gaps" sounds safe and was
+                # the whole bug: the heuristic leaves no gaps, so ground truth
+                # was never consulted and a 3-robin/2-cardinal carousel rendered
+                # as 2-and-2, shifting every label after the first group.
+                filled = list(base)
+            else:
+                filled = [(existing[i] if i < len(existing) and existing[i] else base[i])
+                          for i in range(n)]
             if any(filled):
                 shot["image_species"] = filled
         # Per-frame capture dates (pipeline truth for combined-batch posts) ride
