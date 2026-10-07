@@ -1,7 +1,22 @@
 {
     "production": {
         "app_function": "index.app",
-        "exclude": ["wildlife_incoming", "wildlife_incoming/*", "birds_incoming", "birds_incoming/*", "manual_imports", "manual_imports/*", "*.NEF", "*.zip", "*.mp4", "*.mov", "*.err", "*.log", "sound-station", "sound-station/*"],
+        "exclude": [
+            "wildlife_incoming",
+            "wildlife_incoming/*",
+            "birds_incoming",
+            "birds_incoming/*",
+            "manual_imports",
+            "manual_imports/*",
+            "*.NEF",
+            "*.zip",
+            "*.mp4",
+            "*.mov",
+            "*.err",
+            "*.log",
+            "sound-station",
+            "sound-station/*"
+        ],
         "timeout_seconds": 300,
         "memory_size": 1024,
         "aws_region": "us-east-1",
@@ -14,19 +29,36 @@
         "extra_permissions": [
             {
                 "Effect": "Allow",
-                "Action": ["s3:PutObject", "s3:GetObject"],
+                "Action": [
+                    "s3:PutObject",
+                    "s3:GetObject"
+                ],
                 "Resource": "arn:aws:s3:::birds-scott-ouellette/birds/*"
             },
             {
                 "Effect": "Allow",
-                "Action": ["ssm:GetParameter", "ssm:PutParameter"],
+                "Action": [
+                    "ssm:GetParameter",
+                    "ssm:PutParameter"
+                ],
                 "Resource": "arn:aws:ssm:us-east-1:*:parameter/birds/*"
+            },
+            {
+                "Effect": "Allow",
+                "Action": [
+                    "s3:ListBucket"
+                ],
+                "Resource": "arn:aws:s3:::birds-scott-ouellette"
             }
         ],
         "events": [
             {
                 "function": "birds.scheduled_sync",
                 "expression": "rate(1 day)"
+            },
+            {
+                "function": "sound_index.refresh",
+                "expression": "rate(1 hour)"
             }
         ]
     }

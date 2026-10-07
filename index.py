@@ -1089,7 +1089,7 @@ def _live_view():
         # WHOLE day — not just the recent window — and tapping any hour (even 6am,
         # long aged out of `recent`) shows those recordings inline. This is the
         # curated log, so hidden clips are already dropped.
-        log = birds.load_sound_log() or {}
+        log = _sound_log_merged() or {}
         cutoff = datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(hours=30)
         dayrecs = []  # NB: not `day` — that name is the date seed enrich() closes over
         for r in (log.get("log") or []):
@@ -1140,7 +1140,7 @@ def birds_live_history_json():
     """The curated recording log (last 60 days), lightly enriched — feeds the
     live page's soundtrack day-stepper and last-7-days comparison. Fetched
     lazily, only when someone steps off 'today'."""
-    log = birds.load_sound_log() or {}
+    log = _sound_log_merged() or {}
     shots = birds.load_gallery(shuffle=False)
     photographed = {n for _, sp in birds.species_groups(shots) for n, _ in sp}
     cutoff = datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(days=60)
@@ -1181,9 +1181,36 @@ def birds_heard():
         local=_is_local())
 
 
+def _sound_log_merged():
+    """The full recordings history, current to the minute.
+
+    Two sources, deliberately: `archive.json` is rebuilt hourly from the clips
+    in the bucket and carries the whole 81-day history, while the station's
+    `log.json` is a rolling 1,500-detection window that is always newer than
+    the last index run. Reading only the archive loses the most recent hour;
+    reading only the log loses everything before yesterday — which is the bug
+    this fixes. Merged on the clip filename, newest first.
+    """
+    def _build():
+        arch = birds.load_sound_archive() or {}
+        live = birds.load_sound_log() or {}
+        rows = list(arch.get("log") or [])
+        seen = {r.get("audio") for r in rows}
+        for r in (live.get("log") or []):
+            if r.get("audio") and r.get("audio") not in seen:
+                rows.append(r)
+                seen.add(r.get("audio"))
+        if not rows:                      # archive absent: the log alone still works
+            return live
+        rows.sort(key=lambda r: r.get("t") or "", reverse=True)
+        return {"generated": (arch.get("generated") or live.get("generated")), "log": rows}
+
+    return birds._memoed("sound_log_merged", birds._MEMO_TTL, _build)
+
+
 def _log_view():
     """The full browsable detection log, enriched with display names + photos."""
-    data = birds.load_sound_log()
+    data = _sound_log_merged()
     shots = birds.load_gallery(shuffle=False)
     groups = birds.species_groups(shots)
     photographed = {n for _, sp in groups for n, _ in sp}

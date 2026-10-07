@@ -1796,6 +1796,30 @@ def _load_sound_log_uncached():
         return None
 
 
+def _load_sound_archive_uncached():
+    """The FULL recordings archive (birds/sounds/archive.json).
+
+    The station's log.json is a rolling 1,500-detection window — about two
+    days of an 81-day archive — while the clips it points at are never
+    deleted. sound_index.py rebuilds the complete index from the bucket; this
+    reads it, falling back to the rolling log where it has not been built.
+    """
+    key = "{}/sounds/archive.json".format(S3_PREFIX)
+    if os.environ.get("BIRDS_USE_S3"):
+        try:
+            import boto3
+
+            body = boto3.client("s3").get_object(Bucket=S3_BUCKET, Key=key)["Body"].read()
+            return apply_sound_curation(json.loads(body))
+        except Exception:  # noqa: BLE001 - not built yet
+            return None
+    try:
+        with open(os.path.join(HERE, "birds", "sounds_archive.json")) as fh:
+            return apply_sound_curation(json.load(fh))
+    except (OSError, ValueError):
+        return None
+
+
 def _load_patterns_uncached():
     """All-time sound aggregates (birds/sounds/patterns.json): the yard's daily
     rhythm (species x hour-of-day) and geography (species x listening node). Its
@@ -3326,6 +3350,10 @@ def load_species_clips():
 
 def load_sound_log():
     return _memoed("sound_log", _MEMO_TTL, _load_sound_log_uncached)
+
+
+def load_sound_archive():
+    return _memoed("sound_archive", _MEMO_TTL, _load_sound_archive_uncached)
 
 
 def load_locations():
