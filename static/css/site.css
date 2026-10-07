@@ -973,69 +973,6 @@ a.stat-card:hover { border-color: var(--accent); }
 .stat-jump a:hover { color: var(--ink); background: rgba(13, 18, 14, 0.05); }
 .stat-jump a.on { color: var(--ink); background: var(--paper);
   border-color: rgba(13, 18, 14, 0.18); }
-/* ===================== THE LIFE LIST =====================
-   A birder's life list is a ledger: a rank you earned, the species, where and
-   when you first got it. So it is set as one — ruled rows, a leader running
-   out to the date, tabular figures — rather than as a chart of a number going
-   up. The rank is the content: 001 is not a data point, it is the first bird
-   he ever photographed.
-
-   It scrolls inside its own frame so 121 entries do not add 121 rows of height
-   to a page that is already long. */
-/* Two columns, so the plate has a gutter of its own. Floating it over the
-   list hid the locality and date of whichever row you were reading — the
-   photograph covered the very thing you hovered to see. */
-.lifelist-stage { position: relative; display: grid; grid-template-columns: 1fr; }
-@media (hover: hover) and (min-width: 860px) {
-    .lifelist-stage { grid-template-columns: 1fr clamp(130px, 16vw, 200px); gap: 1.4rem; }
-}
-.lifelist {
-    list-style: none; margin: 0; padding: 0 0.2rem 0 0;
-    max-height: min(62vh, 34rem); overflow-y: auto; overscroll-behavior: contain;
-    scrollbar-width: thin;
-}
-.ll-row { border-bottom: 1px solid rgba(13, 18, 14, 0.09); }
-.ll-row:last-child { border-bottom: 0; }
-.ll-row a {
-    display: grid; align-items: baseline; gap: 0 0.7rem; text-decoration: none;
-    grid-template-columns: auto minmax(0, auto) auto 1fr auto auto;
-    padding: 0.5rem 0.35rem; color: var(--ink);
-    transition: background 0.14s ease;
-}
-.ll-row a:hover, .ll-row a:focus-visible { background: rgba(47, 125, 79, 0.07); outline: none; }
-/* Tabular so the column of ranks is a straight edge, which is what makes it
-   read as a ledger rather than a list. */
-.ll-n {
-    font-size: 0.78rem; color: var(--muted); font-variant-numeric: tabular-nums;
-    letter-spacing: 0.04em;
-}
-.ll-row a:hover .ll-n { color: var(--accent); }
-.ll-name { font-family: var(--display); font-size: 1.12rem; font-weight: 400; letter-spacing: -0.01em; }
-.ll-fam { font-size: 0.68rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; }
-/* The leader. A ledger carries the eye across the gap to the date; without it
-   the two halves of the row read as unrelated columns. */
-.ll-rule { border-bottom: 1px dotted rgba(13, 18, 14, 0.26); transform: translateY(-0.28em); min-width: 1.5rem; }
-.ll-where { font-size: 0.72rem; color: var(--muted); white-space: nowrap; }
-.ll-date { font-size: 0.72rem; color: var(--ink); font-variant-numeric: tabular-nums; white-space: nowrap; }
-/* His own photograph of whichever bird the cursor is on — a life list kept by
-   a photographer should show the photograph. Pointer devices only: on touch
-   there is no hover and it would never be seen. */
-.ll-plate {
-    display: none; margin: 0; position: sticky; top: 0.4rem; align-self: start;
-    width: 100%; aspect-ratio: 1; pointer-events: none;
-    border-radius: 2px; overflow: hidden; opacity: 0; transform: scale(0.97);
-    box-shadow: 0 18px 40px -18px rgba(13, 18, 14, 0.6);
-    transition: opacity 0.22s ease, transform 0.22s ease;
-}
-.ll-plate img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.ll-plate.on { opacity: 1; transform: none; }
-@media (hover: hover) and (min-width: 860px) { .ll-plate { display: block; } }
-@media (max-width: 640px) {
-    .ll-row a { grid-template-columns: auto 1fr auto; row-gap: 0.1rem; }
-    .ll-fam, .ll-rule, .ll-where { display: none; }
-}
-@media (prefers-reduced-motion: reduce) { .ll-plate { transition: none; } }
-
 /* so a jumped-to heading isn't hidden under the sticky bar */
 .stat-block { scroll-margin-top: 7rem; }
 @media (max-width: 560px) { .stat-jump { padding: 0.45rem 0; } .stat-jump a { font-size: 0.68rem; } }
