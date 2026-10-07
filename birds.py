@@ -212,6 +212,7 @@ _TAXONOMY = [
     ("Anhingas", ["Anhinga"]),
     ("Pelicans", ["American White Pelican", "Brown Pelican"]),
     ("Herons & Egrets", [
+        "Grey Heron", "Little Egret", "Squacco Heron",
         "American Bittern", "Least Bittern", "Great Blue Heron", "Great Egret", "Snowy Egret",
         "Little Blue Heron", "Tricolored Heron", "Reddish Egret", "Cattle Egret", "Green Heron",
         "Black-crowned Night Heron", "Yellow-crowned Night Heron", "Grey Heron"]),
@@ -219,7 +220,9 @@ _TAXONOMY = [
     ("New World Vultures", ["Black Vulture", "Turkey Vulture"]),
     ("Ospreys", ["Osprey"]),
     ("Hawks & Eagles", [
-        "Booted Eagle", "Red Kite",
+        "Booted Eagle", "Red Kite", "Black Kite", "Short-toed Snake-Eagle",
+        "Spanish Imperial Eagle", "Golden Eagle", "Eurasian Sparrowhawk",
+        "Northern Goshawk", "Common Buzzard", "Western Marsh Harrier",
         "Golden Eagle", "Northern Harrier", "Sharp-shinned Hawk", "Cooper's Hawk", "Northern Goshawk",
         "Bald Eagle", "Mississippi Kite", "Swallow-tailed Kite", "Red-shouldered Hawk",
         "Broad-winged Hawk", "Red-tailed Hawk", "Rough-legged Hawk", "Swainson's Hawk"]),
@@ -228,10 +231,11 @@ _TAXONOMY = [
         "Long-eared Owl", "Short-eared Owl", "Northern Saw-whet Owl"]),
     ("Kingfishers", ["Belted Kingfisher"]),
     ("Woodpeckers", [
+        "Eurasian Green Woodpecker", "Great Spotted Woodpecker",
         "Red-headed Woodpecker", "Red-bellied Woodpecker", "Yellow-bellied Sapsucker",
         "Downy Woodpecker", "Hairy Woodpecker", "Northern Flicker", "Pileated Woodpecker"]),
     ("Falcons", [
-        "Common Kestrel","American Kestrel", "Merlin", "Peregrine Falcon"]),
+        "Common Kestrel", "Lesser Kestrel", "Eurasian Hobby", "American Kestrel", "Merlin", "Peregrine Falcon"]),
     ("Tyrant Flycatchers", [
         "Eastern Wood-Pewee", "Acadian Flycatcher", "Alder Flycatcher", "Willow Flycatcher",
         "Least Flycatcher", "Eastern Phoebe", "Great Crested Flycatcher", "Eastern Kingbird"]),
@@ -239,12 +243,17 @@ _TAXONOMY = [
     ("Vireos", [
         "White-eyed Vireo", "Yellow-throated Vireo", "Blue-headed Vireo", "Warbling Vireo",
         "Philadelphia Vireo", "Red-eyed Vireo"]),
-    ("Crows & Jays", ["Blue Jay", "American Crow", "Fish Crow", "Common Raven",
+    ("Crows & Jays", [
+        "Eurasian Jay", "Red-billed Chough", "Western Jackdaw", "Carrion Crow",
+        "Hooded Crow", "Blue Jay", "American Crow", "Fish Crow", "Common Raven",
         "Hooded Crow", "Eurasian Magpie"]),
     ("Larks", ["Horned Lark"]),
     ("Chickadees & Titmice", [
-        "Eurasian Blue Tit", "Great Tit", "European Crested Tit","Black-capped Chickadee", "Carolina Chickadee", "Tufted Titmouse"]),
+        "Eurasian Blue Tit", "Great Tit", "European Crested Tit", "Coal Tit",
+        "Marsh Tit", "Long-tailed Tit","Black-capped Chickadee", "Carolina Chickadee", "Tufted Titmouse"]),
     ("Swallows", [
+        "Common House-Martin", "Eurasian Crag-Martin",
+        "Red-rumped Swallow",
         "Northern Rough-winged Swallow", "Purple Martin", "Tree Swallow", "Bank Swallow",
         "Barn Swallow", "Cliff Swallow"]),
     ("Kinglets", ["Golden-crowned Kinglet", "Ruby-crowned Kinglet"]),
@@ -253,24 +262,31 @@ _TAXONOMY = [
     ("Gnatcatchers", ["Blue-gray Gnatcatcher"]),
     ("Wrens", [
         "Carolina Wren", "Northern House Wren", "Winter Wren", "Sedge Wren", "Marsh Wren"]),
-    ("Starlings", ["European Starling"]),
+    ("Starlings", ["European Starling", "Spotless Starling"]),
     # Species from trips abroad. They are tagged out-of-area in the captions,
     # but the taxonomy still has to KNOW them: an unknown name makes
     # _canon_species return None, which makes match_post_records reject the
     # pipeline's ground-truth record for the whole post.
-    ("Parrots", ["Monk Parakeet"]),
-    ("Old World Vultures", ["Eurasian Griffon", "Cinereous Vulture"]),
-    ("Old World Flycatchers", ["Spotted Flycatcher", "European Robin"]),
-    ("Old World Warblers", ["Sardinian Warbler", "Eurasian Blackcap", "Common Chiffchaff"]),
+    ("Parrots", ["Monk Parakeet", "Rose-ringed Parakeet"]),
+    ("Old World Vultures", ["Eurasian Griffon", "Cinereous Vulture", "Egyptian Vulture", "Bearded Vulture"]),
+    ("Old World Flycatchers", [
+        "Spotted Flycatcher", "European Robin", "European Pied Flycatcher",
+        "Common Redstart", "Black Redstart", "European Stonechat", "Northern Wheatear",
+        "Common Nightingale"]),
+    ("Old World Warblers", [
+        "Sardinian Warbler", "Eurasian Blackcap", "Common Chiffchaff", "Willow Warbler",
+        "Common Whitethroat", "Subalpine Warbler", "Dartford Warbler", "Cetti's Warbler",
+        "Zitting Cisticola", "Eurasian Reed Warbler"]),
     ("Mockingbirds & Thrashers", ["Gray Catbird", "Brown Thrasher", "Northern Mockingbird"]),
     ("Thrushes", [
-        "Eurasian Blackbird", "Eastern Bluebird", "Veery", "Gray-cheeked Thrush", "Swainson's Thrush", "Hermit Thrush",
+        "Eurasian Blackbird", "Song Thrush", "Mistle Thrush", "Blue Rock-Thrush", "Eastern Bluebird", "Veery", "Gray-cheeked Thrush", "Swainson's Thrush", "Hermit Thrush",
         "Wood Thrush", "American Robin"]),
     ("Waxwings", ["Cedar Waxwing", "Bohemian Waxwing"]),
-    ("Old World Sparrows", ["House Sparrow"]),
+    ("Old World Sparrows", ["House Sparrow", "Eurasian Tree Sparrow", "Spanish Sparrow", "Rock Sparrow"]),
     ("Pipits", ["American Pipit"]),
     ("Finches", [
-        "Evening Grosbeak", "Pine Grosbeak", "House Finch", "Purple Finch", "Common Redpoll",
+        "European Goldfinch", "European Greenfinch", "Common Chaffinch", "European Serin",
+        "Eurasian Linnet", "Hawfinch", "Evening Grosbeak", "Pine Grosbeak", "House Finch", "Purple Finch", "Common Redpoll",
         "Red Crossbill", "White-winged Crossbill", "Pine Siskin", "American Goldfinch"]),
     ("Longspurs", ["Lapland Longspur", "Snow Bunting"]),
     ("New World Sparrows", [
