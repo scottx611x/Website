@@ -1204,8 +1204,27 @@ def match_post_records(shots):
             # A combined-batch post carries each frame's real shooting day
             # (record `dates`, aligned with files[]); older records lack it.
             dates = [_norm_md_date(x) for x in (rec.get("dates") or [])]
+            # Sanity-check the record's dates against the ones written in the
+            # caption before trusting them. Species collide easily — two posts
+            # of five Red-tailed Hawks look identical — but shooting dates do
+            # not, so a date months away from the caption is the tell that this
+            # record belongs to a different post. A frame's EXIF day can
+            # legitimately differ from a hand-typed caption by a day, so the
+            # bar is generous.
             if pid not in dstore and len(dates) == n and any(dates):
-                dstore[pid] = dates
+                cap_days = {
+                    "20%s-%02d-%02d" % (y, int(mo), int(da))
+                    for mo, da, y in re.findall(
+                        r"\b(\d{1,2})-(\d{1,2})-(\d{2})\b", shot.get("caption") or "")
+                }
+                def _near(a, b):
+                    try:
+                        return abs((datetime.date.fromisoformat(a)
+                                    - datetime.date.fromisoformat(b)).days) <= 3
+                    except ValueError:
+                        return False
+                if not cap_days or any(_near(d, c) for d in dates if d for c in cap_days):
+                    dstore[pid] = dates
                 added_dates += 1
     if added:
         _save_curation(IMAGE_SPECIES_FILE, store)
