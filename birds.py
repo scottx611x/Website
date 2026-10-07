@@ -1136,6 +1136,19 @@ def match_post_records(shots):
         skey = _species_key(" ".join(rec.get("species") or []))
         if skey:
             by_species.setdefault((skey, nfiles), []).append(rec)
+    # How many posts could claim each species-set key, so a contested key can be
+    # refused rather than handed to whoever is iterated first.
+    _species_claims = {}
+    for shot in shots:
+        pid, n = shot.get("id"), len(shot.get("images") or [])
+        if not pid or pid in store or n < 2:
+            continue
+        if by_key.get((_norm_caption(shot.get("caption")), n)):
+            continue
+        k = (_species_key(shot.get("caption")), n)
+        if k[0]:
+            _species_claims[k] = _species_claims.get(k, 0) + 1
+
     added = 0
     for shot in shots:
         pid, n = shot.get("id"), len(shot.get("images") or [])
@@ -1150,8 +1163,14 @@ def match_post_records(shots):
             # them. Only when exactly one record fits: an ambiguous match would
             # bake the wrong bird onto real photographs, which is worse than
             # falling through to the caption heuristic.
-            recs = by_species.get((_species_key(shot.get("caption")), n)) or []
-            if len(recs) != 1:
+            skey = (_species_key(shot.get("caption")), n)
+            recs = by_species.get(skey) or []
+            # Unique on BOTH sides. One record matching is not enough: two posts
+            # of five Red-tailed Hawks share a species set and a frame count, so
+            # whichever was processed first would claim a record that may belong
+            # to the other. If a key is contested, nobody gets it — the heuristic
+            # and the manual edits are a better answer than a confident guess.
+            if len(recs) != 1 or _species_claims.get(skey, 0) != 1:
                 continue
         rec = recs[0]
         if len(recs) > 1 and shot.get("timestamp"):
