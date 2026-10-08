@@ -1114,6 +1114,47 @@ def _species_key(text):
                         if not any(h != o and h in o for o in hits)))
 
 
+def _promote_originals(pid, rec):
+    """Give this post's archived originals their mirrored names.
+
+    The pipeline uploads each full-size export at post time under
+    birds/originals/by-file/<filename>, because the Instagram post id does not
+    exist yet — the post is queued to Buffer and publishes days later. Once a
+    record is matched to a real post we know the id and the frame order, so the
+    objects are copied to birds/originals/<post>-<index>.jpg, mirroring
+    birds/images/ the way the rest of the archive does.
+
+    Server-side copy, so no bytes leave S3. Best-effort: the by-file object
+    stays either way, so nothing is lost if this does not run.
+    """
+    if not os.environ.get("BIRDS_USE_S3"):
+        return
+    try:
+        import boto3
+        from botocore.exceptions import ClientError
+    except Exception:  # noqa: BLE001
+        return
+    s3 = boto3.client("s3")
+    for i, f in enumerate(rec.get("files") or []):
+        name = (f or "").rsplit("/", 1)[-1]
+        if not name:
+            continue
+        src = "{}/originals/by-file/{}".format(S3_PREFIX, name)
+        dst = "{}/originals/{}-{}.jpg".format(S3_PREFIX, pid, i)
+        try:
+            s3.head_object(Bucket=S3_BUCKET, Key=dst)
+            continue                      # already mirrored
+        except ClientError:
+            pass
+        try:
+            s3.copy_object(Bucket=S3_BUCKET, Key=dst,
+                           CopySource={"Bucket": S3_BUCKET, "Key": src},
+                           StorageClass="GLACIER_IR",
+                           MetadataDirective="COPY")
+        except ClientError:
+            pass                          # not uploaded (yet) — harmless
+
+
 def match_post_records(shots):
     """Bake per-frame species for posts the pipeline recorded at post time.
 
@@ -1201,6 +1242,7 @@ def match_post_records(shots):
         if len(names) == n and all(names):
             store[pid] = names
             added += 1
+            _promote_originals(pid, rec)
             # A combined-batch post carries each frame's real shooting day
             # (record `dates`, aligned with files[]); older records lack it.
             dates = [_norm_md_date(x) for x in (rec.get("dates") or [])]
