@@ -10,6 +10,12 @@ sys.path.insert(0, "/Users/scott/Website")
 from PIL import Image
 import birds
 
+# Without this the manifest loader returns [], so "0 of 0 matched" means the
+# manifest never loaded, not that there was nothing to match. Fail loudly.
+if not os.environ.get("BIRDS_USE_S3"):
+    sys.exit("BIRDS_USE_S3=1 is required — without it the manifest is empty "
+             "and every number below is a silent zero.")
+
 BIRBS = os.path.expanduser("~/Desktop/birbs")
 Image.MAX_IMAGE_PIXELS = None
 ASPECTS = [None, 0.800, 0.847, 1.000, 1.250]      # full, 4:5, IG tall, square, 5:4

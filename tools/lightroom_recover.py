@@ -20,6 +20,12 @@ sys.path.insert(0, "/Users/scott/Website")
 from PIL import Image
 import birds
 
+# Without this the manifest loader returns [], every count collapses to 0, and
+# the run reads as "nothing missing" rather than "nothing loaded". Fail loudly.
+if not os.environ.get("BIRDS_USE_S3"):
+    sys.exit("BIRDS_USE_S3=1 is required — without it the manifest is empty "
+             "and every number below is a silent zero.")
+
 LR = os.path.expanduser("~/Pictures/Lightroom Library.lrlibrary/"
                         "7aa8939dff234cdc89658403083bba94/previews")
 Image.MAX_IMAGE_PIXELS = None
