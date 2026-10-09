@@ -65,8 +65,28 @@ print("  hashing %d web images..." % len(web), flush=True)
 with ThreadPoolExecutor(16) as ex:
     WH = dict(ex.map(hash_url, [birds.thumb_url(u) for _, _, u in web]))
 
+# Ground truth first. For the posts the pipeline recorded, files[] names the
+# export for each frame directly — no inference needed, and it catches frames
+# whose crop defeats a content hash. Hashing is the fallback for the 244 posts
+# that predate the record system.
+from_record = {}
+for r in birds._load_post_records() or []:
+    key = (birds._norm_caption(r.get("caption")), len(r.get("files") or []))
+    for s_ in raw:
+        if (birds._norm_caption(s_.get("caption")),
+                len(s_.get("images") or [])) != key:
+            continue
+        for i_, f_ in enumerate(r.get("files") or []):
+            local = os.path.join(BIRBS, os.path.basename(f_))
+            if os.path.exists(local):
+                from_record[(s_.get("id"), i_)] = local
+
 out, unmatched, amb = [], [], []
 for pid, i, u in web:
+    rec_hit = from_record.get((pid, i))
+    if rec_hit:
+        out.append((pid, i, rec_hit, -1))      # -1 = named by the record
+        continue
     h = WH.get(birds.thumb_url(u))
     if h is None: unmatched.append((pid, i)); continue
     hit = index.get(h)
