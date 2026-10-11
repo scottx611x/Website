@@ -1,31 +1,37 @@
 # Open asks — live site
 
+Status: A1, A3, A7 shipped to master in 497c032 (NOT yet deployed).
+
 Persisted at Scott's request (2026-10-10): *"record and persist all asks in this
 chat and do not miss anything."* Tick items only when verified on the LIVE site.
 
 ## A. Live-site fixes (do these FIRST, before the Lightroom work)
 
-- [ ] **A1. Ordered modes constrain the field.** Newest post / Newest sighting /
+- [x] **A1. Ordered modes constrain the field.** Newest post / Newest sighting /
       Oldest should NOT pan infinitely in every direction. Bounded grid
       **anchored top-left** (newest at top-left, reading order), travel down +
       right only. Shuffle keeps the endless field. *(Confirmed 2026-10-10.)*
-- [ ] **A2. Cut non-essential copy.** Scott: *"anything non-essential. you have
+- [~] **A2. Cut non-essential copy.** *(view menu + home subtitle done; site-wide pass still to do.)* Scott: *"anything non-essential. you have
       a habit of being wordy."* Covers the view-menu descriptors ("a new
       arrangement each time", "when it went up", "when the bird was seen",
       "from the beginning"), the home subtitle ("A rotating selection of my
       favorite shots from around my hometown."), **and a general pass for
       wordiness site-wide.** Treat terseness as the default everywhere.
-- [ ] **A3. Remove the "North Andover only" link.** `templates/birds.html:28` —
+- [x] **A3. Remove the "North Andover only" link.** `templates/birds.html:28` —
       the `area=local` link ("123 species here"). Keep the `area=elsewhere`
       ("outside North Andover ⚠") link; that one flags travel birds and earns
       its place. *(Confirmed 2026-10-10.)*
-- [ ] **A4. Photography gets the same gallery.** Same sorting + viewing controls
-      as /birds.
+- [ ] **A4. Photography gets the same gallery.** Same sorting + viewing
+      controls as /birds. **Bigger than it looks:** templates/photography.html
+      is a standalone 249-line grid with tag chips and its own lightbox — it
+      does not use _field.html at all. Needs the field + view menu ported, and
+      the field's data shape adapted (photos carry title/species/date/tags,
+      not species/family/post id).
 - [ ] **A5. Facelift /birds/stats.** Long-standing: Scott has rejected several
       attempts (act cards, dashboard). See docs/revamp/OVERNIGHT.md "Rejected
       outright" before starting.
 - [ ] **A6. Facelift /birds/live.** Same history — "The Chorus" was rejected.
-- [ ] **A7. BUG: home → gallery flies off-screen.** Clicking "See all photos →"
+- [x] **A7. BUG: home → gallery flies off-screen.** Clicking "See all photos →"
       on the home page lands on /birds with the birds drifted to the top-left,
       out of view.
 
