@@ -5,6 +5,28 @@ Status: A1, A3, A7 shipped to master in 497c032 (NOT yet deployed).
 Persisted at Scott's request (2026-10-10): *"record and persist all asks in this
 chat and do not miss anything."* Tick items only when verified on the LIVE site.
 
+## Overnight run protocol (authorised 2026-10-10)
+
+> *"work through the other asks autonomously overnight"*
+
+Order: **A8 → A2 → A4 → A6 → A5.** A8 and A2 are small and concrete; A4 is
+large but mechanical; the two facelifts are last because they are subjective
+and have the worst track record.
+
+**Deploy policy — deliberately split, because these differ in risk:**
+
+- **Ship as you go**: bug fixes and behaviour changes that a probe can prove
+  (A8, A2, A4). Every one gets `make test` + the relevant probe + a live
+  check before and after `make deploy`.
+- **Build but DO NOT deploy**: the stats and live facelifts (A5, A6). Scott has
+  rejected four design attempts — acts, the Chorus, the life list, the
+  plate-blue palette. Shipping unreviewed design to prod is how that becomes
+  five. Build on master, screenshot, leave deployed prod on the last good
+  commit, and show him the renders.
+
+Never open a browser tab. `make deploy` only. After each deploy, verify the
+actual behaviour live, not just a 200.
+
 ## A. Live-site fixes (do these FIRST, before the Lightroom work)
 
 - [x] **A1. Ordered modes leave the field entirely.** Superseded 2026-10-10 by
