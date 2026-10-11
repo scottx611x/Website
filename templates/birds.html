@@ -10,11 +10,13 @@
     {% if view == 'field' %}document.body.classList.add("field-view");{% endif %}
 </script>
 <section class="page wide">
-    {# The field's canvas is fixed to the viewport, so there is no page scroll
+    {# Both views wear the same compact chrome, pinned from the start.
+       The field's canvas is fixed to the viewport, so there is no page scroll
        to collapse the header — it would sit full-height on top of the photos
-       forever. Start it collapsed there and leave it that way. #}
-    <header class="gallery-header{% if view == 'field' %} is-stuck{% endif %}"
-            data-collapse="1"{% if view == 'field' %} data-pinned="1"{% endif %}>
+       forever. The ordered grid DOES scroll, but it is the same gallery and
+       should not greet you as a different page: an order changes how the
+       photos are laid out, not what site you are on. #}
+    <header class="gallery-header is-stuck" data-collapse="1" data-pinned="1">
         <h1>Birds of North Andover</h1>
         {# A lone species/family focus renders as the SAME chip in the SAME slot
            as Live/Stats/Map (the shared subnav-focus pill); the gallery's own
