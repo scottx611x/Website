@@ -1,79 +1,141 @@
 [
   {
-    "id": "manual-46c67823ab13",
+    "id": "manual-e01d52b99b42",
     "images": [
-      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/5ac5e3c534ca.jpg"
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/d860152c2175.jpg",
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/aaf5eccc124b.jpg",
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/da475c7c14e0.jpg",
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/5479e1d95da2.jpg",
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/192cc6e068af.jpg",
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/36b3a3e41365.jpg",
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/6a270f6bd514.jpg",
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/7d79e5bcfe59.jpg",
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/98250eb6deaa.jpg",
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/4b6db10965bd.jpg",
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/40f8aeb324a5.jpg"
     ],
     "image_dims": [
       [
         1600,
-        2133
-      ]
-    ],
-    "image_species": [
-      "Wild Turkey"
-    ],
-    "image_locations": [
-      "Lewiston, ME"
-    ],
-    "image_videos": [
-      null
-    ],
-    "image_indices": [
-      0
-    ],
-    "captions": [
-      "Wild Turkey \u00b7 Lewiston, ME \u00b7 Jan 27, 2021"
-    ],
-    "caption": "\u26a0\ufe0f Wild Turkey - Lewiston, ME\n\nJan 27, 2021",
-    "species": "Wild Turkey",
-    "species_list": [
-      "Wild Turkey"
-    ],
-    "location": "Lewiston, ME",
-    "locations": [
-      "Lewiston, ME"
-    ],
-    "date": "Jan 27, 2021",
-    "timestamp": "2021-01-27T09:00:00+0000",
-    "weight": 0.5,
-    "manual": true
-  },
-  {
-    "id": "manual-88977ff75197",
-    "images": [
-      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/1d87a06a60e6.jpg"
-    ],
-    "image_dims": [
+        1067
+      ],
       [
-        512,
-        512
+        1600,
+        2000
+      ],
+      [
+        1600,
+        1067
+      ],
+      [
+        1600,
+        2000
+      ],
+      [
+        1600,
+        1067
+      ],
+      [
+        1600,
+        1067
+      ],
+      [
+        1600,
+        1067
+      ],
+      [
+        1600,
+        1067
+      ],
+      [
+        1600,
+        2000
+      ],
+      [
+        1600,
+        2000
+      ],
+      [
+        1600,
+        2000
       ]
     ],
     "image_species": [
-      "Northern Flicker"
+      "Common Kestrel",
+      "Common Kestrel",
+      "Common Kestrel",
+      "Common Kestrel",
+      "Common Kestrel",
+      "Common Kestrel",
+      "Common Kestrel",
+      "Common Kestrel",
+      "Common Kestrel",
+      "Common Kestrel",
+      "Common Kestrel"
     ],
     "image_locations": [
-      null
+      "Barcelona, Spain",
+      "Barcelona, Spain",
+      "Barcelona, Spain",
+      "Barcelona, Spain",
+      "Barcelona, Spain",
+      "Barcelona, Spain",
+      "Barcelona, Spain",
+      "Barcelona, Spain",
+      "Barcelona, Spain",
+      "Barcelona, Spain",
+      "Barcelona, Spain"
     ],
     "image_videos": [
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
       null
     ],
     "image_indices": [
-      0
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10
     ],
     "captions": [
-      "Northern Flicker \u00b7 Aug 27, 2014"
+      "Common Kestrel \u00b7 Barcelona, Spain \u00b7 Sep 2, 2026",
+      "Common Kestrel \u00b7 Barcelona, Spain \u00b7 Sep 2, 2026",
+      "Common Kestrel \u00b7 Barcelona, Spain \u00b7 Sep 2, 2026",
+      "Common Kestrel \u00b7 Barcelona, Spain \u00b7 Sep 2, 2026",
+      "Common Kestrel \u00b7 Barcelona, Spain \u00b7 Sep 2, 2026",
+      "Common Kestrel \u00b7 Barcelona, Spain \u00b7 Sep 2, 2026",
+      "Common Kestrel \u00b7 Barcelona, Spain \u00b7 Sep 2, 2026",
+      "Common Kestrel \u00b7 Barcelona, Spain \u00b7 Sep 2, 2026",
+      "Common Kestrel \u00b7 Barcelona, Spain \u00b7 Sep 2, 2026",
+      "Common Kestrel \u00b7 Barcelona, Spain \u00b7 Sep 2, 2026",
+      "Common Kestrel \u00b7 Barcelona, Spain \u00b7 Sep 2, 2026"
     ],
-    "caption": "Northern Flicker\n\nAug 27, 2014",
-    "species": "Northern Flicker",
+    "caption": "Common Kestrel - Barcelona, Spain\n\nSep 2, 2026",
+    "species": "Common Kestrel",
     "species_list": [
-      "Northern Flicker"
+      "Common Kestrel"
     ],
-    "location": null,
-    "locations": [],
-    "date": "Aug 27, 2014",
-    "timestamp": "2014-08-27T09:00:00+0000",
+    "location": "Barcelona, Spain",
+    "locations": [
+      "Barcelona, Spain"
+    ],
+    "date": "Sep 2, 2026",
+    "timestamp": "2026-09-02T12:00:00+0000",
     "weight": 0.5,
     "manual": true
   },
@@ -1620,6 +1682,46 @@
     "manual": true
   },
   {
+    "id": "manual-46c67823ab13",
+    "images": [
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/5ac5e3c534ca.jpg"
+    ],
+    "image_dims": [
+      [
+        1600,
+        2133
+      ]
+    ],
+    "image_species": [
+      "Wild Turkey"
+    ],
+    "image_locations": [
+      "Lewiston, ME"
+    ],
+    "image_videos": [
+      null
+    ],
+    "image_indices": [
+      0
+    ],
+    "captions": [
+      "Wild Turkey \u00b7 Lewiston, ME \u00b7 Jan 27, 2021"
+    ],
+    "caption": "\u26a0\ufe0f Wild Turkey - Lewiston, ME\n\nJan 27, 2021",
+    "species": "Wild Turkey",
+    "species_list": [
+      "Wild Turkey"
+    ],
+    "location": "Lewiston, ME",
+    "locations": [
+      "Lewiston, ME"
+    ],
+    "date": "Jan 27, 2021",
+    "timestamp": "2021-01-27T09:00:00+0000",
+    "weight": 0.5,
+    "manual": true
+  },
+  {
     "id": "manual-0c60d75163f9",
     "images": [
       "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/c9b36910d109.jpg"
@@ -1880,6 +1982,44 @@
     "locations": [],
     "date": "Jul 1, 2015",
     "timestamp": "2015-07-01T12:00:00+0000",
+    "weight": 0.5,
+    "manual": true
+  },
+  {
+    "id": "manual-88977ff75197",
+    "images": [
+      "https://birds-scott-ouellette.s3.amazonaws.com/birds/images/1d87a06a60e6.jpg"
+    ],
+    "image_dims": [
+      [
+        512,
+        512
+      ]
+    ],
+    "image_species": [
+      "Northern Flicker"
+    ],
+    "image_locations": [
+      null
+    ],
+    "image_videos": [
+      null
+    ],
+    "image_indices": [
+      0
+    ],
+    "captions": [
+      "Northern Flicker \u00b7 Aug 27, 2014"
+    ],
+    "caption": "Northern Flicker\n\nAug 27, 2014",
+    "species": "Northern Flicker",
+    "species_list": [
+      "Northern Flicker"
+    ],
+    "location": null,
+    "locations": [],
+    "date": "Aug 27, 2014",
+    "timestamp": "2014-08-27T09:00:00+0000",
     "weight": 0.5,
     "manual": true
   }

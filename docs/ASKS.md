@@ -31,6 +31,13 @@ chat and do not miss anything."* Tick items only when verified on the LIVE site.
       attempts (act cards, dashboard). See docs/revamp/OVERNIGHT.md "Rejected
       outright" before starting.
 - [ ] **A6. Facelift /birds/live.** Same history — "The Chorus" was rejected.
+- [ ] **A8. The home mosaic's SHAPE must survive the click into the gallery.**
+      The home strip is a deliberate arrangement — one large lead tile plus
+      four smaller ones. Clicking through currently preserves only the *set*
+      (`/birds?start=…` pins those frames to the head of the sequence); the
+      field then re-lays them out in its own uniform masonry, so the
+      composition is lost. The first screen of the gallery should land in that
+      same mosaic. *(Raised 2026-10-10.)*
 - [x] **A7. BUG: home → gallery flies off-screen.** Clicking "See all photos →"
       on the home page lands on /birds with the birds drifted to the top-left,
       out of view.
