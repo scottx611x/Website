@@ -658,6 +658,10 @@ def birds_gallery():
             "month": month or 0,
             "on": on or "",
             "posted": posted or "",
+            # The field needs this to decide between the endless plane and a
+            # bounded, top-left-anchored block: an order only means something
+            # if there is a beginning, and wrapping destroys it.
+            "sort": sort or "",
         },
         media_n=dict(zip(("photos", "videos"),
                          birds.media_counts(all_shots, bird, family, area, out_of_area,

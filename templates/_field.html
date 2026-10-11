@@ -755,7 +755,40 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
     CONTENT_H = Math.max.apply(null, hs) - GAP;
   }
 
+  /* An ORDER (newest post / newest sighting / oldest) makes an endless plane
+     incoherent: "newest" only means something if there is a beginning to be
+     near, and wrapping puts the oldest frame directly above the newest. So an
+     ordered field is a bounded block — newest at the top-left, reading down a
+     column and then rightward into older — and panning clamps to its edges.
+     Shuffle keeps the endless field; it has no beginning to violate.
+
+     Columns are deliberately TALLER than the viewport rather than laid out at
+     screen width: that keeps travel on both axes (down, then right) instead of
+     collapsing the field into an ordinary vertical scroller. */
+  var ORDERED = !!(CTX && CTX.sort);
+
+  function placeOrdered() {
+    var cw = COL_W + GAP;
+    var colH = Math.max(canvas.clientHeight * 2.5, 1200);
+    var cols = [], cur = [], h = 0;
+    for (var i = 0; i < L; i++) {
+      var th = Math.round(COL_W * ratio[i]);
+      if (h > 0 && h + th > colH) { cols.push(cur); cur = []; h = 0; }
+      cur.push({ i: i, y: h, h: th });
+      h += th + GAP;
+    }
+    if (cur.length) cols.push(cur);
+    PLACE = cols;
+    CONTENT_W = cols.length * cw - GAP;
+    CONTENT_H = 0;
+    for (var c = 0; c < cols.length; c++) {
+      var last = cols[c][cols[c].length - 1];
+      if (last.y + last.h > CONTENT_H) CONTENT_H = last.y + last.h;
+    }
+  }
+
   function planLayout() {
+    if (ORDERED && L > 0) { FINITE = true; placeOrdered(); return; }
     FINITE = L > 0 && L < perScreen() * 1.5;
     if (FINITE) placeFinite(); else { PLACE = null; }
   }
@@ -800,7 +833,19 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
     return lap * L + Math.max(0, lo - 1) - base;
   }
 
-  var live = {}, px = 0, py = 0, vx = 0, vy = 0, glide = null, pending = false;
+  /* The canvas is pinned to the viewport and the gallery header floats over
+     its top edge, so content at y=0 sits UNDER the chrome. Arriving from the
+     home page (/birds?start=…) put the very frame you clicked at (-6,-2) —
+     clipped into the top-left corner, which read as the birds having flown
+     off-screen. Start the plane clear of the header instead. */
+  function chromeTop() {
+    var h = document.querySelector(".gallery-header");
+    if (!h) return 16;
+    var r = h.getBoundingClientRect(), c = canvas.getBoundingClientRect();
+    return Math.max(16, Math.round(r.bottom - c.top) + 16);
+  }
+
+  var live = {}, px = 16, py = chromeTop(), vx = 0, vy = 0, glide = null, pending = false;
 
   function build(c, r) {
     var d = at(c, r);
@@ -863,15 +908,18 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
   function clampPan() {
     if (!FINITE) return;
     var vw = canvas.clientWidth, vh = canvas.clientHeight, PAD = 40;
+    // The top stop has to clear the floating header, or the first row of an
+    // ordered field is permanently half-hidden behind it.
+    var TOP = ORDERED ? chromeTop() : PAD;
     if (CONTENT_W + PAD * 2 <= vw) {
       px = Math.round((vw - CONTENT_W) / 2);          // narrower than the screen: centre it
     } else {
       px = Math.min(PAD, Math.max(vw - CONTENT_W - PAD, px));
     }
-    if (CONTENT_H + PAD * 2 <= vh) {
-      py = Math.round((vh - CONTENT_H) / 2);
+    if (CONTENT_H + TOP + PAD <= vh) {
+      py = ORDERED ? TOP : Math.round((vh - CONTENT_H) / 2);
     } else {
-      py = Math.min(PAD, Math.max(vh - CONTENT_H - PAD, py));
+      py = Math.min(TOP, Math.max(vh - CONTENT_H - PAD, py));
     }
   }
 
@@ -909,6 +957,9 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
   }
 
   function ambStart() {
+    // An ordered field is a bounded block anchored under the header; letting
+    // the idle drift push it would just grind it against clampPan's stops.
+    if (ORDERED) return;
     if (REDUCED || ambRAF || down || glide) return;
     if (document.body.style.overflow === "hidden") return;   // a bird is open
     ambBase = { x: px, y: py };
@@ -946,7 +997,10 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
     canvas.addEventListener(ev, poke, { passive: true });
   });
 
-  if (!REDUCED) {
+  // The intro drift eases in from 96px off-anchor. In an ordered field that
+  // would mean arriving slightly above the first row — the one place the
+  // layout promises you are already at the beginning.
+  if (!REDUCED && !ORDERED) {
     ambBase = { x: px, y: py };             // where it should come to rest
     ambFrom = { x: px - dir.x * 96, y: py - dir.y * 96 };   // and where it starts
     px = ambFrom.x; py = ambFrom.y;

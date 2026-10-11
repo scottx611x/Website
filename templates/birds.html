@@ -25,7 +25,11 @@
         {% if species_groups %}
         <div class="bird-filter">
             <p class="bird-stat">
-                <a href="/birds?area=local" class="bird-stat-link{% if active_area == 'local' %} is-active{% endif %}" onclick="return birdsGo(event,{area:'local'})"><strong>{{ local_count }}</strong> species here</a>{% if away_count %} &middot; <a href="/birds?area=elsewhere" class="bird-stat-link bird-stat-away{% if active_area == 'elsewhere' %} is-active{% endif %}" onclick="return birdsGo(event,{area:'elsewhere'})">{{ away_count }} outside North Andover&nbsp;{{ icon('alert') }}</a>{% endif %}
+                {# The "N species here" link (area=local) is gone by request.
+                   The whole site is already the home town, so filtering to it
+                   was an option for nothing. The away link stays: it is the
+                   one that says something, flagging the travel birds. #}
+                {% if away_count %}<a href="/birds?area=elsewhere" class="bird-stat-link bird-stat-away{% if active_area == 'elsewhere' %} is-active{% endif %}" onclick="return birdsGo(event,{area:'elsewhere'})">{{ away_count }} outside North Andover&nbsp;{{ icon('alert') }}</a>{% endif %}
             </p>
             {# A <datalist> cannot rank, group, or be styled: it matched on
                raw substring, offered all 154 entries in one flat list, and
@@ -230,10 +234,10 @@
                 <p class="vm-count mono">{{ media_n.photos }} photo{{ 's' if media_n.photos != 1 }}{% if media_n.videos %} &middot; {{ media_n.videos }} video{{ 's' if media_n.videos != 1 }}{% endif %}</p>
 
                 <p class="vm-head">Order</p>
-                <button type="button" role="menuitemradio" class="vm-opt{% if not active_sort %} on{% endif %}" aria-checked="{{ 'true' if not active_sort else 'false' }}" onclick="birdsGo(null,{sort:'',seed:String(Math.floor(Math.random()*1e9))})">Shuffle<span class="vm-sub">a new arrangement each time</span></button>
-                <button type="button" role="menuitemradio" class="vm-opt{% if active_sort == 'posted' %} on{% endif %}" aria-checked="{{ 'true' if active_sort == 'posted' else 'false' }}" onclick="birdsGo(null,{sort:'posted'})">Newest post<span class="vm-sub">when it went up</span></button>
-                <button type="button" role="menuitemradio" class="vm-opt{% if active_sort == 'recent' %} on{% endif %}" aria-checked="{{ 'true' if active_sort == 'recent' else 'false' }}" onclick="birdsGo(null,{sort:'recent'})">Newest sighting<span class="vm-sub">when the bird was seen</span></button>
-                <button type="button" role="menuitemradio" class="vm-opt{% if active_sort == 'oldest' %} on{% endif %}" aria-checked="{{ 'true' if active_sort == 'oldest' else 'false' }}" onclick="birdsGo(null,{sort:'oldest'})">Oldest<span class="vm-sub">from the beginning</span></button>
+                <button type="button" role="menuitemradio" class="vm-opt{% if not active_sort %} on{% endif %}" aria-checked="{{ 'true' if not active_sort else 'false' }}" onclick="birdsGo(null,{sort:'',seed:String(Math.floor(Math.random()*1e9))})">Shuffle</button>
+                <button type="button" role="menuitemradio" class="vm-opt{% if active_sort == 'posted' %} on{% endif %}" aria-checked="{{ 'true' if active_sort == 'posted' else 'false' }}" onclick="birdsGo(null,{sort:'posted'})">Newest post</button>
+                <button type="button" role="menuitemradio" class="vm-opt{% if active_sort == 'recent' %} on{% endif %}" aria-checked="{{ 'true' if active_sort == 'recent' else 'false' }}" onclick="birdsGo(null,{sort:'recent'})">Newest sighting</button>
+                <button type="button" role="menuitemradio" class="vm-opt{% if active_sort == 'oldest' %} on{% endif %}" aria-checked="{{ 'true' if active_sort == 'oldest' else 'false' }}" onclick="birdsGo(null,{sort:'oldest'})">Oldest</button>
 
                 {% if media_n.videos %}
                 <p class="vm-head">Show</p>
@@ -256,7 +260,6 @@
                 <button type="button" class="vm-opt vm-survey" id="vmSurvey"
                         aria-pressed="false">
                     <span data-on="Back to photos" data-off="Survey every species">Survey every species</span>
-                    <span class="vm-sub" data-on="one tile each" data-off="one tile each">one tile each</span>
                 </button>
                 {% endif %}
             </div>
