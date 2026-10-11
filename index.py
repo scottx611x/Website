@@ -592,9 +592,14 @@ def birds_gallery():
             if any(name == active_birds[0] for name, _ in sp):
                 bird_family = fam
                 break
-    view = (request.args.get("view") or "field").strip().lower()
+    view = (request.args.get("view") or "").strip().lower()
     if view not in ("field", "grid"):
-        view = "field"
+        # An order and an endless pannable plane pull against each other:
+        # "newest" only means something if you can see where the sequence
+        # begins. So Shuffle keeps the field — that is where the panning is
+        # the point — and the ordered modes fall back to the classic grid,
+        # which is what a sequence actually wants to be read in.
+        view = "grid" if sort else "field"
     field_tiles, field_seq, field_stride = [], [], 1
     if view == "field":
         field_tiles, field_seq, field_stride, _ = _field_tiles(shots)

@@ -908,16 +908,20 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
   function clampPan() {
     if (!FINITE) return;
     var vw = canvas.clientWidth, vh = canvas.clientHeight, PAD = 40;
-    // The top stop has to clear the floating header, or the first row of an
-    // ordered field is permanently half-hidden behind it.
-    var TOP = ORDERED ? chromeTop() : PAD;
+    // The top stop has to clear the floating header for EVERY bounded layout,
+    // not just the ordered one. A species view (a handful of frames, so the
+    // finite path) clamped to PAD instead, which tucked its first row under
+    // the header band — and that band grows a chip row when a bird is
+    // selected, so the taller the chrome the worse the clipping.
+    var TOP = chromeTop();
     if (CONTENT_W + PAD * 2 <= vw) {
       px = Math.round((vw - CONTENT_W) / 2);          // narrower than the screen: centre it
     } else {
       px = Math.min(PAD, Math.max(vw - CONTENT_W - PAD, px));
     }
     if (CONTENT_H + TOP + PAD <= vh) {
-      py = ORDERED ? TOP : Math.round((vh - CONTENT_H) / 2);
+      // fits: centre it in the space the chrome leaves, not in the viewport
+      py = ORDERED ? TOP : TOP + Math.round((vh - TOP - PAD - CONTENT_H) / 2);
     } else {
       py = Math.min(TOP, Math.max(vh - CONTENT_H - PAD, py));
     }

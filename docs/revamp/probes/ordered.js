@@ -45,8 +45,18 @@ const pan = ({dx, dy}) => {
   const p = await c.newPage();
   const errs = []; p.on('pageerror', e => errs.push(String(e).slice(0, 120)));
 
+  // Ordered modes now render the CLASSIC GRID, not the field: an order wants
+  // to be read as a sequence. Assert that first, then exercise the bounded
+  // block that still backs an explicit ?view=field.
   for (const sort of ['posted', 'recent', 'oldest']) {
     await p.goto(`${BASE}/birds?sort=${sort}`, {waitUntil: 'networkidle'});
+    await p.waitForTimeout(900);
+    const isGrid = await p.evaluate(() =>
+      !document.body.classList.contains('field-view') &&
+      document.querySelectorAll('.bf-tile').length === 0);
+    console.log('  sort=%-7s rendersGrid=%s', sort, isGrid ? 'yes' : 'NO');
+
+    await p.goto(`${BASE}/birds?sort=${sort}&view=field`, {waitUntil: 'networkidle'});
     await p.waitForTimeout(2200);
     const at0 = await p.evaluate(state);
     // try to drag DOWN-RIGHT, i.e. reveal content up-left of the anchor: must not move

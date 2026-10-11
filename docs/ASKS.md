@@ -7,10 +7,15 @@ chat and do not miss anything."* Tick items only when verified on the LIVE site.
 
 ## A. Live-site fixes (do these FIRST, before the Lightroom work)
 
-- [x] **A1. Ordered modes constrain the field.** Newest post / Newest sighting /
-      Oldest should NOT pan infinitely in every direction. Bounded grid
-      **anchored top-left** (newest at top-left, reading order), travel down +
-      right only. Shuffle keeps the endless field. *(Confirmed 2026-10-10.)*
+- [x] **A1. Ordered modes leave the field entirely.** Superseded 2026-10-10 by
+      Scott: *"shuffled can be full gallery pan magic, but newest/oldest should
+      revert to the old gallery style."* So Shuffle keeps the endless field and
+      the ordered modes render the CLASSIC GRID. The bounded top-left-anchored
+      block built earlier still backs an explicit `?view=field&sort=…`.
+- [x] **A9. BUG: filtered field views clipped under the header.** A species or
+      family view takes the finite path, but the clamp used PAD=40 as its top
+      stop while the header is 172–334px once a chip row appears — so the first
+      row sat under the chrome. All bounded layouts now clear it.
 - [~] **A2. Cut non-essential copy.** *(view menu + home subtitle done; site-wide pass still to do.)* Scott: *"anything non-essential. you have
       a habit of being wordy."* Covers the view-menu descriptors ("a new
       arrangement each time", "when it went up", "when the bird was seen",
