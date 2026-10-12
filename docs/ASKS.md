@@ -76,13 +76,58 @@ actual behaviour live, not just a 200.
       on the home page lands on /birds with the birds drifted to the top-left,
       out of view.
 
-## B. Lightroom originals recovery (after A)
+## B. Lightroom originals recovery — STALLED, read this before retrying
 
-Scott granted both unblocks on 2026-10-10: Screen Recording permission and
-`cliclick`. Verify both, then resume.
+**631 frames still missing. Zero recovered. Four automation designs failed
+(2026-10-11/12).** Do NOT start a fifth from scratch.
 
-- [ ] **B1.** Locate the Export button (now that screenshots work) and drive
-      `File > Export…` to completion for one shoot day as a dry run.
+**The mistake to avoid repeating:** Scott already has working Lightroom
+automation in `~/bird-photography-pipeline` — `lr_auto.py`, `lr_denoise.py`,
+`lr_host.py` (HTTP bridge), `lr_verify.py` (screenshot fingerprinting to prove
+an action landed), plus an auto-nudge that re-triggers a wedged render. A
+concurrent session drives it successfully. Build on THAT, not on raw cliclick.
+
+**Facts established the hard way — all verified, none of them guesses:**
+
+- `Cmd+F` focuses the search box reliably; clicking it by coordinate does not.
+  A missed click turns the typed filename into keyboard SHORTCUTS (this set
+  star ratings on photos via a stray "November 2025").
+- Searching a FILENAME filters; searching a DATE does not ("2025-11-29" and
+  "November 2025" both no-op).
+- Search terms become TOKEN CHIPS that accumulate and AND together. Neither
+  `Cmd+A` nor backspace clears them (backspace edits the last chip's text).
+  Only the field's clear button works — find it at the right edge of the
+  accent-blue focus outline.
+- Filtering does NOT change the selection, and Export acts on the SELECTION.
+  Without `Edit > Select All` you re-export whatever was selected last.
+- But `Edit > Select All` on an unfiltered view selects all 5,534 and Export
+  then raises a modal **"AI Update Required"**. These STACK, one per attempt,
+  and block everything silently.
+- Dismiss that modal by locating `window "AI Update Required"` via System
+  Events and clicking its frame + (325, 321). This works first try.
+- **The Lightroom window moves between calls** and was on a SECOND DISPLAY
+  (origin x=-1018) for part of the session. Never use absolute screen
+  coordinates; always re-read the window frame.
+- `cliclick` drops the shift on the first character of a `t:` string
+  ("DSC_" -> "dSC_"). Search is case-insensitive, so send lowercase.
+- Lightroom names each export after its SOURCE photo, so comparing the
+  exported filename to the requested one is cheap, certain proof the search
+  took. Use it; pixel heuristics are not needed and mislead.
+- Previews are content-addressed with NO link back to a catalog asset, so a
+  frame cannot be mapped to one filename. Per-DAY candidates + content hash.
+- `tools/lr_backfill.py` is the failed attempt, kept for its findings. It is
+  SAFE (refuses to ship a mismatch) but unreliable. 3,453 candidates would
+  cover the 631 frames.
+
+**Recommended path (split so each half is reliable):** Scott selects a month in
+Lightroom (click first, shift-click last) and hits `File > Export with
+Previous`; the agent handles the AI modal, then matches, uploads to Glacier,
+verifies and deletes locals. ~9 selections covers 2025-11 .. 2026-07.
+The collection half is proven: 1,275 originals shipped, 7 mis-keyed files
+caught, 12/12 byte-verified before deleting 20 GB.
+
+- [ ] **B1.** Run ONE month end-to-end with Scott watching before anything
+      unattended.
 - [ ] **B2.** Batch the rest. 554 frames across 144 shoot days;
       `~/Desktop/lightroom-reexport.html` is the worksheet. Export into
       `~/Desktop/birbs`, then `BIRDS_USE_S3=1 tools/match_originals.py` and
