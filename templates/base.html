@@ -742,6 +742,10 @@
                 return w <= 520 ? 1 : (w <= 820 ? 2 : 3);
             }
             function layout(grid) {
+                // The opening mosaic is a CSS grid with a 2x2 lead tile; dealing
+                // it into equal flex columns would destroy the composition it
+                // exists to preserve.
+                if (grid.dataset.nocols) return;
                 if (!grid._cards) {
                     grid._cards = Array.prototype.slice.call(grid.querySelectorAll(".shot"));
                 }

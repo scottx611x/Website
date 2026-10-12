@@ -570,6 +570,22 @@ def birds_gallery():
     # skipped for the old whole-post curate view).
     if sort:
         shots = birds.sort_frames(shots, sort)
+    # How many leading frames still match the tokens the home page handed over.
+    # start_ordered puts them first, but a sort or a stale link can break that,
+    # and half a mosaic is worse than none — so it is all or nothing.
+    mosaic_n = 0
+    if start_tokens and not sort:
+        want = set()
+        for tok in start_tokens:
+            pid, _, idx = tok.partition(".")
+            want.add((pid, idx))
+        for f in shots[:5]:
+            oi = (f.get("image_indices") or [None])[0]
+            if (f.get("post_id"), str(oi)) not in want:
+                break
+            mosaic_n += 1
+        if mosaic_n < 5:
+            mosaic_n = 0
     random.seed()  # drop any ?seed determinism before other random consumers
     total = sum(len(sp) for _, sp in groups)
     away = sum(1 for _, sp in groups for name, _ in sp if name in out_of_area)
@@ -598,8 +614,10 @@ def birds_gallery():
         # "newest" only means something if you can see where the sequence
         # begins. So Shuffle keeps the field — that is where the panning is
         # the point — and the ordered modes fall back to the classic grid,
-        # which is what a sequence actually wants to be read in.
-        view = "grid" if sort else "field"
+        # which is what a sequence actually wants to be read in. A home-preview
+        # arrival goes there too: its opening mosaic needs page flow, and the
+        # field's canvas is fixed to the viewport so it cannot carry one.
+        view = "grid" if (sort or mosaic_n) else "field"
     field_tiles, field_seq, field_stride = [], [], 1
     if view == "field":
         field_tiles, field_seq, field_stride, _ = _field_tiles(shots)
@@ -635,6 +653,7 @@ def birds_gallery():
         active_area=area,
         active_media=media,
         active_sort=sort,
+        mosaic_n=mosaic_n,
         active_loc=place["name"] if place else "",
         active_seed=seed if seed.isdigit() else "",
         active_on=on,

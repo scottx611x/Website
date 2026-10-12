@@ -416,8 +416,16 @@
     {% set tiles = field_tiles %}{% set seq = field_seq %}{% set stride = field_stride %}
     {% include '_field.html' %}
     {% elif shots %}
-    <div class="masonry">
+    {# Arriving from a home preview, the first `mosaic_n` frames keep the exact
+       composition you clicked — one lead tile spanning 2x2, the rest filling
+       beside it — and the ordinary masonry picks up underneath. Clicking a
+       composition and landing on a reshuffled grid loses the thing that made
+       you click. It stays a `.masonry` element so the lightbox (scoped to
+       `.masonry .shot`) still owns it; `data-nocols` tells the column-dealer
+       in base.html to leave the CSS grid alone. #}
+    <div class="masonry{% if mosaic_n %} opening-mosaic{% endif %}"{% if mosaic_n %} data-nocols="1"{% endif %}>
         {% for shot in shots %}
+        {% if mosaic_n and loop.index0 == mosaic_n %}</div><div class="masonry">{% endif %}
         <figure class="shot{% if curate %} curating{% if shot.ambiguous %} flagged{% endif %}{% endif %}"
                 data-index="{{ loop.index0 }}"
                 data-id="{{ shot.id }}"

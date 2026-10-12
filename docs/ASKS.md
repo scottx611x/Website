@@ -58,7 +58,14 @@ actual behaviour live, not just a 200.
       attempts (act cards, dashboard). See docs/revamp/OVERNIGHT.md "Rejected
       outright" before starting.
 - [ ] **A6. Facelift /birds/live.** Same history — "The Chorus" was rejected.
-- [ ] **A8. The home mosaic's SHAPE must survive the click into the gallery.**
+- [x] **A8. The home mosaic's SHAPE must survive the click into the gallery.**
+      Done 2026-10-11. A `?start=` arrival now lands in the GRID (the field's
+      canvas is fixed to the viewport and cannot carry an opening block) with
+      the five frames in the same 2x2-lead composition, the masonry continuing
+      beneath. Measured: lead is 2.04x wide / 2.07x tall at 1440, collapsing to
+      a full-width banner under 700px, same order, 1,886 frames below. Probe:
+      `mosaic`. Original wording follows.
+
       The home strip is a deliberate arrangement — one large lead tile plus
       four smaller ones. Clicking through currently preserves only the *set*
       (`/birds?start=…` pins those frames to the head of the sequence); the

@@ -70,18 +70,21 @@ const pan = ({dx, dy}) => {
     console.log('            travelled=%s', JSON.stringify({minTop: fwd.minTop, minLeft: fwd.minLeft, onScreen: fwd.onScreen}));
   }
 
-  // A7: arrive from home
+  // A7: arriving from a home preview. This now lands in the GRID with the
+  // opening mosaic (see mosaic.js), not the field, so the check is that the
+  // frame you clicked is fully on screen and clear of the header — the
+  // original complaint — rather than which layout carries it.
   await p.goto(BASE + '/', {waitUntil: 'networkidle'});
   await p.waitForTimeout(1000);
   const tile = await p.$('a.feature-tile');
   const wanted = await tile.$eval('img', i => (i.currentSrc || i.src).split('/').pop().split('?')[0]);
   await tile.click();
   await p.waitForLoadState('networkidle');
-  await p.waitForTimeout(2600);
+  await p.waitForTimeout(1800);
   const r = await p.evaluate((want) => {
     const hdr = document.querySelector('.gallery-header');
     const hb = hdr ? hdr.getBoundingClientRect().bottom : 0;
-    const hit = [...document.querySelectorAll('.bf-tile')].find(t => {
+    const hit = [...document.querySelectorAll('.shot, .bf-tile')].find(t => {
       const i = t.querySelector('img');
       return i && (i.currentSrc || i.src).split('/').pop().split('?')[0] === want;
     });
@@ -90,7 +93,7 @@ const pan = ({dx, dy}) => {
     return {found: true, x: Math.round(b.left), y: Math.round(b.top),
             clearOfHeader: b.top >= hb - 1, fullyVisible: b.left >= 0 && b.top >= 0};
   }, wanted);
-  console.log('  home→gallery clicked tile: %s', JSON.stringify(r));
+  console.log('  home\u2192gallery clicked tile: %s', JSON.stringify(r));
   errs.forEach(e => console.log('     ! ' + e));
   await b.close();
 })();
