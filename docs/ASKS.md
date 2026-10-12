@@ -86,12 +86,21 @@ Scott granted both unblocks on 2026-10-10: Screen Recording permission and
 
 ## C. Carried over, still open
 
-- [ ] **C1.** Restart the bird-pipeline Docker container so `archive_originals()`
-      (committed `085b7ae`) takes effect. Until then new posts need manual
-      reconciliation.
+- [ ] **C1.** **REBUILD** (not restart) the bird-pipeline container so
+      `archive_originals()` (committed `085b7ae`) takes effect. The Dockerfile
+      `COPY`s server.py at build time — it is NOT bind-mounted — so a restart
+      alone changes nothing. Verified: `grep -c "def archive_originals"` is 1
+      on disk, **0 in the running container**.
+
+          cd ~/bird-photography-pipeline && docker compose up -d --build
+
+      Not done unprompted: the active batch is parked at `proc_step: posting`
+      and a browser session was polling the UI. Interrupting a posting step is
+      the one failure mode that could double-post to Buffer.
 - [ ] **C2.** `wildlife.py` tells you to "commit it, and deploy" — wrong now that
       the S3 curation store is seeded. Make it write through to S3, or at least
-      warn. See the `live-curation` memory.
+      warn. See the `live-curation` memory. It also does not archive originals
+      for /photography, the same gap birds_manual.py had until 2026-10-11.
 - [ ] **C3.** ~38 GB of unposted `birbs` files are still unarchived (3,036 on
       disk vs 1,264 uploaded) if Scott wants the whole folder safe.
 - [ ] **C4.** `docs/revamp/OVERNIGHT.md` still describes the branch as

@@ -143,6 +143,15 @@ def process(src_dir):
                     Bucket=BUCKET, Key="%s/%s/%s.jpg" % (PREFIX, kind, img_id),
                     Body=blob, ContentType="image/jpeg",
                     CacheControl="public, max-age=31536000, immutable")
+            # The full-size source, cold-stored, keyed to match: original_key()
+            # maps images/<name> -> originals/<name>. A manual post bypasses
+            # the pipeline, which is the only other place originals get
+            # archived, so without this every manual frame reaches the site
+            # with no archival copy — which is exactly what happened to the
+            # first 68 of them.
+            s3.put_object(
+                Bucket=BUCKET, Key="%s/originals/%s.jpg" % (PREFIX, img_id),
+                Body=raw, ContentType="image/jpeg", StorageClass="GLACIER_IR")
             images.append(url)
             dims.append(list(dim))
             dates.append(date)
