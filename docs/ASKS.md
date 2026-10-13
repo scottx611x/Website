@@ -126,8 +126,16 @@ verifies and deletes locals. ~9 selections covers 2025-11 .. 2026-07.
 The collection half is proven: 1,275 originals shipped, 7 mis-keyed files
 caught, 12/12 byte-verified before deleting 20 GB.
 
-- [ ] **B1.** Run ONE month end-to-end with Scott watching before anything
-      unattended.
+- [ ] **B1.** **AUGUST 2026 STILL OWES A RUN.** Sweep row y=666 exported 0
+      files on 2026-10-13: a "Choose Export Location" prompt appeared and the
+      confirm click did not take. Every other bucket ran. Retry it alone and
+      watch the first dialog.
+- [ ] **B2.** Sweep yields so far (exports -> frames): May 25 32->14,
+      May 9/17/26 159->13, May 8-16 185->2, May rest 241->3, Apr 563->8,
+      Feb 735->1, Mar 651->3, Jan 335->11, Jun 318->13. Roughly 3,200 exports
+      for 68 frames. Yield is lumpy, not uniformly low: when a post's shoot is
+      intact in Lightroom the whole post returns at once (Jan gave 9 of its 11
+      from a single post).
 - [ ] **B2.** Batch the rest. 554 frames across 144 shoot days;
       `~/Desktop/lightroom-reexport.html` is the worksheet. Export into
       `~/Desktop/birbs`, then `BIRDS_USE_S3=1 tools/match_originals.py` and
