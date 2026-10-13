@@ -14,6 +14,12 @@
 set -u
 cd /Users/scott/Website
 
+# Where Lightroom is exporting. Desktop is the most TCC-contested folder on
+# macOS and this process lost read access to it twice mid-run, which strands
+# the exports; Documents has stayed readable.
+BIRBS="${BIRBS_DIR:-$HOME/Documents/birbs}"
+export BIRBS_DIR="$BIRBS"
+
 SIDEBAR_X=142
 LOG=/tmp/overnight.log
 
@@ -34,7 +40,7 @@ confirm_dialogs() {
 
 for Y in "$@"; do
   echo "=== month row y=$Y  $(date '+%H:%M') ===" >> "$LOG"
-  ls ~/Desktop/birbs > /tmp/ov_before.txt 2>/dev/null || { echo "  birbs unreadable" >> "$LOG"; exit 1; }
+  ls "$BIRBS" > /tmp/ov_before.txt 2>/dev/null || { echo "  birbs unreadable" >> "$LOG"; exit 1; }
   before=$(wc -l < /tmp/ov_before.txt | tr -d ' ')
 
   osascript -e 'tell application "Adobe Lightroom" to activate' >/dev/null 2>&1
@@ -50,7 +56,7 @@ for Y in "$@"; do
   for i in $(seq 1 540); do          # up to 90 min per month
     sleep 10
     confirm_dialogs
-    now=$(ls ~/Desktop/birbs 2>/dev/null | wc -l | tr -d ' ')
+    now=$(ls "$BIRBS" 2>/dev/null | wc -l | tr -d ' ')
     if [ "$now" = "$last" ]; then stable=$((stable+1)); else stable=0; fi
     last=$now
     [ "$stable" -ge 6 ] && [ "$now" -gt "$before" ] && break
@@ -62,12 +68,12 @@ for Y in "$@"; do
     2>/dev/null | grep -E '^\s+(\+|archived|unmatched)' >> "$LOG"
 
   # delete whatever did not match: never-posted shots, reproducible on demand
-  comm -13 <(sort /tmp/ov_before.txt) <(ls ~/Desktop/birbs | sort) > /tmp/ov_left.txt
+  comm -13 <(sort /tmp/ov_before.txt) <(ls "$BIRBS" | sort) > /tmp/ov_left.txt
   .venv/bin/python - <<'PY' >> "$LOG" 2>&1
 import os
 n=sz=0
 for name in open("/tmp/ov_left.txt"):
-    p = os.path.expanduser("~/Desktop/birbs/" + name.strip())
+    p = os.path.join(os.environ["BIRBS_DIR"], name.strip())
     if os.path.exists(p):
         sz += os.path.getsize(p); os.remove(p); n += 1
 print("  cleaned %d leftovers, %.2f GB" % (n, sz/1e9))
