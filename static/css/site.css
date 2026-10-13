@@ -643,10 +643,18 @@ body.home .site-nav { z-index: 0; }
     .page .gallery-header.is-stuck .bird-filter { flex: 1 1 8rem; }
     .page .gallery-header.is-stuck .filter-search { max-width: none; }
     .vm-btn { padding: 0.45rem 0.6rem; }
-    /* Stays anchored to the button's right edge — switching it to the left
-       pushed the panel straight off the side of the screen, since the button
-       itself sits at the right. Just clamp the width. */
-    .vm-pop { min-width: 0; width: min(17.5rem, calc(100vw - 2rem)); }
+    /* The panel used to anchor to the button's RIGHT edge, which was correct
+       while the button sat at the right of the bar. The one-row header moved
+       it to the left on narrow screens, so a 17.5rem panel hanging off a
+       left-hand button ran straight off the side — most of the menu was
+       unreachable, only its right edge visible.
+       Pin it to the viewport instead of the button: at this width it is a
+       sheet, not a dropdown, so it never depends on where the button landed. */
+    .view-menu { position: static; }
+    .vm-pop {
+        position: absolute; left: 1rem; right: 1rem;
+        width: auto; min-width: 0; max-width: none;
+    }
     /* No room for "when the bird was seen" beside the label at this width,
        and it clipped mid-word. The four order names carry themselves; the
        counts (.vm-num) are the part worth keeping. */
