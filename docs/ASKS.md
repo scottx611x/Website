@@ -126,10 +126,19 @@ verifies and deletes locals. ~9 selections covers 2025-11 .. 2026-07.
 The collection half is proven: 1,275 originals shipped, 7 mis-keyed files
 caught, 12/12 byte-verified before deleting 20 GB.
 
-- [ ] **B1.** **AUGUST 2026 STILL OWES A RUN.** Sweep row y=666 exported 0
-      files on 2026-10-13: a "Choose Export Location" prompt appeared and the
-      confirm click did not take. Every other bucket ran. Retry it alone and
-      watch the first dialog.
+- [x] **B1. FULL SWEEP COMPLETE (2026-10-13).** Every month of 2026, all of
+      2025 and 2010 exported and collected. August needed three retries: it
+      selects and exports fine, but the script was clicking it while a modal
+      from the previous month was still up, so the click was swallowed.
+      Coverage 1,310 -> **1,417 of 1,904 (74.4%)**, missing 594 -> **487**.
+      ~4,650 exports for ~107 frames.
+
+      Per bucket (exported -> frames): Apr 563->8, Feb 735->1, Mar 651->3,
+      Jan 335->11, Jun 318->13, Jul 593->8, Sep 297->7, **2025 507->55**,
+      Aug 647->9. 2025 yielded 11%, roughly 8x any 2026 month -- the old posts
+      are the unarchived ones and their shoots are still intact.
+
+      **The library is now exhausted.** What remains is not findable this way.
 - [ ] **B2.** Sweep yields so far (exports -> frames): May 25 32->14,
       May 9/17/26 159->13, May 8-16 185->2, May rest 241->3, Apr 563->8,
       Feb 735->1, Mar 651->3, Jan 335->11, Jun 318->13. Roughly 3,200 exports
