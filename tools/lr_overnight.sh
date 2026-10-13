@@ -25,7 +25,7 @@ LOG=/tmp/overnight.log
 
 confirm_dialogs() {
   local d x y
-  for name in "AI Update Required" "Choose Export Location"; do
+  for name in "AI Update Required" "Choose Export Location" "Export Results" "Updating AI Settings"; do
     d=$(osascript -e "tell application \"System Events\" to tell process \"Adobe Lightroom\" to get position of window \"$name\"" 2>/dev/null)
     [ -z "$d" ] && continue
     x=$(echo "$d" | cut -d, -f1 | tr -d ' '); y=$(echo "$d" | cut -d, -f2 | tr -d ' ')
@@ -39,8 +39,17 @@ confirm_dialogs() {
       cliclick c:$((x+46)),$((y+193)) >/dev/null 2>&1
       sleep 1
       cliclick c:$((x+405)),$((y+321)) >/dev/null 2>&1
-    else
+    elif [ "$name" = "Choose Export Location" ]; then
       cliclick c:$((x+743)),$((y+417)) >/dev/null 2>&1
+    else
+      # "Export Results" (a failure report) and a wedged "Updating AI Settings"
+      # are MODAL: until dismissed every later month silently re-exports
+      # whatever was already selected. That is how September, July, 2025 and
+      # August each reported June's exact 318 files. Dismiss via the
+      # bottom-right button (OK / Stop), measured from the window's own frame.
+      sz=$(osascript -e "tell application \"System Events\" to tell process \"Adobe Lightroom\" to get size of window \"$name\"" 2>/dev/null)
+      w=$(echo "$sz" | cut -d, -f1 | tr -d ' '); h=$(echo "$sz" | cut -d, -f2 | tr -d ' ')
+      [ -n "$w" ] && cliclick c:$((x + w - 80)),$((y + h - 40)) >/dev/null 2>&1
     fi
     echo "    confirmed: $name" >> "$LOG"
   done
