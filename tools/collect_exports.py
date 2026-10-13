@@ -66,6 +66,56 @@ def ham(a, b):
     return bin(a ^ b).count("1")
 
 
+# ---- crop-aware second stage -------------------------------------------
+# The dhash stage only tries CENTRE crops at Instagram's aspect ratios, so a
+# frame cropped off-centre is invisible to it -- proven: a posted 4:5 shot of a
+# bird over a snowy field scored d=16 against its own original, while ORB found
+# 332 matching keypoints. Feature matching is crop- and scale-invariant, so it
+# sees the posted frame INSIDE the wider original.
+#
+# Used only on exports the hash stage rejected: it is far slower, and the hash
+# is already reliable for the uncropped majority.
+_ORB = None
+
+
+def _orb():
+    global _ORB
+    if _ORB is None:
+        import cv2
+        _ORB = (cv2.ORB_create(1200),
+                cv2.BFMatcher(cv2.NORM_HAMMING, crossCheck=True))
+    return _ORB
+
+
+def feat(path_or_bytes):
+    import cv2
+    import numpy as np
+    arr = (np.frombuffer(path_or_bytes, np.uint8)
+           if isinstance(path_or_bytes, bytes)
+           else np.fromfile(path_or_bytes, np.uint8))
+    im = cv2.imdecode(arr, cv2.IMREAD_GRAYSCALE)
+    if im is None:
+        return None
+    h, w = im.shape
+    sc = 480.0 / max(h, w)
+    im = cv2.resize(im, (max(1, int(w * sc)), max(1, int(h * sc))))
+    orb, _ = _orb()
+    _k, d = orb.detectAndCompute(im, None)
+    return d
+
+
+def orb_score(d1, d2):
+    """How many keypoints agree. >=120 has been a true match in every case
+    checked by eye; burst frames of the same bird score well under that."""
+    if d1 is None or d2 is None:
+        return 0
+    _, bf = _orb()
+    try:
+        return len([m for m in bf.match(d1, d2) if m.distance < 48])
+    except Exception:  # noqa: BLE001
+        return 0
+
+
 def hash_local(path):
     with Image.open(path) as im:
         im.draft("L", (1024, 1024))
@@ -104,11 +154,26 @@ def targets():
     return out
 
 
+def target_urls():
+    """key -> posted thumbnail URL, for frames still lacking an original."""
+    g = birds._load_gallery_uncached()
+    shots = g[0] if isinstance(g, tuple) else g
+    out = {}
+    for s in shots:
+        for im in (s.get("images") or []):
+            u = im.get("url") if isinstance(im, dict) else str(im)
+            key = birds.original_key(u)
+            if key and not birds.has_original(u):
+                out[key] = birds.thumb_url(u)
+    return out
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--since", required=True, help="file listing birbs before the export")
     ap.add_argument("--keep", action="store_true", help="do not delete matched locals")
     ap.add_argument("--dry-run", action="store_true")
+    ap.add_argument("--no-orb", action="store_true")
     args = ap.parse_args()
 
     before = {l.strip() for l in open(args.since) if l.strip()}
@@ -141,6 +206,28 @@ def main():
             if d <= 6:
                 pairs.append((d, name, key))
     pairs.sort()
+
+    # Anything the hash stage could not place gets a crop-aware second look.
+    hashed_f = {name for _, name, _ in pairs}
+    leftover = [n for n in new if n not in hashed_f]
+    if leftover and not args.no_orb:
+        print("  crop-aware pass over %d unmatched exports..." % len(leftover),
+              flush=True)
+        urls = target_urls()
+        tfeat = {}
+        for key in list(TH):
+            try:
+                with urllib.request.urlopen(urls[key], timeout=30) as r:
+                    tfeat[key] = feat(r.read())
+            except Exception:  # noqa: BLE001
+                tfeat[key] = None
+        for name in leftover:
+            d1 = feat(os.path.join(BIRBS, name))
+            for key, d2 in tfeat.items():
+                sc = orb_score(d1, d2)
+                if sc >= 120:
+                    pairs.append((7, name, key))   # rank below any hash match
+        pairs.sort()
 
     used_f, used_k, shipped = set(), set(), []
     for d, name, key in pairs:
