@@ -30,7 +30,7 @@ if not os.environ.get("BIRDS_USE_S3"):
              "empty archive and reports everything as missing.")
 
 BUCKET = os.environ.get("BIRDS_S3_BUCKET", "birds-scott-ouellette")
-SOURCE_DIRS = [os.path.expanduser("~/Desktop/birbs"),
+SOURCE_DIRS = [os.environ.get("BIRBS_DIR") or os.path.expanduser("~/Desktop/birbs"),
                os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
                             "birds_incoming")]
 EXTS = {".jpg", ".jpeg", ".png", ".webp"}

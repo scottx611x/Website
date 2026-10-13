@@ -49,8 +49,8 @@ import birds  # noqa: E402
 if not os.environ.get("BIRDS_USE_S3"):
     sys.exit("BIRDS_USE_S3=1 is required.")
 
-BIRBS = os.path.expanduser("~/Desktop/birbs")
-STATE = os.path.expanduser("~/Desktop/.lr_backfill_state.json")
+BIRBS = os.environ.get("BIRBS_DIR") or os.path.expanduser("~/Desktop/birbs")
+STATE = os.path.join(os.path.dirname(BIRBS), ".lr_backfill_state.json")
 BUCKET = os.environ.get("BIRDS_S3_BUCKET", "birds-scott-ouellette")
 ASPECTS = [None, 0.800, 0.847, 1.000, 1.250]
 Image.MAX_IMAGE_PIXELS = None
@@ -263,7 +263,7 @@ def main():
     done = set(state["done"])
 
     targets = load_targets()
-    cache = os.path.expanduser("~/Desktop/.lr_backfill_targets.json")
+    cache = os.path.join(os.path.dirname(BIRBS), ".lr_backfill_targets.json")
     TH = hashed_targets(targets, cache)
     print("  missing frames to satisfy : %d" % len(TH))
 

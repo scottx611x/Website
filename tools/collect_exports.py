@@ -3,7 +3,8 @@
     BIRDS_USE_S3=1 .venv/bin/python tools/collect_exports.py --since <snapshot.txt>
                                                              [--keep] [--dry-run]
 
-Scott exports a shoot day out of Lightroom into ~/Desktop/birbs; this takes it
+Scott exports a shoot day out of Lightroom into the birbs folder ($BIRBS_DIR,
+default ~/Desktop/birbs); this takes it
 from there. For each newly-appeared file:
 
     hash it (crop-tolerant) -> find the frame it belongs to -> upload as that
@@ -33,9 +34,9 @@ import birds  # noqa: E402
 if not os.environ.get("BIRDS_USE_S3"):
     sys.exit("BIRDS_USE_S3=1 is required — without it every frame looks missing.")
 
-BIRBS = os.path.expanduser("~/Desktop/birbs")
+BIRBS = os.environ.get("BIRBS_DIR") or os.path.expanduser("~/Desktop/birbs")
 BUCKET = os.environ.get("BIRDS_S3_BUCKET", "birds-scott-ouellette")
-CACHE = os.path.expanduser("~/Desktop/.lr_backfill_targets.json")
+CACHE = os.path.join(os.path.dirname(BIRBS), ".lr_backfill_targets.json")
 ASPECTS = [None, 0.800, 0.847, 1.000, 1.250]
 Image.MAX_IMAGE_PIXELS = None
 
