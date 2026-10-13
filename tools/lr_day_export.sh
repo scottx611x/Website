@@ -14,13 +14,30 @@
 set -u
 
 SIDEBAR_X=142
-dialog_guard() {                     # click Export (not Cancel) if it appears
+# Two dialogs can interrupt an export; both are confirmations, not errors, so
+# both get "Export" rather than "Cancel".
+#
+#   AI Update Required    - some photos need AI settings refreshed first
+#   Choose Export Location - "Export with Previous" forgot its destination.
+#     This happens when the remembered folder becomes unreadable (TCC took
+#     ~/Desktop away mid-session once). The picker already points at birbs, so
+#     confirming it both exports AND re-establishes the destination.
+#
+# Left unhandled these silently STACK and every later day exports nothing.
+dialog_guard() {
   local d x y
   d=$(osascript -e 'tell application "System Events" to tell process "Adobe Lightroom" to get position of window "AI Update Required"' 2>/dev/null)
-  [ -z "$d" ] && return
-  x=$(echo "$d" | cut -d, -f1 | tr -d ' '); y=$(echo "$d" | cut -d, -f2 | tr -d ' ')
-  cliclick c:$((x+405)),$((y+321)) >/dev/null 2>&1
-  echo "    (AI dialog -> Export)"
+  if [ -n "$d" ]; then
+    x=$(echo "$d" | cut -d, -f1 | tr -d ' '); y=$(echo "$d" | cut -d, -f2 | tr -d ' ')
+    cliclick c:$((x+405)),$((y+321)) >/dev/null 2>&1
+    echo "    (AI dialog -> Export)"
+  fi
+  d=$(osascript -e 'tell application "System Events" to tell process "Adobe Lightroom" to get position of window "Choose Export Location"' 2>/dev/null)
+  if [ -n "$d" ]; then
+    x=$(echo "$d" | cut -d, -f1 | tr -d ' '); y=$(echo "$d" | cut -d, -f2 | tr -d ' ')
+    cliclick c:$((x+743)),$((y+417)) >/dev/null 2>&1
+    echo "    (location dialog -> Export)"
+  fi
 }
 
 for Y in "$@"; do
