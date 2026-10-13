@@ -30,6 +30,14 @@ confirm_dialogs() {
     [ -z "$d" ] && continue
     x=$(echo "$d" | cut -d, -f1 | tr -d ' '); y=$(echo "$d" | cut -d, -f2 | tr -d ' ')
     if [ "$name" = "AI Update Required" ]; then
+      # UNCHECK "Update affected photos" first. Left checked, confirming kicks
+      # off an "Updating AI Settings" pass that wedges (CPU drops to nothing and
+      # the count never advances) and blocks the export behind it -- that is how
+      # five months in a row exported 0 files. The dialog explicitly offers
+      # "continue to export with current settings", which is what we want: we
+      # are archiving the edit as it was posted, not re-rendering it.
+      cliclick c:$((x+46)),$((y+193)) >/dev/null 2>&1
+      sleep 1
       cliclick c:$((x+405)),$((y+321)) >/dev/null 2>&1
     else
       cliclick c:$((x+743)),$((y+417)) >/dev/null 2>&1
