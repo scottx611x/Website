@@ -25,7 +25,7 @@ LOG=/tmp/overnight.log
 
 confirm_dialogs() {
   local d x y
-  for name in "AI Update Required" "Choose Export Location" "Export Results" "Updating AI Settings"; do
+  for name in "AI Update Required" "Choose Export Location" "Export Results" "Updating AI Settings" "Cannot complete the Export"; do
     d=$(osascript -e "tell application \"System Events\" to tell process \"Adobe Lightroom\" to get position of window \"$name\"" 2>/dev/null)
     [ -z "$d" ] && continue
     x=$(echo "$d" | cut -d, -f1 | tr -d ' '); y=$(echo "$d" | cut -d, -f2 | tr -d ' ')
@@ -86,6 +86,13 @@ for Y in "$@"; do
     [ "$stable" -ge 12 ] && break
   done
   echo "  exported $((last - before)) files" >> "$LOG"
+  # "Cannot complete the Export ... you need N GB more free space" means the
+  # selection was the WHOLE LIBRARY, i.e. the month click missed and landed on
+  # All Photos. Nine months failed that way in one night, each logging a bare
+  # "exported 0 files". Say so loudly instead.
+  if [ "$((last - before))" -eq 0 ]; then
+    echo "  !! nothing exported -- check the month row actually selected a month" >> "$LOG"
+  fi
 
   BIRDS_USE_S3=1 .venv/bin/python tools/collect_exports.py --since /tmp/ov_before.txt \
     2>/dev/null | grep -E '^\s+(\+|archived|unmatched)' >> "$LOG"
