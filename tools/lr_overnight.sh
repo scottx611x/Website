@@ -60,8 +60,14 @@ for Y in "$@"; do
   ls "$BIRBS" > /tmp/ov_before.txt 2>/dev/null || { echo "  birbs unreadable" >> "$LOG"; exit 1; }
   before=$(wc -l < /tmp/ov_before.txt | tr -d ' ')
 
+  # Clear anything left over from the previous month FIRST. A modal swallows
+  # the month click, the selection never changes, and Select All + Export then
+  # re-exports the previous month while reporting success -- that is how four
+  # months in a row each claimed June's exact 318 files.
   osascript -e 'tell application "Adobe Lightroom" to activate' >/dev/null 2>&1
   sleep 1
+  confirm_dialogs; sleep 2
+  confirm_dialogs; sleep 2
   cliclick c:$SIDEBAR_X,$Y >/dev/null 2>&1
   sleep 4
   osascript -e 'tell application "System Events" to tell process "Adobe Lightroom" to click menu item "Select All" of menu 1 of menu bar item "Edit" of menu bar 1' >/dev/null 2>&1
