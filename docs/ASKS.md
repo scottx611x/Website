@@ -155,6 +155,19 @@ caught, 12/12 byte-verified before deleting 20 GB.
 
 ## C. Carried over, still open
 
+- [ ] **C0. PUT LIGHTROOM'S EXPORT DESTINATION BACK TO ~/Desktop/birbs.**
+      On 2026-10-13 it was re-pointed to ~/Documents/birbs to dodge a TCC
+      problem (this process kept losing read access to Desktop). That BREAKS
+      the posting pipeline's archiving: `archive_originals()` reads `/birds`,
+      mounted from `~/Desktop/birbs`, so a batch exported to Documents is
+      invisible to it and its full-size originals never reach Glacier.
+      `BIRDS_DIR` is used in 23 places in server.py (thumbs, previews,
+      .excluded, the posting UI) -- it is the pipeline's whole working folder,
+      so do NOT split it. One folder, and it must be Desktop/birbs.
+      Fix the access problem the other way: give iTerm **Full Disk Access**
+      and RESTART iTerm (TCC changes do not apply to a running app).
+      Re-point via File > Export… once; Export with Previous then reuses it.
+
 - [ ] **C1.** **REBUILD** (not restart) the bird-pipeline container so
       `archive_originals()` (committed `085b7ae`) takes effect. The Dockerfile
       `COPY`s server.py at build time — it is NOT bind-mounted — so a restart
