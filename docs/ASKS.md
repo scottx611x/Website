@@ -188,16 +188,19 @@ caught, 12/12 byte-verified before deleting 20 GB.
       Not done unprompted: the active batch is parked at `proc_step: posting`
       and a browser session was polling the UI. Interrupting a posting step is
       the one failure mode that could double-post to Buffer.
-- [ ] **C2.** `wildlife.py` tells you to "commit it, and deploy" — wrong now that
-      the S3 curation store is seeded. Make it write through to S3, or at least
-      warn. See the `live-curation` memory. It also does not archive originals
-      for /photography, the same gap birds_manual.py had until 2026-10-11.
+- [x] **C2. DONE (2026-10-15).** `wildlife.py` now archives each untouched
+      source to `wildlife/originals/<id>.jpg` as GLACIER_IR (the web copy is
+      capped at 2048px, so the full-res file existed only on the import drive),
+      and its closing note says plainly that committing + deploying is NOT
+      enough — production reads the S3 curation store, which wins over the
+      deployed repo copy.
 - [ ] **C3.** ~38 GB of unposted `birbs` files are still unarchived (3,036 on
       disk vs 1,264 uploaded) if Scott wants the whole folder safe.
-- [ ] **C4.** `docs/revamp/OVERNIGHT.md` still describes the branch as
-      undeployed; it has shipped. Tidy.
-- [ ] **C5.** Stash `stash@{0}: On search-and-video: log_level INFO` — unrelated
-      to the deploys; decide whether to keep or drop.
+- [x] **C4. DONE (2026-10-15).** OVERNIGHT.md marked as shipped history.
+- [x] **C5. DONE (2026-10-15).** Kept. It was a one-line `log_level: INFO` in
+      zappa_settings.json that never landed — Zappa defaults to DEBUG, which
+      floods CloudWatch and costs money for nothing. Applied and committed;
+      the stash is gone.
 
 ## Standing constraints
 

@@ -120,6 +120,14 @@ def process(src_dir):
                     Body=blob, ContentType="image/jpeg",
                     CacheControl="public, max-age=31536000, immutable",
                 )
+            # The untouched source, cold-stored. The web copy is capped at
+            # 2048px, so without this the full-resolution file exists only on
+            # whatever drive it was imported from. birds_manual.py gained this
+            # on 2026-10-11; /photography had the same hole.
+            s3.put_object(
+                Bucket=BUCKET, Key="%s/originals/%s.jpg" % (PREFIX, img_id),
+                Body=data, ContentType="image/jpeg", StorageClass="GLACIER_IR",
+            )
             base = "https://%s.s3.amazonaws.com/%s" % (BUCKET, PREFIX)
             entry = {
                 "id": img_id,
@@ -143,7 +151,12 @@ def process(src_dir):
     print("\n%d added, %d already published. Manifest: %s"
           % (added, skipped, os.path.relpath(MANIFEST, HERE)))
     if added:
-        print("Review static/img/photography/manifest.json, commit it, and deploy.")
+        print()
+        print("Review %s and commit it." % os.path.relpath(MANIFEST, HERE))
+        print("NOTE: committing + deploying is NOT enough. In production the")
+        print("gallery reads the S3 curation store (birds/photos.json), which")
+        print("wins over the deployed repo copy; the new entries must be")
+        print("appended there or they will not appear on the live site.")
 
 
 if __name__ == "__main__":

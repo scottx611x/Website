@@ -3,9 +3,14 @@
 **If you are a fresh context: read this whole file, then run**
 `git log --oneline master..HEAD` **to see how far the run got.**
 
-- **Branch:** `nocturne`, off `stats-revamp` @ 5859aaa.
-- **NEVER deploy from this branch.** Prod is `master` (@ b1af8c9) and Scott
-  said explicitly: DO NOT PUSH ANYTHING TO PROD.
+> **HISTORICAL.** This was an overnight design run on the `nocturne` branch.
+> Everything described here has since merged and SHIPPED to production. The
+> "never deploy" rule below applied to that run only — it is no longer in
+> force. Kept for the rejected-design record, which is still the most useful
+> thing in it.
+
+- **Branch:** `nocturne`, off `stats-revamp` @ 5859aaa (long since merged).
+- ~~**NEVER deploy from this branch.**~~ Applied during the run only.
 - **Never open a browser tab.** Standing constraint — someone else is using
   the machine. Everything visual goes through the headless probes below.
 
