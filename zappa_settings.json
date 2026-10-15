@@ -15,7 +15,15 @@
             "*.err",
             "*.log",
             "sound-station",
-            "sound-station/*"
+            "sound-station/*",
+            "*/*.err",
+            "*/*.log",
+            "birds/*.err",
+            "birds/*.log",
+            ".deploy-venv",
+            ".deploy-venv/*",
+            ".venv",
+            ".venv/*"
         ],
         "timeout_seconds": 300,
         "memory_size": 1024,
