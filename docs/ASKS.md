@@ -76,10 +76,11 @@ actual behaviour live, not just a 200.
       on the home page lands on /birds with the birds drifted to the top-left,
       out of view.
 
-## B. Lightroom originals recovery — STALLED, read this before retrying
+## B. Lightroom originals recovery — LARGELY DONE
 
-**631 frames still missing. Zero recovered. Four automation designs failed
-(2026-10-11/12).** Do NOT start a fifth from scratch.
+**Coverage 90.7% (1,732 / 1,909). 177 missing**, of which 52 are manual-post
+frames whose sources left the disk years ago. The historical note below is kept
+because every line of it was learned the hard way.
 
 **The mistake to avoid repeating:** Scott already has working Lightroom
 automation in `~/bird-photography-pipeline` — `lr_auto.py`, `lr_denoise.py`,
@@ -155,7 +156,13 @@ caught, 12/12 byte-verified before deleting 20 GB.
 
 ## C. Carried over, still open
 
-- [ ] **C0. PUT LIGHTROOM'S EXPORT DESTINATION BACK TO ~/Desktop/birbs.**
+- [x] **C0. Export destination reconciled (2026-10-14).** Rather than fight
+      Lightroom's export dialog, `~/Documents/birbs` is now a SYMLINK to
+      `~/Desktop/birbs`, so both paths are one folder: whichever Lightroom
+      writes to, the pipeline's `/birds` mount sees it. Verified both show
+      the same 2,658 files. Original note follows.
+
+      ~~PUT LIGHTROOM'S EXPORT DESTINATION BACK TO ~/Desktop/birbs.~~
       On 2026-10-13 it was re-pointed to ~/Documents/birbs to dodge a TCC
       problem (this process kept losing read access to Desktop). That BREAKS
       the posting pipeline's archiving: `archive_originals()` reads `/birds`,
@@ -168,7 +175,9 @@ caught, 12/12 byte-verified before deleting 20 GB.
       and RESTART iTerm (TCC changes do not apply to a running app).
       Re-point via File > Export… once; Export with Previous then reuses it.
 
-- [ ] **C1.** **REBUILD** (not restart) the bird-pipeline container so
+- [x] **C1. DONE (2026-10-12).** Rebuilt; `archive_originals` verified present
+      in the running image (was 0, now 1), state intact, batch resumed.
+      ~~**REBUILD** (not restart) the bird-pipeline container~~ so
       `archive_originals()` (committed `085b7ae`) takes effect. The Dockerfile
       `COPY`s server.py at build time — it is NOT bind-mounted — so a restart
       alone changes nothing. Verified: `grep -c "def archive_originals"` is 1
