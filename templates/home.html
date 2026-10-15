@@ -69,7 +69,7 @@
 
     {% if curate %}
     <section class="tagline-curate">
-        <p class="curate-note mono"><strong>Taglines.</strong> These rotate after &ldquo;&hellip;Engineer that&rdquo; in the hero. Edit (auto-saves), reorder with &uarr;&darr;, or &times; delete.</p>
+        <p class="curate-note mono"><strong>Taglines.</strong> Rotate in the hero. Auto-saves.</p>
         <div id="tagline-list" class="tagline-edit-list">
             {% for line in taglines %}
             <div class="tagline-edit">
@@ -87,7 +87,7 @@
         </p>
     </section>
     <section class="tagline-curate">
-        <p class="curate-note mono"><strong>Facts.</strong> These rotate in the footer (after the year) across the whole site. Edit (auto-saves), reorder, or &times; delete.</p>
+        <p class="curate-note mono"><strong>Facts.</strong> Rotate in the footer. Auto-saves.</p>
         <div id="fact-list" class="tagline-edit-list">
             {% for fact in facts %}
             <div class="tagline-edit">
@@ -198,7 +198,7 @@
         <div class="feature-grid placeholder">
             {% for i in range(5) %}<div class="feature-tile{% if loop.first %} lead{% endif %} ph"></div>{% endfor %}
         </div>
-        <p class="hint">More photos appear here as the gallery updates.</p>
+        
         {% endif %}
         {% if bird_stats %}
         <p class="strip-stats mono"><strong>{{ bird_stats.species }}</strong> species &middot; <strong>{{ "{:,}".format(bird_stats.photos) }}</strong> photos &amp; videos &middot; <strong>{{ bird_stats.places }}</strong> places pinned</p>
@@ -240,8 +240,7 @@
         <div class="strip-head">
             <div>
                 <h2>Projects</h2>
-                <p class="lede">I build things for work and for fun. The current list is on
-                <a href="https://github.com/scottx611x">GitHub</a>.</p>
+                <p class="lede">More on <a href="https://github.com/scottx611x">GitHub</a>.</p>
             </div>
         </div>
         {% if projects %}
@@ -262,7 +261,7 @@
     {% if posts %}
     <section class="strip writing reveal">
         <div class="strip-head">
-            <div><h2>Writing</h2><p class="lede">Occasional posts on code, photography, and whatever I'm working on.</p></div>
+            <div><h2>Writing</h2><p class="lede">Code, photography, whatever I'm working on.</p></div>
         </div>
         <ul class="note-list">
             {% for post in posts %}

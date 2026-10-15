@@ -78,7 +78,7 @@
              is always clear). -->
         <div class="stat-block stat-span-2" id="s-life">
             <h2>The life list</h2>
-            <p class="stat-sub mono">every species, the day I first photographed it. scrub to explore.</p>
+            <p class="stat-sub mono">every species, the day I first photographed it.</p>
             <div class="accum-stage">
                 <div id="accum-chart" class="d3-chart" tabindex="0" role="application"
                      aria-label="Life list timeline. Use left and right arrow keys to step through species."></div>
@@ -111,7 +111,7 @@
         <!-- Phenology matrix: every species x every month -->
         <div class="stat-block stat-span-2" id="s-year">
             <h2>The year, in birds</h2>
-            <p class="stat-sub mono">all {{ series.pheno|length }} species, month by month. darker = more photos. tap a cell for that bird&rsquo;s photos.</p>
+            <p class="stat-sub mono">all {{ series.pheno|length }} species, month by month. darker = more photos.</p>
             <div class="pheno-controls">
                 <input id="pheno-search" class="pheno-search mono" type="search"
                        placeholder="Filter species or family&hellip;" autocomplete="off">
@@ -126,7 +126,7 @@
         <!-- Calendar heatmap: every day is a door into that day's photos -->
         <div class="stat-block stat-span-2" id="days">
             <h2>Shooting days</h2>
-            <p class="stat-sub mono">the last 12 months &mdash; bigger dot, more photos. tap a day for its shots.</p>
+            <p class="stat-sub mono">the last 12 months &mdash; bigger dot, more photos.</p>
             <div class="cal-chips mono" id="cal-chips"></div>
             <div id="cal-chart" class="d3-chart cal-scroll"></div>
         </div>
@@ -209,7 +209,7 @@
         {% if rhythm and rhythm.species %}
         <div class="stat-block stat-span-2" id="rhythm-block">
             <h2>The daily rhythm</h2>
-            <p class="stat-sub mono">each ridge is one species&rsquo; day &mdash; when it sings, dawn to night, peaked at its most vocal hour. tap a bird for its photos.</p>
+            <p class="stat-sub mono">when each species sings, dawn to night.</p>
             {% if rhythm.legend %}
             <div class="rhythm-legend mono">
                 {% for b in rhythm.legend %}<span><i style="background: {{ b.hue }}"></i>{{ b.label }}</span>{% endfor %}
@@ -303,7 +303,7 @@
                 <h2>The river</h2>
                 <button type="button" id="river-span" class="river-span mono">full history &rarr;</button>
             </div>
-            <p class="stat-sub mono">every species I&rsquo;ve photographed, flowing through the seasons.</p>
+            <p class="stat-sub mono">every species, through the seasons.</p>
             <div class="river-stage">
                 <div id="river-chart" class="d3-chart" tabindex="0" role="application"
                      aria-label="River of every species by season. Left and right arrow keys step through the species; Enter opens the selected bird."></div>
