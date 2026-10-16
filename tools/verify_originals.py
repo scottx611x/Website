@@ -16,6 +16,14 @@ high-inlier fit; a coincidental match scatters and collapses.
 A wrong original is worse than a missing one -- it prints the wrong photograph
 and nothing downstream questions it -- so anything that fails is removed and the
 frame simply goes back to being unarchived.
+
+LIMIT, learned 2026-10-16: a correct pair can still score low when the frame has
+almost no texture. Two hawks against open sky scored 21 inliers each and were
+flagged, but rendering them side by side showed identical framing, same cloud --
+they were right. So DO NOT run --delete over archives that came from
+post_records (the pipeline names the export per frame, which is ground truth,
+not inference). Use this on hash/ORB-derived matches, and eyeball anything in
+the 15-30 band before removing it.
 """
 import argparse
 import io
