@@ -202,6 +202,18 @@ caught, 12/12 byte-verified before deleting 20 GB.
       floods CloudWatch and costs money for nothing. Applied and committed;
       the stash is gone.
 
+- [x] **C6. Removed the duplicate sound exporter (2026-10-15).** The Mac ran
+      `com.scott.birdnet-export` every 60s pointed at `localhost:8080`, where
+      nothing listens — BirdNET-Go is on the Pi. It had failed every single run
+      since ~July: 146,456 tracebacks, 328 MB in `birds/sound_export.err`.
+      Nothing was lost — the Pi's own `birdnet-export.timer` has been doing the
+      real work the whole time (archive unbroken, 2026-07-18 .. today) — but
+      that log lived inside the project and `*.err` does not match a nested
+      path, so **328 MB shipped into the Lambda package** and broke the deploy.
+      Agent unloaded and renamed `.disabled`; backup at
+      `/tmp/birdnet-export.plist.removed.bak`. The Pi owns this job alone now,
+      which also removes two writers racing on the same S3 objects.
+
 ## Standing constraints
 
 - **Never open a browser tab** — someone else uses this laptop. Visual checks go
