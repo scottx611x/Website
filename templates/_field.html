@@ -1386,16 +1386,22 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
      sentinel watched by an IntersectionObserver only fires when the END of
      the strip is genuinely reached, so our own scrolling cannot drive it. */
   var stripShown = 0, stripAuto = false, stripIO = null, stripEnd = null;
+  /* The strip's click handler reads `data-i` off the thumbnail. Two other
+     places rebuilt the strip with a bare <img> — shuffling the frames, and
+     hiding one in curate — so `+undefined` became NaN, showFrame(NaN) did
+     nothing, and every thumbnail went dead until the modal was reopened.
+     One renderer now, so a strip item cannot be built without its index. */
+  function stripItem(f, i) {
+    var nm = f.name || "";
+    return '<img src="' + f.thumb + '" alt="' + esc(nm) + '" title="' +
+           esc(nm + (f.date ? " · " + f.date : "")) +
+           '" loading="lazy" data-i="' + i + '">';
+  }
   function growStrip(n) {
     var strip = $("bf-ostrip");
     var upto = Math.min(frames.length, stripShown + n);
     var frag = "";
-    for (var i = stripShown; i < upto; i++) {
-      var nm = frames[i].name || "";
-      frag += '<img src="' + frames[i].thumb + '" alt="' + esc(nm) + '" title="' +
-              esc(nm + (frames[i].date ? " · " + frames[i].date : "")) +
-              '" loading="lazy" data-i="' + i + '">';
-    }
+    for (var i = stripShown; i < upto; i++) frag += stripItem(frames[i], i);
     if (!stripEnd) {
       stripEnd = document.createElement("span");
       stripEnd.className = "bf-stripend";
@@ -2056,9 +2062,7 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
       var j = Math.floor(Math.random() * (i + 1));
       var t = frames[i]; frames[i] = frames[j]; frames[j] = t;
     }
-    $("bf-ostrip").innerHTML = frames.map(function (f) {
-      return '<img src="' + f.thumb + '" alt="" loading="lazy">';
-    }).join("");
+    $("bf-ostrip").innerHTML = frames.map(stripItem).join("");
     showFrame(0);
   });
 
@@ -2096,9 +2100,7 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
     var f = frames[fi]; if (!f || !f.pid) return;
     post("/curate/exclude-image", { id: f.pid, index: f.idx }, function () {
       frames.splice(fi, 1);                       // drop it from the strip too
-      $("bf-ostrip").innerHTML = frames.map(function (x) {
-        return '<img src="' + x.thumb + '" alt="" loading="lazy">';
-      }).join("");
+      $("bf-ostrip").innerHTML = frames.map(stripItem).join("");
       if (frames.length) showFrame(Math.min(fi, frames.length - 1));
     });
   });
