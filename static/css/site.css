@@ -1740,3 +1740,9 @@ a.stat-card:active, .bird-stat-link:active,
     .masonry.opening-mosaic { grid-template-columns: repeat(2, 1fr); grid-auto-rows: 160px; }
     .masonry.opening-mosaic .shot:first-child { grid-column: span 2; grid-row: span 1; }
 }
+
+/* Curate actions beside the stage. Tinted so they read as edits, not
+   navigation — the row they sit in is otherwise all view controls. */
+.bf-ico-cur { border-color: rgba(192, 57, 43, .45); color: #c0392b; }
+.bf-ico-cur:hover { border-color: #c0392b; background: rgba(192, 57, 43, .10); }
+.bf-ico-cur.on { background: var(--amber, #e8b04b); border-color: var(--amber, #e8b04b); color: var(--ink, #17201a); }

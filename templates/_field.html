@@ -527,6 +527,15 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
           <button type="button" id="bf-oshuffle" class="bf-ico" title="Shuffle this bird's frames" aria-label="Shuffle this bird's frames"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 3h5v5"/><path d="M4 20 21 3"/><path d="M21 16v5h-5"/><path d="m15 15 6 6"/><path d="M4 4l5 5"/></svg></button>
           <button type="button" id="bf-ofs" class="bf-ico" title="Full screen" aria-label="Full screen"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M16 3h3a2 2 0 0 1 2 2v3"/><path d="M8 21H5a2 2 0 0 1-2-2v-3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/></svg></button>
           <button type="button" id="bf-olink" class="bf-ico" title="Copy a link to this frame" aria-label="Copy a link to this frame"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.5 1.5"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7L12 19"/></svg></button>
+          {% if curate %}
+          {# The full curate panel sits below By-the-numbers, the year chart and
+             the map — three sections down, so on a phone the frame you are
+             curating has scrolled off before you reach it. These two act on the
+             frame ON THE STAGE, so they belong beside it. The panel below
+             stays; it also carries the location field. #}
+          <button type="button" id="bf-oaway2" class="bf-ico bf-ico-cur" title="Mark this frame out of area" aria-label="Mark this frame out of area"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg></button>
+          <button type="button" id="bf-ohide2" class="bf-ico bf-ico-cur" title="Hide this frame" aria-label="Hide this frame"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.9 4.2A10.9 10.9 0 0 1 12 4c7 0 10 8 10 8a18.5 18.5 0 0 1-2.2 3.2"/><path d="M6.6 6.6A18.5 18.5 0 0 0 2 12s3 8 10 8a10.9 10.9 0 0 0 5.4-1.4"/><path d="M14.1 14.1a3 3 0 1 1-4.2-4.2"/><path d="m2 2 20 20"/></svg></button>
+          {% endif %}
         </div>
       </div>
         </div>
@@ -2071,11 +2080,19 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
      every frame change. Editing the wrong photo is the failure mode worth
      designing against. */
   var cAway = $("bf-caway"), cHide = $("bf-chide"), cLoc = $("bf-cloc");
+  // The same two actions, duplicated beside the stage so they are reachable on
+  // a phone without scrolling past three sections. They drive the SAME
+  // handlers rather than their own, so the two copies cannot drift apart.
+  var cAway2 = $("bf-oaway2"), cHide2 = $("bf-ohide2");
+  if (cAway2) cAway2.addEventListener("click", function () { if (cAway) cAway.click(); });
+  if (cHide2) cHide2.addEventListener("click", function () { if (cHide) cHide.click(); });
   function curateSync() {
     if (!cAway) return;
     var f = frames[fi];
     var ok = !!(f && f.pid);
-    [cAway, cHide].forEach(function (b) { b.disabled = !ok; b.style.opacity = ok ? 1 : .4; });
+    [cAway, cHide, cAway2, cHide2].filter(Boolean).forEach(function (b) {
+      b.disabled = !ok; b.style.opacity = ok ? 1 : .4;
+    });
     cLoc.disabled = !ok;
     $("bf-cwhich").textContent = ok
       ? "frame " + (fi + 1) + " of " + frames.length + " · post " + f.pid + " · image " + f.idx
@@ -2083,6 +2100,7 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
     if (ok) {
       cLoc.value = f.where || "";
       cAway.classList.toggle("on", !!f.away);
+      if (cAway2) cAway2.classList.toggle("on", !!f.away);
     }
   }
   function post(url, body, done) {
