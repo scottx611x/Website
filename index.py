@@ -1209,11 +1209,25 @@ def _sound_log_merged():
         arch = birds.load_sound_archive() or {}
         live = birds.load_sound_log() or {}
         rows = list(arch.get("log") or [])
-        seen = {r.get("audio") for r in rows}
+        at = {r.get("audio"): r for r in rows if r.get("audio")}
         for r in (live.get("log") or []):
-            if r.get("audio") and r.get("audio") not in seen:
+            if not r.get("audio"):
+                continue
+            prev = at.get(r["audio"])
+            if prev is None:
                 rows.append(r)
-                seen.add(r.get("audio"))
+                at[r["audio"]] = r
+                continue
+            # Same clip in both: the LOG is the richer record. The archive is
+            # rebuilt from clip FILENAMES, which do not encode which mic
+            # recorded them, so every archive row carries node="". Because the
+            # archive already holds today's clips, skipping the log's copy as a
+            # duplicate dropped the node from every recording — and the per-mic
+            # filters then matched nothing ("nothing heard yet today" while the
+            # counts said 14 species).
+            for k, v in r.items():
+                if v not in (None, "") and prev.get(k) in (None, ""):
+                    prev[k] = v
         if not rows:                      # archive absent: the log alone still works
             return live
         rows.sort(key=lambda r: r.get("t") or "", reverse=True)
