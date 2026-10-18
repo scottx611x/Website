@@ -162,6 +162,20 @@ body.field-view .gallery-header.is-stuck{
   grid-template-rows:1fr auto;min-height:100svh}
 .bf-viewer{grid-column:1;grid-row:1 / span 2;min-width:0;display:flex;
   flex-direction:column}
+/* A quiet mark on the photo, not a button competing with the controls:
+   no chip, no fill behind it, just the amber star with a shadow so it stays
+   legible over a bright sky. Sits opposite the close button. */
+.bf-stagestar{position:absolute;top:.75rem;left:.9rem;z-index:5;
+  background:none;border:0;padding:.2rem;line-height:0;cursor:default;
+  color:var(--amber,#e8b04b);opacity:.85;
+  filter:drop-shadow(0 1px 2px rgba(0,0,0,.55))}
+.bf-stagestar.on svg{fill:currentColor}
+.bf-stagestar[data-ro]{pointer-events:none}
+/* Curating: unstarred frames show a faint outline you can click to star. */
+.bf-stagestar:not([data-ro]){cursor:pointer}
+.bf-stagestar:not([data-ro]):not(.on){opacity:.4;color:#fff}
+.bf-stagestar:not([data-ro]):hover{opacity:1}
+@media (max-width:700px){.bf-stagestar{top:.5rem;left:.6rem}}
 .bf-stage{position:relative;display:flex;align-items:center;
   justify-content:center;padding:1.4rem 1.4rem .6rem;min-width:0;flex:1}
 /* [hidden] sets display:none in the UA sheet, but an author `display:block`
@@ -495,6 +509,10 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
     <div class="bf-viewer">
     <div class="bf-stage">
       <button class="bf-arrow bf-prev" id="bf-prev" aria-label="Previous frame">&#8249;</button>
+      {# A quiet marker on the photo itself rather than a control in the row
+         below: beside the starred-only filter it read as the same icon twice.
+         Outside curate it only appears when the frame IS starred. #}
+      <button type="button" id="bf-ostar" class="bf-stagestar" title="Starred" aria-label="Starred" aria-pressed="false" hidden{% if not curate %} data-ro="1"{% endif %}><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 17.8 6.2 20.9l1.1-6.5L2.6 9.8l6.5-.9z"/></svg></button>
       <img class="bf-oimg" id="bf-oimg" alt="">
       <video class="bf-oimg" id="bf-ovid" hidden controls loop playsinline
              preload="metadata"></video>
@@ -536,14 +554,9 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
           <button type="button" id="bf-oaway2" class="bf-ico bf-ico-cur" title="Mark this frame out of area" aria-label="Mark this frame out of area"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg></button>
           <button type="button" id="bf-ohide2" class="bf-ico bf-ico-cur" title="Hide this frame" aria-label="Hide this frame"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.9 4.2A10.9 10.9 0 0 1 12 4c7 0 10 8 10 8a18.5 18.5 0 0 1-2.2 3.2"/><path d="M6.6 6.6A18.5 18.5 0 0 0 2 12s3 8 10 8a10.9 10.9 0 0 0 5.4-1.4"/><path d="M14.1 14.1a3 3 0 1 1-4.2-4.2"/><path d="m2 2 20 20"/></svg></button>
           {% endif %}
-          {# The star is a judgement about the photo, not a curate-only edit, so
-             it sits with the view controls and shows its state to everyone;
-             only curate mode makes it clickable. #}
-          {# Narrow the filmstrip to this bird's starred frames. Distinct from
-             the star beside it: that one JUDGES the frame on the stage, this
-             one FILTERS the strip. #}
+          {# Narrow the filmstrip to this bird's starred frames. The lines in
+             the icon mark it as a filter, so it sits with the view controls. #}
           <button type="button" id="bf-ostaronly" class="bf-ico bf-ico-star" title="Show starred only" aria-label="Show starred only" aria-pressed="false"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5h18"/><path d="M7 12h10"/><path d="M11 19h2"/><path d="m18 9 1.6 3.2L23 12.7l-2.5 2.4.6 3.4-3.1-1.6-3.1 1.6.6-3.4L13 12.7l3.4-.5z"/></svg></button>
-          <button type="button" id="bf-ostar" class="bf-ico bf-ico-star" title="Starred" aria-label="Starred" aria-pressed="false"{% if not curate %} data-ro="1"{% endif %}><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 17.8 6.2 20.9l1.1-6.5L2.6 9.8l6.5-.9z"/></svg></button>
         </div>
       </div>
         </div>
@@ -1460,9 +1473,11 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
     var on = !!(f && f.star);
     oStar.classList.toggle("on", on);
     oStar.setAttribute("aria-pressed", on ? "true" : "false");
-    oStar.title = oStar.dataset.ro ? (on ? "Starred" : "Not starred")
+    // Readers see it only on starred frames; curating needs it on every frame,
+    // since that is how you star one.
+    oStar.hidden = !on && !!oStar.dataset.ro;
+    oStar.title = oStar.dataset.ro ? "Starred"
                                    : (on ? "Starred — click to unstar" : "Star this frame");
-    oStar.disabled = !!oStar.dataset.ro && false;   // readable, just not actionable
   }
   if (oStar && !oStar.dataset.ro) {
     oStar.addEventListener("click", function () {
