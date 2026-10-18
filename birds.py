@@ -610,6 +610,13 @@ def _pseudo_frame(shot, i):
         "location": loc,
         "date": (_sd.strftime("%b %-d, %Y") if _sd else shot.get("date")),
         "caption": shot.get("caption") or "",
+        # Starred = "worth printing". Carried on the frame so the gallery, the
+        # detail view and the home page all read one source of truth rather
+        # than each re-deriving it.
+        "star": 1 if ("%s-%s" % (shot.get("id"),
+                                 (shot.get("image_indices") or [])[i]
+                                 if i < len(shot.get("image_indices") or []) else i)
+                      in load_starred()) else 0,
     }, canons
 
 
@@ -764,6 +771,43 @@ def all_photos_shuffled(shots):
             frames.append(frame)
     random.shuffle(frames)
     return frames
+
+
+def weight_starred(frames, boost=3):
+    """Make starred frames show up more often, without taking the gallery over.
+
+    Not a sort: sorting starred-first would turn the field into a greatest-hits
+    reel and bury the other 80%. Instead each starred frame gets `boost` chances
+    at an early slot, so they cluster toward the front of the shuffle while the
+    full collection still reads as itself.
+
+    Deterministic given the already-seeded order of `frames`, so reloading the
+    same ?seed reproduces the arrangement.
+    """
+    if boost <= 1:
+        return frames
+    starred = [f for f in frames if f.get("star")]
+    if not starred or len(starred) == len(frames):
+        return frames
+    # Interleave: walk the original order, and every `step` positions pull the
+    # next starred frame forward. step falls out of how dense the stars are.
+    step = max(2, int(round(len(frames) / float(len(starred) * boost))))
+    out, queue = [], list(starred)
+    seen = set()
+    for i, f in enumerate(frames):
+        if queue and i % step == 0:
+            nxt = queue.pop(0)
+            if id(nxt) not in seen:
+                out.append(nxt)
+                seen.add(id(nxt))
+        if id(f) not in seen:
+            out.append(f)
+            seen.add(id(f))
+    for f in queue:                      # anything left keeps its place at the end
+        if id(f) not in seen:
+            out.append(f)
+            seen.add(id(f))
+    return out
 
 
 def sort_frames(frames, order):
@@ -989,6 +1033,71 @@ def set_lifer(species, src=None, pos=None, posx=None, zoom=None):
         lifers[species] = entry
     _save_curation(LIFERS_FILE, lifers)
     return lifers.get(species, {})
+
+
+# --- Starred frames -------------------------------------------------------
+# The "best of" set: frames worth printing, worth leading with. One star per
+# FRAME ("<post id>-<index>"), not per post, because a carousel's eighth photo
+# is often the good one.
+#
+# Seeded from the FIRST image of every Instagram post: that is already a
+# deliberate choice -- it is the one that has to earn the tap in the feed -- so
+# it is a far better starting point than starring nothing and asking Scott to
+# grade 1,900 frames.
+def load_starred():
+    """Set of ``"<post id>-<index>"`` keys for starred frames."""
+    return set(_load_curation(STARRED_FILE, list))
+
+
+def frame_star_key(shot, index=0):
+    """The star key for a frame. Exploded frames carry their own post_id and
+    image_indices; a whole post falls back to its own id and the given index."""
+    pid = shot.get("post_id") or shot.get("id")
+    idxs = shot.get("image_indices") or []
+    idx = idxs[index] if index < len(idxs) else index
+    return "%s-%s" % (pid, idx)
+
+
+def set_starred(key, on=True):
+    """Star or unstar one frame. Returns the full starred set."""
+    key = (key or "").strip()
+    if not key:
+        return load_starred()
+    starred = load_starred()
+    if on:
+        starred.add(key)
+    else:
+        starred.discard(key)
+    _save_curation(STARRED_FILE, sorted(starred))
+    memo_clear()        # a star changes the home page; it must show at once
+    return starred
+
+
+def seed_starred_from_covers(shots):
+    """Star the first image of every post that has no star yet.
+
+    Idempotent and additive: it never removes a star and never re-stars a post
+    Scott has since unstarred wholesale, because it only fires for posts with
+    NO starred frame at all.
+    """
+    starred = load_starred()
+    by_post = {}
+    for k in starred:
+        by_post.setdefault(k.rsplit("-", 1)[0], True)
+    added = 0
+    for s in shots:
+        pid = s.get("post_id") or s.get("id")
+        if not pid or by_post.get(str(pid)):
+            continue
+        idxs = s.get("image_indices") or []
+        idx = idxs[0] if idxs else 0
+        starred.add("%s-%s" % (pid, idx))
+        by_post[str(pid)] = True
+        added += 1
+    if added:
+        _save_curation(STARRED_FILE, sorted(starred))
+        memo_clear()
+    return added
 
 
 def load_reid_queue():
@@ -1654,6 +1763,9 @@ OVERRIDES_FILE = os.path.join(HERE, "birds", "overrides.json")
 IMAGE_SPECIES_FILE = os.path.join(HERE, "birds", "image_species.json")
 IMAGE_DATES_FILE = os.path.join(HERE, "birds", "image_dates.json")
 LIFERS_FILE = os.path.join(HERE, "birds", "lifers.json")
+# Starred frames: the ones worth printing. Keyed "<post id>-<index>" like the
+# re-ID queue, because a star belongs to one FRAME, not a whole post.
+STARRED_FILE = os.path.join(HERE, "birds", "starred.json")
 LOC_OVERRIDES_FILE = os.path.join(HERE, "birds", "location_overrides.json")
 SOUND_CURATION_FILE = os.path.join(HERE, "birds", "sound_curation.json")
 PROJECTS_FILE = os.path.join(HERE, "static", "projects.json")
@@ -1677,6 +1789,7 @@ _CURATION_S3 = {
     REID_QUEUE_FILE: "{}/reid_queue.json".format(S3_PREFIX),
     SOUND_CURATION_FILE: "{}/sounds/curation.json".format(S3_PREFIX),
     LIFERS_FILE: "{}/lifers.json".format(S3_PREFIX),
+    STARRED_FILE: "{}/starred.json".format(S3_PREFIX),
     LOC_OVERRIDES_FILE: "{}/location_overrides.json".format(S3_PREFIX),
     PROJECTS_FILE: "{}/projects.json".format(S3_PREFIX),
     TAGLINES_FILE: "{}/taglines.json".format(S3_PREFIX),

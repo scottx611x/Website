@@ -248,6 +248,13 @@
                 <button type="button" role="menuitemradio" class="vm-opt{% if active_media == 'video' %} on{% endif %}" aria-checked="{{ 'true' if active_media == 'video' else 'false' }}" onclick="birdsGo(null,{media:'video'})">Videos only<span class="vm-num">{{ media_n.videos }}</span></button>
                 {% endif %}
 
+                {# The starred set, on its own line rather than inside Show —
+                   it composes with a media choice rather than replacing it. #}
+                <p class="vm-head">Best</p>
+                <button type="button" role="menuitemcheckbox" class="vm-opt{% if active_star %} on{% endif %}"
+                        aria-checked="{{ 'true' if active_star else 'false' }}"
+                        onclick="birdsGo(null,{star:'{{ '' if active_star else '1' }}'})">Starred only<span class="vm-num">{{ star_count }}</span></button>
+
                 <p class="vm-head">Size</p>
                 <div class="vm-size">
                     <span class="tz-glyph tz-sm" aria-hidden="true">&#9642;</span>
@@ -342,7 +349,7 @@
         </div>
         {% endif %}
         <script>
-            window.BIRDS_ACTIVE = { bird: {{ active_bird|tojson }}, family: {{ active_family|tojson }}, area: {{ active_area|tojson }}, media: {{ active_media|tojson }}, sort: {{ active_sort|tojson }}, loc: {{ active_loc|tojson }}, on: {{ active_on|tojson }}, posted: {{ active_posted|tojson }}, month: {{ (active_month or "")|tojson }}, seed: {{ active_seed|tojson }}, review: {{ active_review|tojson }} };
+            window.BIRDS_ACTIVE = { bird: {{ active_bird|tojson }}, family: {{ active_family|tojson }}, area: {{ active_area|tojson }}, media: {{ active_media|tojson }}, sort: {{ active_sort|tojson }}, loc: {{ active_loc|tojson }}, on: {{ active_on|tojson }}, posted: {{ active_posted|tojson }}, month: {{ (active_month or "")|tojson }}, seed: {{ active_seed|tojson }}, review: {{ active_review|tojson }}, star: {{ ('1' if active_star else '')|tojson }} };
             window.LOC_PLACE = {{ loc_place_map|tojson }};
             function birdsGo(ev, over) {
                 if (ev) ev.preventDefault();
@@ -365,6 +372,9 @@
                 if (a.area) p.set("area", a.area);
                 if (a.media) p.set("media", a.media);
                 if (a.sort) p.set("sort", a.sort);
+                // Starred composes with every other filter, so it is never cleared
+                // by the mutual-exclusion rules above.
+                if (a.star) p.set("star", a.star);
                 if (a.loc) p.set("loc", a.loc);
                 if (a.on) p.set("on", a.on);
                 if (a.posted) p.set("posted", a.posted);

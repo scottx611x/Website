@@ -536,6 +536,10 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
           <button type="button" id="bf-oaway2" class="bf-ico bf-ico-cur" title="Mark this frame out of area" aria-label="Mark this frame out of area"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg></button>
           <button type="button" id="bf-ohide2" class="bf-ico bf-ico-cur" title="Hide this frame" aria-label="Hide this frame"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.9 4.2A10.9 10.9 0 0 1 12 4c7 0 10 8 10 8a18.5 18.5 0 0 1-2.2 3.2"/><path d="M6.6 6.6A18.5 18.5 0 0 0 2 12s3 8 10 8a10.9 10.9 0 0 0 5.4-1.4"/><path d="M14.1 14.1a3 3 0 1 1-4.2-4.2"/><path d="m2 2 20 20"/></svg></button>
           {% endif %}
+          {# The star is a judgement about the photo, not a curate-only edit, so
+             it sits with the view controls and shows its state to everyone;
+             only curate mode makes it clickable. #}
+          <button type="button" id="bf-ostar" class="bf-ico bf-ico-star" title="Starred" aria-label="Starred" aria-pressed="false"{% if not curate %} data-ro="1"{% endif %}><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 17.8 6.2 20.9l1.1-6.5L2.6 9.8l6.5-.9z"/></svg></button>
         </div>
       </div>
         </div>
@@ -880,6 +884,9 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
       (t.n > 1 ? '<span class="bf-badge" title="' + t.n + ' images in this post">'
                  + '\u29C9 ' + t.n + '</span>' : '') +
       (t.vid ? '<span class="bf-badge" title="video">&#9654;</span>' : '') +
+      // A star on the tile, so the best frames are visible as you pan rather
+      // than only once you open one.
+      (t.star ? '<span class="bf-star" title="Starred"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="m12 3 2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 17.8 6.2 20.9l1.1-6.5L2.6 9.8l6.5-.9z"/></svg></span>' : '') +
       (OVERVIEW ? '<span class="bf-tally">' + (SPECIES_N[SEQ[d.i]] || 1) + '</span>' : '') +
       '<figcaption><b>' + esc(t.name) + '</b>' +
         (t.date ? '<span>' + esc(t.date) + (t.where ? ' · ' + esc(t.where) : '') + '</span>' : '') +
@@ -1440,6 +1447,32 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
     var o = document.getElementById("bf-over");
     return !!(o && o.dataset.kind === "family");
   }
+  /* The star travels with the FRAME, so it repaints on every stage change the
+     same way the caption and the original link do — the failure mode worth
+     designing against is starring the photo you were looking at a moment ago. */
+  var oStar = $("bf-ostar");
+  function paintStar(f) {
+    if (!oStar) return;
+    var on = !!(f && f.star);
+    oStar.classList.toggle("on", on);
+    oStar.setAttribute("aria-pressed", on ? "true" : "false");
+    oStar.title = oStar.dataset.ro ? (on ? "Starred" : "Not starred")
+                                   : (on ? "Starred — click to unstar" : "Star this frame");
+    oStar.disabled = !!oStar.dataset.ro && false;   // readable, just not actionable
+  }
+  if (oStar && !oStar.dataset.ro) {
+    oStar.addEventListener("click", function () {
+      var f = frames[fi];
+      if (!f || !f.pid) return;
+      var next = f.star ? 0 : 1;
+      post("/curate/star", { id: f.pid, index: f.idx, on: !!next }, function (d) {
+        if (!d || !d.ok) return;
+        f.star = next;
+        paintStar(f);
+      });
+    });
+  }
+
   function paintOriginal(f) {
     var a = $("bf-orig");
     if (!a) return;
@@ -1458,6 +1491,7 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
       (f.where ? "  ·  " + f.where : "") + (f.date ? "  ·  " + f.date : "");
     if (isFam()) markMember(f.name);
     paintOriginal(f);
+    paintStar(f);
   }
 
   /* And light up that bird in the member list, so the chips double as a

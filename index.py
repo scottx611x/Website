@@ -224,7 +224,15 @@ def _home_context():
     def _has_local(s):
         areas = s.get("image_areas")
         return not areas or any(a != "away" for a in areas)
-    home_preview = [s for s in shots if _local_cover(s)][:5]
+    # The home strip is the shop window, so it shows STARRED frames only — the
+    # "worth printing" set. Falls back to the old local-cover rule if nothing is
+    # starred yet, so a fresh install still has a front page.
+    _starred = birds.load_starred()
+    _star_shots = [s for s in shots
+                   if "%s-%s" % (s.get("id"),
+                                 (s.get("image_indices") or [0])[0]) in _starred]
+    home_preview = ([s for s in _star_shots if _local_cover(s)][:5]
+                    or [s for s in shots if _local_cover(s)][:5])
     local_shots = [s for s in shots if _has_local(s)]
     return {
         "title": TITLE,
@@ -458,7 +466,7 @@ def birds_gallery():
     # views like ?loc=).
     seed = request.args.get("seed") or ""
     unscoped = not any(request.args.get(k) for k in (
-        "bird", "family", "area", "media", "loc", "on", "posted",
+        "bird", "family", "area", "media", "loc", "on", "posted", "star",
         "month", "sort", "review", "start"))
     if not seed.isdigit() and unscoped:
         # Public: a fresh seed each visit (feels fresh), pinned per URL so
@@ -494,6 +502,8 @@ def birds_gallery():
     media = (request.args.get("media") or "").strip()
     if media not in ("photo", "video"):
         media = ""
+    # ?star=1 narrows the gallery to the starred set.
+    star_only = (request.args.get("star") or "").strip() in ("1", "true", "yes")
     sort = (request.args.get("sort") or "").strip()
     if sort not in ("recent", "oldest", "posted"):
         sort = ""
@@ -570,6 +580,14 @@ def birds_gallery():
     # skipped for the old whole-post curate view).
     if sort:
         shots = birds.sort_frames(shots, sort)
+    if star_only:
+        shots = [f for f in shots if f.get("star")]
+    elif not sort and not start_tokens:
+        # Starred frames surface MORE OFTEN in the shuffle without the gallery
+        # becoming a greatest-hits reel: pull a share of them toward the front
+        # and leave the rest of the order alone. Deterministic per seed, so a
+        # reload with the same ?seed gives the same arrangement.
+        shots = birds.weight_starred(shots)
     # How many leading frames still match the tokens the home page handed over.
     # start_ordered puts them first, but a sort or a stale link can break that,
     # and half a mosaic is worse than none — so it is all or nothing.
@@ -654,6 +672,8 @@ def birds_gallery():
         active_media=media,
         active_sort=sort,
         mosaic_n=mosaic_n,
+        active_star=star_only,
+        star_count=sum(1 for f in shots if f.get('star')),
         active_loc=place["name"] if place else "",
         active_seed=seed if seed.isdigit() else "",
         active_on=on,
@@ -734,6 +754,8 @@ def _field_tiles(shots):
                 "date": (dates[i] if (i < len(dates) and dates[i]) else (sh.get("_sort") or sh.get("date"))),
                 "pid": sh.get("post_id") or sh.get("id"),
                 "fidx": (idxs[i] if i < len(idxs) else i),
+                # Starred frames wear a mark in the field and can be filtered to.
+                "star": 1 if sh.get("star") else 0,
             }
             k = len(tiles)
             tiles.append(t)
@@ -826,6 +848,7 @@ def birds_family_json(slug):
     it. This returns the same shape as the species payload so the overlay
     renders it with one code path, plus the species breakdown.
     """
+    _starred = birds.load_starred()
     all_shots = birds.load_gallery(shuffle=False)
     groups = birds.species_groups(all_shots)
     name = next((fam for fam, _sp in groups if birds._species_slug(fam) == slug), None)
@@ -862,6 +885,9 @@ def birds_family_json(slug):
                 "pid": sh.get("post_id") or sh.get("id"),
                 "idx": (idxs[i] if i < len(idxs) else i),
                 "away": 1 if (i < len(areas) and areas[i] == "away") else 0,
+                "star": 1 if ("%s-%s" % (sh.get("post_id") or sh.get("id"),
+                                         idxs[i] if i < len(idxs) else i)
+                              in _starred) else 0,
             })
     frames.sort(key=lambda f: (f.get("date") or ""), reverse=True)
     places = {}
@@ -906,6 +932,7 @@ def birds_species_json(slug):
     per-species detail view.
     species_profile() already gathers across all four views — gallery, stats,
     map and the mic — so this just trims it to what the overlay renders."""
+    _starred = birds.load_starred()
     names = birds.species_index()
     name = names.get(slug)
     if not name:
@@ -934,7 +961,10 @@ def birds_species_json(slug):
                        # identity, so curate can act on the exact frame shown
                        "pid": f.get("post_id"),
                        "idx": (idxs[0] if idxs else 0),
-                       "away": 1 if (areas and areas[0] == "away") else 0})
+                       "away": 1 if (areas and areas[0] == "away") else 0,
+                       "star": 1 if ("%s-%s" % (f.get("post_id"),
+                                                idxs[0] if idxs else 0)
+                                     in _starred) else 0})
     # Newest frame first, so the filmstrip reads left-to-right as most recent
     # back through the archive.
     frames.sort(key=lambda f: (f.get("date") or ""), reverse=True)
@@ -1534,6 +1564,24 @@ def curate_override():
     fields = {k: data[k] for k in keys if k in data}
     shot = birds.set_override(post_id, fields)
     return {"ok": True, "ambiguous": bool(shot and shot.get("ambiguous"))}
+
+
+@app.route("/curate/star", methods=["POST"])
+def curate_star():
+    """Star or unstar one frame. Keyed "<post id>-<index>" — a star belongs to
+    a FRAME, not a post, because a carousel's eighth photo is often the good
+    one."""
+    if not _curate_on():
+        abort(404)
+    data = request.get_json(silent=True) or {}
+    post_id = (data.get("id") or "").strip()
+    if not post_id:
+        abort(400)
+    idx = data.get("index")
+    key = "%s-%s" % (post_id, idx if idx is not None else 0)
+    on = bool(data.get("on", True))
+    starred = birds.set_starred(key, on)
+    return {"ok": True, "key": key, "on": on, "count": len(starred)}
 
 
 @app.route("/curate/lifer", methods=["POST"])
