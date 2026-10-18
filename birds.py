@@ -1079,7 +1079,12 @@ def set_starred(key, on=True):
     return starred
 
 
-def unstar_thin_posts(shots, max_images=3):
+#: A cover star only means something if the cover beat other frames. At or
+#: below this many images, a single-species post had no real contest.
+THIN_POST_MAX = 4
+
+
+def unstar_thin_posts(shots, max_images=THIN_POST_MAX):
     """Drop cover stars that say nothing about the picture.
 
     Seeding from every post's cover starred 60 single-image posts — a post with
@@ -1114,7 +1119,7 @@ def seed_starred_from_covers(shots):
     Scott has since unstarred wholesale, because it only fires for posts with
     NO starred frame at all.
 
-    Skips the same thin posts unstar_thin_posts() strips, so re-running this
+    Skips the same thin posts unstar_thin_posts() strips (THIN_POST_MAX), so re-running this
     can't silently undo that pass -- those posts have no star precisely because
     we decided a cover star there means nothing.
     """
@@ -1129,7 +1134,7 @@ def seed_starred_from_covers(shots):
             continue
         n = len(s.get("images") or [])
         species = {x for x in (s.get("image_species") or []) if x} or {s.get("species") or ""}
-        if n <= 1 or (n <= 3 and len(species) <= 1):
+        if n <= 1 or (n <= THIN_POST_MAX and len(species) <= 1):
             continue
         idxs = s.get("image_indices") or []
         idx = idxs[0] if idxs else 0
