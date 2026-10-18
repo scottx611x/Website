@@ -706,6 +706,8 @@ def birds_gallery():
             # bounded, top-left-anchored block: an order only means something
             # if there is a beginning, and wrapping destroys it.
             "sort": sort or "",
+            # So the detail view opens already narrowed when the gallery is.
+            "star": 1 if star_only else 0,
         },
         media_n=dict(zip(("photos", "videos"),
                          birds.media_counts(all_shots, bird, family, area, out_of_area,

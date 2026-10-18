@@ -539,6 +539,10 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
           {# The star is a judgement about the photo, not a curate-only edit, so
              it sits with the view controls and shows its state to everyone;
              only curate mode makes it clickable. #}
+          {# Narrow the filmstrip to this bird's starred frames. Distinct from
+             the star beside it: that one JUDGES the frame on the stage, this
+             one FILTERS the strip. #}
+          <button type="button" id="bf-ostaronly" class="bf-ico bf-ico-star" title="Show starred only" aria-label="Show starred only" aria-pressed="false"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5h18"/><path d="M7 12h10"/><path d="M11 19h2"/><path d="m18 9 1.6 3.2L23 12.7l-2.5 2.4.6 3.4-3.1-1.6-3.1 1.6.6-3.4L13 12.7l3.4-.5z"/></svg></button>
           <button type="button" id="bf-ostar" class="bf-ico bf-ico-star" title="Starred" aria-label="Starred" aria-pressed="false"{% if not curate %} data-ro="1"{% endif %}><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 17.8 6.2 20.9l1.1-6.5L2.6 9.8l6.5-.9z"/></svg></button>
         </div>
       </div>
@@ -1389,7 +1393,7 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
      reachable by arrows, keyboard or the strip, and the rail carries the
      numbers, the year, the map and the voice. */
   var over = document.getElementById("bf-over"), audio = new Audio(), raf = null;
-  var cur = null, frames = [], fi = 0, wantSrc = null;
+  var cur = null, frames = [], fi = 0, wantSrc = null, allFrames = [];
   var MONTHS = ["J","F","M","A","M","J","J","A","S","O","N","D"];
   var $ = function (id) { return document.getElementById(id); };
   function fmt(s) { s = Math.floor(s || 0); return Math.floor(s / 60) + ":" + ("0" + (s % 60)).slice(-2); }
@@ -1473,6 +1477,37 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
     });
   }
 
+  var oStarOnly = $("bf-ostaronly");
+  function paintStarOnly() {
+    if (!oStarOnly) return;
+    // Nothing to narrow to: disable rather than leave a button that looks
+    // live and does nothing. More species sit here now that thin single-image
+    // posts no longer carry an automatic cover star.
+    var any = false;
+    for (var i = 0; i < allFrames.length; i++) if (allFrames[i].star) { any = true; break; }
+    oStarOnly.disabled = !any;
+    oStarOnly.hidden = !any;
+    if (!any) { oStarOnly.setAttribute("aria-pressed", "false"); return; }
+    oStarOnly.classList.toggle("on", starOnly);
+    oStarOnly.setAttribute("aria-pressed", starOnly ? "true" : "false");
+    oStarOnly.title = starOnly ? "Showing starred only — click for all"
+                               : "Show starred only";
+  }
+  if (oStarOnly) oStarOnly.addEventListener("click", function () {
+    if (!allFrames.length) return;
+    starOnly = !starOnly;
+    var keep = frames[fi];                 // stay on this photo if it survives
+    frames = scopeFrames(allFrames);
+    stripShown = 0; stripEnd = null;
+    if (stripIO) { stripIO.disconnect(); stripIO = null; }
+    $("bf-ostrip").innerHTML = "";
+    growStrip(24);
+    var at = 0;
+    for (var i = 0; i < frames.length; i++) if (frames[i] === keep) { at = i; break; }
+    showFrame(at);
+    paintStarOnly();
+  });
+
   function paintOriginal(f) {
     var a = $("bf-orig");
     if (!a) return;
@@ -1492,6 +1527,7 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
     if (isFam()) markMember(f.name);
     paintOriginal(f);
     paintStar(f);
+    paintStarOnly();
   }
 
   /* And light up that bird in the member list, so the chips double as a
@@ -1601,8 +1637,21 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
   var scoped = null, famMode = false;
   // true only while THIS page load owns a history entry it pushed
   var pushedHere = false;
+  // Seeded from the gallery, so opening a bird while the gallery is showing
+  // "Starred only" keeps that scope instead of silently widening.
+  var starOnly = !!(CTX && CTX.star);
   function scopeFrames(all) {
+    allFrames = all;
     var out = all;
+    if (starOnly) {
+      var s2 = out.filter(function (f) { return !!f.star; });
+      // Never strand the viewer in an empty modal: a bird with no starred
+      // frame shows whole, and the toggle reports itself off.
+      // Guard on all.length too: scopeFrames runs once with an empty list
+      // before the species JSON lands, and without this that empty call
+      // latched the toggle off for the rest of the session.
+      if (s2.length || !all.length) out = s2; else starOnly = false;
+    }
     if (CTX.area === "local") out = out.filter(function (f) { return !f.away; });
     else if (CTX.area === "elsewhere") out = out.filter(function (f) { return !!f.away; });
     if (CTX.media === "photo") out = out.filter(function (f) { return !f.vid; });

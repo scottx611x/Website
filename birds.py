@@ -1079,12 +1079,44 @@ def set_starred(key, on=True):
     return starred
 
 
+def unstar_thin_posts(shots, max_images=3):
+    """Drop cover stars that say nothing about the picture.
+
+    Seeding from every post's cover starred 60 single-image posts — a post with
+    one photo has no competition, so its cover winning is not a judgement. The
+    same holds for a 2-3 image single-species post. Multi-species posts keep
+    theirs: choosing which bird leads IS a choice.
+
+    Only ever removes, and only the cover frame, so anything starred by hand
+    deeper in a carousel survives.
+    """
+    starred = load_starred()
+    drop = set()
+    for s in shots:
+        idxs = s.get("image_indices") or []
+        key = "%s-%s" % (s.get("id"), idxs[0] if idxs else 0)
+        if key not in starred:
+            continue
+        n = len(s.get("images") or [])
+        species = {x for x in (s.get("image_species") or []) if x} or {s.get("species") or ""}
+        if n <= 1 or (n <= max_images and len(species) <= 1):
+            drop.add(key)
+    if drop:
+        _save_curation(STARRED_FILE, sorted(starred - drop))
+        memo_clear()
+    return len(drop)
+
+
 def seed_starred_from_covers(shots):
     """Star the first image of every post that has no star yet.
 
     Idempotent and additive: it never removes a star and never re-stars a post
     Scott has since unstarred wholesale, because it only fires for posts with
     NO starred frame at all.
+
+    Skips the same thin posts unstar_thin_posts() strips, so re-running this
+    can't silently undo that pass -- those posts have no star precisely because
+    we decided a cover star there means nothing.
     """
     starred = load_starred()
     by_post = {}
@@ -1094,6 +1126,10 @@ def seed_starred_from_covers(shots):
     for s in shots:
         pid = s.get("post_id") or s.get("id")
         if not pid or by_post.get(str(pid)):
+            continue
+        n = len(s.get("images") or [])
+        species = {x for x in (s.get("image_species") or []) if x} or {s.get("species") or ""}
+        if n <= 1 or (n <= 3 and len(species) <= 1):
             continue
         idxs = s.get("image_indices") or []
         idx = idxs[0] if idxs else 0
