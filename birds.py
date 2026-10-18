@@ -1045,8 +1045,14 @@ def set_lifer(species, src=None, pos=None, posx=None, zoom=None):
 # it is a far better starting point than starring nothing and asking Scott to
 # grade 1,900 frames.
 def load_starred():
-    """Set of ``"<post id>-<index>"`` keys for starred frames."""
-    return set(_load_curation(STARRED_FILE, list))
+    """Set of ``"<post id>-<index>"`` keys for starred frames.
+
+    MEMOISED, and it has to be: _pseudo_frame asks for this once per frame, so
+    on the ~1,900-frame gallery an uncached call meant ~1,900 conditional S3
+    GETs for one page. In production that timed out the request entirely.
+    set_starred() clears the memo, so an edit still shows immediately.
+    """
+    return _memoed("starred", _MEMO_TTL, lambda: set(_load_curation(STARRED_FILE, list)))
 
 
 def frame_star_key(shot, index=0):
