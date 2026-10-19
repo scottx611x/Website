@@ -242,21 +242,23 @@
                 <button type="button" role="menuitemradio" class="vm-opt{% if active_sort == 'oldest' %} on{% endif %}" aria-checked="{{ 'true' if active_sort == 'oldest' else 'false' }}" onclick="birdsGo(null,{sort:'oldest'})">Oldest</button>
 
                 {# Show always renders: the media radios need videos to exist,
-                   but Starred only is always on offer. #}
+                   but Starred is always on offer. #}
                 <p class="vm-head">Show</p>
                 {% if media_n.videos %}
                 <button type="button" role="menuitemradio" class="vm-opt{% if not active_media %} on{% endif %}" aria-checked="{{ 'true' if not active_media else 'false' }}" onclick="birdsGo(null,{media:''})">Everything</button>
                 <button type="button" role="menuitemradio" class="vm-opt{% if active_media == 'photo' %} on{% endif %}" aria-checked="{{ 'true' if active_media == 'photo' else 'false' }}" onclick="birdsGo(null,{media:'photo'})">Photos only<span class="vm-num">{{ media_n.photos }}</span></button>
                 <button type="button" role="menuitemradio" class="vm-opt{% if active_media == 'video' %} on{% endif %}" aria-checked="{{ 'true' if active_media == 'video' else 'false' }}" onclick="birdsGo(null,{media:'video'})">Videos only<span class="vm-num">{{ media_n.videos }}</span></button>
                 {% endif %}
-                {# A checkbox, not a radio: it composes with the media choice
-                   above rather than replacing it. #}
+                {# A checkbox, not a radio: it composes with everything else
+                   here rather than replacing it. Not "Starred only" -- the
+                   "only" read as exclusive when it stacks with the media and
+                   area choices (starred AND out of area, both ticked). #}
                 <button type="button" role="menuitemcheckbox" class="vm-opt{% if active_star %} on{% endif %}"
                         aria-checked="{{ 'true' if active_star else 'false' }}"
-                        onclick="birdsGo(null,{star:'{{ '' if active_star else '1' }}'})">Starred only<span class="vm-num">{{ star_count }}</span></button>
+                        onclick="birdsGo(null,{star:'{{ '' if active_star else '1' }}'})">Starred<span class="vm-num">{{ star_count }}</span></button>
                 {# The out-of-area frames were only reachable from the stat link
                    in the header, which is easy to miss and gone once you have
-                   scrolled. Same checkbox treatment as Starred only. #}
+                   scrolled. Same checkbox treatment as Starred. #}
                 {% if away_frames %}
                 {# Two halves of one parameter, so picking either clears the
                    other automatically -- no mutual-exclusion rule needed. #}
