@@ -258,6 +258,11 @@
                    in the header, which is easy to miss and gone once you have
                    scrolled. Same checkbox treatment as Starred only. #}
                 {% if away_frames %}
+                {# Two halves of one parameter, so picking either clears the
+                   other automatically -- no mutual-exclusion rule needed. #}
+                <button type="button" role="menuitemcheckbox" class="vm-opt{% if active_area == 'local' %} on{% endif %}"
+                        aria-checked="{{ 'true' if active_area == 'local' else 'false' }}"
+                        onclick="birdsGo(null,{area:'{{ '' if active_area == 'local' else 'local' }}'})">In North Andover<span class="vm-num">{{ local_frames }}</span></button>
                 <button type="button" role="menuitemcheckbox" class="vm-opt{% if active_area == 'elsewhere' %} on{% endif %}"
                         aria-checked="{{ 'true' if active_area == 'elsewhere' else 'false' }}"
                         onclick="birdsGo(null,{area:'{{ '' if active_area == 'elsewhere' else 'elsewhere' }}'})">Outside North Andover<span class="vm-num">{{ away_frames }}</span></button>

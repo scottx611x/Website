@@ -107,7 +107,8 @@
     "lng": -70.21771,
     "area": "away",
     "match": [
-      "lewiston maine"
+      "lewiston maine",
+      "lewiston me"
     ]
   },
   {
@@ -394,6 +395,136 @@
     "area": "local",
     "match": [
       "garlic breath pizza"
+    ]
+  },
+  {
+    "name": "Barcelona, Spain",
+    "lat": 41.3874,
+    "lng": 2.1686,
+    "area": "away",
+    "match": [
+      "barcelona spain",
+      "la sagrada familia barcelona spain",
+      "la sagrada familia barcelona",
+      "la sagrada familia"
+    ]
+  },
+  {
+    "name": "Mallorca, Spain",
+    "lat": 39.6953,
+    "lng": 3.0176,
+    "area": "away",
+    "match": [
+      "mallorca spain",
+      "mallorca"
+    ]
+  },
+  {
+    "name": "Oslo, Norway",
+    "lat": 59.9139,
+    "lng": 10.7522,
+    "area": "away",
+    "match": [
+      "norway",
+      "oslo"
+    ]
+  },
+  {
+    "name": "Lisbon, Portugal",
+    "lat": 38.7223,
+    "lng": -9.1393,
+    "area": "away",
+    "match": [
+      "portugal",
+      "lisbon"
+    ]
+  },
+  {
+    "name": "London, England",
+    "lat": 51.5074,
+    "lng": -0.1278,
+    "area": "away",
+    "match": [
+      "london"
+    ]
+  },
+  {
+    "name": "Medford, MA",
+    "lat": 42.4184,
+    "lng": -71.1062,
+    "area": "away",
+    "match": [
+      "medford ma"
+    ]
+  },
+  {
+    "name": "Tufts Boat House, Medford",
+    "lat": 42.4072,
+    "lng": -71.0892,
+    "area": "away",
+    "match": [
+      "tufts boat house medford ma",
+      "tufts boat house"
+    ]
+  },
+  {
+    "name": "Spot Pond, Stoneham",
+    "lat": 42.4551,
+    "lng": -71.1009,
+    "area": "away",
+    "match": [
+      "spot pond stoneham ma",
+      "spot pond stoneham"
+    ]
+  },
+  {
+    "name": "Wingaersheek Beach, Gloucester",
+    "lat": 42.6572,
+    "lng": -70.7139,
+    "area": "away",
+    "match": [
+      "wingaersheek beach gloucester ma",
+      "wingaersheek beach"
+    ]
+  },
+  {
+    "name": "Malden, MA",
+    "lat": 42.4251,
+    "lng": -71.0662,
+    "area": "away",
+    "match": [
+      "malden ma"
+    ]
+  },
+  {
+    "name": "Pyramids Disc Golf Course, Leicester",
+    "lat": 42.2459,
+    "lng": -71.9089,
+    "area": "away",
+    "match": [
+      "pyramids disc golf course leicester ma",
+      "pyramids disc golf course"
+    ]
+  },
+  {
+    "name": "Newton Commonwealth Golf Course, Newton",
+    "lat": 42.343,
+    "lng": -71.2211,
+    "area": "away",
+    "match": [
+      "newton commonwealth golf course newton ma",
+      "newton commonwealth golf course"
+    ]
+  },
+  {
+    "name": "New Orleans, Louisiana",
+    "lat": 29.9511,
+    "lng": -90.0715,
+    "area": "away",
+    "match": [
+      "new orleans louisiana",
+      "new orleans la",
+      "new orleans"
     ]
   }
 ]

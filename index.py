@@ -678,6 +678,8 @@ def birds_gallery():
         # filters frames, so it has to report the number it will actually show.
         away_frames=sum(1 for f in shots
                         if (f.get('image_areas') or ['local'])[0] == 'away'),
+        local_frames=sum(1 for f in shots
+                         if (f.get('image_areas') or ['local'])[0] != 'away'),
         active_loc=place["name"] if place else "",
         active_seed=seed if seed.isdigit() else "",
         active_on=on,
@@ -825,11 +827,19 @@ def _merge_places(profile, frames):
     species_profile only returns geocoded places, so anywhere never geocoded
     (Roger Wheeler State Beach, six Osprey frames) vanished entirely.
     """
+    # Resolve each frame's raw location to the place that owns it first. The
+    # two disagree whenever a pin is named differently from the string on the
+    # frame ("Norway" on the photo, "Oslo, Norway" on the map), and counting
+    # both produced one mapped row and one unmapped row for the same spot.
+    _idx = birds._place_index(birds.load_locations())
     counts = {}
     for f in frames:
         w = (f.get("where") or "").strip()
-        if w:
-            counts[w] = counts.get(w, 0) + 1
+        if not w:
+            continue
+        hit = birds._match_place(w, _idx)
+        name = hit["name"] if hit else w
+        counts[name] = counts.get(name, 0) + 1
     geo = {}
     for q in (profile.get("places") or []):
         if q.get("name"):
