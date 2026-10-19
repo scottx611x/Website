@@ -3724,6 +3724,40 @@ def load_gallery(shuffle=True):
     return out
 
 
+def _load_gallery_with_hidden_uncached():
+    """The gallery as above, but WITHOUT dropping hidden frames.
+
+    Curate needs to see what it hid: the detail view builds its filmstrip from
+    this, and with exclusions applied a hidden frame simply was not in the
+    list, so there was nothing left to click to bring it back. Frames carry
+    their true index in image_indices either way, so per-frame edits still
+    target the right photo.
+    """
+    shots = _load_manifest_from_s3()
+    if shots is None:
+        shots = _load_local_manifest()
+    shots = list(shots or [])
+    shots += _load_manual_birds()
+    excluded = load_excluded()
+    if excluded:
+        shots = [s for s in shots if s.get("id") not in excluded]
+    apply_overrides(shots, apply_exclusions=False)
+    return [s for s in shots if s.get("images")]
+
+
+def load_gallery_with_hidden():
+    return _memoed("gallery_hidden", _MEMO_TTL, _load_gallery_with_hidden_uncached)
+
+
+def hidden_frame_keys():
+    """{"<post id>-<index>"} for every individually hidden frame."""
+    out = set()
+    for pid, v in (load_overrides() or {}).items():
+        for i in (v.get("exclude_images") or []):
+            out.add("%s-%s" % (pid, i))
+    return out
+
+
 def load_sounds():
     return _memoed("sounds", _MEMO_TTL, _load_sounds_uncached)
 

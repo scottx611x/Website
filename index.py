@@ -943,7 +943,12 @@ def birds_species_json(slug):
     name = names.get(slug)
     if not name:
         return app.json.response({"error": "unknown species"}), 404
-    p = birds.species_profile(name) or {}
+    # Curating sees its own hidden frames, flagged, so a mis-hit hide can be
+    # undone from the same view that made it. Readers never get them.
+    _curate = _curate_on()
+    _hidden = birds.hidden_frame_keys() if _curate else set()
+    p = birds.species_profile(
+        name, shots=birds.load_gallery_with_hidden() if _curate else None) or {}
     frames = []
     # No arbitrary cap: the modal is where you go to see ALL of a bird.
     # Even the heaviest species (Barred Owl, ~200) is a few tens of KB,
@@ -970,7 +975,13 @@ def birds_species_json(slug):
                        "away": 1 if (areas and areas[0] == "away") else 0,
                        "star": 1 if ("%s-%s" % (f.get("post_id"),
                                                 idxs[0] if idxs else 0)
-                                     in _starred) else 0})
+                                     in _starred) else 0,
+                       # Curate-only; always 0 for readers, who never see a
+                       # hidden frame in the first place.
+                       "hid": 1 if ("%s-%s" % (f.get("post_id"),
+                                               idxs[0] if idxs else 0)
+                                    in _hidden) else 0,
+                       })
     # Newest frame first, so the filmstrip reads left-to-right as most recent
     # back through the archive.
     frames.sort(key=lambda f: (f.get("date") or ""), reverse=True)
