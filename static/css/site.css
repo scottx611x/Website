@@ -1048,30 +1048,106 @@ a.river-readout:hover .riv-go { text-decoration: underline; }
     border-radius: 6px; margin-bottom: 0.45rem; background: rgba(255, 255, 255, 0.08);
 }
 
-/* the lifer card under the life-list timeline */
-/* The lifer photo fills the chart's empty upper-left as a soft backdrop (drawn
-   in the SVG); this label rides over it — a cumulative curve is monotonic, so
-   that region is always clear. */
-.accum-stage { position: relative; }
-.lifer-card {
-    position: absolute; top: 2.5rem; left: 2.9rem; z-index: 3; max-width: 20rem;
-    display: flex; flex-direction: column; gap: 0.06rem; text-decoration: none;
-    pointer-events: auto;
+/* ---- The life list: the shot, the ticket, the ribbon, the wall ----
+   The old layout floated the label over a washed-out photo stretched behind
+   the chart. The bird was a ghost and on a phone the text sat on its face.
+   The shot now has its own frame at full opacity and the ticket sits beside
+   it, so neither has to give way to the other. */
+.ll-hero {
+    display: grid; grid-template-columns: minmax(0, 1.9fr) minmax(0, 1fr);
+    gap: 1.1rem; align-items: center; margin-bottom: 1rem;
 }
-.lifer-rank { font-size: 0.66rem; letter-spacing: 0.08em; text-transform: uppercase;
-    color: var(--muted); }
-.lifer-name { font-family: var(--display); font-size: 1.5rem; font-weight: 600; color: var(--ink);
-    line-height: 1.1; text-shadow: 0 1px 8px rgba(244, 241, 233, 0.9); }
-.lifer-card:hover .lifer-name { color: var(--accent); }
-.lifer-meta { font-size: 0.72rem; color: var(--ink); margin-top: 0.15rem;
-    text-shadow: 0 1px 6px rgba(244, 241, 233, 0.9); }
-.lifer-count { font-size: 0.78rem; color: var(--accent); font-weight: 700; margin-top: 0.25rem;
-    text-shadow: 0 1px 6px rgba(244, 241, 233, 0.9); }
+.ll-shot {
+    position: relative; overflow: hidden; border-radius: 10px;
+    background: var(--paper-2); aspect-ratio: 16 / 9; min-height: 0;
+}
+.ll-shot img { position: absolute; max-width: none; user-select: none; }
+/* Curating drags the photo inside its frame to reframe the bird. */
+.ll-shot.is-curate { cursor: grab; touch-action: none; }
+.ll-shot.is-curate:active { cursor: grabbing; }
+
+/* A stub, not a caption: the number is the point of a life list. */
+.ll-ticket {
+    display: flex; flex-direction: column; align-self: center;
+    gap: 0.1rem; text-decoration: none; padding: 1.3rem 1.35rem;
+    border: 1px solid rgba(13, 18, 14, 0.12); border-left: 3px solid var(--accent);
+    border-radius: 10px; background: var(--paper-2); min-width: 0;
+}
+.ll-no {
+    font-size: 0.68rem; letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--accent); font-weight: 700;
+}
+.ll-name {
+    font-family: var(--display); font-size: 1.6rem; font-weight: 600;
+    color: var(--ink); line-height: 1.08; margin-top: 0.35rem;
+    text-wrap: balance; overflow-wrap: break-word;
+}
+.ll-ticket:hover .ll-name { color: var(--accent); }
+/* The dashed rule is the stub's tear line -- it sits above the details so the
+   number and the name read as the face of the ticket. */
+.ll-meta {
+    font-size: 0.72rem; color: var(--muted); margin-top: 0.6rem;
+    padding-top: 0.6rem; border-top: 1px dashed rgba(13, 18, 14, 0.22);
+}
+.ll-cta { font-size: 0.76rem; color: var(--accent); font-weight: 700; margin-top: 0.5rem; }
+
+.ll-ribbon { margin-bottom: 1.1rem; }
+.ll-ribbon:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 6px; }
+
+/* The wall: every species, newest first, grouped by the year it was added.
+   Rank order gives each bird equal room -- which is exactly what a date axis
+   could not do, with 71% of them inside 8% of the span. */
+/* A fade at the foot is the only hint that there is more below; without it a
+   half-cut row of tiles just looks like a rendering bug. */
+.ll-wallwrap { position: relative; }
+.ll-wallwrap::after {
+    content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 2.2rem;
+    background: linear-gradient(to bottom, rgba(244, 241, 233, 0), var(--paper));
+    pointer-events: none; opacity: 1; transition: opacity 0.2s ease;
+}
+.ll-wallwrap.at-end::after { opacity: 0; }
+.ll-wall { max-height: 23rem; overflow-y: auto; overscroll-behavior: contain;
+    padding-right: 0.3rem; padding-bottom: 1.4rem; }
+.ll-wall:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 6px; }
+.ll-year {
+    display: flex; align-items: baseline; gap: 0.55rem; margin: 0.9rem 0 0.45rem;
+    position: sticky; top: 0; z-index: 2; background: var(--paper);
+    padding: 0.2rem 0 0.25rem;
+}
+.ll-year:first-child { margin-top: 0; }
+.ll-yr { font-size: 0.88rem; font-weight: 700; color: var(--ink); letter-spacing: 0.04em; }
+.ll-yn { font-size: 0.68rem; color: var(--muted); }
+.ll-year::after {
+    content: ""; flex: 1; height: 1px; background: rgba(13, 18, 14, 0.12);
+}
+.ll-row {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(58px, 1fr));
+    gap: 0.4rem;
+}
+.ll-tile {
+    position: relative; padding: 0; border: 0; background: var(--paper-2);
+    border-radius: 7px; overflow: hidden; cursor: pointer; aspect-ratio: 1;
+    outline-offset: 2px;
+}
+.ll-tile img { width: 100%; height: 100%; object-fit: cover; display: block;
+    object-position: var(--px, 50%) var(--py, 35%);
+    transition: transform 0.25s ease; }
+.ll-tile:hover img, .ll-tile.on img { transform: scale(1.06); }
+/* The rank rides on the tile so the ordering reads without hovering, but
+   stays quiet until the tile is the one in the frame. */
+.ll-tn {
+    position: absolute; left: 3px; bottom: 2px; font-size: 0.56rem; color: #fff;
+    opacity: 0; transition: opacity 0.18s ease;
+    text-shadow: 0 1px 3px rgba(13, 18, 14, 0.9);
+}
+.ll-tile:hover .ll-tn, .ll-tile.on .ll-tn { opacity: 0.95; }
+.ll-tile.on { box-shadow: inset 0 0 0 2px var(--accent); }
+
 .lifer-curate {
-    position: absolute; bottom: 0.6rem; left: 50%; transform: translateX(-50%); z-index: 4;
     display: flex; align-items: center; gap: 0.5rem; padding: 0.35rem 0.7rem;
-    background: rgba(13, 18, 14, 0.82); color: #f4f1e9; border-radius: 999px;
-    font-size: 0.72rem; box-shadow: 0 2px 12px rgba(0, 0, 0, 0.25); max-width: calc(100% - 1.2rem); }
+    margin-top: 0.9rem; background: rgba(13, 18, 14, 0.82); color: #f4f1e9;
+    border-radius: 999px; font-size: 0.72rem; flex-wrap: wrap;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.25); }
 .lifer-curate button {
     background: rgba(244, 241, 233, 0.14); color: #f4f1e9; border: 0; cursor: pointer;
     border-radius: 0.4rem; padding: 0.12rem 0.5rem; font: inherit; line-height: 1.4; }
@@ -1079,9 +1155,18 @@ a.river-readout:hover .riv-go { text-decoration: underline; }
 .lifer-curate #lc-reset { text-transform: lowercase; letter-spacing: 0.03em; }
 .lifer-curate .lc-sep { opacity: 0.4; }
 .lifer-curate .lc-lab { opacity: 0.7; }
-.lifer-curate .lc-hint { opacity: 0.7; }
 .lifer-curate .lc-saved { color: var(--lift); min-width: 3.5rem; }
-@media (max-width: 640px) { .lifer-curate .lc-hint { display: none; } }
+
+/* On a phone the ticket goes under the shot rather than beside it -- stacked,
+   it never has to sit on top of the bird. */
+@media (max-width: 760px) {
+    .ll-hero { grid-template-columns: 1fr; gap: 0.7rem; }
+    .ll-shot { aspect-ratio: 4 / 3; }
+    .ll-ticket { padding: 0.85rem 1rem; }
+    .ll-name { font-size: 1.25rem; }
+    .ll-wall { max-height: 17rem; }
+    .ll-row { grid-template-columns: repeat(auto-fill, minmax(48px, 1fr)); gap: 0.32rem; }
+}
 
 /* phenology matrix */
 .pheno-controls { display: flex; flex-wrap: wrap; gap: 0.6rem; align-items: center; margin-bottom: 0.8rem; }
@@ -1296,8 +1381,6 @@ a.ear-daily:hover .ear-day:not(.zero) { filter: brightness(1.08); }
     .pheno-row { grid-template-columns: 7.5rem repeat(12, 1fr); gap: 1.5px; }
     .pheno-name { font-size: 0.7rem; }
     .pheno-cell { height: 13px; }
-    .lifer-card { top: 2.2rem; left: 2.4rem; right: 1rem; max-width: none; }
-    .lifer-name { font-size: 1.15rem; }
 }
 
 /* Projects curate editor */

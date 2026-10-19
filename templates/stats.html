@@ -73,42 +73,56 @@
     </nav>
 
     <div class="stat-grid">
-        <!-- Life list accumulation: scrub the timeline; the lifer card floats in
-             the empty upper-left (a cumulative curve is monotonic, so that region
-             is always clear). -->
+        <!-- The life list.
+             Three pieces, because one chart could not do all three jobs: the
+             SHOT (which bird), the RIBBON (the shape of the story), and the
+             WALL (every species, reachable). The old single timeline put 71% of
+             the lifers in 8% of its width and stacked 38 same-day pairs on
+             identical x positions, so half the list could not be selected at
+             all. The wall addresses every one; the ribbon keeps the crescendo. -->
         <div class="stat-block stat-span-2" id="s-life">
             <h2>The life list</h2>
-            <p class="stat-sub mono">every species, the day I first photographed it.</p>
-            <div class="accum-stage">
-                <div id="accum-chart" class="d3-chart" tabindex="0" role="application"
-                     aria-label="Life list timeline. Use left and right arrow keys to step through species."></div>
-                <a id="accum-card" class="lifer-card" href="/birds" hidden>
-                    <span class="lifer-rank mono" id="lifer-rank"></span>
-                    <span id="lifer-name" class="lifer-name"></span>
-                    <span class="lifer-meta mono" id="lifer-meta"></span>
-                    <span class="lifer-count mono" id="lifer-count"></span>
-                </a>
-                {% if curate %}
-                <div id="lifer-curate" class="lifer-curate mono" hidden>
-                    <button type="button" id="lc-prev-bird" title="previous lifer">&#8676; bird</button>
-                    <button type="button" id="lc-next-bird" title="next lifer">bird &#8677;</button>
-                    <span class="lc-sep">&middot;</span>
-                    <button type="button" id="lc-prev" title="previous photo">&#9664;</button>
-                    <span id="lc-photo">photo 1/1</span>
-                    <button type="button" id="lc-next" title="next photo">&#9654;</button>
-                    <span class="lc-sep">&middot;</span>
-                    <span class="lc-lab">zoom</span>
-                    <button type="button" id="lc-zoom-out" title="zoom out">&minus;</button>
-                    <button type="button" id="lc-zoom-in" title="zoom in">+</button>
-                    <span class="lc-sep">&middot;</span>
-                    <button type="button" id="lc-reset" title="clear this override">reset</button>
-                    <span id="lc-saved" class="lc-saved"></span>
+            <p class="stat-sub mono">{{ series.accum|length }} species &middot; every one, the day I first photographed it.</p>
+
+            <div class="ll-hero">
+                <div class="ll-shot" id="ll-shot">
+                    <img id="ll-img" alt="" draggable="false">
                 </div>
-                {% endif %}
+                <a class="ll-ticket" id="ll-ticket" href="/birds">
+                    <span class="ll-no mono" id="ll-no"></span>
+                    <span class="ll-name" id="ll-name"></span>
+                    <span class="ll-meta mono" id="ll-meta"></span>
+                    <span class="ll-cta mono" id="ll-cta"></span>
+                </a>
             </div>
+
+            <div id="accum-chart" class="d3-chart ll-ribbon" tabindex="0" role="application"
+                 aria-label="Life list timeline. Use left and right arrow keys to step through species."></div>
+
+            <div class="ll-wallwrap" id="ll-wallwrap">
+                <div class="ll-wall" id="ll-wall" role="listbox"
+                     aria-label="Every species on the life list, newest first"></div>
+            </div>
+
+            {% if curate %}
+            <div id="lifer-curate" class="lifer-curate mono">
+                <button type="button" id="lc-prev-bird" title="previous lifer">&#8676; bird</button>
+                <button type="button" id="lc-next-bird" title="next lifer">bird &#8677;</button>
+                <span class="lc-sep">&middot;</span>
+                <button type="button" id="lc-prev" title="previous photo">&#9664;</button>
+                <span id="lc-photo">photo 1/1</span>
+                <button type="button" id="lc-next" title="next photo">&#9654;</button>
+                <span class="lc-sep">&middot;</span>
+                <span class="lc-lab">zoom</span>
+                <button type="button" id="lc-zoom-out" title="zoom out">&minus;</button>
+                <button type="button" id="lc-zoom-in" title="zoom in">+</button>
+                <span class="lc-sep">&middot;</span>
+                <button type="button" id="lc-reset" title="clear this override">reset</button>
+                <span id="lc-saved" class="lc-saved"></span>
+            </div>
+            {% endif %}
         </div>
 
-        <!-- Phenology matrix: every species x every month -->
         <div class="stat-block stat-span-2" id="s-year">
             <h2>The year, in birds</h2>
             <p class="stat-sub mono">all {{ series.pheno|length }} species, month by month. darker = more photos.</p>
@@ -452,12 +466,14 @@
         }
         function tipHide() { tip.style.display = "none"; }
 
-        // ---- The life list: scrub the timeline, meet every lifer ----
+        // ---- The life list: a shot, a ribbon, and a wall of every lifer ----
+        // One chart used to do all three jobs and could not. Dates are wildly
+        // uneven (71% of the lifers land in 8% of the span, 38 pairs share a
+        // day), so a time axis cannot give every bird a reachable position.
+        // The WALL orders by rank, where every species gets equal room; the
+        // RIBBON keeps the date shape that makes the story worth telling.
+        var llState = null;
         function renderAccum() {
-            var el = document.getElementById("accum-chart");
-            el.innerHTML = "";
-            var W = chartWidth(el), narrow = W < 520, H = narrow ? 300 : 380,
-                m = { t: 20, r: narrow ? 16 : 24, b: 26, l: narrow ? 28 : 34 };
             var data = S.accum.map(function (a, i) {
                 return { d: new Date(a.d + "T12:00:00"), s: a.s, img: a.img,
                          fam: a.fam, total: a.total, n: i + 1,
@@ -465,127 +481,210 @@
                          posx: a.posx == null ? 0.5 : a.posx,
                          zoom: a.zoom == null ? null : a.zoom };
             });
-            var x = d3.scaleTime(d3.extent(data, function (d) { return d.d; }), [m.l, W - m.r]);
-            var y = d3.scaleLinear([0, data.length], [H - m.b, m.t]);
-            var svg = d3.select(el).append("svg").attr("viewBox", "0 0 " + W + " " + H)
-                .style("touch-action", "pan-y");
-            var line = d3.line().curve(d3.curveStepAfter)
-                .x(function (d) { return x(d.d); }).y(function (d) { return y(d.n); });
-            var area = d3.area().curve(d3.curveStepAfter)
-                .x(function (d) { return x(d.d); }).y0(y(0)).y1(function (d) { return y(d.n); });
-            // The current lifer's photo softly fills the empty region ABOVE the
-            // curve — a cumulative curve is monotonic, so that "sky" is always
-            // clear. It changes as you scrub, so the backdrop IS the bird.
-            var sky = d3.area().curve(d3.curveStepAfter)
-                .x(function (d) { return x(d.d); }).y0(m.t).y1(function (d) { return y(d.n); });
-            svg.append("clipPath").attr("id", "accum-sky").append("path").datum(data).attr("d", sky);
-            var boxW = W - m.l - m.r, boxH = H - m.t - m.b, cx = m.l + boxW / 2;
-            var skyImg = svg.append("image").attr("preserveAspectRatio", "none")
-                .attr("clip-path", "url(#accum-sky)").attr("opacity", 0.5);
-            // The photo is sized to COVER the box at its true aspect, so the full
-            // height (and, once zoomed, width) is available to pan through: framing
-            // pos/posx (0..1) slide it vertically/horizontally; zoom tightens the
-            // crop. Sized from the image's real aspect (cached; a 3:2 guess until it
-            // loads) so a head cropped off an edge can always be recovered — the old
-            // slice-crop made that impossible. All values are curated per species.
+            if (!data.length) return;
+            var sel = data.length - 1;
+
+            // ---------- the shot ----------
+            // Framed in its own panel instead of stretched behind the chart, so
+            // the bird is the bird: full opacity, no wash, and the ticket beside
+            // it rather than across its face.
+            var shotEl = document.getElementById("ll-shot");
+            var imgEl = document.getElementById("ll-img");
             var DEFAULT_ZOOM = 1.0, aspectCache = {};
             function zoomOf(d) { return d.zoom == null ? DEFAULT_ZOOM : d.zoom; }
-            function skyView(d) {
-                var src = d.img, asp = aspectCache[src];
+            // Port of the old sky framing: size the photo to COVER the panel at
+            // its true aspect, then pan within the overflow. Curated pos/posx/
+            // zoom still mean exactly what they meant before.
+            function frame(d) {
+                var box = shotEl.getBoundingClientRect();
+                var W = box.width, H = box.height;
+                if (!W || !H) return;
+                var asp = aspectCache[d.img];
                 if (asp == null) {
-                    asp = 0.667;  // provisional 3:2 until the real ratio loads in
-                    var im = new Image();
-                    im.onload = function () {
-                        if (im.naturalWidth) {
-                            aspectCache[src] = im.naturalHeight / im.naturalWidth;
-                            if (data[sel] && data[sel].img === src) skyView(data[sel]);
-                        }
+                    asp = 0.667;                       // 3:2 until the real ratio lands
+                    var probe = new Image();
+                    probe.onload = function () {
+                        if (!probe.naturalWidth) return;
+                        aspectCache[d.img] = probe.naturalHeight / probe.naturalWidth;
+                        if (data[sel] && data[sel].img === d.img) frame(data[sel]);
                     };
-                    im.src = src;
+                    probe.src = d.img;
                 }
                 var z = zoomOf(d);
                 var p = Math.max(0, Math.min(1, d.pos == null ? 0.5 : d.pos));
                 var px = Math.max(0, Math.min(1, d.posx == null ? 0.5 : d.posx));
-                var base = Math.max(boxW, boxH / asp) * z, DW = base, DH = asp * base;
-                d._ov = Math.max(0, DH - boxH);    // vertical overflow to pan through
-                d._ovx = Math.max(0, DW - boxW);   // horizontal overflow to pan through
-                skyImg.attr("x", m.l - d._ovx * px).attr("y", m.t - d._ov * p)
-                    .attr("width", DW).attr("height", DH);
+                var base = Math.max(W, H / asp) * z, DW = base, DH = asp * base;
+                d._ov = Math.max(0, DH - H);
+                d._ovx = Math.max(0, DW - W);
+                imgEl.style.width = DW + "px";
+                imgEl.style.height = DH + "px";
+                imgEl.style.left = (-d._ovx * px) + "px";
+                imgEl.style.top = (-d._ov * p) + "px";
             }
-            svg.append("path").datum(data).attr("d", sky).attr("clip-path", "url(#accum-sky)")
-                .attr("fill", "#f4f1e9").attr("opacity", 0.34).style("pointer-events", "none");
-            svg.append("path").datum(data).attr("d", area).attr("fill", NEON).attr("opacity", 0.1);
-            svg.append("path").datum(data).attr("d", line)
-                .attr("fill", "none").attr("stroke", GREEN).attr("stroke-width", 2)
-                .attr("stroke-linejoin", "round");
-            svg.append("g").attr("transform", "translate(0," + (H - m.b) + ")")
-                .call(d3.axisBottom(x).ticks(narrow ? 4 : 6).tickSizeOuter(0));
-            svg.append("g").attr("transform", "translate(" + m.l + ",0)")
-                .call(d3.axisLeft(y).ticks(5).tickSizeOuter(0));
-            svg.selectAll(".domain, .tick line").attr("stroke", "rgba(13,18,14,0.2)");
-            svg.selectAll(".tick text").attr("fill", MUTED);
-            // Milestones: #1, every 25th, and the latest lifer.
-            var marks = [0, 24, 49, 74, data.length - 1].filter(function (i, k, a) {
-                return i < data.length && a.indexOf(i) === k;
-            });
-            marks.forEach(function (i) {
-                var d = data[i];
-                svg.append("circle").attr("cx", x(d.d)).attr("cy", y(d.n)).attr("r", 4.5)
-                    .attr("fill", NEON).attr("stroke", GREEN).attr("stroke-width", 1.5);
-                svg.append("text").attr("x", x(d.d)).attr("y", y(d.n) - 9)
-                    .attr("text-anchor", i > data.length * 0.85 ? "end" : "middle")
-                    .attr("class", "chart-tick").text("#" + d.n);
-            });
-            var guide = svg.append("line").attr("y1", m.t).attr("y2", H - m.b)
-                .attr("stroke", GREEN).attr("stroke-dasharray", "3 3").attr("opacity", 0);
-            var focus = svg.append("circle").attr("r", 6)
-                .attr("fill", NEON).attr("stroke", GREEN).attr("stroke-width", 2).attr("opacity", 0);
 
-            // The lifer label rides over the photo backdrop (upper-left).
-            var card = document.getElementById("accum-card");
-            var cardRank = document.getElementById("lifer-rank");
-            var cardName = document.getElementById("lifer-name");
-            var cardMeta = document.getElementById("lifer-meta");
-            var cardCount = document.getElementById("lifer-count");
-            var sel = data.length - 1, pinned = false;
-            function show(i) {
+            var ticket = document.getElementById("ll-ticket");
+            var tNo = document.getElementById("ll-no"), tName = document.getElementById("ll-name");
+            var tMeta = document.getElementById("ll-meta"), tCta = document.getElementById("ll-cta");
+            var fmtDate = d3.timeFormat("%b %-d, %Y");
+
+            // ---------- the wall ----------
+            // Every lifer, newest first, grouped by the year it was added. The
+            // year headings carry the same crescendo the ribbon draws (1, 1, 3,
+            // 4, 5, 17, 28, 67) while staying fully clickable.
+            var wall = document.getElementById("ll-wall");
+            var tiles = [];
+            // The page's other esc() is scoped inside the map IIFE, so the
+            // chart script needs its own. Names ride in a title attribute.
+            function llEsc(v) {
+                return String(v == null ? "" : v).replace(/[&<>"']/g, function (ch) {
+                    return { "&": "&amp;", "<": "&lt;", ">": "&gt;",
+                             '"': "&quot;", "'": "&#39;" }[ch];
+                });
+            }
+            (function buildWall() {
+                var order = data.slice().reverse(), html = "", year = null;
+                order.forEach(function (d) {
+                    var y = d.d.getFullYear();
+                    if (y !== year) {
+                        if (year !== null) html += "</div>";
+                        var n = data.filter(function (x) { return x.d.getFullYear() === y; }).length;
+                        html += '<div class="ll-year"><span class="ll-yr mono">' + y +
+                                '</span><span class="ll-yn mono">' + n +
+                                (n === 1 ? " species" : " species") + '</span></div>' +
+                                '<div class="ll-row">';
+                        year = y;
+                    }
+                    // The curated pos/posx that frames the big shot frames the
+                    // thumbnail too, so a bird that sits low or left is not
+                    // cropped out by a centred square.
+                    var oy = Math.round(Math.max(0, Math.min(1, d.pos)) * 100);
+                    var ox = Math.round(Math.max(0, Math.min(1, d.posx)) * 100);
+                    html += '<button type="button" class="ll-tile" role="option" aria-selected="false"' +
+                            ' data-i="' + (d.n - 1) + '" title="#' + d.n + '  ' + llEsc(d.s) + '"' +
+                            ' style="--px:' + ox + '%;--py:' + oy + '%">' +
+                            '<img src="' + d.img + '" alt="" loading="lazy" draggable="false">' +
+                            '<span class="ll-tn mono">#' + d.n + '</span></button>';
+                });
+                html += "</div>";
+                wall.innerHTML = html;
+                tiles = Array.prototype.slice.call(wall.querySelectorAll(".ll-tile"));
+            })();
+
+            // ---------- the ribbon ----------
+            // Demoted from hero to summary: it answers "when did this happen",
+            // which a time axis is good at, and no longer has to be the way you
+            // pick a bird, which it was bad at.
+            var el = document.getElementById("accum-chart");
+            var guide, focus, x, y;
+            function renderRibbon() {
+                el.innerHTML = "";
+                var W = chartWidth(el), narrow = W < 520, H = narrow ? 104 : 124,
+                    m = { t: 14, r: narrow ? 10 : 16, b: 20, l: narrow ? 26 : 32 };
+                x = d3.scaleTime(d3.extent(data, function (d) { return d.d; }), [m.l, W - m.r]);
+                y = d3.scaleLinear([0, data.length], [H - m.b, m.t]);
+                var svg = d3.select(el).append("svg").attr("viewBox", "0 0 " + W + " " + H)
+                    .style("touch-action", "pan-y");
+                var line = d3.line().curve(d3.curveStepAfter)
+                    .x(function (d) { return x(d.d); }).y(function (d) { return y(d.n); });
+                var area = d3.area().curve(d3.curveStepAfter)
+                    .x(function (d) { return x(d.d); }).y0(y(0)).y1(function (d) { return y(d.n); });
+                svg.append("path").datum(data).attr("d", area).attr("fill", NEON).attr("opacity", 0.14);
+                svg.append("path").datum(data).attr("d", line)
+                    .attr("fill", "none").attr("stroke", GREEN).attr("stroke-width", 2)
+                    .attr("stroke-linejoin", "round");
+                svg.append("g").attr("transform", "translate(0," + (H - m.b) + ")")
+                    .call(d3.axisBottom(x).ticks(narrow ? 4 : 7).tickSizeOuter(0));
+                svg.append("g").attr("transform", "translate(" + m.l + ",0)")
+                    .call(d3.axisLeft(y).ticks(3).tickSizeOuter(0));
+                svg.selectAll(".domain, .tick line").attr("stroke", "rgba(13,18,14,0.18)");
+                svg.selectAll(".tick text").attr("fill", MUTED);
+                guide = svg.append("line").attr("y1", m.t).attr("y2", H - m.b)
+                    .attr("stroke", GREEN).attr("stroke-dasharray", "3 3").attr("opacity", 0);
+                focus = svg.append("circle").attr("r", 5)
+                    .attr("fill", NEON).attr("stroke", GREEN).attr("stroke-width", 2).attr("opacity", 0);
+                // Scrubbing still works -- it is just no longer the only door.
+                var bisect = d3.bisector(function (d) { return d.d; }).left;
+                function idxAt(ev) {
+                    var pxp = d3.pointer(ev, svg.node())[0];
+                    var i = bisect(data, x.invert(pxp));
+                    i = Math.max(0, Math.min(i, data.length - 1));
+                    var prev = data[Math.max(0, i - 1)];
+                    if (Math.abs(x(prev.d) - pxp) < Math.abs(x(data[i].d) - pxp)) i = Math.max(0, i - 1);
+                    return i;
+                }
+                svg.on("pointermove", function (ev) {
+                    if (ev.pointerType === "touch") return;
+                    show(idxAt(ev), false);
+                });
+                svg.on("pointerdown", function (ev) { show(idxAt(ev), true); });
+            }
+            renderRibbon();
+
+            // ---------- selection ----------
+            function show(i, scrollTo) {
                 sel = Math.max(0, Math.min(i, data.length - 1));
                 var d = data[sel];
                 if (d.idx == null) d.idx = Math.max(0, (d.cands || []).indexOf(d.img));
-                guide.attr("x1", x(d.d)).attr("x2", x(d.d)).attr("opacity", 0.5);
-                focus.attr("cx", x(d.d)).attr("cy", y(d.n)).attr("opacity", 1)
-                    .attr("stroke", pinned ? INK : GREEN);
-                skyImg.attr("href", d.img);
-                skyView(d);
-                card.hidden = false;
-                card.href = birdURL(d.s);
-                cardRank.textContent = "lifer #" + d.n + (pinned ? " · pinned" : "");
-                cardName.textContent = d.s;
-                cardMeta.textContent = d3.timeFormat("%b %-d, %Y")(d.d) + " · " + d.fam;
-                cardCount.textContent = d.total === 1 ? "1 photo so far →"
-                    : d.total + " photos so far →";
+                if (imgEl.getAttribute("src") !== d.img) imgEl.src = d.img;
+                frame(d);
+                ticket.href = birdURL(d.s);
+                tNo.textContent = "No. " + d.n;
+                tName.textContent = d.s;
+                tMeta.textContent = fmtDate(d.d) + " · " + d.fam;
+                tCta.textContent = (d.total === 1 ? "1 photo" : d.total + " photos") + " →";
+                if (guide) {
+                    guide.attr("x1", x(d.d)).attr("x2", x(d.d)).attr("opacity", 0.55);
+                    focus.attr("cx", x(d.d)).attr("cy", y(d.n)).attr("opacity", 1);
+                }
+                tiles.forEach(function (t) {
+                    var on = +t.dataset.i === sel;
+                    t.classList.toggle("on", on);
+                    t.setAttribute("aria-selected", on ? "true" : "false");
+                    if (on && scrollTo) t.scrollIntoView({ block: "nearest", inline: "nearest" });
+                });
                 updateCurate();
             }
-            // Let a /birds/stats?bird=X deep-link (from a species profile) pin the
-            // life list on that bird's lifer moment.
+
+            var wrap = document.getElementById("ll-wallwrap");
+            function syncFade() {
+                if (!wrap) return;
+                var atEnd = wall.scrollTop + wall.clientHeight >= wall.scrollHeight - 4;
+                wrap.classList.toggle("at-end", atEnd);
+            }
+            wall.addEventListener("scroll", syncFade, { passive: true });
+            syncFade();
+
+            wall.addEventListener("pointerover", function (ev) {
+                if (ev.pointerType === "touch") return;
+                var t = ev.target.closest(".ll-tile");
+                if (t) show(+t.dataset.i, false);
+            });
+            wall.addEventListener("click", function (ev) {
+                var t = ev.target.closest(".ll-tile");
+                if (t) show(+t.dataset.i, false);
+            });
+            el.addEventListener("keydown", function (ev) {
+                if (ev.key === "ArrowRight") { show(sel + 1, true); ev.preventDefault(); }
+                if (ev.key === "ArrowLeft") { show(sel - 1, true); ev.preventDefault(); }
+            });
+            wall.addEventListener("keydown", function (ev) {
+                if (ev.key === "ArrowRight" || ev.key === "ArrowDown") { show(sel + 1, true); ev.preventDefault(); }
+                if (ev.key === "ArrowLeft" || ev.key === "ArrowUp") { show(sel - 1, true); ev.preventDefault(); }
+                if (ev.key === "Enter" || ev.key === " ") { location.href = ticket.href; ev.preventDefault(); }
+            });
+
+            // A /birds/stats?bird=X deep link lands on that bird's lifer moment.
             window.lvFocusLifer = function (name) {
                 for (var i = 0; i < data.length; i++) {
-                    if (data[i].s === name) { pinned = true; show(i); return true; }
+                    if (data[i].s === name) { show(i, true); return true; }
                 }
                 return false;
             };
-            var bisect = d3.bisector(function (d) { return d.d; }).left;
-            function idxAt(ev) {
-                var px = d3.pointer(ev, svg.node())[0];
-                var i = bisect(data, x.invert(px));
-                i = Math.max(0, Math.min(i, data.length - 1));
-                var prev = data[Math.max(0, i - 1)];
-                if (Math.abs(x(prev.d) - px) < Math.abs(x(data[i].d) - px)) i = Math.max(0, i - 1);
-                return i;
-            }
 
-            // ---- Curation: pin a lifer, then cycle its photos and drag the
-            // backdrop up/down to frame the bird. Both persist to /curate/lifer.
+            // ---------- curation ----------
+            // Unchanged in substance: pick the photo, zoom it, drag to reframe,
+            // reset. It now drags on the shot itself rather than on the chart,
+            // and needs no "pin" first, since the wall already says which bird.
             var tb = document.getElementById("lifer-curate");
             var photoEl = tb && document.getElementById("lc-photo");
             var savedEl = tb && document.getElementById("lc-saved");
@@ -608,8 +707,6 @@
             }
             function updateCurate() {
                 if (!tb) return;
-                tb.hidden = !pinned;
-                if (!pinned) return;
                 var d = data[sel], cands = d.cands || [];
                 photoEl.textContent = "photo " + ((d.idx || 0) + 1) + "/" + Math.max(1, cands.length)
                     + "  ·  " + Math.round(zoomOf(d) * 100) + "%";
@@ -619,18 +716,17 @@
                 if (cands.length < 2) return;
                 d.idx = (((d.idx || 0) + dir) % cands.length + cands.length) % cands.length;
                 d.img = cands[d.idx];
-                skyImg.attr("href", d.img);
-                updateCurate();
-                saveLifer(d, false);
+                imgEl.src = d.img; frame(d);
+                updateCurate(); saveLifer(d, false);
             }
             function bumpZoom(step) {
                 var d = data[sel];
                 d.zoom = Math.max(1, Math.min(3, +(zoomOf(d) + step).toFixed(2)));
-                skyView(d); updateCurate(); saveLifer(d, false);
+                frame(d); updateCurate(); saveLifer(d, false);
             }
             if (tb) {
-                document.getElementById("lc-prev-bird").addEventListener("click", function () { show(sel - 1); });
-                document.getElementById("lc-next-bird").addEventListener("click", function () { show(sel + 1); });
+                document.getElementById("lc-prev-bird").addEventListener("click", function () { show(sel - 1, true); });
+                document.getElementById("lc-next-bird").addEventListener("click", function () { show(sel + 1, true); });
                 document.getElementById("lc-prev").addEventListener("click", function () { cyclePhoto(-1); });
                 document.getElementById("lc-next").addEventListener("click", function () { cyclePhoto(1); });
                 document.getElementById("lc-zoom-out").addEventListener("click", function () { bumpZoom(-0.1); });
@@ -639,52 +735,37 @@
                     var d = data[sel];
                     d.idx = 0; d.img = (d.cands || [])[0] || d.img;
                     d.pos = 0.35; d.posx = 0.5; d.zoom = null;
-                    skyImg.attr("href", d.img); skyView(d);
+                    imgEl.src = d.img; frame(d);
                     updateCurate(); saveLifer(d, true);
                     if (savedEl) savedEl.textContent = "reset ✓";
                 });
-            }
-
-            // Hover scrubs; a CLICK (or tap) pins the selection so the pointer can
-            // travel to the card's links without re-scrubbing. In curate mode, once
-            // pinned a DRAG reframes the backdrop (both axes) instead of scrubbing.
-            var downAt = null, repoFrom = 0, repoFromX = 0, reposing = false;
-            svg.on("pointerdown", function (ev) {
-                downAt = [ev.clientX, ev.clientY];
-                if (CURATE && pinned) {
-                    reposing = true;
+                var downAt = null, repoFrom = 0, repoFromX = 0;
+                shotEl.addEventListener("pointerdown", function (ev) {
+                    downAt = [ev.clientX, ev.clientY];
                     repoFrom = data[sel].pos == null ? 0.5 : data[sel].pos;
                     repoFromX = data[sel].posx == null ? 0.5 : data[sel].posx;
-                } else { reposing = false; show(idxAt(ev)); }
-            });
-            svg.on("pointermove", function (ev) {
-                if (reposing && ev.buttons > 0) {
+                    shotEl.setPointerCapture(ev.pointerId);
+                    ev.preventDefault();
+                });
+                shotEl.addEventListener("pointermove", function (ev) {
+                    if (!downAt || !(ev.buttons > 0)) return;
                     var d = data[sel];
-                    // grab-and-pull: drag down/right reveals the top/left of the photo,
-                    // each across its real overflow so it tracks the pointer 1:1.
+                    // grab-and-pull across the real overflow, so it tracks 1:1
                     d.pos = Math.max(0, Math.min(1, repoFrom - (ev.clientY - downAt[1]) / Math.max(1, d._ov)));
                     d.posx = Math.max(0, Math.min(1, repoFromX - (ev.clientX - downAt[0]) / Math.max(1, d._ovx)));
-                    skyView(d);
-                } else if (ev.buttons > 0) {
-                    // The timeline runs left-to-right, so scrub only on a horizontal
-                    // drag; a vertical drag is meant to scroll the page (touch-action
-                    // pan-y), so don't hijack it.
-                    if (ev.pointerType === "touch" && downAt &&
-                        Math.abs(ev.clientY - downAt[1]) > Math.abs(ev.clientX - downAt[0])) return;
-                    show(idxAt(ev));
-                } else if (!pinned) show(idxAt(ev));
-            });
-            svg.on("pointerup", function (ev) {
-                var moved = downAt && Math.hypot(ev.clientX - downAt[0], ev.clientY - downAt[1]) >= 8;
-                if (!moved) { pinned = !pinned; show(sel); }
-                else if (reposing) saveLifer(data[sel], false);
-                downAt = null; reposing = false;
-            });
-            el.addEventListener("keydown", function (ev) {
-                if (ev.key === "ArrowRight") { show(sel + 1); ev.preventDefault(); }
-                if (ev.key === "ArrowLeft") { show(sel - 1); ev.preventDefault(); }
-            });
-            show(data.length - 1);
+                    frame(d);
+                });
+                shotEl.addEventListener("pointerup", function (ev) {
+                    if (downAt && Math.hypot(ev.clientX - downAt[0], ev.clientY - downAt[1]) >= 4) {
+                        saveLifer(data[sel], false);
+                    }
+                    downAt = null;
+                });
+                shotEl.classList.add("is-curate");
+            }
+
+            llState = { reflow: function () { renderRibbon(); show(sel, false); } };
+            show(data.length - 1, false);
         }
 
         // ---- The year, in birds: the full phenology matrix ----
@@ -1516,7 +1597,10 @@
         addEventListener("resize", function () {
             clearTimeout(rt);
             rt = setTimeout(function () {
-                renderRiver(); renderAccum(); renderFam();
+                renderRiver(); renderFam();
+                // Only the ribbon depends on width; rebuilding the whole life
+                // list would drop the wall's scroll position and the selection.
+                if (llState) llState.reflow(); else renderAccum();
                 if (window.__statsRefocus) window.__statsRefocus();  // re-render dropped the focus; restore it
             }, 200);
         });
