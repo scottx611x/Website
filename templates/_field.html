@@ -165,16 +165,16 @@ body.field-view .gallery-header.is-stuck{
 /* A quiet mark on the photo, not a button competing with the controls:
    no chip, no fill behind it, just the amber star with a shadow so it stays
    legible over a bright sky. Sits opposite the close button. */
-/* Beside the star, not over by the close button: the two marks say related
-   things about the frame and read as a pair. Offset clears the star when both
-   are showing; with no star the star slot is empty and it sits alone. */
-.bf-stageaway{position:absolute;top:.78rem;left:2.4rem;z-index:5;line-height:0;
-  color:var(--amber,#e8b04b);opacity:.95;filter:drop-shadow(0 1px 2px rgba(0,0,0,.55));pointer-events:none}
-@media (max-width:700px){.bf-stageaway{left:2.1rem;top:.55rem}}
+/* One row, centre-aligned, so the two icons share an optical baseline and the
+   triangle slides left on its own when the star is hidden. */
+.bf-stagemarks{position:absolute;top:.75rem;left:.9rem;z-index:5;
+  display:flex;align-items:center;gap:.3rem}
+@media (max-width:700px){.bf-stagemarks{top:.5rem;left:.6rem}}
+.bf-stageaway{line-height:0;color:var(--amber,#e8b04b);opacity:.95;
+  filter:drop-shadow(0 1px 2px rgba(0,0,0,.55));pointer-events:none}
 #bf-ostrip img.hid{opacity:.3;filter:grayscale(1)}
 .bf-oimg.hid{opacity:.45;filter:grayscale(.7)}
-.bf-stagestar{position:absolute;top:.75rem;left:.9rem;z-index:5;
-  background:none;border:0;padding:.2rem;line-height:0;cursor:default;
+.bf-stagestar{background:none;border:0;padding:0;line-height:0;cursor:default;
   color:var(--amber,#e8b04b);opacity:.85;
   filter:drop-shadow(0 1px 2px rgba(0,0,0,.55))}
 .bf-stagestar.on svg{fill:currentColor}
@@ -183,7 +183,6 @@ body.field-view .gallery-header.is-stuck{
 .bf-stagestar:not([data-ro]){cursor:pointer}
 .bf-stagestar:not([data-ro]):not(.on){opacity:.4;color:#fff}
 .bf-stagestar:not([data-ro]):hover{opacity:1}
-@media (max-width:700px){.bf-stagestar{top:.5rem;left:.6rem}}
 .bf-stage{position:relative;display:flex;align-items:center;
   justify-content:center;padding:1.4rem 1.4rem .6rem;min-width:0;flex:1}
 /* [hidden] sets display:none in the UA sheet, but an author `display:block`
@@ -520,9 +519,11 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
       {# A quiet marker on the photo itself rather than a control in the row
          below: beside the starred-only filter it read as the same icon twice.
          Outside curate it only appears when the frame IS starred. #}
-      <button type="button" id="bf-ostar" class="bf-stagestar" title="Starred" aria-label="Starred" aria-pressed="false" hidden{% if not curate %} data-ro="1"{% endif %}><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 17.8 6.2 20.9l1.1-6.5L2.6 9.8l6.5-.9z"/></svg></button>
+      <span class="bf-stagemarks">
+      <button type="button" id="bf-ostar" class="bf-stagestar" title="Starred" aria-label="Starred" aria-pressed="false" hidden{% if not curate %} data-ro="1"{% endif %}><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 17.8 6.2 20.9l1.1-6.5L2.6 9.8l6.5-.9z"/></svg></button>
       {# Mirrors the star: a quiet mark on the photo rather than a control. #}
-      <span id="bf-oaway-mark" class="bf-stageaway" title="Outside North Andover" hidden><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg></span>
+      <span id="bf-oaway-mark" class="bf-stageaway" title="Outside North Andover" hidden><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg></span>
+      </span>
       <img class="bf-oimg" id="bf-oimg" alt="">
       <video class="bf-oimg" id="bf-ovid" hidden controls loop playsinline
              preload="metadata"></video>
@@ -917,7 +918,7 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
       // out-of-area triangle straight through the caption's date line.
       ((t.star || t.away) ? '<span class="bf-marks">' +
         (t.star ? '<span class="bf-star" title="Starred"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="m12 3 2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 17.8 6.2 20.9l1.1-6.5L2.6 9.8l6.5-.9z"/></svg></span>' : '') +
-        (t.away ? '<span class="bf-away" title="Outside North Andover"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg></span>' : '') +
+        (t.away ? '<span class="bf-away" title="Outside North Andover"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg></span>' : '') +
         '</span>' : '') +
       // Shot outside North Andover. Bottom-left, opposite the star, so a frame
       // can carry both marks without them stacking.
