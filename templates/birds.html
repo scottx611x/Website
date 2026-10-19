@@ -254,6 +254,14 @@
                 <button type="button" role="menuitemcheckbox" class="vm-opt{% if active_star %} on{% endif %}"
                         aria-checked="{{ 'true' if active_star else 'false' }}"
                         onclick="birdsGo(null,{star:'{{ '' if active_star else '1' }}'})">Starred only<span class="vm-num">{{ star_count }}</span></button>
+                {# The out-of-area frames were only reachable from the stat link
+                   in the header, which is easy to miss and gone once you have
+                   scrolled. Same checkbox treatment as Starred only. #}
+                {% if away_frames %}
+                <button type="button" role="menuitemcheckbox" class="vm-opt{% if active_area == 'elsewhere' %} on{% endif %}"
+                        aria-checked="{{ 'true' if active_area == 'elsewhere' else 'false' }}"
+                        onclick="birdsGo(null,{area:'{{ '' if active_area == 'elsewhere' else 'elsewhere' }}'})">Outside North Andover<span class="vm-num">{{ away_frames }}</span></button>
+                {% endif %}
 
                 <p class="vm-head">Size</p>
                 <div class="vm-size">

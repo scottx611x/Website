@@ -165,6 +165,9 @@ body.field-view .gallery-header.is-stuck{
 /* A quiet mark on the photo, not a button competing with the controls:
    no chip, no fill behind it, just the amber star with a shadow so it stays
    legible over a bright sky. Sits opposite the close button. */
+.bf-stageaway{position:absolute;top:.75rem;right:3.2rem;z-index:5;line-height:0;
+  color:#fff;opacity:.6;filter:drop-shadow(0 1px 2px rgba(0,0,0,.55));pointer-events:none}
+@media (max-width:700px){.bf-stageaway{right:3rem;top:.5rem}}
 .bf-stagestar{position:absolute;top:.75rem;left:.9rem;z-index:5;
   background:none;border:0;padding:.2rem;line-height:0;cursor:default;
   color:var(--amber,#e8b04b);opacity:.85;
@@ -513,6 +516,8 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
          below: beside the starred-only filter it read as the same icon twice.
          Outside curate it only appears when the frame IS starred. #}
       <button type="button" id="bf-ostar" class="bf-stagestar" title="Starred" aria-label="Starred" aria-pressed="false" hidden{% if not curate %} data-ro="1"{% endif %}><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 17.8 6.2 20.9l1.1-6.5L2.6 9.8l6.5-.9z"/></svg></button>
+      {# Mirrors the star: a quiet mark on the photo rather than a control. #}
+      <span id="bf-oaway-mark" class="bf-stageaway" title="Outside North Andover" hidden><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-5.2-7-11a7 7 0 0 1 14 0c0 5.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.4"/></svg></span>
       <img class="bf-oimg" id="bf-oimg" alt="">
       <video class="bf-oimg" id="bf-ovid" hidden controls loop playsinline
              preload="metadata"></video>
@@ -904,6 +909,9 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
       // A star on the tile, so the best frames are visible as you pan rather
       // than only once you open one.
       (t.star ? '<span class="bf-star" title="Starred"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="m12 3 2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 17.8 6.2 20.9l1.1-6.5L2.6 9.8l6.5-.9z"/></svg></span>' : '') +
+      // Shot outside North Andover. Bottom-left, opposite the star, so a frame
+      // can carry both marks without them stacking.
+      (t.away ? '<span class="bf-away" title="Outside North Andover"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-5.2-7-11a7 7 0 0 1 14 0c0 5.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.4"/></svg></span>' : '') +
       (OVERVIEW ? '<span class="bf-tally">' + (SPECIES_N[SEQ[d.i]] || 1) + '</span>' : '') +
       '<figcaption><b>' + esc(t.name) + '</b>' +
         (t.date ? '<span>' + esc(t.date) + (t.where ? ' · ' + esc(t.where) : '') + '</span>' : '') +
@@ -1476,6 +1484,8 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
     // Readers see it only on starred frames; curating needs it on every frame,
     // since that is how you star one.
     oStar.hidden = !on && !!oStar.dataset.ro;
+    var am = $("bf-oaway-mark");
+    if (am) am.hidden = !(f && f.away);
     oStar.title = oStar.dataset.ro ? "Starred"
                                    : (on ? "Starred — click to unstar" : "Star this frame");
   }

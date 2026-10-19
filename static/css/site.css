@@ -1754,3 +1754,7 @@ a.stat-card:active, .bird-stat-link:active,
 .bf-star { position: absolute; top: .4rem; left: .4rem; z-index: 2; line-height: 0;
     color: var(--amber, #e8b04b); filter: drop-shadow(0 1px 2px rgba(13,18,14,.65)); pointer-events: none; }
 .bf-star svg { fill: currentColor; }
+/* Out of area: a fact about where the frame was taken, not a judgement, so it
+   stays neutral rather than borrowing the star's amber or the curate red. */
+.bf-away { position: absolute; bottom: .4rem; left: .4rem; z-index: 2; line-height: 0;
+    color: #fff; opacity: .72; filter: drop-shadow(0 1px 2px rgba(13,18,14,.7)); pointer-events: none; }

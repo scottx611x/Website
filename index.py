@@ -674,6 +674,10 @@ def birds_gallery():
         mosaic_n=mosaic_n,
         active_star=star_only,
         star_count=sum(1 for f in shots if f.get('star')),
+        # Frame-level, unlike away_count above, which counts SPECIES. The menu
+        # filters frames, so it has to report the number it will actually show.
+        away_frames=sum(1 for f in shots
+                        if (f.get('image_areas') or ['local'])[0] == 'away'),
         active_loc=place["name"] if place else "",
         active_seed=seed if seed.isdigit() else "",
         active_on=on,
