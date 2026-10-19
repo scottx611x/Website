@@ -99,6 +99,20 @@
             <div id="accum-chart" class="d3-chart ll-ribbon" role="group"
                  aria-label="Life list over time. Select a year to jump to it in the list below."></div>
 
+            {# The scrub Scott wanted, on the only axis that can carry it: one
+               step per lifer, evenly spaced, so #63 is as reachable as #1.
+               Dragging walks the list, the photo above follows, and the wall
+               below tracks along with the current bird ringed. #}
+            <div class="ll-scrubwrap">
+                <span class="ll-scrublab mono" id="ll-scrublab" aria-hidden="true"></span>
+                <div class="ll-scrub" id="ll-scrub" role="slider" tabindex="0"
+                     aria-label="Scrub through the life list"
+                     aria-valuemin="1" aria-valuemax="{{ series.accum|length }}" aria-valuenow="{{ series.accum|length }}">
+                    <span class="ll-ticks" id="ll-ticks"></span>
+                    <span class="ll-head" id="ll-head"></span>
+                </div>
+            </div>
+
             <div class="ll-wallwrap" id="ll-wallwrap">
                 <div class="ll-wall" id="ll-wall" role="listbox"
                      aria-label="Every species on the life list, newest first"></div>
@@ -662,8 +676,9 @@
                     var on = +t.dataset.i === sel;
                     t.classList.toggle("on", on);
                     t.setAttribute("aria-selected", on ? "true" : "false");
-                    if (on && scrollTo) t.scrollIntoView({ block: "nearest", inline: "nearest" });
+                    if (on && scrollTo) scrollWallTo(t, false);
                 });
+                paintScrub(d);
                 updateCurate();
             }
 
@@ -677,9 +692,89 @@
                 }
                 if (first < 0) return;
                 var head = wall.querySelector('[data-year="' + yr + '"]');
-                if (head) head.scrollIntoView({ block: "start", behavior: "smooth" });
+                if (head) {
+                    // Scroll the WALL, not the page. scrollIntoView walks every
+                    // scrollable ancestor, so it dragged the document up and
+                    // threw the ribbon you had just clicked off screen -- the
+                    // next click then landed on nothing at all.
+                    var to = head.getBoundingClientRect().top
+                           - wall.getBoundingClientRect().top + wall.scrollTop;
+                    if (wall.scrollTo) wall.scrollTo({ top: to, behavior: "smooth" });
+                    else wall.scrollTop = to;
+                }
                 show(first, false);
             }
+
+            // Scroll the WALL and nothing else. scrollIntoView climbs every
+            // scrollable ancestor, so during a scrub it dragged the whole page
+            // and the control went out from under the pointer.
+            function scrollWallTo(el, smooth) {
+                if (!el) return;
+                var to = el.getBoundingClientRect().top - wall.getBoundingClientRect().top
+                       + wall.scrollTop - (wall.clientHeight - el.offsetHeight) / 2;
+                to = Math.max(0, Math.min(to, wall.scrollHeight - wall.clientHeight));
+                if (wall.scrollTo) wall.scrollTo({ top: to, behavior: smooth ? "smooth" : "auto" });
+                else wall.scrollTop = to;
+            }
+
+            // ---------- the scrub ----------
+            var scrub = document.getElementById("ll-scrub");
+            var ticksEl = document.getElementById("ll-ticks");
+            var head = document.getElementById("ll-head");
+            var lab = document.getElementById("ll-scrublab");
+            // One mark per lifer. Every 25th is taller, so the bar carries the
+            // milestones the old chart used to label.
+            ticksEl.innerHTML = data.map(function (d, i) {
+                return '<i' + ((i + 1) % 25 === 0 ? ' class="q"' : '') + '></i>';
+            }).join("");
+            var tickBars = Array.prototype.slice.call(ticksEl.children);
+            function paintScrub(d) {
+                var f = data.length < 2 ? 1 : sel / (data.length - 1);
+                head.style.left = (f * 100) + "%";
+                lab.style.left = (f * 100) + "%";
+                lab.textContent = "#" + d.n + "  " + d.s;
+                scrub.setAttribute("aria-valuenow", d.n);
+                scrub.setAttribute("aria-valuetext", "#" + d.n + " " + d.s);
+                tickBars.forEach(function (b, i) { b.classList.toggle("on", i === sel); });
+            }
+            function idxFromX(clientX) {
+                var r = scrub.getBoundingClientRect();
+                var f = (clientX - r.left) / Math.max(1, r.width);
+                return Math.max(0, Math.min(data.length - 1, Math.round(f * (data.length - 1))));
+            }
+            var scrubbing = false, pending = null, raf = 0;
+            function flush() {
+                raf = 0;
+                if (pending == null) return;
+                var i = pending; pending = null;
+                if (i !== sel) show(i, true);
+            }
+            scrub.addEventListener("pointerdown", function (ev) {
+                scrubbing = true;
+                scrub.setPointerCapture(ev.pointerId);
+                scrub.classList.add("live");
+                show(idxFromX(ev.clientX), true);
+                ev.preventDefault();
+            });
+            scrub.addEventListener("pointermove", function (ev) {
+                if (!scrubbing) return;
+                // One update per frame: a drag fires far more often than that,
+                // and each update touches 129 tiles.
+                pending = idxFromX(ev.clientX);
+                if (!raf) raf = requestAnimationFrame(flush);
+            });
+            function endScrub() { scrubbing = false; scrub.classList.remove("live"); }
+            scrub.addEventListener("pointerup", endScrub);
+            scrub.addEventListener("pointercancel", endScrub);
+            scrub.addEventListener("keydown", function (ev) {
+                var step = ev.shiftKey ? 10 : 1, to = null;
+                if (ev.key === "ArrowRight" || ev.key === "ArrowUp") to = sel + step;
+                else if (ev.key === "ArrowLeft" || ev.key === "ArrowDown") to = sel - step;
+                else if (ev.key === "Home") to = 0;
+                else if (ev.key === "End") to = data.length - 1;
+                if (to == null) return;
+                show(to, true); ev.preventDefault();
+            });
 
             var wrap = document.getElementById("ll-wallwrap");
             function syncFade() {

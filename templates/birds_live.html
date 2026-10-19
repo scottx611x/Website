@@ -251,7 +251,10 @@
 
   /* Today's soundtrack: one 24h band per species, every recording a tick. */
   .lv-trackhint{color:var(--muted); font-size:.72rem; margin:-.6rem 0 1rem}
-  .lv-trackwrap{position:relative; --tl:10rem}
+  /* --tl is the species-label column; --mkl is where the day starts.
+     The marks and the hour axis both key off --mkl so they cannot drift
+     away from the tick bands. */
+  .lv-trackwrap{position:relative; --tl:10rem; --mkl:calc(var(--tl) + 10px)}
   .lv-trackrows{display:flex; flex-direction:column; gap:5px}
   .lv-trow{display:flex; align-items:center; gap:10px}
   .lv-trow .tl{flex:0 0 var(--tl); font-family:var(--mono); font-size:.7rem; text-align:right;
@@ -275,22 +278,25 @@
      whole day — 9.6px an hour. The name goes above its band instead, so the
      band gets the full width, and rows grow enough to be tappable. */
   @media (max-width: 720px){
-    .lv-trackwrap{--tl:0}
+    .lv-trackwrap{--tl:0; --mkl:0}
     .lv-trow{display:block; margin-bottom:.1rem}
     .lv-trow .tl{flex:none; width:auto; text-align:left; font-size:.68rem;
       line-height:1.25; padding:0 0 1px}
     .lv-trow .tband{height:26px}
     .lv-trackrows{gap:9px}
-    .lv-trackmarks{left:0}
     .lv-tk{width:3px}
     button.lv-tk{width:3px}
   }
   .lv-trackctl{margin:-.2rem 0 .7rem}
   .lv-daystep{display:inline-flex; align-items:center; gap:.4rem; margin-left:.5rem}
+  /* A class-level display beats the UA [hidden] rule, so the stepper sat
+     on the page as two bare arrows around an empty day name whenever it
+     was meant to be away. Restore it explicitly. */
+  .lv-daystep[hidden]{display:none}
   .lv-daystep b{font-family:var(--mono); font-size:.72rem; font-weight:600}
   .lv-trow .tl b{font-weight:600}
   .lv-trow .tl .tn2{color:var(--muted); margin-left:.4rem; font-weight:400}
-  .lv-trackmarks{position:absolute; left:calc(var(--tl) + 10px); right:0; top:0; bottom:1.35rem;
+  .lv-trackmarks{position:absolute; left:var(--mkl); right:0; top:0; bottom:1.35rem;
     pointer-events:none}
   .lv-tmk{position:absolute; top:0; bottom:0; border-left:1px dashed rgba(13, 18, 14,.16)}
   .lv-tmk.sunrise{border-left-color:rgba(232,176,75,.6)}
@@ -300,7 +306,7 @@
   .lv-tmk.sunrise::after{background:var(--amber); box-shadow:0 0 5px 1px rgba(232,176,75,.5)}
   .lv-tmk.sunset::after{background:#6f7b8a}
   .lv-tmk.now::after{display:none}
-  .lv-trackax{display:flex; justify-content:space-between; margin-left:calc(var(--tl) + 10px);
+  .lv-trackax{display:flex; justify-content:space-between; margin-left:var(--mkl);
     color:var(--muted); font-size:.62rem; margin-top:.35rem}
 
   /* Most vocal today: ranked rows, count bar, clearest clip playable. */
@@ -333,7 +339,6 @@
     .lv-status{text-align:center}
     .lv-when{font-size:.62rem}
     .lv-wall{grid-template-columns:repeat(auto-fill,minmax(78px,1fr)); gap:.4rem}
-    .lv-trackwrap{--tl:6.2rem}
     .lv-trow .tl{font-size:.6rem}
     .lv-brow .bname .bfam{display:none}
   }

@@ -1091,7 +1091,44 @@ a.river-readout:hover .riv-go { text-decoration: underline; }
 }
 .ll-cta { font-size: 0.76rem; color: var(--accent); font-weight: 700; margin-top: 0.5rem; }
 
-.ll-ribbon { margin-bottom: 1.1rem; }
+.ll-ribbon { margin-bottom: 0.8rem; }
+
+/* The scrub bar: one step per lifer, evenly spaced. This is the axis the date
+   chart could not provide -- there, 92 of the 129 shared 8% of the width. */
+.ll-scrubwrap { position: relative; padding-top: 1.35rem; margin-bottom: 1rem; }
+.ll-scrub {
+    position: relative; height: 26px; cursor: ew-resize; touch-action: none;
+    border-radius: 6px;
+}
+.ll-scrub:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.ll-ticks { position: absolute; inset: 0; display: flex; align-items: center; gap: 1px; }
+.ll-ticks i {
+    flex: 1 1 0; min-width: 0; height: 9px; border-radius: 1px;
+    background: rgba(13, 18, 14, 0.17); transition: height 0.12s ease, background 0.12s ease;
+}
+.ll-ticks i.q { height: 15px; background: rgba(13, 18, 14, 0.28); }
+.ll-ticks i.on { height: 26px; background: var(--accent); }
+/* The caret marks where you are without hiding the mark underneath it. */
+.ll-head {
+    position: absolute; top: -4px; width: 2px; height: 34px; margin-left: -1px;
+    background: var(--accent); border-radius: 2px; pointer-events: none;
+    box-shadow: 0 0 0 3px rgba(244, 241, 233, 0.75);
+}
+.ll-head::before {
+    content: ""; position: absolute; left: 50%; top: -5px; width: 9px; height: 9px;
+    transform: translateX(-50%) rotate(45deg); background: var(--accent); border-radius: 2px;
+}
+.ll-scrublab {
+    position: absolute; top: 0; transform: translateX(-50%); white-space: nowrap;
+    font-size: 0.68rem; color: var(--ink); background: var(--paper-2);
+    border: 1px solid rgba(13, 18, 14, 0.12); border-radius: 999px;
+    padding: 0.1rem 0.5rem; pointer-events: none; max-width: 90vw;
+    overflow: hidden; text-overflow: ellipsis;
+}
+/* Dragging lifts the whole bar a little so it reads as live. */
+.ll-scrub.live .ll-ticks i { background: rgba(13, 18, 14, 0.24); }
+.ll-scrub.live .ll-ticks i.on { background: var(--accent); }
+@media (hover: none) { .ll-scrub { height: 32px; } .ll-ticks i { height: 12px; } }
 .ll-ribbon:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 6px; }
 
 /* The wall: every species, newest first, grouped by the year it was added.
