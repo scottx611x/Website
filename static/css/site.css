@@ -1751,11 +1751,12 @@ a.stat-card:active, .bird-stat-link:active,
    than a destructive edit (the curate buttons beside it are red). */
 .bf-ico-star.on { background: var(--amber, #e8b04b); border-color: var(--amber, #e8b04b); color: var(--ink, #17201a); }
 .bf-ico-star.on svg { fill: currentColor; }
-.bf-star { position: absolute; top: .4rem; left: .4rem; z-index: 2; line-height: 0;
-    color: var(--amber, #e8b04b); filter: drop-shadow(0 1px 2px rgba(13,18,14,.65)); pointer-events: none; }
+.bf-marks { position: absolute; top: .4rem; left: .4rem; z-index: 2;
+    display: flex; align-items: center; gap: .22rem; pointer-events: none; }
+.bf-star { line-height: 0;
+    color: var(--amber, #e8b04b); filter: drop-shadow(0 1px 2px rgba(13,18,14,.65)); }
 .bf-star svg { fill: currentColor; }
 /* Out of area: a fact about where the frame was taken, not a judgement, so it
    stays neutral rather than borrowing the star's amber or the curate red. */
-.bf-away { position: absolute; bottom: .4rem; left: .4rem; z-index: 2; line-height: 0;
-    color: var(--amber, #e8b04b); opacity: .95;
-    filter: drop-shadow(0 1px 2px rgba(13,18,14,.8)); pointer-events: none; }
+.bf-away { line-height: 0; color: var(--amber, #e8b04b); opacity: .95;
+    filter: drop-shadow(0 1px 2px rgba(13,18,14,.8)); }
