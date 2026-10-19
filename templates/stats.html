@@ -96,21 +96,18 @@
                 </a>
             </div>
 
-            <div id="accum-chart" class="d3-chart ll-ribbon" role="group"
-                 aria-label="Life list over time. Select a year to jump to it in the list below."></div>
-
-            {# The scrub Scott wanted, on the only axis that can carry it: one
-               step per lifer, evenly spaced, so #63 is as reachable as #1.
-               Dragging walks the list, the photo above follows, and the wall
-               below tracks along with the current bird ringed. #}
-            <div class="ll-scrubwrap">
+            {# ONE scrubbable thing. The chart used to run left-to-right by
+               DATE, which made it unscrubbable -- 92 of the 129 lifers shared
+               8% of the width. Transposed, it carries both jobs: x is rank, so
+               every bird gets equal room (8.3px, not 1.7px), and y is the date,
+               so the shape still tells the story -- a steep climb is a drought
+               between lifers, a flat shelf is a burst like 2026. #}
+            <div class="ll-track">
                 <span class="ll-scrublab mono" id="ll-scrublab" aria-hidden="true"></span>
-                <div class="ll-scrub" id="ll-scrub" role="slider" tabindex="0"
+                <div id="accum-chart" class="d3-chart ll-ribbon" role="slider" tabindex="0"
                      aria-label="Scrub through the life list"
-                     aria-valuemin="1" aria-valuemax="{{ series.accum|length }}" aria-valuenow="{{ series.accum|length }}">
-                    <span class="ll-ticks" id="ll-ticks"></span>
-                    <span class="ll-head" id="ll-head"></span>
-                </div>
+                     aria-valuemin="1" aria-valuemax="{{ series.accum|length }}"
+                     aria-valuenow="{{ series.accum|length }}"></div>
             </div>
 
             <div class="ll-wallwrap" id="ll-wallwrap">
@@ -584,77 +581,124 @@
                 tiles = Array.prototype.slice.call(wall.querySelectorAll(".ll-tile"));
             })();
 
-            // ---------- the ribbon ----------
-            // Demoted from hero to summary: it answers "when did this happen",
-            // which a time axis is good at, and no longer has to be the way you
-            // pick a bird, which it was bad at.
+            // ---------- the chart, which IS the scrubber ----------
+            // x is rank and y is date -- the transpose of the obvious chart,
+            // and the only arrangement where one element can both tell the
+            // story and be dragged. Plotted against time, 92 of these 129 sat
+            // inside 8% of the width and 38 pairs shared an x position
+            // outright; here every lifer owns an equal slice.
             var el = document.getElementById("accum-chart");
-            var guide, focus, x, y;
-            function renderRibbon() {
+            var lab = document.getElementById("ll-scrublab");
+            var x, y, handle, focus, fmtYear = d3.timeFormat("%Y");
+            function renderCurve() {
                 el.innerHTML = "";
-                var W = chartWidth(el), narrow = W < 520, H = narrow ? 104 : 124,
-                    m = { t: 14, r: narrow ? 10 : 16, b: 20, l: narrow ? 26 : 32 };
-                x = d3.scaleTime(d3.extent(data, function (d) { return d.d; }), [m.l, W - m.r]);
-                y = d3.scaleLinear([0, data.length], [H - m.b, m.t]);
+                var W = chartWidth(el), narrow = W < 520, H = narrow ? 150 : 180,
+                    m = { t: 20, r: narrow ? 12 : 18, b: 18, l: narrow ? 34 : 42 };
+                x = d3.scaleLinear([0, data.length - 1], [m.l, W - m.r]);
+                y = d3.scaleTime(d3.extent(data, function (d) { return d.d; }), [H - m.b, m.t]);
                 var svg = d3.select(el).append("svg").attr("viewBox", "0 0 " + W + " " + H)
                     .style("touch-action", "pan-y");
-                var line = d3.line().curve(d3.curveStepAfter)
-                    .x(function (d) { return x(d.d); }).y(function (d) { return y(d.n); });
-                var area = d3.area().curve(d3.curveStepAfter)
-                    .x(function (d) { return x(d.d); }).y0(y(0)).y1(function (d) { return y(d.n); });
-                svg.append("path").datum(data).attr("d", area).attr("fill", NEON).attr("opacity", 0.14);
-                svg.append("path").datum(data).attr("d", line)
-                    .attr("fill", "none").attr("stroke", GREEN).attr("stroke-width", 2)
-                    .attr("stroke-linejoin", "round");
-                svg.append("g").attr("transform", "translate(0," + (H - m.b) + ")")
-                    .call(d3.axisBottom(x).ticks(narrow ? 4 : 7).tickSizeOuter(0));
+                var line = d3.line().x(function (d, i) { return x(i); })
+                    .y(function (d) { return y(d.d); });
+                var area = d3.area().x(function (d, i) { return x(i); })
+                    .y0(H - m.b).y1(function (d) { return y(d.d); });
+                svg.append("path").datum(data).attr("d", area).attr("fill", NEON).attr("opacity", 0.09);
+                svg.append("path").datum(data).attr("d", line).attr("fill", "none")
+                    .attr("stroke", GREEN).attr("stroke-width", 2).attr("stroke-linejoin", "round");
+                // Years read off the y axis now, so a long flat run IS a year
+                // that added a lot of birds in a hurry.
                 svg.append("g").attr("transform", "translate(" + m.l + ",0)")
-                    .call(d3.axisLeft(y).ticks(3).tickSizeOuter(0));
+                    .call(d3.axisLeft(y).ticks(narrow ? 4 : 6).tickFormat(fmtYear).tickSizeOuter(0));
+                svg.append("g").attr("transform", "translate(0," + (H - m.b) + ")")
+                    .call(d3.axisBottom(x).ticks(narrow ? 4 : 7)
+                        .tickFormat(function (v) { return "#" + (Math.round(v) + 1); }).tickSizeOuter(0));
                 svg.selectAll(".domain, .tick line").attr("stroke", "rgba(13,18,14,0.18)");
                 svg.selectAll(".tick text").attr("fill", MUTED);
-                guide = svg.append("line").attr("y1", m.t).attr("y2", H - m.b)
-                    .attr("stroke", GREEN).attr("stroke-dasharray", "3 3").attr("opacity", 0);
-                focus = svg.append("circle").attr("r", 5)
-                    .attr("fill", NEON).attr("stroke", GREEN).attr("stroke-width", 2).attr("opacity", 0);
-                // The ribbon picks a YEAR, not a species. Scrubbing it for a
-                // single bird was hopeless and felt broken: this axis gives the
-                // first 6 lifers more than half its width and the last 92 a
-                // sliver, so a pixel of travel could skip ten species. A year is
-                // the finest thing a date axis can honestly resolve here, so
-                // that is what it offers -- hover highlights the year, clicking
-                // jumps the wall to it.
-                var yearsSeen = [];
-                data.forEach(function (d) {
+                // Where each year begins, so the bursts read as spans of the
+                // LIST rather than spans of the calendar. The lean years all
+                // start within the first twenty ranks, so a label is only drawn
+                // where there is room for it -- unlabelled, the bunched rules
+                // were just noise.
+                var prevYear = null, lastLabelX = -999;
+                data.forEach(function (d, i) {
                     var yr = d.d.getFullYear();
-                    if (yearsSeen.indexOf(yr) < 0) yearsSeen.push(yr);
+                    if (yr === prevYear) return;
+                    prevYear = yr;
+                    if (i === 0) return;
+                    var px = x(i);
+                    svg.append("line").attr("x1", px).attr("x2", px)
+                        .attr("y1", m.t).attr("y2", H - m.b)
+                        .attr("stroke", "rgba(13,18,14,0.09)").attr("stroke-width", 1);
+                    if (px - lastLabelX < 34) return;
+                    lastLabelX = px;
+                    svg.append("text").attr("x", px + 3).attr("y", m.t - 6)
+                        .attr("class", "chart-tick").attr("fill", MUTED).text(yr);
                 });
-                var dom = x.domain();
-                var bands = svg.append("g").attr("class", "ll-bands");
-                var label = svg.append("text").attr("class", "chart-tick")
-                    .attr("y", m.t + 9).attr("opacity", 0).attr("fill", INK);
-                yearsSeen.forEach(function (yr) {
-                    var a = new Date(yr, 0, 1), bnd = new Date(yr + 1, 0, 1);
-                    var x0 = Math.max(x(a), x(dom[0])), x1 = Math.min(x(bnd), x(dom[1]));
-                    if (x1 - x0 < 1) return;
-                    var n = data.filter(function (d) { return d.d.getFullYear() === yr; }).length;
-                    var g = bands.append("g").attr("class", "ll-band").style("cursor", "pointer");
-                    g.append("rect").attr("x", x0).attr("y", m.t).attr("width", x1 - x0)
-                        .attr("height", H - m.b - m.t).attr("fill", GREEN).attr("opacity", 0);
-                    g.append("title").text(yr + " \u00b7 " + n + (n === 1 ? " species" : " species"));
-                    g.on("pointerenter", function () {
-                        g.select("rect").attr("opacity", 0.08);
-                        label.attr("x", Math.min(W - m.r - 4, Math.max(m.l + 4, (x0 + x1) / 2)))
-                            .attr("text-anchor", "middle")
-                            .text(yr + " \u00b7 " + n).attr("opacity", 0.85);
-                    });
-                    g.on("pointerleave", function () {
-                        g.select("rect").attr("opacity", 0);
-                        label.attr("opacity", 0);
-                    });
-                    g.on("click", function () { jumpToYear(yr); });
-                });
+                handle = svg.append("line").attr("y1", m.t - 4).attr("y2", H - m.b)
+                    .attr("stroke", GREEN).attr("stroke-width", 2).attr("opacity", 0);
+                focus = svg.append("circle").attr("r", 5.5).attr("fill", NEON)
+                    .attr("stroke", GREEN).attr("stroke-width", 2).attr("opacity", 0);
+                // One transparent surface over the plot catches every pointer,
+                // so there is no dead zone between the line and the axis.
+                svg.append("rect").attr("x", m.l).attr("y", m.t)
+                    .attr("width", Math.max(1, W - m.r - m.l)).attr("height", Math.max(1, H - m.b - m.t))
+                    .attr("fill", "transparent").style("cursor", "ew-resize")
+                    .on("pointerdown", function (ev) {
+                        scrubbing = true;
+                        if (ev.target.setPointerCapture) ev.target.setPointerCapture(ev.pointerId);
+                        show(idxFromX(ev.clientX), true);
+                        ev.preventDefault();
+                    })
+                    .on("pointermove", function (ev) {
+                        if (!scrubbing) return;
+                        // one update per frame: a drag fires far more often,
+                        // and each update touches 129 tiles
+                        pending = idxFromX(ev.clientX);
+                        if (!raf) raf = requestAnimationFrame(flush);
+                    })
+                    .on("pointerup", endScrub)
+                    .on("pointercancel", endScrub);
+                plot = { m: m, W: W, H: H };
             }
-            renderRibbon();
+            var plot = null, scrubbing = false, pending = null, raf = 0;
+            function idxFromX(clientX) {
+                var r = el.getBoundingClientRect();
+                if (!plot || !r.width) return sel;
+                // the svg is scaled to the element, so map through the viewBox
+                var k = plot.W / r.width;
+                var px = (clientX - r.left) * k;
+                var f = (px - plot.m.l) / Math.max(1, plot.W - plot.m.r - plot.m.l);
+                return Math.max(0, Math.min(data.length - 1, Math.round(f * (data.length - 1))));
+            }
+            function flush() {
+                raf = 0;
+                if (pending == null) return;
+                var i = pending; pending = null;
+                if (i !== sel) show(i, true);
+            }
+            function endScrub() { scrubbing = false; }
+            function paintScrub(d) {
+                if (!handle || !plot) return;
+                var px = x(sel);
+                handle.attr("x1", px).attr("x2", px).attr("opacity", 0.75);
+                focus.attr("cx", px).attr("cy", y(d.d)).attr("opacity", 1);
+                var r = el.getBoundingClientRect();
+                var frac = plot.W ? px / plot.W : 0;
+                lab.style.left = (frac * 100) + "%";
+                lab.textContent = "#" + d.n + "  " + d.s + "  \u00b7  " + fmtYear(d.d);
+                el.setAttribute("aria-valuenow", d.n);
+                el.setAttribute("aria-valuetext", "#" + d.n + " " + d.s);
+            }
+            el.addEventListener("keydown", function (ev) {
+                var step = ev.shiftKey ? 10 : 1, to = null;
+                if (ev.key === "ArrowRight" || ev.key === "ArrowUp") to = sel + step;
+                else if (ev.key === "ArrowLeft" || ev.key === "ArrowDown") to = sel - step;
+                else if (ev.key === "Home") to = 0;
+                else if (ev.key === "End") to = data.length - 1;
+                if (to == null) return;
+                show(to, true); ev.preventDefault();
+            });
+            renderCurve();
 
             // ---------- selection ----------
             function show(i, scrollTo) {
@@ -668,10 +712,7 @@
                 tName.textContent = d.s;
                 tMeta.textContent = fmtDate(d.d) + " · " + d.fam;
                 tCta.textContent = (d.total === 1 ? "1 photo" : d.total + " photos") + " →";
-                if (guide) {
-                    guide.attr("x1", x(d.d)).attr("x2", x(d.d)).attr("opacity", 0.55);
-                    focus.attr("cx", x(d.d)).attr("cy", y(d.n)).attr("opacity", 1);
-                }
+                // the handle and the dot are the chart's job now -- see paintScrub
                 tiles.forEach(function (t) {
                     var on = +t.dataset.i === sel;
                     t.classList.toggle("on", on);
@@ -682,99 +723,17 @@
                 updateCurate();
             }
 
-            // Clicking a year on the ribbon scrolls the wall to that year and
-            // selects its first bird, so the chart still navigates -- at the
-            // resolution it can actually deliver.
-            function jumpToYear(yr) {
-                var first = -1;
-                for (var i = 0; i < data.length; i++) {
-                    if (data[i].d.getFullYear() === yr) { first = i; break; }
-                }
-                if (first < 0) return;
-                var head = wall.querySelector('[data-year="' + yr + '"]');
-                if (head) {
-                    // Scroll the WALL, not the page. scrollIntoView walks every
-                    // scrollable ancestor, so it dragged the document up and
-                    // threw the ribbon you had just clicked off screen -- the
-                    // next click then landed on nothing at all.
-                    var to = head.getBoundingClientRect().top
-                           - wall.getBoundingClientRect().top + wall.scrollTop;
-                    if (wall.scrollTo) wall.scrollTo({ top: to, behavior: "smooth" });
-                    else wall.scrollTop = to;
-                }
-                show(first, false);
-            }
-
             // Scroll the WALL and nothing else. scrollIntoView climbs every
             // scrollable ancestor, so during a scrub it dragged the whole page
             // and the control went out from under the pointer.
-            function scrollWallTo(el, smooth) {
-                if (!el) return;
-                var to = el.getBoundingClientRect().top - wall.getBoundingClientRect().top
-                       + wall.scrollTop - (wall.clientHeight - el.offsetHeight) / 2;
+            function scrollWallTo(el2, smooth) {
+                if (!el2) return;
+                var to = el2.getBoundingClientRect().top - wall.getBoundingClientRect().top
+                       + wall.scrollTop - (wall.clientHeight - el2.offsetHeight) / 2;
                 to = Math.max(0, Math.min(to, wall.scrollHeight - wall.clientHeight));
                 if (wall.scrollTo) wall.scrollTo({ top: to, behavior: smooth ? "smooth" : "auto" });
                 else wall.scrollTop = to;
             }
-
-            // ---------- the scrub ----------
-            var scrub = document.getElementById("ll-scrub");
-            var ticksEl = document.getElementById("ll-ticks");
-            var head = document.getElementById("ll-head");
-            var lab = document.getElementById("ll-scrublab");
-            // One mark per lifer. Every 25th is taller, so the bar carries the
-            // milestones the old chart used to label.
-            ticksEl.innerHTML = data.map(function (d, i) {
-                return '<i' + ((i + 1) % 25 === 0 ? ' class="q"' : '') + '></i>';
-            }).join("");
-            var tickBars = Array.prototype.slice.call(ticksEl.children);
-            function paintScrub(d) {
-                var f = data.length < 2 ? 1 : sel / (data.length - 1);
-                head.style.left = (f * 100) + "%";
-                lab.style.left = (f * 100) + "%";
-                lab.textContent = "#" + d.n + "  " + d.s;
-                scrub.setAttribute("aria-valuenow", d.n);
-                scrub.setAttribute("aria-valuetext", "#" + d.n + " " + d.s);
-                tickBars.forEach(function (b, i) { b.classList.toggle("on", i === sel); });
-            }
-            function idxFromX(clientX) {
-                var r = scrub.getBoundingClientRect();
-                var f = (clientX - r.left) / Math.max(1, r.width);
-                return Math.max(0, Math.min(data.length - 1, Math.round(f * (data.length - 1))));
-            }
-            var scrubbing = false, pending = null, raf = 0;
-            function flush() {
-                raf = 0;
-                if (pending == null) return;
-                var i = pending; pending = null;
-                if (i !== sel) show(i, true);
-            }
-            scrub.addEventListener("pointerdown", function (ev) {
-                scrubbing = true;
-                scrub.setPointerCapture(ev.pointerId);
-                scrub.classList.add("live");
-                show(idxFromX(ev.clientX), true);
-                ev.preventDefault();
-            });
-            scrub.addEventListener("pointermove", function (ev) {
-                if (!scrubbing) return;
-                // One update per frame: a drag fires far more often than that,
-                // and each update touches 129 tiles.
-                pending = idxFromX(ev.clientX);
-                if (!raf) raf = requestAnimationFrame(flush);
-            });
-            function endScrub() { scrubbing = false; scrub.classList.remove("live"); }
-            scrub.addEventListener("pointerup", endScrub);
-            scrub.addEventListener("pointercancel", endScrub);
-            scrub.addEventListener("keydown", function (ev) {
-                var step = ev.shiftKey ? 10 : 1, to = null;
-                if (ev.key === "ArrowRight" || ev.key === "ArrowUp") to = sel + step;
-                else if (ev.key === "ArrowLeft" || ev.key === "ArrowDown") to = sel - step;
-                else if (ev.key === "Home") to = 0;
-                else if (ev.key === "End") to = data.length - 1;
-                if (to == null) return;
-                show(to, true); ev.preventDefault();
-            });
 
             var wrap = document.getElementById("ll-wallwrap");
             function syncFade() {
@@ -891,7 +850,7 @@
                 shotEl.classList.add("is-curate");
             }
 
-            llState = { reflow: function () { renderRibbon(); show(sel, false); } };
+            llState = { reflow: function () { renderCurve(); show(sel, false); } };
             show(data.length - 1, false);
         }
 
