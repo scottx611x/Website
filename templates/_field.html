@@ -360,6 +360,89 @@ body.field-view .gallery-header.is-stuck{
 .bf-calls .nd.side{background:rgba(149,2,89,.12);color:#8a0a55}
 .bf-side a{color:var(--accent)}
 
+/* ---- The curate sheet -------------------------------------------------
+   Wide screens: a panel pinned to the bottom of the detail column, so it is
+   always under the photograph rather than under the map. Phones: a sheet that
+   slides up OVER the photograph (see the max-width:620px block), because the
+   frame you are editing has to stay on screen while you edit it.
+   The controls inside are built by static/js/curate.js. */
+/* Dark, like the viewer it sits in. In --paper it was a cream slab across the
+   bottom of the screen that fought the photograph for attention — and on a
+   phone at night it was simply a lamp. */
+.bf-sheet{position:absolute;right:0;bottom:0;width:22rem;max-width:100%;
+  z-index:30;background:rgba(18,24,19,.97);
+  border-top:1px solid rgba(255,255,255,.12);
+  box-shadow:0 -10px 30px -18px rgba(0,0,0,.8)}
+.bf-sheet-grab{display:flex;align-items:center;gap:.5rem;width:100%;
+  font:inherit;font-size:.75rem;letter-spacing:.1em;text-transform:uppercase;
+  color:rgba(236,234,223,.6);background:none;border:0;cursor:pointer;
+  padding:.6rem .9rem}
+.bf-sheet-grab:hover{color:rgba(236,234,223,.9)}
+.bf-sheet-bar{display:none}
+.bf-sheet-title{font-weight:600}
+.bf-sheet-which{margin-left:auto;font-size:.68rem;letter-spacing:0;
+  text-transform:none;opacity:.8}
+.bf-sheet-grab::after{content:"";width:8px;height:8px;border-right:1.6px solid currentColor;
+  border-bottom:1.6px solid currentColor;transform:rotate(-135deg);
+  transition:transform .2s ease;margin-left:.1rem}
+.bf-sheet.open .bf-sheet-grab::after{transform:rotate(45deg)}
+.bf-sheet-body{display:none;padding:0 .9rem 1rem}
+.bf-sheet.open .bf-sheet-body{display:block}
+.bf-ico-cur.on{background:var(--accent);border-color:var(--accent);color:#fff}
+
+/* The species record. A plain column on a wide screen — the disclosure button
+   is mobile-only, because there the same content buries the photograph. */
+.bf-extra{display:flex;flex-direction:column;gap:1.6rem}
+.bf-more{display:none}
+
+/* The phone sheet. This block MUST sit after the base .bf-sheet rules above:
+   a media query adds no specificity, so with the same selector it is plain
+   source order that decides — and an earlier copy of this lost every one of
+   these declarations to the 22rem desktop panel and rendered inset instead of
+   full-bleed. (The same trap the .bf-tilt/.bf-hint block further down
+   documents.)
+
+   Fixed to the viewport rather than to the scrolling column, so it stays put
+   while the record scrolls underneath: the frame on the stage and the controls
+   that edit it have to be on screen together. Collapsed it is just its handle;
+   open it takes at most half the screen and scrolls internally, so a long
+   panel can never push the photograph off the top. */
+@media (max-width:620px){
+  .bf-sheet{position:fixed;left:0;right:0;bottom:0;top:auto;width:auto;
+    max-width:none;border-top:0;border-radius:14px 14px 0 0;
+    background:rgba(16,21,17,.94);-webkit-backdrop-filter:blur(14px);
+    backdrop-filter:blur(14px);
+    box-shadow:0 -12px 34px -14px rgba(0,0,0,.85)}
+  .bf-sheet-bar{background:rgba(255,255,255,.26)}
+  /* Right padding clears the absolutely-positioned chevron, which otherwise
+     sits on top of the frame counter. */
+  .bf-sheet-grab{padding:.7rem 2.4rem .6rem 1rem;position:relative}
+  /* A grab bar, because a panel rising from the bottom edge of a phone reads
+     as draggable whether or not it is. */
+  .bf-sheet-bar{display:block;position:absolute;top:.3rem;left:50%;
+    transform:translateX(-50%);width:34px;height:4px;border-radius:999px;
+    background:var(--line)}
+  .bf-sheet-grab::after{position:absolute;right:1rem;top:55%;margin-top:-2px}
+  .bf-sheet-body{max-height:46svh;overflow-y:auto;-webkit-overflow-scrolling:touch;
+    padding:0 1rem calc(1rem + env(safe-area-inset-bottom))}
+  /* Room for the collapsed handle, so the last line of the record is not
+     permanently parked behind it. */
+  .bf-side{padding-bottom:5.5rem}
+
+  /* The species record collapses behind one line. Opening a bird should show
+     you the bird, not its statistics. */
+  .bf-more{display:flex;align-items:center;gap:.5rem;width:100%;
+    font:inherit;font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--muted);background:none;border:0;border-top:1px solid var(--line);
+    padding:.9rem 0 0;cursor:pointer}
+  .bf-more::after{content:"";width:8px;height:8px;margin-left:auto;
+    border-right:1.6px solid currentColor;border-bottom:1.6px solid currentColor;
+    transform:rotate(45deg);transition:transform .2s ease}
+  .bf-more[aria-expanded="true"]::after{transform:rotate(-135deg)}
+  .bf-extra{display:none}
+  .bf-more[aria-expanded="true"] + .bf-extra{display:flex}
+}
+
 @media (max-width:980px){
   .bf-obody{grid-template-columns:minmax(0,1fr);grid-template-rows:auto auto}
   .bf-viewer{grid-column:1;grid-row:1}
@@ -375,6 +458,20 @@ body.field-view .gallery-header.is-stuck{
   .bf-tilt{left:.6rem;right:auto}
   .bf-hint{bottom:3.4rem;max-width:calc(100% - 1.2rem);white-space:nowrap;
     overflow:hidden;text-overflow:ellipsis;font-size:.66rem}
+  /* Four things were competing for the bottom edge of a phone — the tilt
+     button, the drag hint, the Curating pill and its log-out link — all of
+     them sitting on top of photographs, because the field's canvas IS the
+     viewport. The hint already fades on first touch; these shrink and step
+     back so the photographs win. */
+  .bf-tilt{font-size:.64rem;padding:.26rem .66rem;opacity:.8}
+  body.field-view .curate-chip{bottom:.6rem;right:.6rem;gap:.25rem}
+  body.field-view .curate-toggle{font-size:.68rem;padding:.38rem .7rem;opacity:.55}
+  body.field-view .curate-logout{font-size:.58rem;padding:.26rem .45rem;opacity:.35}
+  /* Both are decoration once the detail view is up, and the sheet needs the
+     bottom edge to itself. */
+  body.bf-detail .bf-tilt,
+  body.bf-detail .bf-hint,
+  body.bf-detail .curate-chip{display:none}
 }
 /* The side panel is --paper; these were coloured for the dark overlay and
    came out paper-on-paper, so the species counter was invisible and the two
@@ -506,6 +603,9 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
 </section>
 
 <script src="{{ url_for('static', filename='js/playhead.js', v=asset_v) }}"></script>
+{% if curate %}{# the shared curate panel; curate-only, so readers never fetch it #}
+<script src="{{ url_for('static', filename='js/curate.js', v=asset_v) }}"></script>
+{% endif %}
 <script id="bf-tiles" type="application/json">{{ tiles|tojson }}</script>
 <script id="bf-seq" type="application/json">{{ seq|tojson }}</script>
 <script id="bf-ctx" type="application/json">{{ (view_ctx if view_ctx is defined else {})|tojson }}</script>
@@ -557,13 +657,14 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
           <button type="button" id="bf-ofs" class="bf-ico" title="Full screen" aria-label="Full screen"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M16 3h3a2 2 0 0 1 2 2v3"/><path d="M8 21H5a2 2 0 0 1-2-2v-3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/></svg></button>
           <button type="button" id="bf-olink" class="bf-ico" title="Copy a link to this frame" aria-label="Copy a link to this frame"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.5 1.5"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7L12 19"/></svg></button>
           {% if curate %}
-          {# The full curate panel sits below By-the-numbers, the year chart and
-             the map — three sections down, so on a phone the frame you are
-             curating has scrolled off before you reach it. These two act on the
-             frame ON THE STAGE, so they belong beside it. The panel below
-             stays; it also carries the location field. #}
-          <button type="button" id="bf-oaway2" class="bf-ico bf-ico-cur" title="Mark this frame out of area" aria-label="Mark this frame out of area"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg></button>
-          <button type="button" id="bf-ohide2" class="bf-ico bf-ico-cur" title="Hide this frame" aria-label="Hide this frame"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.9 4.2A10.9 10.9 0 0 1 12 4c7 0 10 8 10 8a18.5 18.5 0 0 1-2.2 3.2"/><path d="M6.6 6.6A18.5 18.5 0 0 0 2 12s3 8 10 8a10.9 10.9 0 0 0 5.4-1.4"/><path d="M14.1 14.1a3 3 0 1 1-4.2-4.2"/><path d="m2 2 20 20"/></svg></button>
+          {# Opens the curate sheet, which on a phone rises over the photo and
+             on a wide screen scrolls the panel into view. There used to be two
+             naked shortcut buttons here — out-of-area and hide — duplicating
+             the panel's, because the panel itself sat three sections down past
+             By-the-numbers, the year chart and the map and could not be reached
+             on a phone. The sheet fixes the reachability, so the duplicates
+             (and the chance of the two copies drifting) are gone. #}
+          <button type="button" id="bf-ocurate" class="bf-ico bf-ico-cur" title="Curate this frame" aria-label="Curate this frame" aria-expanded="false" aria-controls="bf-curate"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></button>
           {% endif %}
           {# Narrow the filmstrip to this bird's starred frames. The lines in
              the icon mark it as a filter, so it sits with the view controls. #}
@@ -572,6 +673,15 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
       </div>
         </div>
 
+      {# Everything below is about the SPECIES, not the frame on the stage. On a
+         wide screen it is a column beside the photo and costs nothing. On a
+         phone it stacks underneath and ran 1,335px — more than three times the
+         height of the photograph — so opening a bird meant landing on a wall of
+         statistics with the picture squeezed above it. Behind a disclosure it
+         is one line until you ask for it, and the photo owns the screen. #}
+      <button type="button" class="bf-more" id="bf-more" aria-expanded="false"
+              aria-controls="bf-extra">About this bird</button>
+      <div class="bf-extra" id="bf-extra">
       <div>
         <h3>By the numbers</h3>
         <dl class="bf-facts" id="bf-ofacts"></dl>
@@ -610,22 +720,28 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
         <p class="bf-note" id="bf-nosoundtxt"></p>
       </div>
 
-      {% if curate %}
-      <div id="bf-curate">
-        <h3>Curate this frame</h3>
-        <p class="bf-note" id="bf-cwhich"></p>
-        <div class="bf-ocontrols">
-          <button type="button" id="bf-caway" class="bf-shuffle">Out of area</button>
-          <button type="button" id="bf-chide" class="bf-shuffle">Hide frame</button>
-        </div>
-        <label class="bf-cfield"><span>Location</span>
-          <input type="text" id="bf-cloc" placeholder="where was it taken"></label>
-        <p class="bf-note" id="bf-csaved"></p>
-      </div>
-      {% endif %}
       <p class="bf-note"><a id="bf-ofull" href="#">Open the full species page &rarr;</a></p>
+      </div>
     </aside>
   </div>
+  {% if curate %}
+  {# A sibling of .bf-obody, not a section inside the aside. On a phone this is
+     a sheet that rises over the photograph, so the frame being edited is still
+     on screen while you edit it — which is the one thing the old placement
+     (last section of a 1,335px aside, two screens down) could not do. Living
+     outside the scrolling column also means no ancestor can trap its
+     position:fixed. Its controls are built by static/js/curate.js, the single
+     implementation shared with the rest of the site. #}
+  <div id="bf-curate" class="bf-sheet" aria-label="Curate this frame">
+    <button type="button" class="bf-sheet-grab" id="bf-sheet-grab"
+            aria-expanded="false" aria-controls="bf-sheet-body">
+      <span class="bf-sheet-bar" aria-hidden="true"></span>
+      <span class="bf-sheet-title">Curate</span>
+      <span class="bf-sheet-which mono" id="bf-cwhich"></span>
+    </button>
+    <div class="bf-sheet-body" id="bf-sheet-body"></div>
+  </div>
+  {% endif %}
 </div>
 
 <script>
@@ -1365,9 +1481,30 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
   canvas.addEventListener("pointerleave", function () { setEcho(null); }, { passive: true });
   canvas.addEventListener("pointerdown", function () { setEcho(null); }, { passive: true });
 
-  var down = false, lx = 0, ly = 0, moved = 0, hit = null;
+  /* Tap vs drag.
+   *
+   * This used to accumulate PATH LENGTH (`moved += |dx| + |dy|`) and call it a
+   * tap under 6px. A mouse does not jitter, so that held up on a desktop. A
+   * finger does, and a phone samples pointermove at display rate, so a
+   * visually motionless tap racks up tens of pixels of path and was classified
+   * as a drag — `openSpecies` never fired and the field looked like it simply
+   * would not let you pick a photo.
+   *
+   * Displacement from the touch origin is the thing that actually distinguishes
+   * the two gestures, and it is immune to jitter: wander out and back and you
+   * are still on the same tile. Slop is per input type (a fingertip covers
+   * ~10mm, a mouse pixel is a pixel) and a tap also has to be brief, so
+   * press-drift-release stays a drag. Path length still drives nothing — the
+   * momentum glide reads vx/vy, which this leaves alone.
+   */
+  var TAP_SLOP = { mouse: 6, pen: 8, touch: 14 };
+  var TAP_MS = 700;
+  var down = false, lx = 0, ly = 0, sx = 0, sy = 0, sT = 0, hit = null;
   canvas.addEventListener("pointerdown", function (e) {
-    down = true; moved = 0; lx = e.clientX; ly = e.clientY;
+    down = true; lx = sx = e.clientX; ly = sy = e.clientY;
+    // performance.now(), not Date.now(): monotonic, so a clock adjustment
+    // mid-gesture cannot make a tap look like a long press.
+    sT = performance.now();
     // capture retargets later events to the canvas, so remember the tile now
     hit = e.target.closest ? e.target.closest(".bf-tile") : null;
     vx = vy = 0; if (glide) { cancelAnimationFrame(glide); glide = null; }
@@ -1378,13 +1515,16 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
   canvas.addEventListener("pointermove", function (e) {
     if (!down) return;
     var dx = e.clientX - lx, dy = e.clientY - ly;
-    lx = e.clientX; ly = e.clientY; moved += Math.abs(dx) + Math.abs(dy);
+    lx = e.clientX; ly = e.clientY;
     px += dx; py += dy; vx = dx; vy = dy; setDir(dx, dy); apply();
   });
   canvas.addEventListener("pointerup", function (e) {
     if (!down) return;
     down = false; canvas.classList.remove("drag");
-    if (hit && moved <= 6 && hit._t) {
+    var slop = TAP_SLOP[e.pointerType] || TAP_SLOP.touch;
+    var tap = Math.hypot(e.clientX - sx, e.clientY - sy) <= slop &&
+              (performance.now() - sT) <= TAP_MS;
+    if (hit && tap && hit._t) {
       var el = hit;                                   // morph FROM this tile
       withHero(el, function () { openSpecies(el._t); });
     }
@@ -1501,19 +1641,12 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
                                    : (on ? "Starred — click to unstar" : "Star this frame");
   }
   if (oStar && !oStar.dataset.ro) {
+    // Delegates to the shared panel rather than posting its own save. Two
+    // places writing the same star is how the star on the photo and the star
+    // in the panel end up disagreeing; the panel's onPatch repaints this mark
+    // and the filmstrip, so there is one writer and one repaint path.
     oStar.addEventListener("click", function () {
-      var f = frames[fi];
-      if (!f || !f.pid) return;
-      var next = f.star ? 0 : 1;
-      // post() invokes done() with NO arguments and only on ok -- taking a
-      // response object here meant the guard bailed every time and the star
-      // never repainted, though the save had already gone through.
-      post("/curate/star", { id: f.pid, index: f.idx, on: !!next }, function () {
-        f.star = next;
-        paintStar(f);
-        var t = document.querySelector('#bf-ostrip [data-i="' + fi + '"]');
-        if (t) t.classList.toggle("starred", !!next);
-      });
+      if (panel && frames[fi] && frames[fi].pid) panel.toggleStar();
     });
   }
 
@@ -1843,6 +1976,9 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
     stop();
     scrollAt = window.scrollY || 0;
     over.classList.add("open"); document.body.style.overflow = "hidden";
+    // Lets the CSS stand the field's floating controls down while the detail
+    // view owns the screen — the sheet needs the bottom edge to itself.
+    document.body.classList.add("bf-detail");
     /* The detail view is a place, so give it an address: refreshing keeps it
        open, the link is shareable, and Back closes it instead of leaving the
        gallery entirely. pushState, so there is a history entry to go back to. */
@@ -1967,6 +2103,11 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
     // Leaflet is ~150 KB plus tile requests. Nothing loads until the map is
     // actually scrolled into view, so opening a bird costs nothing for it.
     if (pl.length) {
+      // Remembered so the mobile disclosure can draw the map itself. An
+      // element inside a display:none ancestor has no box, so the observer
+      // below cannot see it, and whether it fires on reveal turned out not to
+      // be something to rely on — it worked in one run and not the next.
+      _pendingPlaces = pl;
       if (window.IntersectionObserver) {
         if (_mapIO) _mapIO.disconnect();
         _mapIO = new IntersectionObserver(function (es) {
@@ -2049,6 +2190,9 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
   }
 
   var _leaflet = null, _map = null, _layer = null, _markers = {}, _bounds = [], _boop = null, _mapIO = null;
+  // The geocoded places for the species on screen, so the mobile disclosure can
+  // build the map at the moment it becomes visible.
+  var _pendingPlaces = null;
 
   function fitAll() {
     if (!_map || !_bounds.length) return;
@@ -2198,73 +2342,116 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
     showFrame(0);
   });
 
-  /* Curate acts on the frame currently on the stage — never the species —
-     so the post id and image index travel with each frame and are re-read on
+  /* Curate acts on the frame currently on the stage — never the species — so
+     the post id and image index travel with each frame and are re-read on
      every frame change. Editing the wrong photo is the failure mode worth
-     designing against. */
-  var cAway = $("bf-caway"), cHide = $("bf-chide"), cLoc = $("bf-cloc");
-  // The same two actions, duplicated beside the stage so they are reachable on
-  // a phone without scrolling past three sections. They drive the SAME
-  // handlers rather than their own, so the two copies cannot drift apart.
-  var cAway2 = $("bf-oaway2"), cHide2 = $("bf-ohide2");
-  if (cAway2) cAway2.addEventListener("click", function () { if (cAway) cAway.click(); });
-  if (cHide2) cHide2.addEventListener("click", function () { if (cHide) cHide.click(); });
-  function curateSync() {
-    if (!cAway) return;
+     designing against.
+
+     The controls themselves belong to static/js/curate.js, which the gallery
+     shares. This end owns only two things: translating a field frame into the
+     shape the panel expects, and repainting the marks drawn ON the photo (the
+     star, the out-of-area triangle, the dimming of a hidden frame) when a save
+     lands. */
+  var sheet = $("bf-curate");
+  var panel = (sheet && window.BirdCurate)
+    ? window.BirdCurate.mount($("bf-sheet-body"), { onPatch: afterPatch })
+    : null;
+
+  /* The field's frames carry short keys from /birds/species/<slug>.json; the
+     panel speaks one vocabulary for every surface. One adapter, so a rename on
+     either side breaks here loudly instead of silently editing nothing. */
+  function toPanelFrame(f) {
+    if (!f || !f.pid) return null;
+    return {
+      postId: f.pid, index: f.idx,
+      species: f.sp || "", location: f.where || "",
+      captureDate: f.cap || "", postedDate: f.post || "",
+      away: !!f.away, hidden: !!f.hid, starred: !!f.star,
+      reidQueued: !!f.reid, captionSpecies: f.csp || []
+    };
+  }
+
+  /* The panel wrote the frame it was given; copy the result back onto the
+     field's own frame object and repaint everything drawn around the stage. */
+  function afterPatch(pf) {
     var f = frames[fi];
-    var ok = !!(f && f.pid);
-    [cAway, cHide, cAway2, cHide2].filter(Boolean).forEach(function (b) {
-      b.disabled = !ok; b.style.opacity = ok ? 1 : .4;
-    });
-    cLoc.disabled = !ok;
-    $("bf-cwhich").textContent = ok
-      ? "frame " + (fi + 1) + " of " + frames.length + " · post " + f.pid + " · image " + f.idx
-      : "no editable frame";
-    if (ok) {
-      cLoc.value = f.where || "";
-      cAway.classList.toggle("on", !!f.away);
-      cHide.classList.toggle("on", !!f.hid);
-      if (cHide2) cHide2.classList.toggle("on", !!f.hid);
-      $("bf-oimg").classList.toggle("hid", !!f.hid);
-      if (cAway2) cAway2.classList.toggle("on", !!f.away);
+    if (!f || f.pid !== pf.postId || f.idx !== pf.index) return;
+    f.sp = pf.species; f.where = pf.location;
+    f.cap = pf.captureDate; f.post = pf.postedDate;
+    f.away = pf.away ? 1 : 0; f.hid = pf.hidden ? 1 : 0;
+    f.star = pf.starred ? 1 : 0; f.reid = pf.reidQueued ? 1 : 0;
+    var t = document.querySelector('#bf-ostrip [data-i="' + fi + '"]');
+    if (t) {
+      t.classList.toggle("hid", !!f.hid);
+      t.classList.toggle("starred", !!f.star);
+    }
+    paintStar(f);
+    paintCaption(f);
+    highlightPlace(f.where);
+    curateSync();
+  }
+
+  function curateSync() {
+    if (!panel) return;
+    var f = frames[fi];
+    var pf = toPanelFrame(f);
+    panel.bind(pf);
+    $("bf-oimg").classList.toggle("hid", !!(f && f.hid));
+    $("bf-cwhich").textContent = pf
+      ? (fi + 1) + " / " + frames.length
+      : "nothing editable";
+  }
+
+  /* The sheet starts closed so the photograph is what you land on. Opening it
+     is one tap, and it stays open across frames — curating is a run of edits,
+     not a single one, and re-opening it per frame would be the whole point
+     thrown away. */
+  var sheetGrab = $("bf-sheet-grab"), curateBtn = $("bf-ocurate");
+  function setSheet(open) {
+    if (!sheet) return;
+    sheet.classList.toggle("open", open);
+    if (sheetGrab) sheetGrab.setAttribute("aria-expanded", open ? "true" : "false");
+    if (curateBtn) {
+      curateBtn.setAttribute("aria-expanded", open ? "true" : "false");
+      curateBtn.classList.toggle("on", open);
     }
   }
-  function post(url, body, done) {
-    fetch(url, { method: "POST", headers: { "Content-Type": "application/json" },
-                 body: JSON.stringify(body) })
-      .then(function (r) { return r.ok ? r.json() : null; })
-      .then(function (j) {
-        $("bf-csaved").textContent = j && j.ok ? "saved ✓" : "could not save";
-        setTimeout(function () { $("bf-csaved").textContent = ""; }, 2200);
-        if (j && j.ok && done) done(j);
-      })
-      .catch(function () { $("bf-csaved").textContent = "could not save"; });
+  if (sheetGrab) sheetGrab.addEventListener("click", function () {
+    setSheet(!sheet.classList.contains("open"));
+  });
+  if (curateBtn) curateBtn.addEventListener("click", function () {
+    var open = !sheet.classList.contains("open");
+    setSheet(open);
+    // On a wide screen the sheet is a panel in the column, so "open it" has to
+    // mean "bring it into view" as well.
+    if (open && !matchMedia("(max-width:620px)").matches) {
+      sheet.scrollIntoView({ block: "nearest", behavior: "smooth" });
+    }
+  });
+
+  /* The species record's disclosure (phones only — the CSS hides this button
+     on a wide screen, where the column costs nothing). The choice sticks for
+     the session: someone who wants the numbers usually wants them for the next
+     bird too, and re-collapsing on every open would be a nag. */
+  var moreBtn = $("bf-more"), moreOpen = false;
+  function setMore(open) {
+    moreOpen = open;
+    if (moreBtn) moreBtn.setAttribute("aria-expanded", open ? "true" : "false");
+    if (!open) return;
+    var box = $("bf-omap");
+    if (_pendingPlaces && box && !box.classList.contains("leaflet-container")) {
+      // Build it here rather than waiting on the IntersectionObserver, which
+      // cannot see an element that had no box until this click.
+      if (_mapIO) { _mapIO.disconnect(); _mapIO = null; }
+      drawMap(_pendingPlaces);
+    } else if (_map) {
+      // Leaflet measures its container once, on creation; if that happened
+      // while this was collapsed it measured 0x0 and the map comes back as a
+      // grey square. Re-measure now that it has a size.
+      requestAnimationFrame(function () { _map.invalidateSize(); fitAll(); });
+    }
   }
-  if (cHide) cHide.addEventListener("click", function () {
-    var f = frames[fi]; if (!f || !f.pid) return;
-    post("/curate/exclude-image", { id: f.pid, index: f.idx }, function (j) {
-      f.hid = j && j.excluded ? 1 : 0;
-      var t = document.querySelector('#bf-ostrip [data-i="' + fi + '"]');
-      if (t) t.classList.toggle("hid", !!f.hid);
-      $("bf-oimg").classList.toggle("hid", !!f.hid);
-      curateSync();
-    });
-  });
-  if (cAway) cAway.addEventListener("click", function () {
-    var f = frames[fi]; if (!f || !f.pid) return;
-    var next = f.away ? "local" : "away";
-    var arr = []; arr[f.idx] = next;
-    post("/curate/override", { id: f.pid, image_areas: arr }, function () {
-      f.away = next === "away" ? 1 : 0; curateSync();
-    });
-  });
-  if (cLoc) cLoc.addEventListener("change", function () {
-    var f = frames[fi]; if (!f || !f.pid) return;
-    var arr = []; arr[f.idx] = cLoc.value.trim();
-    post("/curate/override", { id: f.pid, image_locations: arr }, function () {
-      f.where = cLoc.value.trim(); curateSync();
-    });
-  });
+  if (moreBtn) moreBtn.addEventListener("click", function () { setMore(!moreOpen); });
 
   /* #8 permalink — the same idea as the gallery's copy-link, scoped to the
      exact frame on screen. #7 full screen uses the stage element so the
@@ -2344,6 +2531,7 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
     if (v) { v.pause(); v.removeAttribute("src"); v.hidden = true; }
     $("bf-oimg").hidden = false;
     over.classList.remove("open");
+    document.body.classList.remove("bf-detail");
     document.body.style.overflow = "";
     if (idleTimer) clearTimeout(idleTimer);
     idleTimer = setTimeout(ambStart, 2600);   // field is yours again
@@ -2407,5 +2595,46 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
     else if (e.key === "ArrowLeft") showFrame(fi - 1);
     else if (e.key === "ArrowRight") showFrame(fi + 1);
   });
+
+  /* Swipe, because this is a photo viewer on a phone and the arrows are a
+     mouse idea. The overlay had NO touch handling at all — every pointer
+     listener in this file is bound to the canvas — so the only way to page
+     frames was to hit a 2rem chevron, while the gallery's lightbox has had
+     swipe for months. Same gesture, both surfaces.
+
+     Horizontal pages the filmstrip; a downward drag dismisses, which is what
+     a sheet-like overlay is expected to do. Anything that scrolls on its own
+     is excluded by hand: the filmstrip and the map pan horizontally, the
+     curate sheet scrolls vertically and holds the text fields, and a video
+     owns its own scrubbing. Stealing from those is worse than not having the
+     gesture. */
+  (function () {
+    var OPT_OUT = ".bf-sheet, .bf-strip, .bf-map, .bf-mapwrap2, video, input, button, a";
+    var t0 = null, swiped = false;
+    over.addEventListener("touchstart", function (e) {
+      swiped = false;
+      if (e.touches.length !== 1) { t0 = null; return; }
+      if (e.target.closest && e.target.closest(OPT_OUT)) { t0 = null; return; }
+      t0 = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+    }, { passive: true });
+    over.addEventListener("touchend", function (e) {
+      if (!t0) return;
+      var dx = e.changedTouches[0].clientX - t0.x;
+      var dy = e.changedTouches[0].clientY - t0.y;
+      t0 = null;
+      if (Math.abs(dx) > 45 && Math.abs(dx) > Math.abs(dy)) {
+        swiped = true;
+        showFrame(fi + (dx < 0 ? 1 : -1));
+      } else if (dy > 90 && Math.abs(dy) > Math.abs(dx) * 1.5) {
+        swiped = true;
+        closeOver();
+      }
+    }, { passive: true });
+    // A swipe that ends on the backdrop must not also read as "clicked the
+    // backdrop", which closes the overlay — paging would dismiss the bird.
+    over.addEventListener("click", function (e) {
+      if (swiped) { swiped = false; e.stopPropagation(); }
+    }, true);
+  })();
 })();
 </script>

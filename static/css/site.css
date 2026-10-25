@@ -738,7 +738,24 @@ body.home .site-nav { z-index: 0; }
 .media-link strong { color: var(--accent); }
 .media-link:hover { border-bottom-color: currentColor; }
 .media-link.on { color: var(--accent); border-bottom-color: var(--accent); }
-.curate-filters { display: flex; gap: 0.5rem; flex-wrap: wrap; justify-content: center; margin: 0.9rem auto 0; max-width: 42rem; }
+/* One row, always. Wrapping was what let curate's header grow tall enough to
+   cover the field's fixed canvas on a phone, so this scrolls sideways
+   instead — the row costs the same height whatever it holds. */
+.curate-filters {
+    display: flex; gap: 0.5rem; align-items: center; flex-wrap: nowrap;
+    justify-content: center; margin: 0.6rem auto 0; max-width: 42rem;
+    overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch;
+}
+.curate-filters::-webkit-scrollbar { display: none; }
+.curate-filters > * { flex: 0 0 auto; }
+.curate-count { color: var(--accent); font-size: 0.76rem; }
+/* Left-aligned once the header is the compressed one-row bar, where a centred
+   row would float away from the controls it belongs to. */
+.page .gallery-header.is-stuck .curate-filters { margin: 0; justify-content: flex-start; flex: 1 1 100%; }
+@media (max-width: 720px) {
+    .curate-filters { justify-content: flex-start; margin-top: 0.45rem; }
+    .curate-filters .chip-toggle { font-size: 0.74rem; padding: 0.2rem 0.6rem; }
+}
 
 /* Projects: search + featured cards + meta */
 .project-search { margin: 1.6rem 0 0.5rem; }
@@ -1515,17 +1532,98 @@ a.ear-daily:hover .ear-day:not(.zero) { filter: brightness(1.08); }
 }
 .curate-logout:hover { opacity: 0.95; }
 .curate-note { color: var(--accent); margin-top: 1rem; }
-.curate-help {
-    list-style: none; padding: 0.8rem 1.1rem; margin: 0.8rem auto 0; max-width: 32rem;
-    text-align: left; font-size: 0.78rem; color: var(--muted);
-    background: rgba(47, 125, 79, 0.06); border: 1px solid rgba(47, 125, 79, 0.18); border-radius: 8px;
+
+/* ---- The shared curate panel (static/js/curate.js) --------------------
+   One stylesheet for one set of controls, wherever they are mounted. Sized
+   for a thumb first: the inputs and the action buttons clear the 44px touch
+   target on a phone, which neither of the two implementations this replaces
+   did.
+
+   DARK, deliberately. Both places this mounts are dark photo viewers — the
+   lightbox backdrop is rgba(8,11,8,.92), the field overlay rgba(13,18,14,.94)
+   — so a panel in --paper put a cream slab across the bottom of the screen and
+   blew out the photograph you were supposed to be judging. These are tools
+   laid over an image, not a page, and they should recede. */
+.cur {
+    --cur-text: #eceadf;
+    --cur-dim: rgba(236, 234, 223, 0.52);
+    --cur-edge: rgba(255, 255, 255, 0.16);
+    --cur-well: rgba(255, 255, 255, 0.06);
+    --cur-go: #7fc99a;            /* the green has to lift off a dark ground */
+    --cur-bad: #ff9a9a;
+    display: flex; flex-direction: column; gap: 0.5rem;
+    color: var(--cur-text);
+    /* Paints the native date picker's own glyphs light; without it the
+       calendar icon stays dark-on-dark and looks like a rendering fault. */
+    color-scheme: dark;
 }
-.curate-help li { margin: 0.3rem 0; }
-.curate-help b { color: var(--ink); }
-.curate-help kbd {
-    font-family: var(--mono); font-size: 0.72rem; background: var(--ink); color: var(--paper);
-    padding: 0.08rem 0.38rem; border-radius: 3px;
+.cur.is-empty { opacity: 0.45; }
+.cur-field {
+    font-family: var(--mono); font-size: 0.85rem; color: var(--cur-text);
+    width: 100%; min-height: 44px; padding: 0.5rem 0.65rem;
+    background: var(--cur-well); border: 1px solid var(--cur-edge); border-radius: 8px;
 }
+.cur-field::placeholder { color: var(--cur-dim); }
+.cur-field:focus { outline: none; border-color: var(--cur-go); background: rgba(255, 255, 255, 0.09); }
+.cur-dates { display: flex; gap: 0.5rem; }
+.cur-date {
+    flex: 1 1 0; display: flex; flex-direction: column; gap: 0.2rem; min-width: 0;
+    font-size: 0.64rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--cur-dim);
+}
+.cur-date input {
+    font-family: var(--mono); font-size: 0.8rem; color: var(--cur-text);
+    width: 100%; min-width: 0; min-height: 44px; padding: 0.4rem 0.5rem;
+    background: var(--cur-well); border: 1px solid var(--cur-edge); border-radius: 8px;
+}
+.cur-date input:focus { outline: none; border-color: var(--cur-go); }
+/* Four actions on one row, so the whole set is reachable on a phone without
+   scrolling the sheet. */
+.cur-actions { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.4rem; }
+.cur-act {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 0.22rem; min-height: 52px; padding: 0.4rem 0.2rem;
+    font: inherit; font-size: 0.62rem; line-height: 1.1; text-align: center;
+    color: var(--cur-text); background: var(--cur-well);
+    border: 1px solid var(--cur-edge); border-radius: 10px; cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+.cur-act svg { flex: none; }
+.cur-act:hover:not(:disabled) { border-color: var(--cur-go); color: var(--cur-go); }
+.cur-act.on { background: var(--accent); border-color: var(--accent); color: #fff; }
+/* Starring and hiding read differently from the neutral toggles — one is a
+   favourite, one is destructive-ish — and in a row of four look-alikes that
+   has to be obvious at a glance. */
+.cur-act.cur-star.on { background: var(--amber, #e8b04b); border-color: var(--amber, #e8b04b); color: var(--ink); }
+.cur-act.cur-hide.on { background: rgba(190, 48, 48, 0.92); border-color: rgba(190, 48, 48, 0.92); color: #fff; }
+.cur-act:disabled { opacity: 0.35; cursor: default; }
+/* One scrolling line, never a wrapped block. A multi-species carousel can name
+   eight birds — most of this gallery's posts do — and wrapped that was four
+   rows of chips shoving the actual controls off the bottom of the sheet. The
+   suggestions are a shortcut, not the subject. */
+.cur-suggest {
+    display: flex; flex-wrap: nowrap; align-items: center; gap: 0.35rem;
+    overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch;
+}
+.cur-suggest::-webkit-scrollbar { display: none; }
+.cur-suggest > * { flex: 0 0 auto; }
+.cur-suggest-label { font-family: var(--mono); font-size: 0.64rem; color: var(--cur-dim); }
+.cur-chip {
+    font-family: var(--mono); font-size: 0.72rem; color: var(--cur-text);
+    padding: 0.25rem 0.6rem; min-height: 32px;
+    background: none; border: 1px solid var(--cur-edge); border-radius: 999px; cursor: pointer;
+}
+.cur-chip:hover { border-color: var(--cur-go); color: var(--cur-go); }
+.cur-chip.is-current { background: var(--accent); border-color: var(--accent); color: #fff; }
+.cur-note { font-family: var(--mono); font-size: 0.68rem; color: var(--cur-go); margin: 0; min-height: 1em; }
+.cur-note.is-bad { color: var(--cur-bad); }
+/* Save feedback, shared by every control. A save that FAILED must not look
+   like a save that worked — looking identical is exactly how the field
+   overlay's dropped edits hid behind a cheerful "saved ✓" for so long. */
+.cur-field.saved, .cur-date input.saved { border-color: var(--cur-go); }
+.cur-field.save-failed, .cur-date input.save-failed { border-color: var(--cur-bad); }
+.cur-act.saved { box-shadow: 0 0 0 2px rgba(127, 201, 154, 0.4); }
+.cur-act.save-failed { box-shadow: 0 0 0 2px rgba(255, 154, 154, 0.45); }
+
 .curate-x {
     position: absolute; top: 0.5rem; right: 0.5rem; z-index: 3;
     width: 2rem; height: 2rem; border-radius: 50%;
@@ -1648,6 +1746,14 @@ a.ear-daily:hover .ear-day:not(.zero) { filter: brightness(1.08); }
     content: "curate:"; font-family: var(--mono); font-size: 0.7rem;
     color: rgba(244, 241, 233, 0.5); letter-spacing: 0.05em;
 }
+/* The shared panel's host in the lightbox. Same dark, recessive treatment as
+   the field overlay's sheet, so curate looks like one tool in both places. */
+.lightbox-curate-panel {
+    width: min(30rem, 100%); margin: 0 auto; padding: 0.8rem 0.9rem;
+    border-radius: 14px;
+    background: rgba(16, 21, 17, 0.92); border: 1px solid rgba(255, 255, 255, 0.12);
+}
+.lightbox-curate-panel[hidden] { display: none; }
 .lightbox-stars { display: inline-flex; gap: 0.1rem; }
 .lightbox-stars .star {
     background: none; border: none; cursor: pointer; font-size: 1.5rem; line-height: 1;

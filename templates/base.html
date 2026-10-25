@@ -148,8 +148,22 @@
             <video id="lightbox-video" class="lightbox-video" controls playsinline preload="metadata" hidden></video>
             <figcaption id="lightbox-cap"></figcaption>
             {% if curate %}
+            {# A BIRD frame is curated by the shared panel (static/js/curate.js),
+               the same controls the field overlay mounts — so the gallery and
+               the field can no longer offer different halves of curate
+               depending on which order you picked. It also brings the star
+               here, which only the field view ever had.
+
+               The hand-rolled block below stays for /photography, which is a
+               different store (/photography/edit, with a title and no posted
+               date, out-of-area, star or re-ID queue). The script picks one at
+               runtime off window.PHOTO_CURATE and hides the other. #}
+            {# Its own class, not .lightbox-curate: that one is a centred pill
+               with a "curate:" ::before label, built for a single row of
+               controls. The shared panel is a column. #}
+            <div id="lightbox-curate-mount" class="lightbox-curate-panel" hidden></div>
             <div id="lightbox-suggest" class="lightbox-suggest" hidden></div>
-            <div class="lightbox-curate">
+            <div class="lightbox-curate" id="lightbox-curate-photo">
                 <input type="text" id="lightbox-title" class="lightbox-species" placeholder="title" aria-label="Edit this photo's title" hidden>
                 <input type="text" id="lightbox-species" class="lightbox-species" placeholder="species" aria-label="Rename this bird">
                 <input type="text" id="lightbox-location" class="lightbox-species lightbox-location" placeholder="location" aria-label="Edit this photo's location">
@@ -162,7 +176,8 @@
             {% endif %}
         </figure>
     </div>
-    {% if curate %}<script>window.REID_QUEUED = new Set({{ reid_queued|default([], true)|tojson }});</script>{% endif %}
+    {% if curate %}<script>window.REID_QUEUED = new Set({{ reid_queued|default([], true)|tojson }});</script>
+    <script src="{{ url_for('static', filename='js/curate.js', v=asset_v) }}"></script>{% endif %}
 
     <script>
         document.getElementById("year").textContent = new Date().getFullYear();
@@ -327,6 +342,9 @@
                             photoLocation: (ploc && ploc[i]) || "",
                             photoDate: (pdat && pdat[i]) || "",
                             video: (vds && vds[i]) || null, captionSpecies: csp || [],
+                            // Curate explodes the grid to one frame per card, so
+                            // the card's star IS this frame's star.
+                            starred: el.getAttribute("data-star") === "1",
                             cardEl: el  // the grid figure this frame came from
                         });
                     });
@@ -346,6 +364,16 @@
                     img.src = f.url; img.hidden = false;
                 }
                 renderLabel(f);
+                // With the shared panel mounted it owns every control, so the
+                // legacy repaints below would only fight it over the same
+                // state. Bind and stop.
+                if (birdPanel) {
+                    birdPanel.bind(toPanelFrame(f));
+                    box.hidden = false;
+                    document.body.style.overflow = "hidden";
+                    try { history.replaceState(null, "", location.pathname + location.search + "#img-" + frameToken(f)); } catch (_) {}
+                    return;
+                }
                 renderReid(f);
                 renderSuggest(f);
                 var tIn = document.getElementById("lightbox-title");
@@ -419,6 +447,100 @@
             // not bird posts — their edits go to /photography/edit keyed by photo
             // id. Without this the panel rendered but every save 400'd silently.
             var PHOTOS = !!window.PHOTO_CURATE;
+
+            /* A bird frame is curated by the shared panel, the same one the
+               field overlay mounts. Everything below this block — the species,
+               location, date, area, re-ID and hide handlers — is the older
+               bird-and-photo implementation; with the panel mounted it serves
+               /photography only.
+               This is why "which half of curate do I get" stopped depending on
+               the gallery's sort order. */
+            var birdPanel = null;
+            if (!PHOTOS && window.BirdCurate) {
+                var mount = document.getElementById("lightbox-curate-mount");
+                var legacy = document.getElementById("lightbox-curate-photo");
+                if (mount) {
+                    mount.hidden = false;
+                    if (legacy) legacy.hidden = true;
+                    if (suggest) suggest.hidden = true;   // the panel draws its own
+                    birdPanel = window.BirdCurate.mount(mount, { onPatch: afterBirdPatch });
+                }
+            }
+            function reidKeyOf(f) { return f.postId + "-" + f.origIndex; }
+            // One entry of a card's parallel data-* array, addressed through the
+            // element the frame came from.
+            function setCardEntry(f, attr, value) {
+                try {
+                    var arr = JSON.parse(f.cardEl.getAttribute(attr) || "[]");
+                    while (arr.length <= f.index) arr.push(null);
+                    arr[f.index] = value;
+                    f.cardEl.setAttribute(attr, JSON.stringify(arr));
+                } catch (_) {}
+            }
+            function toPanelFrame(f) {
+                if (!f || !f.postId) return null;
+                return {
+                    postId: f.postId, index: f.origIndex,
+                    species: f.species || "", location: f.location || "",
+                    captureDate: (f.sighted || "").slice(0, 10),
+                    postedDate: (f.posted || "").slice(0, 10),
+                    away: !!f.away, hidden: !!f.hidden, starred: !!f.starred,
+                    reidQueued: !!(window.REID_QUEUED && window.REID_QUEUED.has(reidKeyOf(f))),
+                    captionSpecies: f.captionSpecies || []
+                };
+            }
+            /* Copy the panel's result back onto the lightbox frame, the grid
+               card behind it, and the caption — the grid is still on screen
+               under the lightbox, so an edit that only updated the panel would
+               visibly disagree with the card it came from. */
+            function afterBirdPatch(pf) {
+                var f = frames[idx];
+                if (!f || f.postId !== pf.postId || f.origIndex !== pf.index) return;
+                f.species = pf.species; f.location = pf.location;
+                f.sighted = pf.captureDate; f.posted = pf.postedDate;
+                f.away = pf.away; f.starred = pf.starred;
+                if (window.REID_QUEUED) {
+                    if (pf.reidQueued) window.REID_QUEUED.add(reidKeyOf(f));
+                    else window.REID_QUEUED.delete(reidKeyOf(f));
+                }
+                if (pf.captureDate) {
+                    f.date = new Date(pf.captureDate + "T12:00:00")
+                        .toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+                }
+                /* Write through f.cardEl, not syncCardAttr. That helper finds
+                   the card with [data-id="<postId>"], but curate explodes the
+                   grid and a card's data-id is "<postId>-<i>" — so the lookup
+                   matches nothing and the card silently keeps stale data. The
+                   frame already carries the element it came from. */
+                if (f.cardEl) {
+                    setCardEntry(f, "data-image-species", pf.species);
+                    setCardEntry(f, "data-image-locations", pf.location);
+                    setCardEntry(f, "data-image-areas", pf.away ? "away" : "local");
+                    f.cardEl.setAttribute("data-star", pf.starred ? "1" : "0");
+                    if (pf.captureDate) f.cardEl.setAttribute("data-sighted", pf.captureDate);
+                    if (pf.postedDate) f.cardEl.setAttribute("data-posted", pf.postedDate);
+                    var cap = f.cardEl.querySelector("figcaption .species");
+                    if (cap) cap.textContent = pf.species + (pf.location ? "  ·  " + pf.location : "");
+                    var inline = f.cardEl.querySelector(".species-edit");
+                    if (inline) inline.value = pf.species;
+                }
+                // Hiding removes the frame from the grid, exactly as the old
+                // hide button did — the confirmation is the card going away.
+                if (pf.hidden !== f.hidden) {
+                    f.hidden = pf.hidden;
+                    if (!window.CURATE_HIDDEN_VIEW && pf.hidden && f.cardEl) {
+                        var card = f.cardEl;
+                        card.classList.add("frame-hidden");
+                        setTimeout(function () { if (card.parentNode) card.remove(); }, 260);
+                        frames.splice(idx, 1);
+                        if (!frames.length) { close(); return; }
+                        show(idx % frames.length);
+                        return;
+                    }
+                }
+                renderLabel(f);
+            }
+
             if (PHOTOS) {
                 // Bird-only controls: a photo has no posted date, no out-of-area
                 // flag and no re-ID queue. Leaving them on screen implied edits

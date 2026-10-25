@@ -957,6 +957,9 @@ def birds_species_json(slug):
     # undone from the same view that made it. Readers never get them.
     _curate = _curate_on()
     _hidden = birds.hidden_frame_keys() if _curate else set()
+    # Which frames are already queued for re-identification. Curate-only, and
+    # read once rather than per frame — reid_keys() re-reads the queue file.
+    _reid = birds.reid_keys() if _curate else set()
     p = birds.species_profile(
         name, shots=birds.load_gallery_with_hidden() if _curate else None) or {}
     frames = []
@@ -971,27 +974,43 @@ def birds_species_json(slug):
         vids = f.get("image_videos") or []
         idxs = f.get("image_indices") or []
         areas = f.get("image_areas") or []
-        frames.append({"thumb": birds.thumb_url(imgs[0]), "full": imgs[0],
-                       # the full-res export, when one was still on disk to upload
-                       "orig": birds.original_url(imgs[0]) if birds.has_original(imgs[0]) else None,
-                       "date": f.get("_sort") or f.get("date"),
-                       "where": (locs[0] if locs else None),
-                       "vid": 1 if (vids and vids[0]) else 0,
-                       # the playable clip, so the stage can show video not a poster
-                       "vsrc": (vids[0] if (vids and vids[0]) else None),
-                       # identity, so curate can act on the exact frame shown
-                       "pid": f.get("post_id"),
-                       "idx": (idxs[0] if idxs else 0),
-                       "away": 1 if (areas and areas[0] == "away") else 0,
-                       "star": 1 if ("%s-%s" % (f.get("post_id"),
-                                                idxs[0] if idxs else 0)
-                                     in _starred) else 0,
-                       # Curate-only; always 0 for readers, who never see a
-                       # hidden frame in the first place.
-                       "hid": 1 if ("%s-%s" % (f.get("post_id"),
-                                               idxs[0] if idxs else 0)
-                                    in _hidden) else 0,
-                       })
+        key = "%s-%s" % (f.get("post_id"), idxs[0] if idxs else 0)
+        frame = {"thumb": birds.thumb_url(imgs[0]), "full": imgs[0],
+                 # the full-res export, when one was still on disk to upload
+                 "orig": birds.original_url(imgs[0]) if birds.has_original(imgs[0]) else None,
+                 "date": f.get("_sort") or f.get("date"),
+                 "where": (locs[0] if locs else None),
+                 "vid": 1 if (vids and vids[0]) else 0,
+                 # the playable clip, so the stage can show video not a poster
+                 "vsrc": (vids[0] if (vids and vids[0]) else None),
+                 # identity, so curate can act on the exact frame shown
+                 "pid": f.get("post_id"),
+                 "idx": (idxs[0] if idxs else 0),
+                 "away": 1 if (areas and areas[0] == "away") else 0,
+                 "star": 1 if key in _starred else 0,
+                 # Curate-only; always 0 for readers, who never see a
+                 # hidden frame in the first place.
+                 "hid": 1 if key in _hidden else 0,
+                 }
+        if _curate:
+            # The fields the overlay could not edit, because it was never sent
+            # them: the gallery's lightbox has always offered species, both
+            # dates and the re-ID flag, so curating through the field view
+            # silently did less. These make the two surfaces equal.
+            #
+            # Curate-only on purpose — a reader needs none of it, and
+            # caption_species in particular leaks the raw Instagram parse.
+            isp = f.get("image_species") or []
+            frame["sp"] = (isp[0] if isp else "") or ""
+            # ISO day, which is what <input type="date"> wants. "date" above is
+            # the same value but falls back to a PRETTY string ("Apr 2, 2026")
+            # when a frame has no capture date, so it cannot be used here.
+            frame["cap"] = (f.get("_sort") or "")[:10]
+            frame["post"] = (f.get("_posted") or "")[:10]
+            # The species the Instagram caption named, for the suggest chips.
+            frame["csp"] = f.get("caption_species") or []
+            frame["reid"] = 1 if key in _reid else 0
+        frames.append(frame)
     # Newest frame first, so the filmstrip reads left-to-right as most recent
     # back through the archive.
     frames.sort(key=lambda f: (f.get("date") or ""), reverse=True)
@@ -1579,6 +1598,28 @@ def curate_sound():
     return {"ok": True, "suppressed": cur["species"], "hidden": len(cur["clips"])}
 
 
+#: The per-image override maps, which arrive keyed by frame index.
+_PER_IMAGE_KEYS = ("images", "image_locations", "image_areas")
+
+
+def _as_index_map(value):
+    """Normalize a per-image override map to ``{index: value}``.
+
+    birds.set_override only honours dicts. The field overlay posted a SPARSE
+    ARRAY instead (`var arr = []; arr[f.idx] = next`), which JSON-encodes as a
+    list — so every out-of-area and location edit made from the field view was
+    dropped on the floor while the endpoint still answered {"ok": true} and the
+    UI flashed "saved ✓". Accepting both shapes here means no client can make
+    that mistake again, whatever it sends.
+    """
+    if isinstance(value, dict):
+        return value
+    if isinstance(value, list):
+        # A sparse array's holes come through as nulls; they carry no edit.
+        return {str(i): v for i, v in enumerate(value) if v is not None}
+    return value
+
+
 @app.route("/curate/override", methods=["POST"])
 def curate_override():
     if not _curate_on():
@@ -1589,6 +1630,9 @@ def curate_override():
         abort(400)
     keys = ("species", "location", "date", "capture_date", "posted", "images", "image_locations", "image_areas")
     fields = {k: data[k] for k in keys if k in data}
+    for k in _PER_IMAGE_KEYS:
+        if k in fields:
+            fields[k] = _as_index_map(fields[k])
     shot = birds.set_override(post_id, fields)
     return {"ok": True, "ambiguous": bool(shot and shot.get("ambiguous"))}
 

@@ -300,6 +300,24 @@ class BirdsTestCase(unittest.TestCase):
             ["Cooper's Hawk", "Cooper's Hawk", "Sharp-shinned Hawk", "Cooper's Hawk"],
         )
 
+    def test_per_image_location_override_does_not_bleed_onto_other_frames(self):
+        # The location twin of the species test above. A per-image location
+        # override used to overwrite the POST's location with the edited value,
+        # and every frame without a location of its own falls back to exactly
+        # that — so relabelling one frame relabelled the whole carousel.
+        shot = {"id": "R", "images": ["0", "1", "2", "3"],
+                "caption": "Barred Owl - Rea St.\n\n1-2-26",
+                "species": "Barred Owl", "species_list": ["Barred Owl"],
+                "location": "Rea St."}
+        overrides = {"R": {"image_locations": {"2": "Plum Island"}}}
+        birds.apply_overrides([shot], overrides, apply_exclusions=False)
+        self.assertEqual(shot["image_locations"][2], "Plum Island")
+        # The post keeps its own location, so the un-edited frames keep theirs.
+        self.assertEqual(shot["location"], "Rea St.")
+        frames = [birds._pseudo_frame(shot, i)[0] for i in range(4)]
+        self.assertEqual([f["location"] for f in frames],
+                         ["Rea St.", "Rea St.", "Plum Island", "Rea St."])
+
     def test_per_image_override_pins_caption_1to1_for_unedited_frames(self):
         # A caption that pins one species per frame keeps each un-edited frame on its
         # own species when a single frame is overridden.
@@ -757,6 +775,55 @@ class PhotoHideTestCase(unittest.TestCase):
             body = index.app.test_client().get("/photography").data
         self.assertIn(b"Shown", body)
         self.assertNotIn(b"Gone", body)
+
+
+class CurateOverridePayloadTestCase(GenericTestBase):
+    """Per-image overrides must mean the same thing however they are posted.
+
+    birds.set_override only honours dicts for the per-image maps. The field
+    overlay posted a sparse array instead (``var arr = []; arr[idx] = v``),
+    which JSON-encodes as a list, so every out-of-area and location edit made
+    from the field view — the DEFAULT view of /birds — was discarded while the
+    endpoint still answered {"ok": true} and the UI flashed "saved ✓". Nothing
+    failed loudly, so nothing caught it.
+    """
+
+    def test_sparse_array_normalizes_to_an_index_map(self):
+        self.assertEqual(index._as_index_map([None, None, "away"]), {"2": "away"})
+        self.assertEqual(index._as_index_map([None, "Rea St.", None]), {"1": "Rea St."})
+        # Objects pass through untouched — that shape already worked.
+        self.assertEqual(index._as_index_map({"2": "away"}), {"2": "away"})
+        # Holes carry no edit, so an all-holes array is an empty map, not a
+        # wall of "" that would clear every frame on the post.
+        self.assertEqual(index._as_index_map([None, None]), {})
+        self.assertEqual(index._as_index_map([]), {})
+
+    def test_route_normalizes_array_payloads_before_saving(self):
+        client = index.app.test_client()
+        with mock.patch.object(index, "_curate_on", return_value=True), \
+             mock.patch.object(birds, "set_override", return_value=None) as saved:
+            response = client.post("/curate/override", json={
+                "id": "p1",
+                "image_areas": [None, None, "away"],
+                "image_locations": [None, "Rea St."],
+                "images": [None, "Barred Owl"],
+            })
+        self.assertEqual(response.status_code, 200)
+        fields = saved.call_args[0][1]
+        self.assertEqual(fields["image_areas"], {"2": "away"})
+        self.assertEqual(fields["image_locations"], {"1": "Rea St."})
+        self.assertEqual(fields["images"], {"1": "Barred Owl"})
+
+    def test_route_leaves_object_payloads_alone(self):
+        client = index.app.test_client()
+        with mock.patch.object(index, "_curate_on", return_value=True), \
+             mock.patch.object(birds, "set_override", return_value=None) as saved:
+            client.post("/curate/override", json={
+                "id": "p1", "image_areas": {"2": "away"}, "capture_date": "2026-04-02"})
+        fields = saved.call_args[0][1]
+        self.assertEqual(fields["image_areas"], {"2": "away"})
+        # Scalars are not per-image maps and must not be touched.
+        self.assertEqual(fields["capture_date"], "2026-04-02")
 
 
 if __name__ == "__main__":

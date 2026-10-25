@@ -421,16 +421,22 @@
         </script>
         {% endif %}
         {% if curate %}
-        <p class="curate-note mono"><strong>Curate mode.</strong> {{ shots|length }} frames · click any photo to edit it.</p>
-        <div class="curate-filters">
-            <button type="button" class="chip-toggle{% if active_review == 'reclassified' %} on{% endif %}" onclick="birdsGo(null,{review:'{{ '' if active_review == 'reclassified' else 'reclassified' }}',bird:'',family:'',area:'',media:''})">&#128256; Reclassified ({{ review_counts.reclassified }})</button>
-            <button type="button" class="chip-toggle{% if active_review == 'reid' %} on{% endif %}" onclick="birdsGo(null,{review:'{{ '' if active_review == 'reid' else 'reid' }}',bird:'',family:'',area:'',media:''})">&#8635; Flagged for re-ID ({{ review_counts.reid }})</button>
-            <button type="button" class="chip-toggle{% if active_review == 'hidden' %} on{% endif %}" onclick="birdsGo(null,{review:'{{ '' if active_review == 'hidden' else 'hidden' }}',bird:'',family:'',area:'',media:''})">&#9986; Hidden frames ({{ review_counts.hidden }})</button>
+        {# Curate used to announce itself with a note, three wide chips and a
+           two-item instruction list. On a phone that was most of the screen —
+           and because the field's canvas is `position: fixed` to the viewport
+           with no page scroll behind it, a header that grew just covered the
+           photos, with no way to scroll them back. That is the whole reason
+           curate felt unusable on a phone.
+
+           What is left is one row of real filters: the counts are the
+           information, the controls label themselves, and it scrolls
+           sideways rather than wrapping into extra rows. #}
+        <div class="curate-filters" role="group" aria-label="Review filters">
+            <span class="curate-count mono">{{ shots|length }} frames</span>
+            <button type="button" class="chip-toggle{% if active_review == 'reclassified' %} on{% endif %}" onclick="birdsGo(null,{review:'{{ '' if active_review == 'reclassified' else 'reclassified' }}',bird:'',family:'',area:'',media:''})" title="Frames whose labels differ from the Instagram caption">&#128256; Reclassified <span class="vm-num">{{ review_counts.reclassified }}</span></button>
+            <button type="button" class="chip-toggle{% if active_review == 'reid' %} on{% endif %}" onclick="birdsGo(null,{review:'{{ '' if active_review == 'reid' else 'reid' }}',bird:'',family:'',area:'',media:''})" title="Frames flagged for re-identification">&#8635; Re-ID <span class="vm-num">{{ review_counts.reid }}</span></button>
+            <button type="button" class="chip-toggle{% if active_review == 'hidden' %} on{% endif %}" onclick="birdsGo(null,{review:'{{ '' if active_review == 'hidden' else 'hidden' }}',bird:'',family:'',area:'',media:''})" title="Frames hidden from the public gallery">&#9986; Hidden <span class="vm-num">{{ review_counts.hidden }}</span></button>
         </div>
-        <ul class="curate-help mono">
-            <li><b>Click any photo</b> to open it, then edit its species &amp; location, mark it <b>&#9888;&#65039; out of area</b>, <b>&#8635;</b> flag for re-ID, or <b>&times;</b> hide it.</li>
-            <li>Use the <b>&#8249; &#8250;</b> arrows to move through the gallery in the order shown; every edit saves instantly.</li>
-        </ul>
         {% endif %}
         {% if curate %}<script>window.CURATE_MODE = true; window.CURATE_HIDDEN_VIEW = {{ (active_review == 'hidden')|tojson }};</script>{% endif %}
     </header>
@@ -464,6 +470,11 @@
                 data-image-indices='{{ (shot.image_indices or [])|tojson }}'
                 {% if curate %}data-caption-species='{{ (shot.caption_species or [])|tojson }}'{% endif %}
                 data-date='{{ shot.date or "" }}'
+                {# Starring used to be reachable only from the field overlay, so
+                   the ordered gallery never needed to know. The shared curate
+                   panel offers it everywhere now, and it has to open showing
+                   the star's real state. #}
+                data-star='{{ 1 if shot.star else 0 }}'
                 data-sighted='{{ shot._sort or "" }}'
                 data-posted='{{ ((shot._posted if shot._posted is defined else none) or shot.timestamp or "")[:10] }}'
                 tabindex="0" role="button" aria-label="View {{ shot.species or 'photo' }} larger">

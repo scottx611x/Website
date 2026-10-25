@@ -1525,9 +1525,13 @@ def apply_overrides(shots, overrides=None, apply_exclusions=True):
             if override.get("images") or override.get("image_locations"):
                 per_loc = override.get("image_locations") or {}
                 shot["image_locations"] = [(per_loc.get(str(i)) or None) for i in range(n)]
-                locs = [l for l in shot["image_locations"] if l]
-                if locs:
-                    shot["location"] = locs[0]
+                # The post's own location is deliberately NOT rewritten here.
+                # It used to be set to the first per-image override, which made
+                # a single-frame edit bleed across the whole post: a frame with
+                # no location of its own falls back to shot["location"] (see
+                # _pseudo_frame), so relabelling frame 3 relabelled frames
+                # 1, 2, 4, 5 … with it. Editing one frame must touch one frame,
+                # which is the same rule image_species already follows above.
             if override.get("species"):
                 shot["species"] = override["species"]
                 if not override.get("images"):
