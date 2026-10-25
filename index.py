@@ -636,9 +636,12 @@ def birds_gallery():
         # arrival goes there too: its opening mosaic needs page flow, and the
         # field's canvas is fixed to the viewport so it cannot carry one.
         view = "grid" if (sort or mosaic_n) else "field"
-    field_tiles, field_seq, field_stride = [], [], 1
-    if view == "field":
-        field_tiles, field_seq, field_stride, _ = _field_tiles(shots)
+    # Both views need these now. The grid renders the field's DETAIL view (the
+    # canvas itself is skipped), and that detail steps between species and
+    # offers "another bird at random" off exactly this tile list — so there is
+    # one detail implementation instead of the gallery carrying a second,
+    # quietly different one.
+    field_tiles, field_seq, field_stride, _ = _field_tiles(shots)
     return render_template(
         "birds.html",
         title="Birds of North Andover",

@@ -574,6 +574,12 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
 .bf-orig[hidden]{display:none}
 </style>
 
+{# detail_only: the ordered grid draws its own masonry and needs only the
+   detail view from this file, so the canvas — the endless plane, its drift,
+   pinch and tilt — is not rendered at all. The script below keys off the
+   absence of #bf-canvas rather than off a flag, so there is one source of
+   truth for "is there a field here". #}
+{% if not detail_only %}
 <section class="page wide bf" id="bf-root">
   {# Standalone only. Inside the gallery the page's own header and filters
      stay, and only the grid swaps — so the field brings no second rail. #}
@@ -601,6 +607,7 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
     <span class="bf-hint">drag anywhere &middot; pinch to resize &middot; it keeps going</span>
   </div>
 </section>
+{% endif %}
 
 <script src="{{ url_for('static', filename='js/playhead.js', v=asset_v) }}"></script>
 {% if curate %}{# the shared curate panel; curate-only, so readers never fetch it #}
@@ -775,7 +782,17 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
   if (!TILES.length || !SEQ.length) return;
 
   var MEDIA = "https://birds-scott-ouellette.s3.amazonaws.com/birds/sounds/clips/";
+  /* With detail_only there is no canvas: the ordered grid draws its own
+     masonry and borrows only the detail view below. Everything from here to
+     "the species detail" is the plane — its layout, drift, pinch and tap — and
+     none of it has anything to run against.
+     Stand-ins rather than a wrapping `if`: the block would make these
+     functions block-scoped, and the detail view calls into ambStart() and the
+     live-tile registry. A detached node takes listeners harmlessly, and the
+     handful of entry points that do geometry bail on FIELD. */
   var canvas = document.getElementById("bf-canvas");
+  var FIELD = !!canvas;
+  if (!FIELD) canvas = document.createElement("div");
   /* The floating bars are sized by their own content (and wrap on narrow
      screens), so their heights are measured rather than assumed. */
   function measureChrome() {
@@ -797,7 +814,7 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
     var nav0 = document.querySelector(".site-nav");
     if (nav0) new ResizeObserver(measureChrome).observe(nav0);
   }
-  var plane = document.getElementById("bf-plane");
+  var plane = document.getElementById("bf-plane") || document.createElement("div");
   var esc = function (s) { var d = document.createElement("i"); d.textContent = s == null ? "" : s; return d.innerHTML; };
 
   /* Tile width scales with how much there is to show. The plane is endless, so
@@ -822,6 +839,7 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
      — object-fit:cover keeps those tidy; the rest are their true shape. */
   var ratio = new Array(L), pre = new Array(L + 1), TOTAL = 0;
   function rebuild() {
+    if (!FIELD) return;
     pre[0] = 0;
     for (var i = 0; i < L; i++) {
       var t = TILES[SEQ[i]];
@@ -1051,6 +1069,7 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
   }
 
   function cull() {
+    if (!FIELD) return;
     pending = false;
     var vw = canvas.clientWidth, vh = canvas.clientHeight, M = 300;
     var cw = COL_W + GAP;
@@ -1073,6 +1092,7 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
      you drift off into blank paper and the field looks broken. A little
      overscroll is allowed so the edge feels like an edge rather than a wall. */
   function clampPan() {
+    if (!FIELD) return;
     if (!FINITE) return;
     var vw = canvas.clientWidth, vh = canvas.clientHeight, PAD = 40;
     // The top stop has to clear the floating header for EVERY bounded layout,
@@ -1095,6 +1115,7 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
   }
 
   function apply() {
+    if (!FIELD) return;
     clampPan();
     // Fractional, not rounded: the plane is its own composited layer, so
     // sub-pixel offsets cost nothing and a slow drift stops stepping 1px at
@@ -1123,11 +1144,13 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
   }
 
   function ambStop() {
+    if (!FIELD) return;
     if (ambRAF) { cancelAnimationFrame(ambRAF); ambRAF = null; }
     ambT = 0;
   }
 
   function ambStart() {
+    if (!FIELD) return;
     // An ordered field is a bounded block anchored under the header; letting
     // the idle drift push it would just grind it against clampPan's stops.
     if (ORDERED) return;
@@ -1158,6 +1181,7 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
 
   /* Any interaction takes the wheel; the drift comes back once you stop. */
   function poke() {
+    if (!FIELD) return;
     canvas.classList.add("bf-touched");    // the hint has served its purpose
     entering = false;
     ambStop();
@@ -1247,6 +1271,7 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
      width moves all of them — leaving px/py pointing into empty space, which
      is why shuffling or resizing emptied the field. */
   function reseat() {
+    if (!FIELD) return;
     rebuild();
     px = 0; py = 0; vx = vy = 0;
     if (glide) { cancelAnimationFrame(glide); glide = null; }
@@ -1340,6 +1365,7 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
   window.bfBaseW = function () { return window.innerWidth < 620 ? 150 : 240; };
   var zooming = false;
   function setOverview(on) {
+    if (!FIELD) return;
     if (on === OVERVIEW || zooming) return;
     var run = function () { applyOverview(on); };
     if (matchMedia("(prefers-reduced-motion: reduce)").matches || !document.startViewTransition) {
@@ -1377,6 +1403,7 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
   }
 
   function applyScale(next) {
+    if (!FIELD) return;
     next = Math.round(Math.max(MINW, Math.min(MAXW, next)));
     if (next === COL_W) return;
     var vw = canvas.clientWidth, vh = canvas.clientHeight;
@@ -1463,6 +1490,7 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
   // defined, and a hoisted `var $` is undefined until that line runs.
   var echo = document.getElementById("bf-echo"), echoName = null, echoT = null;
   function setEcho(t) {
+    if (!FIELD) return;
     var nm = t ? t.name : null;
     if (nm === echoName) return;
     echoName = nm;
@@ -1537,6 +1565,7 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
      edge, the modal opens, or you start dragging. */
   var edgeX = 0, edgeY = 0, edgeRAF = null;
   function edgeStep() {
+    if (!FIELD) return;
     if ((edgeX || edgeY) && !down && !over.classList.contains("open")) {
       px += edgeX; py += edgeY; apply();
       edgeRAF = requestAnimationFrame(edgeStep);
@@ -1732,6 +1761,17 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
     if (!frames.length) return;
     fi = (i % frames.length + frames.length) % frames.length;
     var f = frames[fi];
+    if (seqMode) {
+      // The record beside the photo follows whichever bird is on the stage,
+      // and the address follows the frame, so a link reopens this exact photo.
+      loadRecordFor(f);
+      if (f.pid) {
+        try {
+          history.replaceState(null, "", location.pathname + location.search +
+                               "#img-" + f.pid + "." + f.idx);
+        } catch (e) { /* file:// */ }
+      }
+    }
     var img = $("bf-oimg"), vid = $("bf-ovid"), stage = img.parentNode;
 
     // A video frame gets the real clip, not its poster — the stage was an
@@ -2003,6 +2043,130 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
       });
   }
 
+  /* ---------- sequence mode: the ordered grid's detail ----------
+     The field opens a SPECIES and walks its frames. The ordered grid has to
+     walk the gallery in the order on screen — that is the whole point of
+     having picked an order — so here the frames come from the masonry cards
+     instead of from a species profile, and the record beside them follows
+     whichever bird is on the stage.
+     Same overlay, same filmstrip, same curate panel. The gallery used to run
+     a second detail view for this, with a different set of curate controls. */
+  var seqMode = false, seqSpecies = null, seqClosedAt = 0;
+
+  function cardFrames() {
+    var cards = [].slice.call(document.querySelectorAll(".masonry [data-images]"));
+    // Reading order, not DOM column order — the columns are dealt across.
+    cards.sort(function (a, b) {
+      return (+a.getAttribute("data-index") || 0) - (+b.getAttribute("data-index") || 0);
+    });
+    function J(el, name) {
+      try { return JSON.parse(el.getAttribute(name) || "[]"); } catch (e) { return []; }
+    }
+    var out = [];
+    cards.forEach(function (el) {
+      var imgs = J(el, "data-images"), sp = J(el, "data-image-species");
+      var loc = J(el, "data-image-locations"), areas = J(el, "data-image-areas");
+      var vids = J(el, "data-image-videos"), idxs = J(el, "data-image-indices");
+      var csp = J(el, "data-caption-species");
+      var sighted = el.getAttribute("data-sighted") || "";
+      var posted = el.getAttribute("data-posted") || "";
+      var pid = el.getAttribute("data-post-id") || el.getAttribute("data-id") || "";
+      var star = el.getAttribute("data-star") === "1";
+      var cover = el.querySelector("img");
+      imgs.forEach(function (u, i) {
+        out.push({
+          // Only the cover has a thumbnail to hand; the rest load full, which
+          // showFrame already copes with (thumb === full means no pre-swap).
+          thumb: (i === 0 && cover && cover.src) ? cover.src : u,
+          full: u, orig: null,
+          date: sighted, where: loc[i] || null,
+          vid: (vids[i] ? 1 : 0), vsrc: vids[i] || null,
+          pid: pid, idx: (idxs[i] != null ? idxs[i] : i),
+          away: (areas[i] === "away") ? 1 : 0,
+          star: star ? 1 : 0, hid: 0,
+          sp: sp[i] || "", cap: sighted.slice(0, 10), post: posted.slice(0, 10),
+          csp: csp || [], reid: 0,
+          _card: el
+        });
+      });
+    });
+    return out;
+  }
+
+  function slugify(name) {
+    return String(name || "").toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+  }
+
+  /* The record follows the stage. Only re-fetched when the bird actually
+     changes, so walking twelve frames of one owl is one request, not twelve. */
+  function loadRecordFor(frame) {
+    var name = (frame && frame.sp) || "";
+    var slug = slugify(name.split(" & ")[0]);
+    if (!slug || slug === seqSpecies) return;
+    seqSpecies = slug;
+    cur = slug;
+    $("bf-otitle").textContent = name.split(" & ")[0] || name;
+    setFam("");
+    $("bf-ofull").href = "/birds/species/" + slug;
+    fetch("/birds/species/" + slug + ".json")
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (d) { if (d && seqSpecies === slug) fill(d); })
+      .catch(function (err) { console.error("species record:", err); });
+  }
+
+  function openSequence(card) {
+    var all = cardFrames();
+    if (!all.length) return;
+    seqMode = true; seqSpecies = null; wantSrc = null;
+    allFrames = all;
+    frames = all;
+    famMode = false;
+    over.dataset.kind = "species";
+    paintCtx(null);
+    $("bf-ocount").textContent = "";
+    // The strip is the gallery here, so build it once up front.
+    stripShown = 0; stripEnd = null;
+    if (stripIO) { stripIO.disconnect(); stripIO = null; }
+    $("bf-ostrip").innerHTML = "";
+    growStrip(24);
+    $("bf-ostrip").onclick = function (e) {
+      var im = e.target.closest("img"); if (!im) return;
+      showFrame(+im.dataset.i);
+    };
+    var start = 0;
+    for (var i = 0; i < frames.length; i++) {
+      if (frames[i]._card === card) { start = i; break; }
+    }
+    stop();
+    scrollAt = window.scrollY || 0;
+    over.classList.add("open");
+    document.body.style.overflow = "hidden";
+    document.body.classList.add("bf-detail");
+    showFrame(start);
+    loadRecordFor(frames[start]);
+  }
+
+  /* Grid clicks. The curate controls baked into a card act on the card, so
+     they must not also open the detail view. */
+  if (!FIELD) {
+    document.addEventListener("click", function (e) {
+      if (e.target.closest(".curate-x, .species-edit, .flag-badge, .cap-loc")) return;
+      if (e.target.closest("#bf-over")) return;
+      /* Dismissing by swiping down ends with a click wherever the finger
+         lifted — which, with the overlay gone, is a card in the grid behind
+         it. Without this the detail view closed and instantly reopened on
+         whatever was underneath. (The field never hit this: the canvas is
+         what sits behind there, not cards.) */
+      if (Date.now() - seqClosedAt < 450) return;
+      var card = e.target.closest(".masonry [data-images]");
+      if (!card) return;
+      e.preventDefault();
+      e.stopPropagation();
+      openSequence(card);
+    }, true);
+  }
+
   function fill(d) {
     var h = d.heard || {};
     // clear the skeletons first: the facts below are appended, so without this
@@ -2052,15 +2216,20 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
       };
     } else { sbox.hidden = true; sbox.innerHTML = ""; sbox.onclick = null; }
 
-    frames = scopeFrames(d.frames || []);
+    /* In sequence mode the frames are the GALLERY's, in the order on screen,
+       and this profile is only the record beside them — so it must not
+       repopulate the strip and throw you back to this species' first photo.
+       Everything above (the facts, the family box) still applies. */
+    if (!seqMode) frames = scopeFrames(d.frames || []);
     // Say so when the strip is showing a subset — otherwise a bird you know
     // has 50 photos appears to have lost most of them.
     var sc = $("bf-oscope");
-    if (scoped) {
+    if (seqMode) { sc.hidden = true; sc.textContent = ""; }
+    else if (scoped) {
       sc.hidden = false;
       sc.textContent = scoped.shown + " of " + scoped.all + " frames match this view";
     } else { sc.hidden = true; sc.textContent = ""; }
-    if (frames.length) {
+    if (frames.length && !seqMode) {
       // Barred Owl has 202 frames. Building every thumbnail up front is what
       // made opening a bird feel heavy, so render a first page and extend it
       // as the strip is scrolled.
@@ -2532,6 +2701,7 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
     $("bf-oimg").hidden = false;
     over.classList.remove("open");
     document.body.classList.remove("bf-detail");
+    seqClosedAt = Date.now();
     document.body.style.overflow = "";
     if (idleTimer) clearTimeout(idleTimer);
     idleTimer = setTimeout(ambStart, 2600);   // field is yours again

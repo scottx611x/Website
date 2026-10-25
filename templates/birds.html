@@ -505,6 +505,14 @@
         </figure>
         {% endfor %}
     </div>
+    {# The same detail view the field uses, minus the canvas. Opening a photo
+       from the ordered grid and from the shuffled field used to run two
+       different implementations with two different sets of curate controls;
+       now there is one, and the order you picked only decides how the photos
+       are laid out — which was always the idea. #}
+    {% set tiles = field_tiles %}{% set seq = field_seq %}{% set stride = field_stride %}
+    {% set detail_only = True %}
+    {% include '_field.html' %}
     {% else %}
     <p class="empty mono" style="text-align:center;">// gallery warming up. check back soon.</p>
     {% endif %}
