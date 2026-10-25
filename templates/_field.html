@@ -390,10 +390,9 @@ body.field-view .gallery-header.is-stuck{
 .bf-sheet.open .bf-sheet-body{display:block}
 .bf-ico-cur.on{background:var(--accent);border-color:var(--accent);color:#fff}
 
-/* The species record. A plain column on a wide screen — the disclosure button
-   is mobile-only, because there the same content buries the photograph. */
+/* The species record, in one column under the photo on a phone and beside it
+   on a wide screen. */
 .bf-extra{display:flex;flex-direction:column;gap:1.6rem}
-.bf-more{display:none}
 
 /* The phone sheet. This block MUST sit after the base .bf-sheet rules above:
    a media query adds no specificity, so with the same selector it is plain
@@ -428,19 +427,6 @@ body.field-view .gallery-header.is-stuck{
   /* Room for the collapsed handle, so the last line of the record is not
      permanently parked behind it. */
   .bf-side{padding-bottom:5.5rem}
-
-  /* The species record collapses behind one line. Opening a bird should show
-     you the bird, not its statistics. */
-  .bf-more{display:flex;align-items:center;gap:.5rem;width:100%;
-    font:inherit;font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;
-    color:var(--muted);background:none;border:0;border-top:1px solid var(--line);
-    padding:.9rem 0 0;cursor:pointer}
-  .bf-more::after{content:"";width:8px;height:8px;margin-left:auto;
-    border-right:1.6px solid currentColor;border-bottom:1.6px solid currentColor;
-    transform:rotate(45deg);transition:transform .2s ease}
-  .bf-more[aria-expanded="true"]::after{transform:rotate(-135deg)}
-  .bf-extra{display:none}
-  .bf-more[aria-expanded="true"] + .bf-extra{display:flex}
 }
 
 @media (max-width:980px){
@@ -680,14 +666,12 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
       </div>
         </div>
 
-      {# Everything below is about the SPECIES, not the frame on the stage. On a
-         wide screen it is a column beside the photo and costs nothing. On a
-         phone it stacks underneath and ran 1,335px — more than three times the
-         height of the photograph — so opening a bird meant landing on a wall of
-         statistics with the picture squeezed above it. Behind a disclosure it
-         is one line until you ask for it, and the photo owns the screen. #}
-      <button type="button" class="bf-more" id="bf-more" aria-expanded="false"
-              aria-controls="bf-extra">About this bird</button>
+      {# Everything below is about the SPECIES, not the frame on the stage. It
+         was briefly behind an "About this bird" disclosure, to stop 1,335px of
+         statistics burying the photograph on a phone — but the curate sheet
+         already keeps the controls reachable, which was the actual problem,
+         and the viewer is sticky here so the photo stays put while you read.
+         Hiding the record was solving something that no longer needed it. #}
       <div class="bf-extra" id="bf-extra">
       <div>
         <h3>By the numbers</h3>
@@ -2272,11 +2256,6 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
     // Leaflet is ~150 KB plus tile requests. Nothing loads until the map is
     // actually scrolled into view, so opening a bird costs nothing for it.
     if (pl.length) {
-      // Remembered so the mobile disclosure can draw the map itself. An
-      // element inside a display:none ancestor has no box, so the observer
-      // below cannot see it, and whether it fires on reveal turned out not to
-      // be something to rely on — it worked in one run and not the next.
-      _pendingPlaces = pl;
       if (window.IntersectionObserver) {
         if (_mapIO) _mapIO.disconnect();
         _mapIO = new IntersectionObserver(function (es) {
@@ -2359,9 +2338,6 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
   }
 
   var _leaflet = null, _map = null, _layer = null, _markers = {}, _bounds = [], _boop = null, _mapIO = null;
-  // The geocoded places for the species on screen, so the mobile disclosure can
-  // build the map at the moment it becomes visible.
-  var _pendingPlaces = null;
 
   function fitAll() {
     if (!_map || !_bounds.length) return;
@@ -2597,30 +2573,6 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
       sheet.scrollIntoView({ block: "nearest", behavior: "smooth" });
     }
   });
-
-  /* The species record's disclosure (phones only — the CSS hides this button
-     on a wide screen, where the column costs nothing). The choice sticks for
-     the session: someone who wants the numbers usually wants them for the next
-     bird too, and re-collapsing on every open would be a nag. */
-  var moreBtn = $("bf-more"), moreOpen = false;
-  function setMore(open) {
-    moreOpen = open;
-    if (moreBtn) moreBtn.setAttribute("aria-expanded", open ? "true" : "false");
-    if (!open) return;
-    var box = $("bf-omap");
-    if (_pendingPlaces && box && !box.classList.contains("leaflet-container")) {
-      // Build it here rather than waiting on the IntersectionObserver, which
-      // cannot see an element that had no box until this click.
-      if (_mapIO) { _mapIO.disconnect(); _mapIO = null; }
-      drawMap(_pendingPlaces);
-    } else if (_map) {
-      // Leaflet measures its container once, on creation; if that happened
-      // while this was collapsed it measured 0x0 and the map comes back as a
-      // grey square. Re-measure now that it has a size.
-      requestAnimationFrame(function () { _map.invalidateSize(); fitAll(); });
-    }
-  }
-  if (moreBtn) moreBtn.addEventListener("click", function () { setMore(!moreOpen); });
 
   /* #8 permalink — the same idea as the gallery's copy-link, scoped to the
      exact frame on screen. #7 full screen uses the stage element so the
