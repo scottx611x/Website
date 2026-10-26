@@ -514,6 +514,15 @@ body.home .site-nav { z-index: 0; }
 .bird-active-meta { font-family: var(--mono); font-size: 0.85rem; color: var(--muted); margin: 0.9rem 0 0; }
 .bird-active-meta a { color: var(--accent); text-decoration: none; margin-left: 0.7rem; }
 .bird-active-meta a:hover { text-decoration: underline; }
+.bird-active-meta .meta-narrow { display: none; }
+/* On a phone the summary wrapped to three lines above the photos: keep the
+   count and the three links, shortened, on one line. */
+@media (max-width: 560px) {
+    .bird-active-meta { font-size: 0.78rem; margin-top: 0.6rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .bird-active-meta a { margin-left: 0.35rem; }
+    .bird-active-meta .meta-wide { display: none; }
+    .bird-active-meta .meta-narrow { display: inline; }
+}
 .gallery-category { font-family: var(--display); font-weight: 500; margin: 3rem 0 1.2rem; }
 /* Compact header for the full-width gallery: the filter stack was pushing the
    first photos below the fold, and the photos are the page. Scoped to

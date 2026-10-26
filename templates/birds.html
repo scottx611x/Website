@@ -357,9 +357,9 @@
             </div>
             {% endif %}
             <p class="bird-active-meta">
-                {% if active_birds|length == 1 %}{{ bird_family }} &middot; {% endif %}{% set noun = 'video' if active_media == 'video' else 'photo' %}{{ shots|length }} {{ noun }}{{ 's' if shots|length != 1 }}
-                {% if active_birds|length == 1 %} &middot; <a href="/birds/species/{{ active_birds[0]|slug }}">&#10024; full profile &rarr;</a> &middot; <a href="/birds/map?bird={{ active_birds[0]|urlencode }}">&#128205; where I find them &rarr;</a>{% endif %}
-                &middot; <a href="/birds">clear all</a>
+                {% if active_birds|length == 1 %}<span class="meta-wide">{{ bird_family }} &middot; </span>{% endif %}{% set noun = 'video' if active_media == 'video' else 'photo' %}{{ shots|length }} {{ noun }}{{ 's' if shots|length != 1 }}
+                {% if active_birds|length == 1 %} &middot; <a href="/birds/species/{{ active_birds[0]|slug }}"><span class="meta-wide">&#10024; full </span>profile<span class="meta-wide"> &rarr;</span></a> &middot; <a href="/birds/map?bird={{ active_birds[0]|urlencode }}"><span class="meta-wide">&#128205; where I find them &rarr;</span><span class="meta-narrow">map</span></a>{% endif %}
+                &middot; <a href="/birds">clear<span class="meta-wide"> all</span></a>
             </p>
         </div>
         {% endif %}
