@@ -646,6 +646,8 @@ def birds_gallery():
         "birds.html",
         title="Birds of North Andover",
         shots=shots,
+        # The summary line counted every frame as a photo, videos included.
+        shots_videos=sum(1 for sh in shots if (sh.get("image_videos") or [None])[0]),
         # The field is built from the SAME filtered list the masonry uses, so
         # every filter, the curate review modes and the sort all carry over
         # without being reimplemented. ?view=grid falls back to the masonry.

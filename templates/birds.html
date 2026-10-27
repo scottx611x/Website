@@ -357,7 +357,7 @@
             </div>
             {% endif %}
             <p class="bird-active-meta">
-                {% if active_birds|length == 1 %}<span class="meta-wide">{{ bird_family }} &middot; </span>{% endif %}{% set noun = 'video' if active_media == 'video' else 'photo' %}{{ shots|length }} {{ noun }}{{ 's' if shots|length != 1 }}
+                {% if active_birds|length == 1 %}<span class="meta-wide">{{ bird_family }} &middot; </span>{% endif %}{% set pn = shots|length - shots_videos %}{% if pn or not shots_videos %}{{ pn }} photo{{ 's' if pn != 1 }}{% endif %}{% if pn and shots_videos %} &middot; {% endif %}{% if shots_videos %}{{ shots_videos }} video{{ 's' if shots_videos != 1 }}{% endif %}
                 {% if active_birds|length == 1 %} &middot; <a href="/birds/species/{{ active_birds[0]|slug }}"><span class="meta-wide">&#10024; full </span>profile<span class="meta-wide"> &rarr;</span></a> &middot; <a href="/birds/map?bird={{ active_birds[0]|urlencode }}"><span class="meta-wide">&#128205; where I find them &rarr;</span><span class="meta-narrow">map</span></a>{% endif %}
             </p>
         </div>
