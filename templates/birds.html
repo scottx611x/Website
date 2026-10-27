@@ -431,7 +431,8 @@
            information, the controls label themselves, and it scrolls
            sideways rather than wrapping into extra rows. #}
         <div class="curate-filters" role="group" aria-label="Review filters">
-            <span class="curate-count mono">{{ shots|length }} frames</span>
+            {# the summary line already says "N photos" for one bird #}
+            {% if active_birds|length != 1 %}<span class="curate-count mono">{{ shots|length }} frames</span>{% endif %}
             <button type="button" class="chip-toggle{% if active_review == 'reclassified' %} on{% endif %}" onclick="birdsGo(null,{review:'{{ '' if active_review == 'reclassified' else 'reclassified' }}',bird:'',family:'',area:'',media:''})" title="Frames whose labels differ from the Instagram caption">&#128256; Reclassified <span class="vm-num">{{ review_counts.reclassified }}</span></button>
             <button type="button" class="chip-toggle{% if active_review == 'reid' %} on{% endif %}" onclick="birdsGo(null,{review:'{{ '' if active_review == 'reid' else 'reid' }}',bird:'',family:'',area:'',media:''})" title="Frames flagged for re-identification">&#8635; Re-ID <span class="vm-num">{{ review_counts.reid }}</span></button>
             <button type="button" class="chip-toggle{% if active_review == 'hidden' %} on{% endif %}" onclick="birdsGo(null,{review:'{{ '' if active_review == 'hidden' else 'hidden' }}',bird:'',family:'',area:'',media:''})" title="Frames hidden from the public gallery">&#9986; Hidden <span class="vm-num">{{ review_counts.hidden }}</span></button>

@@ -156,7 +156,7 @@
             <p class="sp-kick">In the gallery</p>
             <a class="sp-more" href="/birds?bird={{ sp.name|urlencode }}">all {{ sp.count }} &rarr;</a>
         </div>
-        <div class="masonry" data-mobile-cap="5">
+        <div class="masonry" data-mobile-cap="5" data-species-slug="{{ sp.name|slug }}">
             {% for shot in sp.frames[:12] %}
             <figure class="shot"
                 data-id="{{ shot.id }}"{% if shot.post_id %} data-post-id="{{ shot.post_id }}"{% endif %}
@@ -290,6 +290,11 @@
     </section>
     {% endif %}
 </section>
+
+{# The gallery's detail view, minus the canvas. This page used to open its
+   photos in the older masonry lightbox, so the same bird looked and behaved
+   differently here than in the gallery. #}
+{% if sp.frames %}{% set tiles = [] %}{% set seq = [] %}{% set stride = 1 %}{% set detail_only = True %}{% include '_field.html' %}{% endif %}
 
 {% if sp.heard and sp.recent_call and sp.recent_call.audio %}
 <script src="{{ url_for('static', filename='js/nodes.js', v=asset_v) }}"></script>

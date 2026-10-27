@@ -746,6 +746,7 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
   /* The species this view contains, in the order the field deals them. The
      detail view steps through THIS list rather than the whole collection, so
      opening a flicker while browsing Woodpeckers keeps you in Woodpeckers. */
+  var ONE_BIRD = !!(CTX.birds && CTX.birds.length === 1);
   var VIEW_SPECIES = (function () {
     var seen = {}, out = [];
     SEQ.forEach(function (i) {
@@ -763,7 +764,9 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
     return "";
   }
   } catch (_) { return; }
-  if (!TILES.length || !SEQ.length) return;
+  // An empty field has nothing to draw. Without a canvas there is still the
+  // detail view to run: a species page passes no tiles at all.
+  if ((!TILES.length || !SEQ.length) && document.getElementById("bf-canvas")) return;
 
   var MEDIA = "https://birds-scott-ouellette.s3.amazonaws.com/birds/sounds/clips/";
   /* With detail_only there is no canvas: the ordered grid draws its own
@@ -1027,7 +1030,8 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
       // same meaning and glyph as the gallery's multi-badge: N images in this
       // post. The old code point (U+29E7) is a thermodynamic symbol and read
       // as "+ 5".
-      (t.n > 1 ? '<span class="bf-badge" title="' + t.n + ' images in this post">'
+      // With one species picked every tile would carry the same number.
+      (t.n > 1 && !ONE_BIRD ? '<span class="bf-badge" title="' + t.n + ' images in this post">'
                  + '\u29C9 ' + t.n + '</span>' : '') +
       (t.vid ? '<span class="bf-badge" title="video">&#9654;</span>' : '') +
       // A star on the tile, so the best frames are visible as you pan rather
@@ -1482,7 +1486,7 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
     if (!nm) { echo.classList.remove("on"); return; }
     echo.querySelector("b").textContent = nm;
     echo.querySelector("i").textContent = (t.fam || "") +
-      (t.n > 1 ? "  \u00b7  " + t.n + " frames" : "");
+      (t.n > 1 && !ONE_BIRD ? "  \u00b7  " + t.n + " frames" : "");
     echo.classList.add("on");
   }
   canvas.addEventListener("pointermove", function (e) {
@@ -1997,6 +2001,9 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
     }
     $("bf-ofull").href = famMode ? ("/birds?family=" + encodeURIComponent(CTX.family))
                                  : ("/birds/species/" + t.slug);
+    // Opened from that bird's own page: the link would lead back here.
+    $("bf-ofull").parentNode.hidden =
+      !famMode && !!document.querySelector('[data-species-slug="' + t.slug + '"]');
     stop();
     scrollAt = window.scrollY || 0;
     over.classList.add("open"); document.body.style.overflow = "hidden";
@@ -2147,6 +2154,17 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
       if (!card) return;
       e.preventDefault();
       e.stopPropagation();
+      /* A species page shows a dozen of one bird's photos; walk all of that
+         bird's frames from the one tapped, as the field does, rather than
+         just the dozen on screen. */
+      var one = card.closest("[data-species-slug]");
+      if (one) {
+        var im = card.querySelector("img");
+        var src = ""; try { src = JSON.parse(card.getAttribute("data-images"))[0] || ""; } catch (_) {}
+        openSpecies({ slug: one.getAttribute("data-species-slug"),
+                      name: (im && im.alt) || "", fam: "", src: src });
+        return;
+      }
       openSequence(card);
     }, true);
   }
@@ -2477,6 +2495,8 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
     while (guard < 40 && pick && pick.slug === cur);   // not the one we're on
     if (pick) openSpecies(pick);
   });
+  // No tiles to pick from (a species page): the button would do nothing.
+  if (orand && !TILES.length) orand.style.display = "none";
   if (oshuf) oshuf.addEventListener("click", function () {
     if (frames.length < 2) return;
     for (var i = frames.length - 1; i > 0; i--) {      // Fisher-Yates
