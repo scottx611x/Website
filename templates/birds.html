@@ -483,6 +483,8 @@
                  {% if dm %}width="{{ dm[0] }}" height="{{ dm[1] }}"{% endif %}
                  alt="{{ shot.species or shot.caption[:80] }}">
             {% if shot.image_videos and shot.image_videos[0] %}<span class="play-badge" aria-hidden="true">▶</span>{% endif %}
+            {# the shuffled field marks starred frames; the ordered grid never did #}
+            {% if shot.star %}<span class="grid-star" title="Starred"><svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="m12 3 2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 17.8 6.2 20.9l1.1-6.5L2.6 9.8l6.5-.9z"/></svg></span>{% endif %}
             {% if shot.images|length > 1 %}<span class="multi-badge">⧉ {{ shot.images|length }}</span>{% endif %}
             {% if shot.image_areas and shot.image_areas[0] == 'away' %}<span class="away-badge" tabindex="0" data-note="Spotted outside North Andover{% set acover = (shot.image_locations[0] if shot.image_locations else None) or shot.location %}{% if acover %} · {{ acover }}{% endif %}">{{ icon('alert') }}</span>{% endif %}
             {% if curate and not shot.post_id and shot.reclassified %}<span class="reclassified-badge" tabindex="0" data-note="AI re-classified. Current labels differ from the Instagram caption ({{ shot.caption_species|join(', ') }})"><span class="reclassified-mark">🔀</span></span>{% endif %}

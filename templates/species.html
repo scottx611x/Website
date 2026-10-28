@@ -174,6 +174,7 @@
                 {% set dm = (shot.image_dims or [none])[0] %}
                 <img loading="lazy" decoding="async" src="{{ shot.images[0]|thumb }}"
                      {% if dm %}width="{{ dm[0] }}" height="{{ dm[1] }}"{% endif %} alt="{{ sp.name }}">
+                {% if shot.star %}<span class="grid-star" title="Starred"><svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="m12 3 2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 17.8 6.2 20.9l1.1-6.5L2.6 9.8l6.5-.9z"/></svg></span>{% endif %}
                 {% if shot.image_videos and shot.image_videos[0] %}<span class="play-badge" aria-hidden="true">&#9654;</span>{% endif %}
                 {% if shot.image_areas and shot.image_areas[0] == 'away' %}<span class="away-badge">{{ icon('alert') }}</span>{% endif %}
                 {% if shot.location or shot.date %}

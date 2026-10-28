@@ -2602,9 +2602,31 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
       t.classList.toggle("starred", !!f.star);
     }
     paintStar(f);
+    paintCardStar(f);
     paintCaption(f);
     highlightPlace(f.where);
     curateSync();
+  }
+
+  /* The grid card behind the overlay carries the star too; keep it honest. */
+  function paintCardStar(f) {
+    var card = f._card;
+    if (!card) {
+      [].some.call(document.querySelectorAll('.masonry [data-post-id="' + f.pid + '"]'), function (el) {
+        var ix = []; try { ix = JSON.parse(el.getAttribute("data-image-indices") || "[]"); } catch (e) {}
+        if ((ix[0] || 0) === f.idx) { card = el; return true; }
+      });
+    }
+    if (!card) return;
+    card.setAttribute("data-star", f.star ? "1" : "0");
+    var m = card.querySelector(".grid-star");
+    if (f.star && !m) {
+      m = document.createElement("span");
+      m.className = "grid-star"; m.title = "Starred";
+      m.innerHTML = $("bf-ostar").querySelector("svg").outerHTML;
+      m.querySelector("svg").setAttribute("fill", "currentColor");
+      card.insertBefore(m, card.querySelector("img").nextSibling);
+    } else if (!f.star && m) { m.remove(); }
   }
 
   function curateSync() {
