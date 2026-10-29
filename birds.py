@@ -1117,7 +1117,10 @@ def seed_starred_from_covers(shots, only_ids=None):
 
     ``only_ids`` limits it to those posts. The sync passes the posts it has
     never seen before, so a new post's cover is starred on arrival, while an
-    older post Scott unstarred wholesale stays unstarred.
+    older post Scott unstarred wholesale stays unstarred. New posts skip the
+    thin-post rule: the cover beat the rest of the SHOOT, not just the other
+    two or three frames that made the post (a 4-frame Blue Jay post was picked
+    from far more Blue Jays than that).
 
     Idempotent and additive: it never removes a star and never re-stars a post
     Scott has since unstarred wholesale, because it only fires for posts with
@@ -1140,7 +1143,7 @@ def seed_starred_from_covers(shots, only_ids=None):
             continue
         n = len(s.get("images") or [])
         species = {x for x in (s.get("image_species") or []) if x} or {s.get("species") or ""}
-        if n <= 1 or (n <= THIN_POST_MAX and len(species) <= 1):
+        if only_ids is None and (n <= 1 or (n <= THIN_POST_MAX and len(species) <= 1)):
             continue
         idxs = s.get("image_indices") or []
         idx = idxs[0] if idxs else 0
@@ -2403,9 +2406,9 @@ def instagram_sync(token=None):
     # (exclusions are a display-time filter; baking them would misalign indices).
     apply_overrides(shots, apply_exclusions=False)
 
-    # Star each NEW post's cover, as the one-time seed did for the back
-    # catalogue. Nothing did this after the seed ran (Oct 18), so six posts
-    # arrived without one. "New" = absent from the manifest being replaced.
+    # Star each NEW post's cover, however few frames it has. Nothing did this
+    # after the one-time seed (Oct 18), so every post since arrived unstarred.
+    # "New" = absent from the manifest being replaced.
     try:
         prev = _load_manifest_from_s3() or _load_local_manifest() or []
         if prev:

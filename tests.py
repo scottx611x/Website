@@ -637,9 +637,10 @@ class NewPostStarTestCase(unittest.TestCase):
              mock.patch.object(birds, "_save_curation",
                                lambda path, data: saved.update(data=data)):
             n = birds.seed_starred_from_covers(shots, only_ids={"new", "thin"})
-        self.assertEqual(n, 1)
-        # "old" was not new; "thin" is a 3-image single-species post
-        self.assertEqual(saved["data"], ["new-0"])
+        # "old" was not new. "thin" is: its cover was picked from the whole
+        # shoot, so a small post still gets its star.
+        self.assertEqual(n, 2)
+        self.assertEqual(saved["data"], ["new-0", "thin-0"])
 
 
 class RealCaptionFormatTestCase(unittest.TestCase):
