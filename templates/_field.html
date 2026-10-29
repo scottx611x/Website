@@ -2272,6 +2272,20 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
        repopulate the strip and throw you back to this species' first photo.
        Everything above (the facts, the family box) still applies. */
     if (!seqMode) frames = scopeFrames(d.frames || []);
+    else {
+      /* Grid cards carry no full-size link (each is a signed URL, minted per
+         request), so a sorted gallery never showed one. The profile fetched
+         for the record has them: copy them onto this bird's frames. */
+      var origs = {};
+      (d.frames || []).forEach(function (fr) {
+        if (fr.orig) origs[fr.pid + "-" + fr.idx] = fr.orig;
+      });
+      allFrames.forEach(function (fr) {
+        var o = origs[fr.pid + "-" + fr.idx];
+        if (o) fr.orig = o;
+      });
+      paintOriginal(frames[fi]);
+    }
     // Say so when the strip is showing a subset — otherwise a bird you know
     // has 50 photos appears to have lost most of them.
     var sc = $("bf-oscope");
