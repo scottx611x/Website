@@ -1112,8 +1112,12 @@ def unstar_thin_posts(shots, max_images=THIN_POST_MAX):
     return len(drop)
 
 
-def seed_starred_from_covers(shots):
+def seed_starred_from_covers(shots, only_ids=None):
     """Star the first image of every post that has no star yet.
+
+    ``only_ids`` limits it to those posts. The sync passes the posts it has
+    never seen before, so a new post's cover is starred on arrival, while an
+    older post Scott unstarred wholesale stays unstarred.
 
     Idempotent and additive: it never removes a star and never re-stars a post
     Scott has since unstarred wholesale, because it only fires for posts with
@@ -1131,6 +1135,8 @@ def seed_starred_from_covers(shots):
     for s in shots:
         pid = s.get("post_id") or s.get("id")
         if not pid or by_post.get(str(pid)):
+            continue
+        if only_ids is not None and str(pid) not in only_ids:
             continue
         n = len(s.get("images") or [])
         species = {x for x in (s.get("image_species") or []) if x} or {s.get("species") or ""}
@@ -2396,6 +2402,20 @@ def instagram_sync(token=None):
     # Bake hand-typed corrections so prod gets them too, but keep arrays full-length
     # (exclusions are a display-time filter; baking them would misalign indices).
     apply_overrides(shots, apply_exclusions=False)
+
+    # Star each NEW post's cover, as the one-time seed did for the back
+    # catalogue. Nothing did this after the seed ran (Oct 18), so six posts
+    # arrived without one. "New" = absent from the manifest being replaced.
+    try:
+        prev = _load_manifest_from_s3() or _load_local_manifest() or []
+        if prev:
+            seen = {str(p.get("id")) for p in prev}
+            fresh = {str(sh["id"]) for sh in shots} - seen
+            if fresh:
+                seed_starred_from_covers(shots, only_ids=fresh)
+    except Exception:  # noqa: BLE001 - a star is never worth failing the sync
+        pass
+
     _write_manifest(shots)
     return shots
 

@@ -623,6 +623,25 @@ class BirdsTestCase(unittest.TestCase):
         ])
 
 
+class NewPostStarTestCase(unittest.TestCase):
+    """A new post's cover is starred on arrival; nothing else is touched."""
+
+    def _post(self, pid, n=6, species=("Osprey",)):
+        return {"id": pid, "images": ["x"] * n,
+                "image_species": [species[i % len(species)] for i in range(n)]}
+
+    def test_only_new_posts_get_a_cover_star(self):
+        shots = [self._post("new"), self._post("old"), self._post("thin", n=3)]
+        saved = {}
+        with mock.patch.object(birds, "load_starred", return_value=set()), \
+             mock.patch.object(birds, "_save_curation",
+                               lambda path, data: saved.update(data=data)):
+            n = birds.seed_starred_from_covers(shots, only_ids={"new", "thin"})
+        self.assertEqual(n, 1)
+        # "old" was not new; "thin" is a 3-image single-species post
+        self.assertEqual(saved["data"], ["new-0"])
+
+
 class RealCaptionFormatTestCase(unittest.TestCase):
     """Parsing checks drawn from Scott's actual @birdsofnorthandover formats."""
 
