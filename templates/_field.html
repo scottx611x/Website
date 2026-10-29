@@ -2147,6 +2147,18 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
     $("bf-otitle").textContent = name.split(" & ")[0] || name;
     setFam("");
     $("bf-ofull").href = "/birds/species/" + slug;
+    /* The title changes now but the record lands later; until it does, show
+       placeholders rather than the previous bird's numbers and its call. */
+    $("bf-sound").hidden = true; $("bf-nosound").hidden = true;
+    stop(); audio.removeAttribute("src");
+    $("bf-ofacts").innerHTML = new Array(5).join("x").split("x").map(function () {
+      return '<div><dt class="bf-sk bf-skline" style="width:60%"></dt>' +
+             '<dd class="bf-sk bf-skline" style="width:45%"></dd></div>';
+    }).join("");
+    $("bf-omlab").innerHTML = "";
+    $("bf-omonths").innerHTML = [30, 45, 60, 50, 35, 25, 20, 30, 45, 55, 40, 30].map(function (h) {
+      return '<span><i class="bf-sk" style="height:' + h + '%"></i></span>';
+    }).join("");
     fetch("/birds/species/" + slug + ".json")
       .then(function (r) { return r.ok ? r.json() : null; })
       .then(function (d) { if (d && seqSpecies === slug) fill(d); })
@@ -2328,6 +2340,9 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
         return '<span><i style="height:' + Math.round(v / mx * 100) + '%"></i></span>';
       }).join("");
       $("bf-omlab").innerHTML = MONTHS.map(function (x) { return "<span>" + x + "</span>"; }).join("");
+    } else {
+      // likewise: no chart for this bird must not leave the last one up
+      $("bf-omonths").innerHTML = ""; $("bf-omlab").innerHTML = "";
     }
 
     // A real map rather than a blank box: the same Leaflet + OpenStreetMap the
@@ -2366,7 +2381,10 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
     // Three states, not two. A bird can be heard without a clip surviving —
     // saying "never caught this one" while the panel above reads 3 recordings
     // is a contradiction the data never claimed.
+    // Each branch hides the other: walking the ordered grid refills this
+    // record in place, so the previous bird's panel was left showing.
     if (d.call && d.call.audio) {
+      $("bf-nosound").hidden = true;
       $("bf-sound").hidden = false;
       var sp = $("bf-ospec");
       if (d.call.spec) { sp.src = MEDIA + d.call.spec; sp.style.display = ""; } else sp.style.display = "none";
@@ -2399,6 +2417,8 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
         d.call.conf ? Math.round(d.call.conf * 100) + "% confidence" : "",
         d.call.node].filter(Boolean).join(" · ");
     } else {
+      $("bf-sound").hidden = true;
+      stop(); audio.removeAttribute("src");    // not the last bird's call
       $("bf-nosound").hidden = false;
       // Wood Duck was heard exactly once and kept nothing, which rendered as
       // "Heard 1 time, 2026-07-26 to 2026-07-26 — but no recording has been
