@@ -828,6 +828,10 @@
             });
             // Open a photo directly from a #img-<post>.<index> permalink.
             function openFromHash() {
+                // Where the gallery's shared detail view is on the page, it
+                // owns these links; opening this lightbox too is what sent a
+                // refresh back to the old viewer.
+                if (document.getElementById("bf-over")) return false;
                 var m = /^#img-(.+)$/.exec(location.hash || "");
                 if (!m) return false;
                 var tok = m[1], dot = tok.lastIndexOf(".");

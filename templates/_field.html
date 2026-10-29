@@ -2755,6 +2755,10 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
       if (pushedHere) { pushedHere = false; history.back(); return; }
       try { history.replaceState(null, "", location.pathname + location.search); }
       catch (e) { /* ignore */ }
+    } else if (/^#img-/.test(location.hash || "")) {
+      // the ordered grid's frame address: closing should not leave it behind
+      try { history.replaceState(null, "", location.pathname + location.search); }
+      catch (e) { /* ignore */ }
     }
     var v = $("bf-ovid");
     if (v) { v.pause(); v.removeAttribute("src"); v.hidden = true; }
@@ -2809,6 +2813,24 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
     openSpecies(t);
   }
   addEventListener("popstate", function () { pushedHere = false; openFromHash(); });
+
+  /* The ordered grid writes #img-<post>.<index> as you walk it, so a refresh
+     or a shared link should reopen that frame here, in this view. */
+  function openFromImgHash() {
+    var m = /^#img-(.+)\.(\d+)$/.exec(location.hash || "");
+    if (!m || FIELD || over.classList.contains("open")) return;
+    var all = cardFrames();
+    for (var i = 0; i < all.length; i++) {
+      if (String(all[i].pid) === m[1] && String(all[i].idx) === m[2]) {
+        openSequence(all[i]._card);
+        for (var j = 0; j < frames.length; j++) {
+          if (String(frames[j].pid) === m[1] && String(frames[j].idx) === m[2]) { showFrame(j); break; }
+        }
+        return;
+      }
+    }
+  }
+  if (!FIELD && /^#img-/.test(location.hash || "")) requestAnimationFrame(openFromImgHash);
   if (/^#(bird|family)\//.test(location.hash || "")) {
     // after first paint, so TILES/SEQ and the canvas are ready
     requestAnimationFrame(openFromHash);
