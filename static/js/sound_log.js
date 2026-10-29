@@ -11,6 +11,7 @@
   var prevEl = document.getElementById("dl-prev");
   var nextEl = document.getElementById("dl-next");
   var searchEl = document.getElementById("dl-search");
+  var allHintEl = document.getElementById("dl-allhint");
   var sortEl = document.getElementById("dl-sort");
   var nodesEl = document.getElementById("dl-nodes");
 
@@ -70,6 +71,13 @@
     byDay[p.day].recs.push({ e: e, p: p });
   });
   days.sort(); days.reverse();                 // newest first
+  // Every species across the whole log, so a search can jump past the day it's
+  // scoped to — straight to that bird's page and all of its recordings.
+  var allSp = {};
+  LOG.forEach(function (e) {
+    if (!e.display || !e.slug) return;
+    (allSp[e.display] = allSp[e.display] || { slug: e.slug, n: 0 }).n++;
+  });
   var cur = 0;                                 // index into days
   dateEl.min = days[days.length - 1]; dateEl.max = days[0];
   // Order the day: "most heard" (by activity) or "chronological" (as it unfolded).
@@ -130,6 +138,14 @@
       : day.recs;
     var sp = speciesOf(recs);
     if (q) sp = sp.filter(function (s) { return (s.name || "").toLowerCase().indexOf(q) !== -1; });
+    var hits = !q ? [] : Object.keys(allSp)
+      .filter(function (n) { return n.toLowerCase().indexOf(q) !== -1; })
+      .sort(function (a, b) { return allSp[b].n - allSp[a].n; }).slice(0, 4);
+    allHintEl.hidden = !hits.length;
+    allHintEl.innerHTML = hits.map(function (n) {
+      return '<a href="/birds/species/' + esc(allSp[n].slug) + '#heard">' + esc(n) +
+        ' &middot; all recordings &rarr;</a>';
+    }).join("");
     var totalRecs = recs.length;
     sumEl.textContent = totalRecs + " recording" + (totalRecs !== 1 ? "s" : "") + " · " +
       speciesOf(recs).length + " species";

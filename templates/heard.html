@@ -5,6 +5,7 @@
   .stat-cards{margin-bottom:1.6rem}
 
   .heard-controls{display:flex; flex-wrap:wrap; gap:.9rem; align-items:center; margin-bottom:1.2rem}
+  .heard-q{font-family:var(--mono); font-size:.74rem; color:var(--ink); background:var(--paper); border:1px solid rgba(13, 18, 14,.18); border-radius:999px; padding:.4rem .9rem; min-width:min(12rem,100%); -webkit-appearance:none; appearance:none}
   .heard-seg{display:inline-flex; border:1px solid rgba(13, 18, 14,.18); border-radius:999px; overflow:hidden}
   .heard-seg button{font-family:var(--mono); font-size:.7rem; letter-spacing:.03em; padding:.4rem .8rem; border:none; background:transparent; color:var(--ink); cursor:pointer; white-space:nowrap}
   .heard-seg button+button{border-left:1px solid rgba(13, 18, 14,.12)}
@@ -60,6 +61,7 @@
         <div class="heard-seg" role="group" aria-label="Filter">
             <button type="button" data-filt="all" class="on">all</button><button type="button" data-filt="shot">&#128247; photographed</button><button type="button" data-filt="miss">&#127911; not yet</button>
         </div>
+        <input class="heard-q" id="heard-q" type="search" placeholder="find a bird…" aria-label="Find a bird" autocomplete="off">
         <span class="heard-count" id="heard-count"></span>
     </div>
 
@@ -75,7 +77,8 @@
     (function () {
         var SP = {{ sound.species|tojson }};
         var grid = document.getElementById("heard-grid"), countEl = document.getElementById("heard-count");
-        var sortBy = "count", filt = "all";
+        var sortBy = "count", filt = "all", qEl = document.getElementById("heard-q");
+        qEl.value = new URLSearchParams(location.search).get("q") || "";
         function esc(s) { var d = document.createElement("i"); d.textContent = s == null ? "" : s; return d.innerHTML; }
         function slugify(n) { return (n || "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, ""); }
         function rel(iso) {
@@ -88,7 +91,11 @@
             return d < 30 ? d + "d ago" : Math.floor(d / 30) + "mo ago";
         }
         function view() {
-            var v = SP.filter(function (s) { return filt === "all" || (filt === "shot" ? s.shot : !s.shot); });
+            var q = qEl.value.trim().toLowerCase();
+            var v = SP.filter(function (s) {
+                return (filt === "all" || (filt === "shot" ? s.shot : !s.shot)) &&
+                    (!q || (s.display || "").toLowerCase().indexOf(q) !== -1);
+            });
             v.sort(sortBy === "recent"
                 ? function (a, b) { return (b.last || "") < (a.last || "") ? -1 : (b.last || "") > (a.last || "") ? 1 : 0; }
                 : sortBy === "az"
@@ -124,6 +131,13 @@
                 seg.querySelectorAll("button").forEach(function (x) { x.classList.toggle("on", x === b); });
                 render();
             });
+        });
+        qEl.addEventListener("input", render);
+        // Enter on a single match goes straight to that bird.
+        qEl.addEventListener("keydown", function (e) {
+            if (e.key !== "Enter") return;
+            var v = view();
+            if (v.length === 1) location.href = "/birds/species/" + slugify(v[0].display) + "#heard";
         });
         render();
     })();

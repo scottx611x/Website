@@ -6,6 +6,8 @@
 <style>
   /* Light like every other bird page; ink on paper, green accents, neon fills. */
   .livewire .mono{font-family:var(--mono); font-variant-numeric:tabular-nums}
+  .lv-find{display:flex; justify-content:center; margin:0 0 2rem}
+  .lv-find input{font-size:.8rem; color:var(--ink); background:var(--paper); border:1px solid rgba(13, 18, 14,.18); border-radius:999px; padding:.5rem 1.1rem; width:min(22rem,100%); -webkit-appearance:none; appearance:none}
   .livewire .lv-kick{font-family:var(--mono); font-size:.7rem; text-transform:uppercase; letter-spacing:.16em; color:var(--accent); margin:0 0 1rem}
   .livewire section{margin-top:3.2rem}
   .lv-status{display:flex; justify-content:center; align-items:flex-start; gap:.5rem; color:var(--muted); font-size:.78rem; margin:.9rem 0 0}
@@ -378,6 +380,13 @@
         <a class="stat-card" href="/birds/heard"><span class="stat-num">{{ sound.counts.speciesAllTime or 0 }}</span><span class="stat-lbl">species heard all-time</span></a>
         <a class="stat-card" href="/birds/live/log"><span class="stat-num">{{ "{:,}".format(sound.counts.callsAllTime or 0) }}</span><span class="stat-lbl">recordings all-time</span></a>
     </div>
+
+    {# Find any bird the mic has ever heard — photographed or not — and land on
+       its page, where every recording of it can be browsed. #}
+    <form class="lv-find" action="/birds/heard" method="get" role="search">
+      <input class="mono" type="search" name="q" list="lv-find-names" placeholder="find a bird the mic has heard…" aria-label="Find a bird the mic has heard" autocomplete="off">
+      <datalist id="lv-find-names">{% for s in sound.species %}<option value="{{ s.display }}">{% endfor %}</datalist>
+    </form>
 
     {# NOW — most recent call: the photo, and the sound itself #}
     {# The hero is the newest recording we can actually PLAY, so the card always
@@ -1216,6 +1225,19 @@
     }).join("");
     syncViews();
   }
+  (function () {
+    var f = document.querySelector(".lv-find");
+    if (!f) return;
+    var inp = f.querySelector("input");
+    function exact() {
+      var v = inp.value.trim().toLowerCase(), opts = document.getElementById("lv-find-names").options;
+      for (var i = 0; i < opts.length; i++) if (opts[i].value.toLowerCase() === v) return opts[i].value;
+    }
+    function go(nm) { location.href = "/birds/species/" + nm.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") + "#heard"; }
+    f.addEventListener("submit", function (e) { var nm = exact(); if (nm) { e.preventDefault(); go(nm); } });
+    // picking a suggestion fires "input" with the full name
+    inp.addEventListener("input", function () { var nm = exact(); if (nm && inp.value.length > 2) go(nm); });
+  })();
   function renderHero(r) {
     var h = document.getElementById("lv-hero");
     var photo = heroPhoto(r);
