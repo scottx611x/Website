@@ -1600,6 +1600,12 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
      numbers, the year, the map and the voice. */
   var over = document.getElementById("bf-over"), audio = new Audio(), raf = null;
   var cur = null, frames = [], fi = 0, wantSrc = null, allFrames = [];
+  // ?frame=<post>-<idx> — what the detail view's copy-link writes. Read once
+  // on load; fill() lands on that frame, then it is spent.
+  var wantFrame = (function () {
+    try { return new URLSearchParams(location.search).get("frame") || null; }
+    catch (e) { return null; }
+  })();
   var MONTHS = ["J","F","M","A","M","J","J","A","S","O","N","D"];
   var $ = function (id) { return document.getElementById(id); };
   function fmt(s) { s = Math.floor(s || 0); return Math.floor(s / 60) + ":" + ("0" + (s % 60)).slice(-2); }
@@ -2322,8 +2328,14 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
 
       // Land on the tile the click came from, not whatever happens to be
       // first in the profile — otherwise the modal appears to swap the photo.
-      var start = 0;
-      if (wantSrc) {
+      var start = 0, hit = false;
+      if (wantFrame) {
+        for (var q = 0; q < frames.length; q++) {
+          if (frames[q].pid + "-" + frames[q].idx === wantFrame) { start = q; hit = true; break; }
+        }
+        wantFrame = null;
+      }
+      if (!hit && wantSrc) {
         for (var q = 0; q < frames.length; q++) {
           if (frames[q].thumb === wantSrc || frames[q].full === wantSrc) { start = q; break; }
         }
@@ -2851,7 +2863,16 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
     }
   }
   if (!FIELD && /^#img-/.test(location.hash || "")) requestAnimationFrame(openFromImgHash);
-  if (/^#(bird|family)\//.test(location.hash || "")) {
+  // A shared ?frame= link lands on the species page: open its detail view on
+  // that frame. A #bird/ hash (refresh after opening) takes the branch below.
+  if (wantFrame && !/^#(bird|family)\//.test(location.hash || "")) {
+    var permaHost = document.querySelector("[data-species-slug]");
+    if (permaHost) requestAnimationFrame(function () {
+      var slug = permaHost.getAttribute("data-species-slug");
+      openSpecies(tileFor(slug) || { slug: slug, name: "", fam: "", src: "" });
+    });
+  }
+  else if (/^#(bird|family)\//.test(location.hash || "")) {
     // after first paint, so TILES/SEQ and the canvas are ready
     requestAnimationFrame(openFromHash);
   }
