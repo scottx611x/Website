@@ -233,6 +233,8 @@
     ev.stopPropagation();
     var url = location.origin + "/birds/live/log#rec-" + btn.getAttribute("data-token");
     function flash(msg) {
+      var ok = msg === "&#10003;";
+      if (window.siteToast) siteToast(ok ? "Link copied to clipboard" : "Couldn't copy the link", ok);
       var prev = btn.getAttribute("data-ok") || btn.innerHTML;
       btn.setAttribute("data-ok", prev); btn.classList.add("ok"); btn.innerHTML = msg;
       setTimeout(function () { btn.innerHTML = prev; btn.classList.remove("ok"); }, 1400);

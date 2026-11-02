@@ -2725,6 +2725,7 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
     // it simply does not exist — which dropped every copy into a prompt() box.
     // Fall back to a throwaway textarea, which works on an insecure origin.
     function flash(ok) {
+      if (window.siteToast) siteToast(ok ? "Link copied to clipboard" : "Couldn't copy the link", ok);
       oLink.classList.toggle("copied", ok);
       oLink.classList.toggle("bf-ok", ok);
       setTimeout(function () {

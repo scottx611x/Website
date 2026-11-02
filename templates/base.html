@@ -58,6 +58,43 @@
         </nav>
     </header>
 
+    <style>
+        /* One small confirmation pill for the whole site (copy-link and the like). */
+        .site-toast{position:fixed;left:50%;bottom:calc(1.4rem + env(safe-area-inset-bottom,0px));z-index:2000;
+            transform:translate(-50%,.6rem);opacity:0;pointer-events:none;
+            display:flex;align-items:center;gap:.5rem;max-width:calc(100vw - 32px);
+            background:#2f6b45;color:#fff;padding:.55rem 1rem;border-radius:999px;white-space:nowrap;
+            box-shadow:0 6px 24px rgba(0,0,0,.35),0 0 0 1px rgba(255,255,255,.12);font-size:.84rem;line-height:1.2;
+            transition:opacity .18s ease,transform .18s ease}
+        .site-toast.show{opacity:1;transform:translate(-50%,0)}
+        .site-toast svg{flex:none}
+        @media (prefers-reduced-motion:reduce){.site-toast{transition:none}}
+    </style>
+    <script>
+        /* window.siteToast("Copied to clipboard") — a short pill near the bottom.
+           Mounted inside the fullscreen element when there is one, or a
+           fullscreen photo would hide it. */
+        (function () {
+            var el = null, timer = null;
+            var CHECK = '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>';
+            window.siteToast = function (msg, ok) {
+                if (!el) {
+                    el = document.createElement("div");
+                    el.className = "site-toast";
+                    el.setAttribute("role", "status"); el.setAttribute("aria-live", "polite");
+                }
+                var host = document.fullscreenElement || document.body;
+                if (el.parentNode !== host) host.appendChild(el);
+                el.innerHTML = (ok === false ? "" : CHECK) + "<span></span>";
+                el.lastChild.textContent = msg;
+                void el.offsetWidth;            // restart the transition on a repeat copy
+                el.classList.add("show");
+                clearTimeout(timer);
+                timer = setTimeout(function () { el.classList.remove("show"); }, 1800);
+            };
+        })();
+    </script>
+
     <script>
         (function () {
             var btn = document.getElementById("navBurger"), nav = document.getElementById("navLinks");
@@ -811,6 +848,7 @@
                 var url = location.origin + location.pathname + "#img-" + frameToken(f);
                 var txt = shareBtn.querySelector(".lightbox-share-txt");
                 function flash(msg) {
+                    if (window.siteToast) siteToast(msg === "Copy failed" ? "Couldn't copy the link" : "Link copied to clipboard", msg !== "Copy failed");
                     if (!txt) return;
                     var prev = "Copy link";
                     txt.textContent = msg; shareBtn.classList.add("copied");

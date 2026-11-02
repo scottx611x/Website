@@ -197,24 +197,28 @@
             <a class="sp-more" href="/birds/live?bird={{ sp.name|urlencode }}">the live feed &rarr;</a>
         </div>
         <div class="sp-sound">
+            {# The player opens on the clearest clip when there is a distinct one with a
+               spectrogram to show; otherwise the latest. #}
+            {% set best_first = sp.recent_call and sp.best_call and sp.best_call.audio and (sp.best_call.spec or not sp.recent_call.spec) %}
+            {% set hc = sp.best_call if best_first else sp.recent_call %}
             {% if sp.recent_call %}
-            <div class="sp-player" id="sp-player"{% if sp.recent_call.audio %} data-audio="{{ sp.recent_call.audio }}"{% endif %}{% if sp.recent_call.spec %} data-spec="{{ MEDIA }}{{ sp.recent_call.spec }}"{% endif %}>
-                {% if sp.recent_call.spec %}
-                <div class="sp-spec" style="background-image:url('{{ MEDIA }}{{ sp.recent_call.spec }}')"></div>
+            <div class="sp-player" id="sp-player"{% if hc.audio %} data-audio="{{ hc.audio }}"{% endif %}{% if hc.spec %} data-spec="{{ MEDIA }}{{ hc.spec }}"{% endif %}>
+                {% if hc.spec %}
+                <div class="sp-spec" style="background-image:url('{{ MEDIA }}{{ hc.spec }}')"></div>
                 <div class="sp-veil"></div>
                 <div class="sp-needle"></div>
                 <button type="button" class="sp-expand" id="sp-expand" aria-label="enlarge spectrogram">&#8599;</button>
                 {% endif %}
                 <div class="sp-pbar">
-                    {% if sp.recent_call.audio %}<button type="button" class="sp-play" id="sp-play" aria-label="play the recording">&#9654;</button>{% endif %}
+                    {% if hc.audio %}<button type="button" class="sp-play" id="sp-play" aria-label="play the recording">&#9654;</button>{% endif %}
                     <div class="sp-ptxt">
-                        <b id="sp-plabel">Latest recording</b>
-                        <span id="sp-ptime">{% if sp.recent_call.when %}{{ sp.recent_call.when }} &middot; {% endif %}{{ (sp.recent_call.conf*100)|round|int }}% confident</span>
+                        <b id="sp-plabel">{{ "Clearest" if best_first else "Latest" }} recording</b>
+                        <span id="sp-ptime">{% if hc.when %}{{ hc.when }} &middot; {% endif %}{{ (hc.conf*100)|round|int }}% confident</span>
                     </div>
                     {% if sp.best_call and sp.best_call.audio %}
                     <div class="sp-toggle" id="sp-toggle" role="group" aria-label="Choose recording">
-                        <button type="button" class="on" data-clip="latest">latest</button>
-                        <button type="button" data-clip="best">clearest</button>
+                        <button type="button"{% if not best_first %} class="on"{% endif %} data-clip="latest">latest</button>
+                        <button type="button"{% if best_first %} class="on"{% endif %} data-clip="best">clearest</button>
                     </div>
                     {% endif %}
                 </div>
@@ -357,9 +361,9 @@
       meta: {{ (((sp.best_call.when ~ " · ") if sp.best_call.when else "") ~ ((sp.best_call.conf * 100)|round|int|string) ~ "% confident")|tojson }}
     }{% endif %}
   };
-  var curKey = "latest";
-  var audio = new Audio(MEDIA + CLIPS.latest.audio);
-  var spec = CLIPS.latest.spec;
+  var curKey = CLIPS.best && {{ 'true' if best_first else 'false' }} ? "best" : "latest";
+  var audio = new Audio(MEDIA + CLIPS[curKey].audio);
+  var spec = CLIPS[curKey].spec;
   var raf = null, zoom = null;
   // When you play a row in the archive list, that row's own inline spectrogram is
   // the playhead target (rowBox) instead of the big hero player up top. null = hero.
@@ -389,7 +393,7 @@
     toggle();
   });
   // Swap the player to any clip — the toggle picks latest/clearest, the list any.
-  var curClip = CLIPS.latest;
+  var curClip = CLIPS[curKey];
   function applyClip(c) {
     var wasPlaying = !audio.paused;
     clearRow();  // returning to the hero player releases any inline archive row
@@ -493,7 +497,7 @@
     function syncRecs() {
       listEl.hidden = !open; sortEl.hidden = !open;
       tgl.setAttribute("aria-expanded", open ? "true" : "false");
-      tgl.innerHTML = (open ? "&#9652;" : "&#9662;") + " " + ALL.length + " recordings, clearest first";
+      tgl.innerHTML = (open ? "&#9652;" : "&#9662;") + " " + ALL.length + " recordings, " + (rsort === "latest" ? "latest" : "clearest") + " first";
       if (open) render();
     }
     tgl.addEventListener("click", function () { open = !open; syncRecs(); });
@@ -507,6 +511,7 @@
       if (toggleEl) toggleEl.querySelectorAll("button").forEach(function (x) {
         x.classList.toggle("on", x.getAttribute("data-clip") === (mode === "clearest" ? "best" : "latest"));
       });
+      tgl.innerHTML = (open ? "&#9652;" : "&#9662;") + " " + ALL.length + " recordings, " + mode + " first";
       if (open) render();
     }
     listSetOrder = applyOrder;  // let the head toggle drive the list order
