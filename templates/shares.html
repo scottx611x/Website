@@ -31,7 +31,7 @@
         {% for sid, s in shares %}
         <div class="shl-row" data-sid="{{ sid }}">
             <a class="shl-thumbs" href="/s/{{ sid }}" tabindex="-1">
-                {% for it in s["items"][:4] %}<img loading="lazy" src="{{ it.thumb or it.full }}" alt="">{% endfor %}
+                {% for it in s._thumbs %}<img loading="lazy" src="{{ it.thumb or it.full }}" alt="">{% endfor %}
             </a>
             <div class="shl-main">
                 <a href="/s/{{ sid }}">{{ s.title or (s["items"]|length ~ " photos") }}</a>

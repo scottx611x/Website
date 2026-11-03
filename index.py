@@ -1599,10 +1599,15 @@ def share_update(sid):
     data = request.get_json(silent=True) or {}
     if data.get("delete"):
         return {"ok": birds.delete_share(sid)}
-    share = birds.update_share(sid, title=data.get("title"))
+    try:
+        share = birds.update_share(sid, title=data.get("title"),
+                                   order=data.get("order"), cover=data.get("cover"))
+    except ValueError:
+        abort(400)
     if share is None:
         abort(404)
-    return {"ok": True, "title": share["title"]}
+    return {"ok": True, "title": share["title"], "cover": share.get("cover", ""),
+            "count": len(share["items"])}
 
 
 @app.route("/s", methods=["GET"])
@@ -1611,6 +1616,9 @@ def share_index():
         abort(404)
     shares = sorted(birds.load_shares().items(),
                     key=lambda kv: kv[1].get("created") or "", reverse=True)
+    for _, s in shares:   # list thumbnails lead with the cover
+        c = birds.share_cover(s)
+        s["_thumbs"] = ([c] if c else []) + [i for i in s["items"] if i is not c][:3]
     return render_template("shares.html", title="Shared links", shares=shares,
                            local=_is_local(), curate=True)
 
@@ -1625,7 +1633,7 @@ def share_view(sid):
     dated = sorted((i for i in items if i.get("t") and i.get("date")), key=lambda i: i["t"])
     return render_template(
         "share.html", title=share.get("title") or "%d photos" % len(items),
-        sid=sid, share=share, items=items,
+        sid=sid, share=share, items=items, cover=birds.share_cover(share),
         span=(dated[0]["date"], dated[-1]["date"]) if dated else None,
         local=_is_local(), curate=_curate_on(),
     )

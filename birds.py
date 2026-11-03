@@ -1184,14 +1184,38 @@ def create_share(items, title=""):
     return sid, share
 
 
-def update_share(share_id, title=None):
+def update_share(share_id, title=None, order=None, cover=None):
+    """Rename, reorder/trim (``order``: the items' ``full`` URLs, in the new
+    order; any left out are removed) and pick a cover (one item's ``full``)."""
     share = get_share(share_id)
     if share is None:
         return None
     if title is not None:
         share["title"] = str(title).strip()[:120]
+    if order is not None:
+        by_full = {i["full"]: i for i in share["items"]}
+        items, seen = [], set()
+        for u in order if isinstance(order, list) else []:
+            if u in by_full and u not in seen:
+                seen.add(u); items.append(by_full[u])
+        if not items:
+            raise ValueError("a share needs at least one photo")
+        share["items"] = items
+    if cover is not None:
+        share["cover"] = cover if any(i["full"] == cover for i in share["items"]) else ""
+    if share.get("cover") and not any(i["full"] == share["cover"] for i in share["items"]):
+        share["cover"] = ""        # the cover was removed from the album
     _put_share(share_id, share)
     return share
+
+
+def share_cover(share):
+    """The cover item: the chosen one, else the first."""
+    items = share.get("items") or []
+    for i in items:
+        if i["full"] == share.get("cover"):
+            return i
+    return items[0] if items else None
 
 
 def delete_share(share_id):

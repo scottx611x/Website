@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 {% block meta_description %}{{ items|length }} photo{{ 's' if items|length != 1 }} shared by Scott Ouellette{% if share.title %}: {{ share.title }}{% endif %}.{% endblock %}
-{% block og_image %}{{ items[0].thumb if items else (site_url ~ url_for('static', filename='img/fall.jpg')) }}{% endblock %}
+{% block og_image %}{{ cover.full if cover else (site_url ~ url_for('static', filename='img/fall.jpg')) }}{% endblock %}
 
 {% block head %}<meta name="robots" content="noindex">{% endblock %}
 
@@ -22,9 +22,34 @@
                     font-family:var(--mono); font-size:.7rem; background:linear-gradient(transparent,rgba(6,10,7,.8)); opacity:0; transition:opacity .25s; }
     .shot:hover .sh-cap, .shot:focus-visible .sh-cap { opacity:1; }
     @media (hover:none) { .shot .sh-cap { opacity:1; } }
+    /* The cover: one wide frame above the title. */
+    .sh-cover { display:block; width:100%; max-width:64rem; margin:0 auto 1.6rem; aspect-ratio:21/9; object-fit:cover;
+                border-radius:14px; background:#ddd; cursor:zoom-in; }
+    @media (max-width:640px) { .sh-cover { aspect-ratio:4/3; border-radius:10px; margin-bottom:1.2rem; } }
+    /* Edit mode: a plain, even grid, because order is the point and masonry
+       columns hide it. Drag anywhere on a photo; ★ makes it the cover; × drops it. */
+    .sh-edit { display:grid; grid-template-columns:repeat(auto-fill,minmax(130px,1fr)); gap:8px; margin-top:2rem; }
+    .sh-edit[hidden], .sh-grid[hidden], .sh-cover[hidden] { display:none; }
+    .sh-et { position:relative; aspect-ratio:1; border-radius:8px; overflow:hidden; background:#ddd; cursor:grab;
+             touch-action:manipulation; -webkit-user-select:none; user-select:none; -webkit-touch-callout:none; }
+    .sh-et img { width:100%; height:100%; object-fit:cover; display:block; pointer-events:none; }
+    .sh-et.is-cover { box-shadow:0 0 0 3px var(--accent); }
+    .sh-et .ec, .sh-et .ex { position:absolute; top:6px; width:30px; height:30px; border-radius:50%; border:0; cursor:pointer;
+             display:grid; place-items:center; background:rgba(13,18,14,.55); color:#fff; backdrop-filter:blur(3px); padding:0; }
+    .sh-et .ec { left:6px; } .sh-et .ex { right:6px; font-size:1.2rem; line-height:1; }
+    .sh-et .ec svg { width:15px; height:15px; }
+    .sh-et.is-cover .ec { background:var(--accent); }
+    .sh-et.is-cover .ec svg { fill:currentColor; }
+    .sh-et .en { position:absolute; left:6px; bottom:5px; font-family:var(--mono); font-size:.62rem; color:#fff;
+                 text-shadow:0 1px 3px rgba(0,0,0,.7); }
+    .sh-ghost { opacity:.35; }
+    .sh-chosen { transform:scale(1.04); box-shadow:0 10px 26px rgba(0,0,0,.3); z-index:2; }
+    .sh-btn.primary { background:var(--accent); border-color:var(--accent); color:#fff; }
+    .sh-tools [hidden] { display:none; }
 </style>
 <section class="page wide">
     <header class="gallery-header">
+        {% if cover %}<img class="sh-cover" id="sh-cover" src="{{ cover.full }}" alt="{{ cover.species or cover.caption or '' }}">{% endif %}
         <div class="sh-head">
             <p class="sh-kick">Shared photos</p>
             <h1 id="sh-title"{% if curate %} contenteditable="true" spellcheck="false" title="Click to rename"{% endif %}>{{ share.title or (items|length ~ " photo" ~ ('s' if items|length != 1 else '')) }}</h1>
@@ -36,8 +61,11 @@
             <div class="sh-tools">
                 <button type="button" class="sh-btn" id="sh-copy">{{ icon('link') }} copy link</button>
                 {% if curate %}
-                <a class="sh-btn" href="/s">all shared links</a>
-                <button type="button" class="sh-btn danger" id="sh-del">delete link</button>
+                <button type="button" class="sh-btn" id="sh-editbtn">edit</button>
+                <a class="sh-btn" href="/s" id="sh-all">all links</a>
+                <button type="button" class="sh-btn danger" id="sh-del">delete</button>
+                <button type="button" class="sh-btn" id="sh-cancel" hidden>cancel</button>
+                <button type="button" class="sh-btn primary" id="sh-save" hidden>save</button>
                 {% endif %}
             </div>
         </div>
@@ -63,10 +91,29 @@
         </figure>
         {% endfor %}
     </div>
+    {% if curate %}
+    <div class="sh-edit" id="sh-edit" hidden>
+        {% for it in items %}
+        <div class="sh-et{% if cover and it.full == cover.full %} is-cover{% endif %}" data-full="{{ it.full }}">
+            <img loading="lazy" src="{{ it.thumb or it.full }}" alt="">
+            <button type="button" class="ec" title="Cover" aria-label="Make cover"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="m12 3 2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 17.8 6.2 20.9l1.1-6.5L2.6 9.8l6.5-.9z"/></svg></button>
+            <button type="button" class="ex" title="Remove" aria-label="Remove from album">&times;</button>
+            <span class="en">{{ loop.index }}</span>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
 </section>
 <script>
 (function () {
   var SID = {{ sid|tojson }};
+  var cov = document.getElementById("sh-cover");
+  if (cov) cov.addEventListener("click", function () {
+    var tile = [].find.call(document.querySelectorAll(".sh-grid .shot"), function (s) {
+      try { return JSON.parse(s.getAttribute("data-images"))[0] === cov.getAttribute("src"); } catch (_) { return false; }
+    });
+    if (tile) tile.click();
+  });
   var url = location.origin + "/s/" + SID;
   document.getElementById("sh-copy").addEventListener("click", function () {
     function done(ok) { if (window.siteToast) siteToast(ok ? "Link copied to clipboard" : "Couldn't copy the link", ok); }
@@ -90,6 +137,58 @@
     if (v === was.trim()) return;
     post({ title: v }).then(function () { was = v; document.title = v || document.title; if (window.siteToast) siteToast("Renamed"); },
                             function () { t.textContent = was; if (window.siteToast) siteToast("Couldn't rename", false); });
+  });
+  // ---- edit: reorder (drag), cover (★), remove (×) ----
+  var grid = document.querySelector(".sh-grid"), edit = document.getElementById("sh-edit");
+  var B = function (id) { return document.getElementById(id); };
+  var snapshot = null, sortable = null;
+  function renumber() {
+    [].forEach.call(edit.children, function (t, i) { t.querySelector(".en").textContent = i + 1; });
+  }
+  function setEditing(on) {
+    grid.hidden = on; edit.hidden = !on;
+    if (cov) cov.hidden = on;           // the ★ shows the cover while editing
+    ["sh-editbtn", "sh-all", "sh-del", "sh-copy"].forEach(function (id) { B(id).hidden = on; });
+    ["sh-cancel", "sh-save"].forEach(function (id) { B(id).hidden = !on; });
+  }
+  function startEdit() {
+    snapshot = edit.innerHTML;
+    setEditing(true);
+    if (!window.Sortable) {
+      var s = document.createElement("script");
+      s.src = "https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.2/Sortable.min.js";
+      s.onload = bindSort; document.head.appendChild(s);
+    } else bindSort();
+  }
+  function bindSort() {
+    if (sortable) sortable.destroy();
+    sortable = Sortable.create(edit, {
+      animation: 160, ghostClass: "sh-ghost", chosenClass: "sh-chosen",
+      forceFallback: true, fallbackClass: "sh-chosen", fallbackTolerance: 4,
+      delay: 160, delayOnTouchOnly: true, filter: ".ec, .ex", preventOnFilter: false,
+      onSort: renumber
+    });
+  }
+  edit.addEventListener("click", function (e) {
+    var tile = e.target.closest(".sh-et"); if (!tile) return;
+    if (e.target.closest(".ec")) {
+      [].forEach.call(edit.children, function (t) { t.classList.toggle("is-cover", t === tile); });
+    } else if (e.target.closest(".ex")) {
+      if (edit.children.length === 1) { siteToast("An album needs one photo", false); return; }
+      tile.remove(); renumber();
+    }
+  });
+  B("sh-editbtn").addEventListener("click", startEdit);
+  B("sh-cancel").addEventListener("click", function () {
+    edit.innerHTML = snapshot; setEditing(false);
+  });
+  B("sh-save").addEventListener("click", function () {
+    var order = [].map.call(edit.children, function (t) { return t.getAttribute("data-full"); });
+    var c = edit.querySelector(".is-cover");
+    B("sh-save").disabled = true;
+    post({ order: order, cover: c ? c.getAttribute("data-full") : "" })
+      .then(function () { location.reload(); },
+            function () { B("sh-save").disabled = false; siteToast("Couldn't save", false); });
   });
   document.getElementById("sh-del").addEventListener("click", function () {
     if (!confirm("Delete this link? Anyone who has it will get a 404.")) return;

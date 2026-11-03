@@ -902,6 +902,23 @@ class ShareTestCase(GenericTestBase):
             r = self.test_client.post("/share", json={"items": [{"full": "https://evil.example.com/x.jpg"}]})
         self.assertEqual(r.status_code, 400)
 
+    def test_reorder_cover_and_remove(self):
+        imgs = [self.IMG.replace("123-0", "123-%d" % n) for n in range(3)]
+        with self._curate():
+            sid = self.test_client.post("/share", json={"items": [{"full": u} for u in imgs]}).get_json()["id"]
+            r = self.test_client.post("/share/" + sid, json={"order": [imgs[2], imgs[0]], "cover": imgs[0]})
+            self.assertEqual(r.get_json()["count"], 2)                 # imgs[1] removed
+            share = birds.get_share(sid)
+            self.assertEqual([i["full"] for i in share["items"]], [imgs[2], imgs[0]])
+            self.assertEqual(birds.share_cover(share)["full"], imgs[0])
+            page = self.test_client.get("/s/" + sid).data.decode()
+            self.assertIn('class="sh-cover" id="sh-cover" src="%s"' % imgs[0], page)
+            self.assertIn('og:image" content="%s"' % imgs[0], page)
+            # removing the cover falls back to the first photo; emptying is refused
+            self.test_client.post("/share/" + sid, json={"order": [imgs[2]]})
+            self.assertEqual(birds.share_cover(birds.get_share(sid))["full"], imgs[2])
+            self.assertEqual(self.test_client.post("/share/" + sid, json={"order": []}).status_code, 400)
+
     def test_bad_ids_404(self):
         for sid in ("../etc", "x", "ABCDEFGHIJKLMNOPQRS"):
             self.assertEqual(self.test_client.get("/s/" + sid).status_code, 404)
