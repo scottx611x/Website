@@ -384,7 +384,7 @@
     {# Find any bird the mic has ever heard — photographed or not — and land on
        its page, where every recording of it can be browsed. #}
     <form class="lv-find" action="/birds/heard" method="get" role="search">
-      <input class="mono" type="search" name="q" list="lv-find-names" placeholder="find a bird the mic has heard…" aria-label="Find a bird the mic has heard" autocomplete="off">
+      <input class="mono" type="search" name="q" list="lv-find-names" placeholder="find a bird…" aria-label="Find a bird" autocomplete="off">
       <datalist id="lv-find-names">{% for s in sound.species %}<option value="{{ s.display }}">{% endfor %}</datalist>
     </form>
 
@@ -447,7 +447,7 @@
         <div class="lv-side">
           <div class="node-filter" id="lv-nodes" hidden></div>
           <div id="lv-hstrip" hidden>
-            <p class="lv-hkick mono">today vs a typical day &middot; tap a bar to filter</p>
+            <p class="lv-hkick mono">today vs a typical day</p>
             <div class="lv-hbarwrap">
               <div class="lv-hhist" id="lv-hhist" aria-hidden="true"></div>
               <div class="lv-hbars" id="lv-hbars"></div>
@@ -493,7 +493,7 @@
           {% endif %}
         {% endfor %}
       </div>
-      <p class="lv-wall-empty mono" id="lv-wall-empty"{% if sound.speciesToday %} hidden{% endif %}>Nothing heard yet today &mdash; check back after dawn.</p>
+      <p class="lv-wall-empty mono" id="lv-wall-empty"{% if sound.speciesToday %} hidden{% endif %}>Nothing yet today.</p>
     </section>
 
     {# TODAY'S SOUNDTRACK — one 24h line per species, every recording a tick.
@@ -510,7 +510,6 @@
           <button type="button" class="lv-range" data-td="next" aria-label="next day">&rsaquo;</button>
         </span>
       </div>
-      <p class="lv-trackhint mono">every recording on a dawn-to-dusk line &middot; tap a tick to hear it</p>
       <div class="lv-trackwrap">
         <div class="lv-trackmarks" id="lv-trackmarks" aria-hidden="true"></div>
         <div class="lv-trackrows" id="lv-trackrows"></div>
@@ -623,8 +622,7 @@
     if (kick) kick.textContent = stale ? "Last heard" : "Just heard";
     if (off) {
       off.hidden = !stale;
-      if (stale) off.innerHTML = "The yard microphone is <b>offline</b> — you're seeing the last recordings, from " +
-        rel(LIVE.generated) + ". It should reconnect on its own.";
+      if (stale) off.innerHTML = "<b>Mic offline</b> · last recording " + rel(LIVE.generated);
     }
   }
   // Ambient weather garnish: the next sun event, and rain when it's raining.
@@ -803,7 +801,7 @@
       '</div></div>' +
       '<div class="lv-zbar">' +
         (r.audio ? '<button type="button" class="lv-zplay" aria-label="play the recording">&#9654;</button>' : '') +
-        '<div class="lv-ztxt"><b>' + esc(r.display) + '</b><span class="sub">' + clock(r.t) + ' &middot; ' + Math.round(r.conf * 100) + '%' + (r.audio ? ' &middot; tap to seek' : '') + '</span></div>' +
+        '<div class="lv-ztxt"><b>' + esc(r.display) + '</b><span class="sub">' + clock(r.t) + ' &middot; ' + Math.round(r.conf * 100) + '%' + '' + '</span></div>' +
         (r.audio ? '<button type="button" class="lv-zrate" aria-label="playback speed">1&times;</button>' : '') +
         (r.audio ? '<span class="lv-ztime">0:00</span>' : '') +
         ((r.audio || r.spec) ? '<button type="button" class="lv-zshare" aria-label="copy a link to this recording" title="Copy a link to this recording">{{ icon('link') }}</button>' : '') +
@@ -1376,7 +1374,7 @@
       ? '<p class="lv-nofeed">nothing else recent from ' + esc(focusName || focusFam) + ' — the hero above is the latest.' +
         (focusName ? ' <a href="/birds/species/' + focusSlug + '">every recording &rarr;</a>' : '') +
         ' <a href="/birds/live/log">browse by day &rarr;</a></p>'
-      : '<p class="lv-nofeed">' + (hourSel >= 0 ? 'nothing logged in this hour (yet)' : 'nothing heard yet today &mdash; <a href="/birds/live/log">browse past days &rarr;</a>') + '</p>');
+      : '<p class="lv-nofeed">' + (hourSel >= 0 ? 'nothing this hour' : 'nothing yet today &middot; <a href="/birds/live/log">past days &rarr;</a>') + '</p>');
     updateConfNote(loRecs.length);
     // Re-point the live needle at the rebuilt strip for whatever's playing.
     if (current && !current.isHero) {
@@ -1534,7 +1532,7 @@
         fmtDay(r.d) + (b.unit !== "day" ? " +" : "") + ' · ' + r.n + ' recordings — click for the breakdown"></div>';
     }).join("");
     document.getElementById("lv-axis").innerHTML =
-      '<span>' + fmtDay(b.rows[0].d) + '</span><span>' + (b.unit === "day" ? 'recordings per day' : 'recordings per ' + b.unit) + ' · click a bar</span><span>today</span>';
+      '<span>' + fmtDay(b.rows[0].d) + '</span><span>' + (b.unit === "day" ? 'recordings per day' : 'recordings per ' + b.unit) + '</span><span>today</span>';
 
     // A clicked bar narrows every number below to that slice of time.
     var scope = picked >= 0 ? [b.rows[picked]] : days;

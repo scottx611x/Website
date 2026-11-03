@@ -43,7 +43,7 @@
         <h1>Heard from the yard</h1>
         {% set subnav_active = 'live' %}{% include '_birds_nav.html' %}
         {% if has_data %}
-        <p class="stat-sub mono">Every bird a mic on the porch has picked out{% if since %}, listening since {{ since }}{% endif %}. Auto&#8209;identified by <a href="https://birdnet.cornell.edu/" rel="noopener">BirdNET</a>, nothing hand&#8209;verified. <a href="/birds/live">the live feed &rarr;</a></p>
+        <p class="stat-sub mono">{% if since %}Since {{ since }} &middot; {% endif %}identified by <a href="https://birdnet.cornell.edu/" rel="noopener">BirdNET</a>, unverified &middot; <a href="/birds/live">live &rarr;</a></p>
         {% endif %}
     </header>
 

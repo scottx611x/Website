@@ -82,7 +82,7 @@
              all. The wall addresses every one; the ribbon keeps the crescendo. -->
         <div class="stat-block stat-span-2" id="s-life">
             <h2>The life list</h2>
-            <p class="stat-sub mono">{{ series.accum|length }} species &middot; every one, the day I first photographed it.</p>
+            <p class="stat-sub mono">{{ series.accum|length }} species</p>
 
             <div class="ll-hero">
                 <div class="ll-shot" id="ll-shot">
@@ -136,7 +136,7 @@
 
         <div class="stat-block stat-span-2" id="s-year">
             <h2>The year, in birds</h2>
-            <p class="stat-sub mono">all {{ series.pheno|length }} species, month by month. darker = more photos.</p>
+            <p class="stat-sub mono">{{ series.pheno|length }} species, month by month</p>
             <div class="pheno-controls">
                 <input id="pheno-search" class="pheno-search mono" type="search"
                        placeholder="Filter species or family&hellip;" autocomplete="off">
@@ -151,7 +151,7 @@
         <!-- Calendar heatmap: every day is a door into that day's photos -->
         <div class="stat-block stat-span-2" id="days">
             <h2>Shooting days</h2>
-            <p class="stat-sub mono">the last 12 months &mdash; bigger dot, more photos.</p>
+            <p class="stat-sub mono">last 12 months</p>
             <div class="cal-chips mono" id="cal-chips"></div>
             <div id="cal-chart" class="d3-chart cal-scroll"></div>
         </div>
@@ -174,7 +174,7 @@
         <!-- By family treemap -->
         <div class="stat-block" id="s-family">
             <h2>By family</h2>
-            <p class="stat-sub mono">{{ stats.families|length }} families. area = photos, deeper green = more species.</p>
+            <p class="stat-sub mono">{{ stats.families|length }} families</p>
             <div id="fam-chart" class="d3-chart"></div>
             <p class="chart-readout mono" id="fam-readout"></p>
         </div>
@@ -234,7 +234,6 @@
         {% if rhythm and rhythm.species %}
         <div class="stat-block stat-span-2" id="rhythm-block">
             <h2>The daily rhythm</h2>
-            <p class="stat-sub mono">when each species sings, dawn to night.</p>
             {% if rhythm.legend %}
             <div class="rhythm-legend mono">
                 {% for b in rhythm.legend %}<span><i style="background: {{ b.hue }}"></i>{{ b.label }}</span>{% endfor %}
@@ -271,8 +270,8 @@
         {% if geo and geo.species %}
         <div class="stat-block stat-span-2" id="geo-block">
             <h2>Around the yard</h2>
-            <p class="stat-sub mono">two mics, two corners &mdash; which one hears each bird.
-                {% for n in geo.nodes %}<span class="geo-key"><span class="geo-dot" style="background: {{ geo.colors[n] }}"></span>{{ n }} <b>{{ "{:,}".format(geo.nodeTotals[n] or 0) }}</b></span>{% if not loop.last %} &middot; {% endif %}{% endfor %}. tap a bird for its photos.</p>
+            <p class="stat-sub mono">
+                {% for n in geo.nodes %}<span class="geo-key"><span class="geo-dot" style="background: {{ geo.colors[n] }}"></span>{{ n }} <b>{{ "{:,}".format(geo.nodeTotals[n] or 0) }}</b></span>{% if not loop.last %} &middot; {% endif %}{% endfor %}</p>
             <div class="geo-bars">
                 {% for g in geo.species if g.total >= 4 %}{% if loop.index <= 18 %}
                 <a class="geo-row" href="/birds/species/{{ g.name|slug }}">
@@ -299,7 +298,6 @@
                 <a href="/birds?area=local"><span class="dot dot-local"></span>{{ "{:,}".format(stats.local) }} in North Andover</a>
                 &nbsp;&nbsp;
                 <a href="/birds?area=elsewhere"><span class="dot dot-away"></span>{{ stats.away }} outside {{ icon('alert') }}</a>
-                &nbsp;&middot;&nbsp; pin size &prop; photos
             </p>
             <div class="places-grid">
                 <div id="places-map" class="places-map" aria-label="Map of every place I photograph birds"></div>
@@ -328,13 +326,12 @@
                 <h2>The river</h2>
                 <button type="button" id="river-span" class="river-span mono">full history &rarr;</button>
             </div>
-            <p class="stat-sub mono">every species, through the seasons.</p>
             <div class="river-stage">
                 <div id="river-chart" class="d3-chart" tabindex="0" role="application"
                      aria-label="River of every species by season. Left and right arrow keys step through the species; Enter opens the selected bird."></div>
             </div>
             <a id="river-readout" class="river-readout mono" href="#" hidden></a>
-            <p id="river-hint" class="river-readout river-hint mono">tap a current to meet the bird.</p>
+            <p id="river-hint" class="river-readout river-hint mono"></p>
         </div>
     </div>
 </section>
@@ -943,7 +940,7 @@
                 var lines = [row.r.name,
                              MONTHS[mi] + ": " + v + (v === 1 ? " photo" : " photos"),
                              row.r.total + " all time · " + row.r.fam];
-                if (v) lines.push("click for the photos →");
+                if (v) lines.push("photos →");
                 tipShow(ev, lines, row.r.imgs[mi]);
                 readout.textContent = row.r.name + " · " + MONTHS[mi] + ": " + v +
                     (v === 1 ? " photo" : " photos") + " (" + row.r.total + " all time)";
@@ -1013,11 +1010,9 @@
                     host.appendChild(less);
                 }
                 readout.textContent = spotlight >= 0
-                    ? visible.length + " species on the board in " + MONTHS[spotlight] +
-                      " · tap " + MONTHS[spotlight][0] + " again to clear"
+                    ? visible.length + " species in " + MONTHS[spotlight]
                     : (query ? visible.length + " of " + rows.length + " species"
-                             : rows.length + " species · it's " + MONTHS[nowMonth] +
-                               " (marked ●): tap it to see who's around now");
+                             : rows.length + " species");
             }
             search.addEventListener("input", function () {
                 query = search.value.trim().toLowerCase();
@@ -1115,7 +1110,7 @@
                                  (day.sp.length > 3 ? " +" + (day.sp.length - 3) + " more" : "");
                         tipShow(ev, [d3.timeFormat("%a, %b %-d, %Y")(d),
                                      day.n + (day.n === 1 ? " photo" : " photos"),
-                                     sp, "click for the photos →"], day.img);
+                                     sp, "photos →"], day.img);
                     })
                     .on("pointerleave", function () {
                         tipHide();
@@ -1202,7 +1197,6 @@
                     readout.textContent = f.name + " · " + f.n + " photos, " + f.spp + " species";
                 }).on("pointerleave", tipHide);
             });
-            readout.textContent = "tap a family to browse its photos";
 
             // A /birds/stats?bird=X deep-link lights up that bird's family cell.
             window.lvFocusFam = function (famName) {
@@ -1474,8 +1468,6 @@
             // card over the birds' faces.
             var readout = document.getElementById("river-readout");
             var hint = document.getElementById("river-hint");
-            if (narrow && hint) hint.textContent =
-                "drag across the currents to explore · pinch to zoom · tap for the photos";
             function tellReadout(li) {
                 if (!readout) return;
                 if (li < 0) { readout.hidden = true; if (hint) hint.hidden = false; return; }

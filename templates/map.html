@@ -30,7 +30,7 @@
         <h1>{% if active_bird %}Where I find {{ active_bird }}{% elif active_family %}Where I find {{ active_family }}{% else %}Where the birds are{% endif %}</h1>
         <p class="stat-sub mono">
             {{ "{:,}".format(mapped) }} photo{{ "" if mapped == 1 else "s" }} across
-            {{ points|length }} place{{ "" if points|length == 1 else "s" }}. Tap a pin.
+            {{ points|length }} place{{ "" if points|length == 1 else "s" }}
             {% if active_bird %}&nbsp;&middot;&nbsp; <a href="/birds?bird={{ active_bird|urlencode }}">the gallery</a>{% endif %}
             {% if active_family %}&nbsp;&middot;&nbsp; <a href="/birds?family={{ active_family|urlencode }}">the gallery</a>{% endif %}
         </p>
@@ -51,7 +51,6 @@
     <p class="map-legend mono">
         <span class="dot dot-local"></span> North Andover
         &nbsp;&nbsp;<span class="dot dot-away"></span> outside North Andover {{ icon('alert') }}
-        &nbsp;&nbsp;pin size &prop; photos
     </p>
 </section>
 
