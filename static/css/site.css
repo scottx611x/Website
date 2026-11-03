@@ -1975,3 +1975,88 @@ a.stat-card:active, .bird-stat-link:active,
    stays neutral rather than borrowing the star's amber or the curate red. */
 .bf-away { line-height: 0; color: var(--amber, #e8b04b); opacity: .95;
     filter: drop-shadow(0 1px 2px rgba(13,18,14,.8)); }
+
+/* ---- Multi-select + share (static/js/select.js; curate only) --------------
+   Google Photos' grammar: a check circle on hover, selected tiles inset on a
+   tinted ground with a filled check, a bar that takes over the top. */
+.sel-check {
+    position: absolute; top: .45rem; left: .45rem; z-index: 7;
+    width: 24px; height: 24px; border-radius: 50%; padding: 0; cursor: pointer;
+    display: grid; place-items: center;
+    border: 2px solid rgba(255,255,255,.92); background: rgba(13,18,14,.18); color: transparent;
+    box-shadow: 0 1px 4px rgba(0,0,0,.35);
+    opacity: 0; transition: opacity .15s, background .15s, transform .15s;
+}
+.shot:hover > .sel-check, .shot:focus-within > .sel-check, body.sel-on .shot > .sel-check { opacity: 1; }
+.sel-check:hover { background: rgba(255,255,255,.35); color: #fff; transform: scale(1.08); }
+/* the corner badges that also live top-left step aside for the circle */
+.shot:hover > .multi-badge, .shot:hover > .grid-star, .shot:hover > .flag-badge, .shot:hover > .reclassified-badge,
+body.sel-on .shot > .multi-badge, body.sel-on .shot > .grid-star, body.sel-on .shot > .flag-badge, body.sel-on .shot > .reclassified-badge {
+    transform: translateX(1.9rem); transition: transform .15s;
+}
+body.sel-on .masonry .shot, body.sel-on .pg-just .shot { cursor: pointer; -webkit-user-select: none; user-select: none; }
+body.sel-on .masonry .shot:hover img { transform: none; }
+.masonry .shot, .pg-just .shot { -webkit-touch-callout: none; }
+.shot.sel-picked { background: rgba(47,125,79,.22); }
+.shot.sel-picked img, .shot.sel-picked video { transform: scale(.86) !important; border-radius: 6px; transition: transform .16s ease, border-radius .16s; }
+.shot.sel-picked > .sel-check { background: var(--accent); border-color: #fff; color: #fff; opacity: 1; }
+/* in selection mode the edit controls and captions stand down */
+body.sel-on .shot .curate-x, body.sel-on .shot figcaption, body.sel-on .shot .photo-edit,
+body.sel-on .shot .away-badge { display: none; }
+
+.sel-bar {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 125;
+    display: flex; align-items: center; gap: .6rem;
+    padding: calc(.55rem + env(safe-area-inset-top, 0px)) 16px .55rem;
+    background: var(--paper); color: var(--ink);
+    box-shadow: 0 2px 14px rgba(13,18,14,.14);
+    transform: translateY(-110%); transition: transform .2s ease;
+}
+.sel-bar.show { transform: none; }
+.sel-bar[hidden] { display: none; }
+.sel-bar .sel-x { border: 0; background: none; font-size: 1.7rem; line-height: 1; width: 38px; height: 38px;
+    border-radius: 50%; cursor: pointer; color: var(--ink); }
+.sel-bar .sel-x:hover { background: rgba(13,18,14,.07); }
+.sel-bar .sel-n { font-family: var(--mono); font-size: .86rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sel-bar .sel-sp { flex: 1; }
+.sel-bar .sel-all { border: 0; background: none; font-family: var(--mono); font-size: .76rem; color: var(--accent); cursor: pointer;
+    padding: .45rem .6rem; border-radius: 999px; white-space: nowrap; }
+.sel-bar .sel-all:hover { background: rgba(47,125,79,.1); }
+.sel-bar .sel-go { display: inline-flex; align-items: center; gap: .4rem; border: 0; border-radius: 999px; cursor: pointer;
+    background: var(--accent); color: #fff; font-family: var(--mono); font-size: .8rem; padding: .5rem 1rem; white-space: nowrap; }
+.sel-bar .sel-go:disabled { opacity: .5; cursor: default; }
+.sel-bar .sel-go.busy span::after { content: "…"; }
+@media (max-width: 480px) { .sel-bar .sel-all { display: none; } }
+
+.sel-sheet { position: fixed; inset: 0; z-index: 140; display: flex; align-items: center; justify-content: center;
+    background: rgba(13,18,14,0); transition: background .2s; padding: 16px; }
+.sel-sheet[hidden] { display: none; }
+.sel-sheet.open { background: rgba(13,18,14,.45); }
+.sel-card { width: 100%; max-width: 25rem; background: var(--paper); color: var(--ink); border-radius: 16px;
+    padding: 1.4rem 1.3rem 1.1rem; box-shadow: 0 18px 60px rgba(0,0,0,.35); text-align: center;
+    transform: translateY(14px) scale(.98); opacity: 0; transition: transform .2s ease, opacity .2s ease; }
+.sel-sheet.open .sel-card { transform: none; opacity: 1; }
+.sel-stack { position: relative; height: 84px; margin: 0 auto .8rem; width: 120px; }
+.sel-stack img { position: absolute; top: 4px; left: 22px; width: 76px; height: 76px; object-fit: cover; border-radius: 10px;
+    border: 3px solid #fff; box-shadow: 0 3px 10px rgba(0,0,0,.2); background: #ddd; }
+.sel-stack img:nth-last-child(2) { transform: rotate(-8deg) translateX(-14px); }
+.sel-stack img:nth-last-child(3) { transform: rotate(8deg) translateX(14px); }
+.sel-h { font-family: var(--display); font-size: 1.35rem; margin: 0; }
+.sel-sub { font-family: var(--mono); font-size: .72rem; color: var(--muted); margin: .3rem 0 1rem; }
+.sel-title { width: 100%; box-sizing: border-box; font: inherit; font-size: .95rem; padding: .55rem .75rem; border-radius: 10px;
+    border: 1px solid rgba(13,18,14,.16); background: #fff; color: var(--ink); margin-bottom: .6rem; }
+.sel-url { display: flex; gap: .4rem; }
+.sel-url input { flex: 1; min-width: 0; font-family: var(--mono); font-size: .78rem; padding: .55rem .7rem; border-radius: 10px;
+    border: 1px solid rgba(13,18,14,.16); background: rgba(13,18,14,.04); color: var(--ink); }
+.sel-copy { border: 0; border-radius: 10px; background: var(--accent); color: #fff; font-family: var(--mono); font-size: .78rem;
+    padding: 0 1rem; cursor: pointer; }
+.sel-acts { display: flex; justify-content: center; gap: .5rem; margin-top: 1rem; }
+.sel-acts > * { font-family: var(--mono); font-size: .76rem; padding: .45rem 1rem; border-radius: 999px; cursor: pointer;
+    border: 1px solid rgba(13,18,14,.16); background: none; color: var(--ink); text-decoration: none; }
+.sel-acts > *:hover { border-color: var(--accent); }
+.sel-acts [hidden] { display: none; }
+@media (max-width: 560px) {
+    .sel-sheet { align-items: flex-end; padding: 0; }
+    .sel-card { max-width: none; border-radius: 18px 18px 0 0; padding-bottom: calc(1.1rem + env(safe-area-inset-bottom, 0px));
+        transform: translateY(100%); }
+}

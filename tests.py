@@ -848,3 +848,64 @@ class CurateOverridePayloadTestCase(GenericTestBase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class ShareTestCase(GenericTestBase):
+    """Multi-select share links: curate-only to create, public to view."""
+    IMG = "https://%s.s3.amazonaws.com/birds/images/123-0.jpg" % birds.S3_BUCKET
+
+    def setUp(self):
+        super().setUp()
+        self.store = {}
+        p1 = mock.patch.object(birds, "_read_repo_curation",
+                               side_effect=lambda path, d: dict(self.store) if path == birds.SHARES_FILE else d())
+        def save(path, data):
+            self.store.clear(); self.store.update(data)
+        p2 = mock.patch.object(birds, "_atomic_write_json", side_effect=lambda path, data, **kw: save(path, data))
+        p3 = mock.patch.dict("os.environ", {"BIRDS_USE_S3": ""})
+        for p in (p1, p2, p3):
+            p.start(); self.addCleanup(p.stop)
+
+    def _curate(self, on=True):
+        return mock.patch.object(index, "_curate_on", return_value=on)
+
+    def test_create_requires_curate(self):
+        with self._curate(False):
+            r = self.test_client.post("/share", json={"items": [{"full": self.IMG}]})
+        self.assertEqual(r.status_code, 404)
+        self.assertEqual(self.store, {})
+
+    def test_create_view_rename_delete(self):
+        with self._curate():
+            r = self.test_client.post("/share", json={"items": [
+                {"full": self.IMG, "species": "Mallard"},
+                {"full": "https://evil.example.com/x.jpg"},     # not our bucket: dropped
+                {"full": self.IMG},                             # duplicate: dropped
+            ]}).get_json()
+        self.assertEqual(r["count"], 1)
+        sid = r["id"]
+        self.assertTrue(r["url"].endswith("/s/" + sid))
+        with self._curate(False):
+            page = self.test_client.get("/s/" + sid)
+        self.assertEqual(page.status_code, 200)
+        self.assertIn(b"Mallard", page.data)
+        self.assertIn(self.IMG.encode(), page.data)
+        self.assertNotIn(b"delete link", page.data)            # visitors can't manage it
+        with self._curate():
+            self.assertEqual(self.test_client.post("/share/" + sid, json={"title": "Pond"}).status_code, 200)
+            self.assertIn(b"Pond", self.test_client.get("/s").data)
+            self.assertTrue(self.test_client.post("/share/" + sid, json={"delete": True}).get_json()["ok"])
+        self.assertEqual(self.test_client.get("/s/" + sid).status_code, 404)
+
+    def test_empty_or_foreign_selection_is_rejected(self):
+        with self._curate():
+            r = self.test_client.post("/share", json={"items": [{"full": "https://evil.example.com/x.jpg"}]})
+        self.assertEqual(r.status_code, 400)
+
+    def test_bad_ids_404(self):
+        for sid in ("../etc", "x", "ABCDEFGHIJKLMNOPQRS"):
+            self.assertEqual(self.test_client.get("/s/" + sid).status_code, 404)
+
+    def test_index_is_curate_only(self):
+        with self._curate(False):
+            self.assertEqual(self.test_client.get("/s").status_code, 404)

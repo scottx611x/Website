@@ -1055,6 +1055,152 @@ def load_starred():
     return _memoed("starred", _MEMO_TTL, lambda: set(_load_curation(STARRED_FILE, list)))
 
 
+# --- Shared selections: /s/<id> ---------------------------------------------
+# A share is a snapshot of what was on screen when the selection was made (the
+# image, thumb, video and caption of each frame), not a list of keys to resolve
+# later — so a link keeps working when a frame is renamed or re-sorted, and
+# photography and bird frames can sit in one share.
+SHARE_MAX_ITEMS = 200
+_SHARE_URL_PREFIX = "https://{}.s3.amazonaws.com/".format(S3_BUCKET)
+_SHARE_ALPHABET = "abcdefghijkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789"
+
+
+def _share_url_ok(u):
+    return isinstance(u, str) and u.startswith(_SHARE_URL_PREFIX) and len(u) < 600
+
+
+def clean_share_items(items):
+    """Keep only well-formed items whose media live in our bucket; dedupe."""
+    out, seen = [], set()
+    for it in items or []:
+        if not isinstance(it, dict) or not _share_url_ok(it.get("full")):
+            continue
+        if it["full"] in seen:
+            continue
+        seen.add(it["full"])
+        thumb = it.get("thumb") if _share_url_ok(it.get("thumb")) else it["full"]
+        video = it.get("video") if _share_url_ok(it.get("video")) else ""
+        out.append({
+            "full": it["full"], "thumb": thumb, "video": video,
+            "caption": str(it.get("caption") or "")[:300],
+            "species": str(it.get("species") or "")[:120],
+            "location": str(it.get("location") or "")[:160],
+            "date": str(it.get("date") or "")[:32],
+            "t": str(it.get("t") or "")[:32],
+            "key": str(it.get("key") or "")[:80],
+            "w": it.get("w") if isinstance(it.get("w"), int) else None,
+            "h": it.get("h") if isinstance(it.get("h"), int) else None,
+        })
+        if len(out) >= SHARE_MAX_ITEMS:
+            break
+    return out
+
+
+# Storage: one S3 object per share in production (birds/shares/<id>.json), so
+# creating one never rewrites the others — a single shared JSON would let one
+# failed read save an empty file over every link. Locally, one repo JSON.
+# Lambda has no s3:DeleteObject, so deleting writes a {"deleted": true}
+# tombstone in place, which reads back as gone.
+def _shares_s3():
+    return bool(os.environ.get("BIRDS_USE_S3"))
+
+
+def _share_key(sid):
+    return "{}/shares/{}.json".format(S3_PREFIX, sid)
+
+
+def _share_id_ok(sid):
+    return isinstance(sid, str) and 4 <= len(sid) <= 16 and all(c in _SHARE_ALPHABET for c in sid)
+
+
+def _put_share(sid, share):
+    if _shares_s3():
+        import boto3
+
+        boto3.client("s3").put_object(
+            Bucket=S3_BUCKET, Key=_share_key(sid), Body=json.dumps(share).encode(),
+            ContentType="application/json", CacheControl="no-store")
+        return
+    shares = _read_repo_curation(SHARES_FILE, dict)
+    shares[sid] = share
+    _atomic_write_json(SHARES_FILE, shares)
+
+
+def get_share(share_id):
+    if not _share_id_ok(share_id):
+        return None
+    if _shares_s3():
+        import boto3
+        from botocore.exceptions import ClientError
+
+        try:
+            obj = boto3.client("s3").get_object(Bucket=S3_BUCKET, Key=_share_key(share_id))
+        except ClientError as exc:
+            if exc.response.get("Error", {}).get("Code") in ("NoSuchKey", "404", "AccessDenied"):
+                return None
+            raise
+        share = json.loads(obj["Body"].read())
+    else:
+        share = _read_repo_curation(SHARES_FILE, dict).get(share_id)
+    return None if (not share or share.get("deleted")) else share
+
+
+def load_shares():
+    """{id: share} for every live share (the owner's list page)."""
+    if not _shares_s3():
+        return {k: v for k, v in _read_repo_curation(SHARES_FILE, dict).items()
+                if v and not v.get("deleted")}
+    import boto3
+
+    s3 = boto3.client("s3")
+    out = {}
+    prefix = "{}/shares/".format(S3_PREFIX)
+    for page in s3.get_paginator("list_objects_v2").paginate(Bucket=S3_BUCKET, Prefix=prefix):
+        for o in page.get("Contents", []):
+            sid = o["Key"][len(prefix):].rsplit(".", 1)[0]
+            if o.get("Size", 0) < 40:          # tombstones are tiny; skip the GET
+                continue
+            share = get_share(sid)
+            if share:
+                out[sid] = share
+    return out
+
+
+def create_share(items, title=""):
+    items = clean_share_items(items)
+    if not items:
+        return None, None
+    rnd = random.SystemRandom()
+    for _ in range(8):
+        sid = "".join(rnd.choice(_SHARE_ALPHABET) for _ in range(7))
+        if get_share(sid) is None:
+            break
+    share = {
+        "items": items,
+        "title": str(title or "").strip()[:120],
+        "created": datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="seconds"),
+    }
+    _put_share(sid, share)
+    return sid, share
+
+
+def update_share(share_id, title=None):
+    share = get_share(share_id)
+    if share is None:
+        return None
+    if title is not None:
+        share["title"] = str(title).strip()[:120]
+    _put_share(share_id, share)
+    return share
+
+
+def delete_share(share_id):
+    if get_share(share_id) is None:
+        return False
+    _put_share(share_id, {"deleted": True})
+    return True
+
+
 def frame_star_key(shot, index=0):
     """The star key for a frame. Exploded frames carry their own post_id and
     image_indices; a whole post falls back to its own id and the given index."""
@@ -1832,6 +1978,7 @@ PROJECTS_FILE = os.path.join(HERE, "static", "projects.json")
 TAGLINES_FILE = os.path.join(HERE, "static", "taglines.json")
 FACTS_FILE = os.path.join(HERE, "static", "facts.json")
 PHOTOS_FILE = os.path.join(HERE, "static", "img", "photography", "manifest.json")
+SHARES_FILE = os.path.join(HERE, "birds", "shares.json")
 
 
 # --- Curation storage: repo files locally, S3 objects in production ----------

@@ -1577,6 +1577,60 @@ def birds_stats():
     )
 
 
+# --- Shared selections ------------------------------------------------------
+# Select photos on any grid (curate only), get one short link. Creating,
+# renaming and deleting are curate-only; viewing is public, like the gallery.
+@app.route("/share", methods=["POST"])
+def share_create():
+    if not _curate_on():
+        abort(404)
+    data = request.get_json(silent=True) or {}
+    sid, share = birds.create_share(data.get("items"), data.get("title") or "")
+    if not sid:
+        abort(400)
+    return {"ok": True, "id": sid, "url": request.host_url.rstrip("/") + "/s/" + sid,
+            "count": len(share["items"])}
+
+
+@app.route("/share/<sid>", methods=["POST"])
+def share_update(sid):
+    if not _curate_on():
+        abort(404)
+    data = request.get_json(silent=True) or {}
+    if data.get("delete"):
+        return {"ok": birds.delete_share(sid)}
+    share = birds.update_share(sid, title=data.get("title"))
+    if share is None:
+        abort(404)
+    return {"ok": True, "title": share["title"]}
+
+
+@app.route("/s", methods=["GET"])
+def share_index():
+    if not _curate_on():
+        abort(404)
+    shares = sorted(birds.load_shares().items(),
+                    key=lambda kv: kv[1].get("created") or "", reverse=True)
+    return render_template("shares.html", title="Shared links", shares=shares,
+                           local=_is_local(), curate=True)
+
+
+@app.route("/s/<sid>", methods=["GET"])
+def share_view(sid):
+    share = birds.get_share(sid)
+    if not share:
+        abort(404)
+    items = share.get("items") or []
+    # Range by the sortable stamp; show each end's own display date.
+    dated = sorted((i for i in items if i.get("t") and i.get("date")), key=lambda i: i["t"])
+    return render_template(
+        "share.html", title=share.get("title") or "%d photos" % len(items),
+        sid=sid, share=share, items=items,
+        span=(dated[0]["date"], dated[-1]["date"]) if dated else None,
+        local=_is_local(), curate=_curate_on(),
+    )
+
+
 @app.route("/curate/exclude", methods=["POST"])
 def curate_exclude():
     if not _curate_on():

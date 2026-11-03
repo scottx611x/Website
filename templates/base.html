@@ -214,7 +214,8 @@
         </figure>
     </div>
     {% if curate %}<script>window.REID_QUEUED = new Set({{ reid_queued|default([], true)|tojson }});</script>
-    <script src="{{ url_for('static', filename='js/curate.js', v=asset_v) }}"></script>{% endif %}
+    <script src="{{ url_for('static', filename='js/curate.js', v=asset_v) }}"></script>
+    <script src="{{ url_for('static', filename='js/select.js', v=asset_v) }}" defer></script>{% endif %}
 
     <script>
         document.getElementById("year").textContent = new Date().getFullYear();
