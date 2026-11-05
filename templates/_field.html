@@ -1083,6 +1083,7 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
   function cull() {
     if (!FIELD) return;
     pending = false;
+    if (typeof reEcho === "function") reEcho();
     var vw = canvas.clientWidth, vh = canvas.clientHeight, M = 300;
     var cw = COL_W + GAP;
     var c0 = Math.floor((-px - M) / cw), c1 = Math.ceil((-px + vw + M) / cw);
@@ -1513,12 +1514,23 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
       (t.n > 1 && !ONE_BIRD ? "  \u00b7  " + t.n + " frames" : "");
     echo.classList.add("on");
   }
+  // The field moves under a still cursor (wheel, edge-scroll, glide, the
+  // idle drift), and that fires no pointermove — so the name went stale and
+  // labelled whatever you'd last moved over. Remember where the cursor is and
+  // re-hit-test whenever the plane moves (cull runs once per moved frame).
+  var echoXY = null;
+  function echoAt(x, y) {
+    var hitEl = document.elementFromPoint(x, y);
+    var el = hitEl && hitEl.closest ? hitEl.closest(".bf-tile") : null;
+    setEcho(el && canvas.contains(el) ? el._t : null);
+  }
+  function reEcho() { if (echoXY && !down) echoAt(echoXY[0], echoXY[1]); }
   canvas.addEventListener("pointermove", function (e) {
     if (down || e.pointerType === "touch") return;
-    var el = e.target.closest ? e.target.closest(".bf-tile") : null;
-    setEcho(el && el._t);
+    echoXY = [e.clientX, e.clientY];
+    echoAt(e.clientX, e.clientY);
   }, { passive: true });
-  canvas.addEventListener("pointerleave", function () { setEcho(null); }, { passive: true });
+  canvas.addEventListener("pointerleave", function () { echoXY = null; setEcho(null); }, { passive: true });
   canvas.addEventListener("pointerdown", function () { setEcho(null); }, { passive: true });
 
   /* Tap vs drag.
