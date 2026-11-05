@@ -1136,9 +1136,17 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
     plane.style.transform = "translate3d(" + px.toFixed(2) + "px," + py.toFixed(2) + "px,0)";
     if (!pending) { pending = true; requestAnimationFrame(cull); }
   }
-  function decay() {
-    if (Math.abs(vx) < .3 && Math.abs(vy) < .3) { glide = null; return; }
-    px += vx; py += vy; vx *= 0.94; vy *= 0.94; setDir(vx, vy); apply();
+  /* Momentum. vx/vy are px per 60Hz frame; the glide is time-based so a
+     120Hz screen does not stop twice as fast. FRICTION is the speed kept per
+     60Hz frame: 0.94 died in about half a second, 0.965 coasts for ~1.5s. */
+  var FRICTION = 0.965, glideT = 0;
+  function decay(now) {
+    if (Math.abs(vx) < .2 && Math.abs(vy) < .2) { glide = null; glideT = 0; return; }
+    var k = glideT ? Math.min((now - glideT) / 16.667, 4) : 1;
+    glideT = now;
+    px += vx * k; py += vy * k;
+    var f = Math.pow(FRICTION, k); vx *= f; vy *= f;
+    setDir(vx, vy); apply();
     glide = requestAnimationFrame(decay);
   }
   /* Discoverability: an endless plane gives no scrollbar and no edge, so
@@ -1559,7 +1567,7 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
     sT = performance.now();
     // capture retargets later events to the canvas, so remember the tile now
     hit = e.target.closest ? e.target.closest(".bf-tile") : null;
-    vx = vy = 0; if (glide) { cancelAnimationFrame(glide); glide = null; }
+    vx = vy = 0; trail = []; if (glide) { cancelAnimationFrame(glide); glide = null; }
     canvas.classList.add("drag");
     try { canvas.setPointerCapture && canvas.setPointerCapture(e.pointerId); }
     catch (err) { /* no active pointer with that id — harmless */ }
@@ -1568,8 +1576,25 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
     if (!down) return;
     var dx = e.clientX - lx, dy = e.clientY - ly;
     lx = e.clientX; ly = e.clientY;
-    px += dx; py += dy; vx = dx; vy = dy; setDir(dx, dy); apply();
+    px += dx; py += dy; setDir(dx, dy); apply();
+    // The fling speed is the average over the last ~80ms, not the final
+    // event's delta: that one is often a near-stop as the finger lifts, so
+    // the glide used to die on release.
+    var t = performance.now();
+    trail.push([t, e.clientX, e.clientY]);
+    while (trail.length > 2 && t - trail[0][0] > 80) trail.shift();
   });
+  var trail = [];
+  function flingVelocity() {
+    vx = vy = 0;
+    if (trail.length < 2) return;
+    var a = trail[0], b = trail[trail.length - 1], dt = b[0] - a[0];
+    // held still before letting go: no throw
+    if (dt <= 0 || performance.now() - b[0] > 60) return;
+    vx = (b[1] - a[1]) / dt * 16.667; vy = (b[2] - a[2]) / dt * 16.667;
+    var sp = Math.hypot(vx, vy), MAX = 90;
+    if (sp > MAX) { vx *= MAX / sp; vy *= MAX / sp; }
+  }
   canvas.addEventListener("pointerup", function (e) {
     if (!down) return;
     down = false; canvas.classList.remove("drag");
@@ -1580,7 +1605,7 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
       var el = hit;                                   // morph FROM this tile
       withHero(el, function () { openSpecies(el._t); });
     }
-    else if (!glide) glide = requestAnimationFrame(decay);
+    else if (!glide) { flingVelocity(); glideT = 0; glide = requestAnimationFrame(decay); }
     hit = null;
   });
   canvas.addEventListener("pointercancel", function () { down = false; hit = null; canvas.classList.remove("drag"); });
