@@ -239,7 +239,15 @@ def load_media_index(s3):
     index = json.loads(body)
     if not isinstance(index, dict):
         raise ValueError("media_index.json is not an object")
+    _write_cache(index)  # so the next run reads it locally, new clips or not
     return index
+
+
+def _write_cache(index):
+    tmp = INDEX_CACHE + ".tmp"
+    with open(tmp, "w") as fh:
+        json.dump(index, fh, separators=(",", ":"))
+    os.replace(tmp, INDEX_CACHE)  # atomic: a crash never leaves half a cache
 
 
 def publish_media(dets, s3):
@@ -335,10 +343,7 @@ def publish_media(dets, s3):
         # else: both legs failed while the WAV is still here (encoder missing,
         # transient error) — leave it un-indexed so the next run retries.
     if dirty and s3 is not None:
-        tmp = INDEX_CACHE + ".tmp"
-        with open(tmp, "w") as fh:
-            json.dump(index, fh, separators=(",", ":"))
-        os.replace(tmp, INDEX_CACHE)  # atomic: a crash never leaves half a cache
+        _write_cache(index)
         s3.put_object(
             Bucket=BUCKET, Key=INDEX_KEY,
             Body=json.dumps(index, separators=(",", ":")).encode(),
