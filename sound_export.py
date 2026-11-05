@@ -43,6 +43,11 @@ CLIP_PREFIX = "birds/sounds/clips/"
 RECENT_N = 80         # feed backlog: the live page consolidates + scrolls these
 LOG_N = 1500          # detections in the log page's backlog
 INDEX_KEY = "birds/sounds/media_index.json"  # clipName -> published refs, forever
+# The exporter is the index's only writer, so it keeps a local copy and reads
+# S3 only when that copy is missing. At ~45k clips the index is ~5MB; pulling
+# it every 60s would be ~7GB/day of S3 egress for data we already have.
+INDEX_CACHE = os.path.expanduser(os.environ.get(
+    "MEDIA_INDEX_CACHE", os.path.join(os.path.dirname(os.path.abspath(__file__)), "media_index.cache.json")))
 NEW_PER_RUN = 20      # fresh transcode+render budget per pass (backlog can't stall the timer)
 DAILY_DAYS = 400      # enough runway for the year view
 
@@ -216,10 +221,25 @@ def load_media_index(s3):
     if s3 is None:
         return {}
     try:
+        with open(INDEX_CACHE) as fh:
+            index = json.load(fh)
+        if isinstance(index, dict) and index:
+            return index
+    except (OSError, ValueError):
+        pass  # no cache yet / torn write: fall through to S3
+    # Only a genuinely missing index starts empty. Anything else (throttling,
+    # a network blip, a half-read body) used to return {} too — and this run
+    # then WROTE that near-empty index back over the real one, forgetting every
+    # older clip (Barred Owl lost all 1,300 recordings that way, late Oct 2026).
+    # Better to skip one 60s run than to lose history: let it raise.
+    try:
         body = s3.get_object(Bucket=BUCKET, Key=INDEX_KEY)["Body"].read()
-        return json.loads(body)
-    except Exception:
+    except s3.exceptions.NoSuchKey:
         return {}
+    index = json.loads(body)
+    if not isinstance(index, dict):
+        raise ValueError("media_index.json is not an object")
+    return index
 
 
 def publish_media(dets, s3):
@@ -315,6 +335,10 @@ def publish_media(dets, s3):
         # else: both legs failed while the WAV is still here (encoder missing,
         # transient error) — leave it un-indexed so the next run retries.
     if dirty and s3 is not None:
+        tmp = INDEX_CACHE + ".tmp"
+        with open(tmp, "w") as fh:
+            json.dump(index, fh, separators=(",", ":"))
+        os.replace(tmp, INDEX_CACHE)  # atomic: a crash never leaves half a cache
         s3.put_object(
             Bucket=BUCKET, Key=INDEX_KEY,
             Body=json.dumps(index, separators=(",", ":")).encode(),
@@ -437,17 +461,13 @@ def build(s3=None):
     #     ago (not just today's feed);
     #   * each species' TOP clips BY CONFIDENCE -> its own file, so the species page
     #     can browse the clearest calls across the whole window, not just the log.
-    clip_cutoff = now - dt.timedelta(days=58)  # clips lifecycle off S3 at 60d
+    # Clips used to expire from S3 at 60d; since 2026-07-30 they move to Glacier
+    # IR and are kept forever, so a species' archive spans every clip it has.
     sp_clips, sp_last = {}, {}
     for d in dets:
         cn = d.get("commonName")
         ts = d.get("timestamp")
         if not cn or not ts:
-            continue
-        try:
-            if local(ts) < clip_cutoff:
-                break  # dets are newest-first — everything past here is older
-        except (ValueError, TypeError):
             continue
         m = d.get("_sy_media") or media.get(d.get("clipName")) or {}
         if not m.get("audio"):

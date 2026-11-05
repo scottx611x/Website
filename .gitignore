@@ -22,3 +22,4 @@ sound-station/exporter.env
 birds_incoming/
 manual_imports/
 .deploy-venv/
+media_index.cache.json*
