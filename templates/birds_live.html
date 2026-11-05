@@ -7,7 +7,9 @@
   /* Light like every other bird page; ink on paper, green accents, neon fills. */
   .livewire .mono{font-family:var(--mono); font-variant-numeric:tabular-nums}
   .lv-find{display:flex; justify-content:center; margin:0 0 2rem}
-  .lv-find input{font-size:.8rem; color:var(--ink); background:var(--paper); border:1px solid rgba(13, 18, 14,.18); border-radius:999px; padding:.5rem 1.1rem; width:min(22rem,100%); -webkit-appearance:none; appearance:none}
+  /* Same combobox as the gallery search: one look for "find a bird" sitewide. */
+  .lv-find .bird-combo{width:min(24rem,100%)}
+  .lv-find .bird-combo input{width:100%; min-width:0; box-sizing:border-box}
   .livewire .lv-kick{font-family:var(--mono); font-size:.7rem; text-transform:uppercase; letter-spacing:.16em; color:var(--accent); margin:0 0 1rem}
   .livewire section{margin-top:3.2rem}
   .lv-status{display:flex; justify-content:center; align-items:flex-start; gap:.5rem; color:var(--muted); font-size:.78rem; margin:.9rem 0 0}
@@ -384,8 +386,12 @@
     {# Find any bird the mic has ever heard — photographed or not — and land on
        its page, where every recording of it can be browsed. #}
     <form class="lv-find" action="/birds/heard" method="get" role="search">
-      <input class="mono" type="search" name="q" list="lv-find-names" placeholder="find a bird…" aria-label="Find a bird" autocomplete="off">
-      <datalist id="lv-find-names">{% for s in sound.species %}<option value="{{ s.display }}">{% endfor %}</datalist>
+      <div class="filter-search bird-combo" id="lvCombo">
+        <input type="search" name="q" placeholder="Find a bird&hellip;" aria-label="Find a bird" autocomplete="off"
+               role="combobox" aria-expanded="false" aria-controls="lvComboList" aria-autocomplete="list">
+        <div class="bird-combo-pop" id="lvComboList" role="listbox" hidden aria-label="Birds heard"></div>
+      </div>
+      <script>var LV_FIND = [{% for s in sound.species %}{{ {"n": s.display, "f": s.fam or "", "c": s.count or 0}|tojson }}{% if not loop.last %},{% endif %}{% endfor %}];</script>
     </form>
 
     {# NOW — most recent call: the photo, and the sound itself #}
@@ -1223,18 +1229,77 @@
     }).join("");
     syncViews();
   }
+  /* Find a bird: the gallery's combobox, over every bird the mic has heard.
+     Empty, it lists the most recently heard; typed, prefix beats word-start
+     beats anywhere, then the more-heard bird wins. */
   (function () {
-    var f = document.querySelector(".lv-find");
-    if (!f) return;
-    var inp = f.querySelector("input");
-    function exact() {
-      var v = inp.value.trim().toLowerCase(), opts = document.getElementById("lv-find-names").options;
-      for (var i = 0; i < opts.length; i++) if (opts[i].value.toLowerCase() === v) return opts[i].value;
+    var box = document.getElementById("lvCombo");
+    if (!box || !window.LV_FIND) return;
+    var input = box.querySelector("input"), pop = document.getElementById("lvComboList");
+    var MAX = 10, items = [], active = -1, open = false;
+    function e(s) { return String(s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
+    function tier(h, q) { var i = h.toLowerCase().indexOf(q); if (i < 0) return -1; if (!i) return 0; return /[\s\-]/.test(h.charAt(i - 1)) ? 1 : 2; }
+    function rank(q) {
+      var hits = [];
+      LV_FIND.forEach(function (o) {
+        var t = tier(o.n, q);
+        if (t < 0 && o.f) { var ft = tier(o.f, q); if (ft >= 0) t = ft + 3; }
+        if (t >= 0) hits.push({ o: o, t: t });
+      });
+      hits.sort(function (a, b) { return (a.t - b.t) || (b.o.c - a.o.c) || a.o.n.localeCompare(b.o.n); });
+      return hits.slice(0, MAX).map(function (x) { return x.o; });
     }
-    function go(nm) { location.href = "/birds/species/" + nm.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") + "#heard"; }
-    f.addEventListener("submit", function (e) { var nm = exact(); if (nm) { e.preventDefault(); go(nm); } });
-    // picking a suggestion fires "input" with the full name
-    inp.addEventListener("input", function () { var nm = exact(); if (nm && inp.value.length > 2) go(nm); });
+    function mark(n, q) {
+      var i = q ? n.toLowerCase().indexOf(q) : -1;
+      return i < 0 ? e(n) : e(n.slice(0, i)) + "<b>" + e(n.slice(i, i + q.length)) + "</b>" + e(n.slice(i + q.length));
+    }
+    function render() {
+      var q = input.value.trim().toLowerCase();
+      items = q ? rank(q) : LV_FIND.slice(0, MAX);
+      active = -1;
+      pop.innerHTML = !items.length
+        ? '<p class="bc-none">The mic hasn\u2019t heard \u201c' + e(q) + '\u201d</p>'
+        : (q ? "" : '<p class="bc-head">Heard lately</p>') + items.map(function (o, i) {
+            return '<div class="bc-opt" role="option" id="lv-opt-' + i + '" data-i="' + i + '"><span class="bc-name">' +
+              mark(o.n, q) + '</span><span class="bc-meta">' + e(o.f ? o.f + " \u00b7 " : "") +
+              o.c.toLocaleString() + (o.c === 1 ? " call" : " calls") + '</span></div>';
+          }).join("");
+    }
+    function setOpen(v) {
+      open = v; pop.hidden = !v; box.classList.toggle("is-open", v);
+      input.setAttribute("aria-expanded", v ? "true" : "false");
+    }
+    function hi(i) {
+      var opts = pop.querySelectorAll(".bc-opt"); if (!opts.length) return;
+      if (opts[active]) opts[active].classList.remove("on");
+      active = (i + opts.length) % opts.length;
+      opts[active].classList.add("on"); opts[active].scrollIntoView({ block: "nearest" });
+      input.setAttribute("aria-activedescendant", opts[active].id);
+    }
+    function go(o) {
+      if (!o) return;
+      setOpen(false); input.value = o.n;
+      location.href = "/birds/species/" + o.n.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") + "#heard";
+    }
+    input.addEventListener("input", function () { render(); setOpen(true); });
+    input.addEventListener("focus", function () { render(); setOpen(true); });
+    input.addEventListener("keydown", function (ev) {
+      if (ev.key === "ArrowDown" || ev.key === "ArrowUp") {
+        ev.preventDefault(); if (!open) { render(); setOpen(true); }
+        hi(active + (ev.key === "ArrowDown" ? 1 : -1));
+      } else if (ev.key === "Enter") {
+        ev.preventDefault(); go(active >= 0 ? items[active] : items[0]);
+      } else if (ev.key === "Escape") { setOpen(false); }
+    });
+    pop.addEventListener("mousemove", function (ev) {
+      var o = ev.target.closest(".bc-opt"); if (o && +o.dataset.i !== active) hi(+o.dataset.i);
+    });
+    // mousedown, not click: click lands after the input's blur closed the list
+    pop.addEventListener("mousedown", function (ev) {
+      var o = ev.target.closest(".bc-opt"); if (o) { ev.preventDefault(); go(items[+o.dataset.i]); }
+    });
+    input.addEventListener("blur", function () { setTimeout(function () { setOpen(false); }, 120); });
+    box.closest("form").addEventListener("submit", function (ev) { ev.preventDefault(); go(items[0] || rank(input.value.trim().toLowerCase())[0]); });
   })();
   function renderHero(r) {
     var h = document.getElementById("lv-hero");
