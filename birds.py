@@ -2419,11 +2419,50 @@ def _save_curation(path, data):
                 Bucket=S3_BUCKET, Key=_CURATION_S3[path], Body=raw,
                 ContentType="application/json", CacheControl="no-store")
             _curation_cache[path] = {"etag": resp.get("ETag"), "raw": raw}
+            memo_clear()
+            _bump_curation_stamp()
             return
         except Exception:  # noqa: BLE001 - fall through to a local write
             pass
     _atomic_write_json(path, data, sort_keys=(path == OVERRIDES_FILE))
     memo_clear()   # an edit must show immediately, not after the TTL
+
+
+# Each warm Lambda instance memoizes the gallery for a minute, and a save only
+# clears the memo of the instance that took it — so the curator's next request,
+# landing elsewhere, showed the pre-edit frame and the edit looked lost. Every
+# save bumps this tiny object; curate-mode requests HEAD it (one cheap call)
+# and rebuild only when it moved.
+_STAMP_KEY = "{}/curation_stamp".format(S3_PREFIX)
+_seen_stamp = {"etag": None}
+
+
+def _bump_curation_stamp():
+    try:
+        import boto3
+
+        resp = boto3.client("s3").put_object(
+            Bucket=S3_BUCKET, Key=_STAMP_KEY, Body=repr(_time.time()).encode(),
+            ContentType="text/plain", CacheControl="no-store")
+        _seen_stamp["etag"] = resp.get("ETag")  # this instance is already fresh
+    except Exception:  # noqa: BLE001 - worst case: other instances lag the TTL
+        pass
+
+
+def curation_fresh():
+    """Drop this instance's memo if any instance has saved a curation edit
+    since it last looked. Prod only; locally there is one process."""
+    if not os.environ.get("BIRDS_USE_S3"):
+        return
+    try:
+        import boto3
+
+        etag = boto3.client("s3").head_object(Bucket=S3_BUCKET, Key=_STAMP_KEY).get("ETag")
+    except Exception:  # noqa: BLE001 - no stamp yet / S3 hiccup: keep the memo
+        return
+    if etag != _seen_stamp["etag"]:
+        _seen_stamp["etag"] = etag
+        memo_clear()
 
 
 def resolve_token():

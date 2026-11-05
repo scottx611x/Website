@@ -134,6 +134,15 @@ def sitemap():
     return app.response_class(xml, mimetype="application/xml")
 
 
+@app.before_request
+def _curator_reads_fresh():
+    """A curate save clears the loader memo only on the Lambda instance that
+    took it; any other warm instance kept serving the old frame for up to a
+    minute, so an edited location looked like it hadn't saved."""
+    if request.method == "GET" and not request.path.startswith("/static/") and _curate_on():
+        birds.curation_fresh()
+
+
 @app.after_request
 def _page_cache(resp):
     """Every HTML page revalidates against a body-hash ETag instead of being
@@ -1081,7 +1090,10 @@ def birds_species_json(slug):
         "nodes": p.get("heard_nodes") or [],
     }
     resp = app.json.response(out)
-    resp.cache_control.max_age = 300
+    if _curate:
+        resp.headers["Cache-Control"] = "no-store"
+    else:
+        resp.cache_control.max_age = 300
     return resp
 
 

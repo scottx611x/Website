@@ -1625,6 +1625,9 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
     catch (e) { return null; }
   })();
   var MONTHS = ["J","F","M","A","M","J","J","A","S","O","N","D"];
+  // Curating: an edit must show the next time a bird opens, not after the
+  // browser's 5-minute cache of its JSON runs out.
+  var FRESH = document.getElementById("bf-curate") ? { cache: "no-store" } : undefined;
   var $ = function (id) { return document.getElementById(id); };
   function fmt(s) { s = Math.floor(s || 0); return Math.floor(s / 60) + ":" + ("0" + (s % 60)).slice(-2); }
   function stop() { ph.stop(); tick(); }
@@ -2088,7 +2091,7 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
       try { history.pushState({ bf: 1 }, "", key); pushedHere = true; } catch (e) { /* file:// */ }
     }
     fetch(famMode ? ("/birds/family/" + CTX.family_slug + ".json")
-                  : ("/birds/species/" + t.slug + ".json"))
+                  : ("/birds/species/" + t.slug + ".json"), FRESH)
       .then(function (r) {
         if (!r.ok) throw new Error("detail request failed: " + r.status);
         return r.json();
@@ -2183,7 +2186,7 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
     $("bf-omonths").innerHTML = [30, 45, 60, 50, 35, 25, 20, 30, 45, 55, 40, 30].map(function (h) {
       return '<span><i class="bf-sk" style="height:' + h + '%"></i></span>';
     }).join("");
-    fetch("/birds/species/" + slug + ".json")
+    fetch("/birds/species/" + slug + ".json", FRESH)
       .then(function (r) { return r.ok ? r.json() : null; })
       .then(function (d) { if (d && seqSpecies === slug) fill(d); })
       .catch(function (err) { console.error("species record:", err); });
