@@ -3732,19 +3732,23 @@ def species_profile(name, shots=None, sound=None):
     # WHOLE clip-retention window (species_clips.json), not just the few days the
     # recent+log pool covers. Falls back to that pool when the archive isn't built.
     archive = (load_species_clips().get(canon) or []) if heard else []
-    all_calls = []
-    if playable:
-        recent_call = _with_when(max(playable, key=lambda r: r.get("t") or ""))
-        pool = archive or (sorted(playable, key=lambda x: x.get("conf") or 0, reverse=True)
-                           if len(playable) > 2 else [])
-        for r in pool[:40]:
-            all_calls.append({"audio": r.get("audio"), "spec": r.get("spec"),
-                              "conf": r.get("conf") or 0, "t": r.get("t"),
-                              "when": _with_when(r).get("when"), "node": r.get("node")})
+    # The archive alone is enough: a bird not heard lately (Barred Owl in
+    # November) has nothing in the recent pool but dozens of archived clips,
+    # and skipping this left them to a raw fallback with no dates.
+    pool = archive or (sorted(playable, key=lambda x: x.get("conf") or 0, reverse=True)
+                       if len(playable) > 2 else [])
+    all_calls = [{"audio": r.get("audio"), "spec": r.get("spec"),
+                  "conf": r.get("conf") or 0, "t": r.get("t"),
+                  "when": _with_when(r).get("when"), "node": r.get("node")}
+                 for r in pool[:40]]
+    # No recent clip: the newest archived one is the latest that still plays.
+    latest_pool = playable or [c for c in all_calls if c.get("audio")]
+    if latest_pool:
+        recent_call = _with_when(max(latest_pool, key=lambda r: r.get("t") or ""))
         # "clearest" featured toggle = the top of that pool, when it's a different
         # recording than the latest.
         best_call = all_calls[0] if all_calls else \
-            _with_when(max(playable, key=lambda r: r.get("conf") or 0))
+            _with_when(max(latest_pool, key=lambda r: r.get("conf") or 0))
         if best_call and best_call.get("audio") == recent_call.get("audio") and \
            best_call.get("spec") == recent_call.get("spec"):
             best_call = None
