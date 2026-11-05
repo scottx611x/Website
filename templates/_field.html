@@ -1045,6 +1045,7 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
   }
 
   var live = {}, px = 16, py = chromeTop(), vx = 0, vy = 0, glide = null, pending = false;
+  var FAST = false, SEEN = {}, lastPx = px, lastPy = py, fillT = 0;
 
   function build(c, r) {
     var d = at(c, r);
@@ -1063,7 +1064,7 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
     a.innerHTML = (t.vsrc
         ? '<video src="' + t.vsrc + '" poster="' + t.src + '" autoplay muted loop ' +
           'playsinline preload="metadata" aria-label="' + esc(t.name) + '"></video>'
-        : '<img src="' + t.src + '" alt="' + esc(t.name) + '" decoding="async">') +
+        : '<img ' + (FAST && !SEEN[t.src] ? "data-src" : "src") + '="' + t.src + '" alt="' + esc(t.name) + '" decoding="async">') +
       // same meaning and glyph as the gallery's multi-badge: N images in this
       // post. The old code point (U+29E7) is a thermodynamic symbol and read
       // as "+ 5".
@@ -1093,7 +1094,7 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
     // within 300px of the screen), and the browser's own lazy margin made
     // every tile wait until it was nearly on screen to START downloading.
     var im = a.querySelector("img");
-    if (!im || (im.complete && im.naturalWidth)) a.classList.add("ld");
+    if (!im || (im.getAttribute("src") && im.complete && im.naturalWidth)) a.classList.add("ld");
     plane.appendChild(a);
     return a;
   }
@@ -1104,8 +1105,18 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
     plane.addEventListener(ev, function (e) {
       var tl = e.target.closest && e.target.closest(".bf-tile");
       if (tl) tl.classList.add("ld");
+      if (ev === "load" && e.target.tagName === "IMG") SEEN[e.target.getAttribute("src")] = 1;
     }, true);
   });
+  /* Thumbs come straight from S3 over HTTP/1.1: six downloads at a time per
+     host. A tile culled mid-download used to keep its slot, so a fling queued
+     dozens of photos nobody would see in front of the ones you stopped on.
+     Dropping the src aborts the request and frees the slot. */
+  function drop(el) {
+    el.remove();
+    if (el.classList.contains("ld")) return;
+    var im = el.querySelector("img"); if (im) im.removeAttribute("src");
+  }
   function cull() {
     if (!FIELD) return;
     pending = false;
@@ -1125,8 +1136,28 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
         if (!live[k]) { var el = build(c, r); if (el) live[k] = el; }
       }
     }
-    for (var k2 in live) if (!need[k2]) { live[k2].remove(); delete live[k2]; }
+    for (var k2 in live) if (!need[k2]) { drop(live[k2]); delete live[k2]; }
+    fillTiles();
   }
+  /* While the field is flying (a fling, a fast drag) new tiles get their URL
+     parked in data-src: they would be culled again before a 60KB thumb could
+     land, and each one would hold one of the six slots meanwhile. Once it
+     slows, on-screen tiles start first and the 300px margin queues behind. */
+  function fillTiles() {
+    var sp = Math.hypot(px - lastPx, py - lastPy); lastPx = px; lastPy = py;
+    FAST = sp > 7;
+    clearTimeout(fillT);
+    if (FAST) { fillT = setTimeout(function () { FAST = false; fillTiles(); }, 140); return; }
+    var vw = canvas.clientWidth, vh = canvas.clientHeight, later = [];
+    var parked = plane.querySelectorAll("img[data-src]");
+    for (var i = 0; i < parked.length; i++) {
+      var im = parked[i], r = im.parentNode.getBoundingClientRect();
+      var on = r.right > 0 && r.left < vw && r.bottom > 0 && r.top < vh;
+      if (on) wake(im); else later.push(im);
+    }
+    later.forEach(function (im) { im.fetchPriority = "low"; wake(im); });
+  }
+  function wake(im) { im.src = im.getAttribute("data-src"); im.removeAttribute("data-src"); }
   /* With no wrap there is an edge, so panning has to stop at it — otherwise
      you drift off into blank paper and the field looks broken. A little
      overscroll is allowed so the edge feels like an edge rather than a wall. */
@@ -1311,7 +1342,7 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
   apply();
   addEventListener("resize", function () { if (!pending) { pending = true; requestAnimationFrame(cull); } });
 
-  function clearLive() { for (var k in live) { live[k].remove(); delete live[k]; } }
+  function clearLive() { for (var k in live) { drop(live[k]); delete live[k]; } }
 
   /* Rebuild the layout and put the view somewhere that definitely has content.
      Every y position is a prefix sum over SEQ, so changing SEQ or the column
