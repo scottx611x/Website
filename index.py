@@ -653,7 +653,7 @@ def birds_gallery():
     field_tiles, field_seq, field_stride, _ = _field_tiles(shots)
     return render_template(
         "birds.html",
-        title="Birds of North Andover",
+        title="Birds",
         shots=shots,
         # The summary line counted every frame as a photo, videos included.
         shots_videos=sum(1 for sh in shots if (sh.get("image_videos") or [None])[0]),
@@ -829,7 +829,7 @@ def birds_field():
     tiles, seq, stride, species_n = _field_tiles(shots)
     gstats = birds.gallery_stats(shots)
     return render_template(
-        "birds_field.html", title="Birds of North Andover",
+        "birds_field.html", title="Birds",
         tiles=tiles, seq=seq, species_n=gstats["species"], stride=stride,
         photos_n=gstats["photos"], videos_n=gstats["videos"],
         curate=_curate_on(), local=_is_local())

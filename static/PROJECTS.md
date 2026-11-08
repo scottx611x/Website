@@ -6,7 +6,7 @@ profile. Add entries like:
 ```json
 [
   {
-    "name": "Birds of North Andover",
+    "name": "scott-ouellette.com",
     "url": "https://github.com/scottx611x/Website",
     "tech": "Flask · Zappa · Instagram API",
     "description": "This site, plus the auto-updating bird gallery."

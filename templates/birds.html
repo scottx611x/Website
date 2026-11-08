@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% block meta_description %}{{ species_count }} bird species photographed around North Andover, MA. Hawks, owls, warblers, and more, with photos and videos.{% endblock %}
+{% block meta_description %}{{ species_count }} bird species photographed mostly around North Andover, MA. Hawks, owls, warblers, and more, with photos and videos.{% endblock %}
 
 {% block content %}
 {% from '_icons.html' import icon %}
@@ -17,7 +17,9 @@
        should not greet you as a different page: an order changes how the
        photos are laid out, not what site you are on. #}
     <header class="gallery-header is-stuck" data-collapse="1" data-pinned="1">
-        <h1>Birds of North Andover</h1>
+        {# Visually hidden: the gallery shows birds from everywhere, so a place
+           name here overclaimed. Kept for screen readers. #}
+        <h1 class="vh">Birds</h1>
         {# A lone species/family focus renders as the SAME chip in the SAME slot
            as Live/Stats/Map (the shared subnav-focus pill); the gallery's own
            chip row only appears once richer filters join in. #}

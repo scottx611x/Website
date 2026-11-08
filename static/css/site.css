@@ -2060,3 +2060,10 @@ body.sel-on .shot .away-badge { display: none; }
     .sel-card { max-width: none; border-radius: 18px 18px 0 0; padding-bottom: calc(1.1rem + env(safe-area-inset-bottom, 0px));
         transform: translateY(100%); }
 }
+
+/* Screen-reader-only heading (the gallery's h1). Later than the is-stuck h1
+   rule, same specificity, so this wins. */
+.page .gallery-header h1.vh {
+    position: absolute; width: 1px; height: 1px; margin: 0; padding: 0;
+    overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}

@@ -29,7 +29,7 @@
     "name": "Website",
     "repo": "https://github.com/scottx611x/Website",
     "tech": "Flask \u00b7 Zappa \u00b7 AWS Lambda \u00b7 S3 \u00b7 d3",
-    "description": "This site, including a living gallery of the Birds of North Andover that syncs itself from Instagram daily, re-hosts every photo to S3, and turns the archive into maps, phenology charts, and a life list.",
+    "description": "This site, including a living bird gallery that syncs itself from Instagram daily, re-hosts every photo to S3, and turns the archive into maps, phenology charts, and a life list.",
     "year": "2026",
     "featured": true
   },

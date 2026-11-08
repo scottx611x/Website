@@ -157,7 +157,7 @@ class RoutesTestCase(GenericTestBase):
             follow_redirects=True,
         )
         self.assertEqual(response.status_code, 200)
-        self.assertIn(b"Birds of North Andover", response.data)
+        self.assertIn(b"<title>Birds", response.data)
 
     def test_archive_route(self):
         self.assertEqual(self.test_client.get("/archive").status_code, 200)
