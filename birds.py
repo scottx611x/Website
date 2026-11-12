@@ -1449,45 +1449,216 @@ def _species_key(text):
                         if not any(h != o and h in o for o in hits)))
 
 
-def _promote_originals(pid, rec):
-    """Give this post's archived originals their mirrored names.
+_CAPTION_DATE = re.compile(r"\b\d{1,2}-\d{1,2}-\d{2}\b")
 
-    The pipeline uploads each full-size export at post time under
-    birds/originals/by-file/<filename>, because the Instagram post id does not
-    exist yet — the post is queued to Buffer and publishes days later. Once a
-    record is matched to a real post we know the id and the frame order, so the
-    objects are copied to birds/originals/<post>-<index>.jpg, mirroring
-    birds/images/ the way the rest of the archive does.
 
-    Server-side copy, so no bytes leave S3. Best-effort: the by-file object
-    stays either way, so nothing is lost if this does not run.
+def _record_delta(rec, shot):
+    """Seconds between a record's queue slot and the post's publish time."""
+    try:
+        sched = datetime.datetime.fromisoformat(
+            (rec.get("scheduled_at") or "").replace("Z", "+00:00"))
+        posted = datetime.datetime.fromisoformat(
+            (shot.get("timestamp") or "").replace("+0000", "+00:00"))
+        return abs((posted - sched).total_seconds())
+    except (ValueError, TypeError):
+        return float("inf")
+
+
+def link_post_originals(shots, max_posts=8, fetch=None):
+    """Point each post at the full-size originals the pipeline archived for it.
+
+    The pipeline uploads each export as originals/by-file/<filename> when it
+    queues a post; the site has to copy them to originals/<post>-<i>.jpg. That
+    used to happen only inside match_post_records, which needs the exact
+    caption — so a caption edited after queueing ("Barred Owl (expelling a
+    pellet)", a species corrected) never matched, and the files sat in
+    by-file/ while the post showed no full-size links.
+
+    So: pair post and record loosely (_pair_posts_with_records), then pair
+    FRAMES by looking at them rather than trusting position. The web copy is a
+    straight resize of its export, so the right file is a near-exact match and
+    every other file is clearly worse (see _assign_frames). These are the files
+    the photo books print from, so a frame with no confident match is left
+    alone rather than guessed. (The record's order has matched the carousel so
+    far; the look is a guard against a post edited in the queue, and against a
+    loose caption match that picked the wrong record.)
+
+    Bounded per run (newest first) because it downloads the exports; a post
+    with nothing left to gain is skipped without downloading anything. Returns
+    how many frames it linked.
     """
     if not os.environ.get("BIRDS_USE_S3"):
-        return
+        return 0
+    records = _load_post_records()
+    have_byfile = _by_file_names()
+    work = []
+    for si, ri in _pair_posts_with_records(shots, records):
+        shot = shots[si]
+        missing = [i for i, u in enumerate(shot["images"]) if not has_original(u)]
+        avail = [(f or "").rsplit("/", 1)[-1] for f in records[ri]["files"]]
+        avail = [f for f in avail if f in have_byfile]
+        if missing and len(avail) > len(shot["images"]) - len(missing):
+            work.append((shot.get("timestamp") or "", shot, avail, missing))
+    work.sort(key=lambda w: w[0], reverse=True)
+    linked = 0
+    for _ts, shot, avail, missing in work[:max_posts]:
+        for i, name in _assign_frames(shot, avail, missing, fetch=fetch).items():
+            # The destination comes from the frame's OWN url: the images list
+            # is not in carousel order, so <post>-<list index> is not this frame.
+            key = original_key(shot["images"][i])
+            if key and _copy_original(name, key):
+                if _ORIGINALS is not None:
+                    _ORIGINALS.add(key.rsplit("/", 1)[-1])
+                linked += 1
+    return linked
+
+
+def _frame_sig(img, aspect):
+    """32x32 grayscale of the image center-cropped to ``aspect`` (w/h)."""
+    from PIL import Image
+
+    w, h = img.size
+    if w / h > aspect:
+        nw = int(h * aspect)
+        img = img.crop(((w - nw) // 2, 0, (w - nw) // 2 + nw, h))
+    else:
+        nh = int(w / aspect)
+        img = img.crop((0, (h - nh) // 2, w, (h - nh) // 2 + nh))
+    return list(img.resize((32, 32), Image.LANCZOS).getdata())
+
+
+def _sig_dist(a, b):
+    return sum(abs(x - y) for x, y in zip(a, b)) / len(a)
+
+
+# Mean abs difference of 32x32 grayscale (0-255). The same frame lands at
+# 0.0-0.4; a different shot 5+; a burst sibling a frame or two away ~1.8.
+FRAME_MATCH_MAX = 3.0     # accept up to this...
+FRAME_MATCH_GAP = 3.0     # ...when the runner-up trails by at least this,
+FRAME_EXACT = 0.5         # or when the best is near-exact
+FRAME_EXACT_RUNNER = 1.5  # and the runner-up is at least a burst sibling away
+
+
+def _assign_frames(shot, names, frames, fetch=None):
+    """{frame index: by-file name} for the frames in ``frames`` whose web copy
+    matches exactly one archived export, and clearly."""
+    import io
+    import urllib.request
+    from PIL import Image
+
+    def _get(url):
+        img = fetch(url) if fetch else Image.open(
+            io.BytesIO(urllib.request.urlopen(url, timeout=60).read()))
+        img.draft("L", (640, 640))       # decode a 24 MP export at 1/8 scale
+        return img.convert("L")
+
+    import boto3
+    s3 = boto3.client("s3")
+    webs = {}
+    for i in frames:
+        try:
+            webs[i] = _get(shot["images"][i])
+        except Exception:  # noqa: BLE001
+            pass
+    if not webs:
+        return {}
+    origs = {}
+    for name in names:
+        try:
+            url = s3.generate_presigned_url("get_object", Params={
+                "Bucket": S3_BUCKET,
+                "Key": "{}/originals/by-file/{}".format(S3_PREFIX, name)}, ExpiresIn=900)
+            origs[name] = _get(url)
+        except Exception:  # noqa: BLE001
+            pass
+    out = {}
+    for i, web in webs.items():
+        aspect = web.size[0] / web.size[1]
+        ws = _frame_sig(web, aspect)
+        scored = sorted((_sig_dist(ws, _frame_sig(o, aspect)), n)
+                        for n, o in origs.items())
+        if not scored or scored[0][0] > FRAME_MATCH_MAX:
+            continue
+        best, runner = scored[0][0], (scored[1][0] if len(scored) > 1 else float("inf"))
+        if not (runner - best >= FRAME_MATCH_GAP
+                or (best <= FRAME_EXACT and runner >= FRAME_EXACT_RUNNER)):
+            continue
+        out[i] = scored[0][1]
+    # One export per frame: if two frames claim the same file, trust neither.
+    claimed = {}
+    for i, n in out.items():
+        claimed.setdefault(n, []).append(i)
+    return {i: n for i, n in out.items() if len(claimed[n]) == 1}
+
+
+def _copy_original(name, key):
+    """Server-side copy by-file/<name> -> ``key`` (from original_key)."""
     try:
         import boto3
-        from botocore.exceptions import ClientError
+
+        boto3.client("s3").copy_object(
+            Bucket=S3_BUCKET, Key=key,
+            CopySource={"Bucket": S3_BUCKET,
+                        "Key": "{}/originals/by-file/{}".format(S3_PREFIX, name)},
+            StorageClass="GLACIER_IR", MetadataDirective="COPY")
+        return True
     except Exception:  # noqa: BLE001
-        return
-    s3 = boto3.client("s3")
-    for i, f in enumerate(rec.get("files") or []):
-        name = (f or "").rsplit("/", 1)[-1]
-        if not name:
+        return False
+
+
+def _pair_posts_with_records(shots, records):
+    """[(shot index, record index)], one record per post and vice versa."""
+    window = 30 * 86400
+    pairs = []
+    for si, shot in enumerate(shots):
+        n = len(shot.get("images") or [])
+        if not shot.get("id") or n == 0:
             continue
-        src = "{}/originals/by-file/{}".format(S3_PREFIX, name)
-        dst = "{}/originals/{}-{}.jpg".format(S3_PREFIX, pid, i)
+        cap = shot.get("caption") or ""
+        ncap, dates = _norm_caption(cap), set(_CAPTION_DATE.findall(cap))
+        species = set(_species_key(cap))
+        for ri, rec in enumerate(records):
+            if len(rec.get("files") or []) != n:
+                continue
+            delta = _record_delta(rec, shot)
+            rcap = rec.get("caption") or ""
+            if _norm_caption(rcap) == ncap:
+                pairs.append((0, delta, si, ri))
+                continue
+            if (dates and dates == set(_CAPTION_DATE.findall(rcap))
+                    and species & set(_species_key(" ".join(rec.get("species") or [])))
+                    and delta <= window):
+                pairs.append((1, delta, si, ri))
+    pairs.sort()
+    taken_s, taken_r, out = set(), set(), []
+    for _exact, _delta, si, ri in pairs:
+        if si in taken_s or ri in taken_r:
+            continue
+        taken_s.add(si)
+        taken_r.add(ri)
+        out.append((si, ri))
+    return out
+
+
+_BY_FILE = None
+
+
+def _by_file_names():
+    """Filenames under originals/by-file/, listed once per process."""
+    global _BY_FILE
+    if _BY_FILE is None:
+        _BY_FILE = set()
         try:
-            s3.head_object(Bucket=S3_BUCKET, Key=dst)
-            continue                      # already mirrored
-        except ClientError:
+            import boto3
+
+            pg = boto3.client("s3").get_paginator("list_objects_v2")
+            for page in pg.paginate(Bucket=S3_BUCKET,
+                                    Prefix="{}/originals/by-file/".format(S3_PREFIX)):
+                for o in page.get("Contents") or []:
+                    _BY_FILE.add(o["Key"].rsplit("/", 1)[-1])
+        except Exception:  # noqa: BLE001
             pass
-        try:
-            s3.copy_object(Bucket=S3_BUCKET, Key=dst,
-                           CopySource={"Bucket": S3_BUCKET, "Key": src},
-                           StorageClass="GLACIER_IR",
-                           MetadataDirective="COPY")
-        except ClientError:
-            pass                          # not uploaded (yet) — harmless
+    return _BY_FILE
 
 
 def match_post_records(shots):
@@ -1577,7 +1748,6 @@ def match_post_records(shots):
         if len(names) == n and all(names):
             store[pid] = names
             added += 1
-            _promote_originals(pid, rec)
             # A combined-batch post carries each frame's real shooting day
             # (record `dates`, aligned with files[]); older records lack it.
             dates = [_norm_md_date(x) for x in (rec.get("dates") or [])]
@@ -2611,6 +2781,12 @@ def instagram_sync(token=None):
         match_post_records(shots)
     except Exception:  # noqa: BLE001 - records are an enrichment, never a blocker
         pass
+    # Full-size links, matched separately because an edited caption defeats
+    # the species match above (see link_post_originals).
+    try:
+        link_post_originals(shots)
+    except Exception:  # noqa: BLE001 - never block the sync over an archive copy
+        pass
 
     # Bake hand-typed corrections so prod gets them too, but keep arrays full-length
     # (exclusions are a display-time filter; baking them would misalign indices).
@@ -2812,18 +2988,23 @@ def original_url(url, expires=3600):
 
 
 _ORIGINALS = None
+_ORIGINALS_AT = 0.0
+_ORIGINALS_TTL = 600
 
 
 def has_original(url):
     """True when a full-res counterpart exists.
 
     Only frames whose originals were still on disk have one, so this cannot be
-    assumed from the URL. The key set is listed once and memoised — a HEAD per
-    frame would be thousands of round trips per page.
+    assumed from the URL. The key set is listed and memoised — a HEAD per frame
+    would be thousands of round trips per page — but only for ten minutes: a
+    warm Lambda otherwise kept its first listing for its whole life, so frames
+    linked by the daily sync (or by hand) stayed linkless until it recycled.
     """
-    global _ORIGINALS
-    if _ORIGINALS is None:
+    global _ORIGINALS, _ORIGINALS_AT
+    if _ORIGINALS is None or _time.time() - _ORIGINALS_AT > _ORIGINALS_TTL:
         _ORIGINALS = set()
+        _ORIGINALS_AT = _time.time()
         if os.environ.get("BIRDS_USE_S3"):
             try:
                 import boto3

@@ -766,6 +766,73 @@ class PerFrameDatesTestCase(unittest.TestCase):
                          "Jul 20, 2026")
 
 
+class LinkPostOriginalsTestCase(unittest.TestCase):
+    """Full-size links survive an edited caption, and frames are paired by
+    what they look like, never by list position."""
+
+    def _shot(self, pid, caption, n, ts):
+        return {"id": pid, "caption": caption, "timestamp": ts,
+                "images": ["https://x/birds/images/%s-%d.jpg" % (pid, k) for k in range(n)]}
+
+    def _rec(self, caption, files, sched, species=None):
+        return {"caption": caption, "files": files, "scheduled_at": sched,
+                "species": species or [caption.split("\n")[0]] * len(files)}
+
+    def test_edited_caption_still_pairs(self):
+        shot = self._shot("p1", "Barred Owl (expelling a pellet)\n\nRea St.\n\n9-20-26",
+                          2, "2026-11-11T12:35:00+0000")
+        rec = self._rec("Barred Owl\n\nRea St.\n\n9-20-26", ["a.jpg", "b.jpg"],
+                        "2026-11-17T20:41:00.000Z")
+        self.assertEqual(birds._pair_posts_with_records([shot], [rec]), [(0, 0)])
+
+    def test_different_shooting_day_does_not_pair(self):
+        shot = self._shot("p1", "Barred Owl\n\nRea St.\n\n9-21-26", 2, "2026-11-11T12:35:00+0000")
+        rec = self._rec("Barred Owl\n\nRea St.\n\n9-20-26", ["a.jpg", "b.jpg"],
+                        "2026-11-11T12:35:00.000Z")
+        self.assertEqual(birds._pair_posts_with_records([shot], [rec]), [])
+
+    def test_each_record_goes_to_one_post_nearest_slot_wins(self):
+        cap = "Red-tailed Hawk\n\nRea St.\n\n9-13-26"
+        early = self._shot("p1", cap + " ", 3, "2026-11-08T20:41:00+0000")
+        late = self._shot("p2", "Red-tailed Hawk!\n\nRea St.\n\n9-13-26", 3,
+                          "2026-11-20T20:41:00+0000")
+        rec = self._rec(cap, ["a", "b", "c"], "2026-11-08T20:41:00.000Z")
+        self.assertEqual(birds._pair_posts_with_records([late, early], [rec]), [(1, 0)])
+
+    def test_frames_paired_by_content_not_position(self):
+        from PIL import Image, ImageDraw
+
+        def pic(x):
+            im = Image.new("L", (400, 500), 30)
+            ImageDraw.Draw(im).ellipse((x, 100, x + 120, 300), fill=230)
+            return im
+        shot = self._shot("p1", "c", 2, "t")
+        # The archive lists them in the opposite order to the carousel.
+        imgs = {shot["images"][0]: pic(40), shot["images"][1]: pic(240),
+                "https://s3/originals/by-file/A.jpg": pic(240),
+                "https://s3/originals/by-file/B.jpg": pic(40)}
+        s3 = mock.Mock()
+        s3.generate_presigned_url.side_effect = (
+            lambda _op, Params, ExpiresIn: "https://s3/originals/by-file/" + Params["Key"].rsplit("/", 1)[-1])
+        with mock.patch("boto3.client", return_value=s3):
+            got = birds._assign_frames(shot, ["A.jpg", "B.jpg"], [0, 1],
+                                       fetch=lambda u: imgs[u].copy())
+        self.assertEqual(got, {0: "B.jpg", 1: "A.jpg"})
+
+    def test_no_confident_match_is_left_alone(self):
+        from PIL import Image
+
+        shot = self._shot("p1", "c", 1, "t")
+        imgs = {shot["images"][0]: Image.new("L", (400, 500), 30),
+                "https://s3/originals/by-file/A.jpg": Image.new("L", (400, 500), 200)}
+        s3 = mock.Mock()
+        s3.generate_presigned_url.side_effect = (
+            lambda _op, Params, ExpiresIn: "https://s3/originals/by-file/" + Params["Key"].rsplit("/", 1)[-1])
+        with mock.patch("boto3.client", return_value=s3):
+            got = birds._assign_frames(shot, ["A.jpg"], [0], fetch=lambda u: imgs[u].copy())
+        self.assertEqual(got, {})
+
+
 class PhotoHideTestCase(unittest.TestCase):
     """Hiding a photo drops it from the public gallery but keeps the entry."""
 
