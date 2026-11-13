@@ -1,5 +1,10 @@
 # /birds/live: make it feel live
 
+> **Status 2026-11-13:** phases 1-3 shipped, plus phase 4's sentences (not
+> the wall-chip playback). Probe: `run.sh livefeel`. The 220px hero target was
+> not met: the shared bird-page header alone is ~330px, and it is shared with
+> the gallery, so it was left alone. Hero sits at ~475px (was ~575px).
+
 A brief for a fresh session. Read all of it before touching anything, then read
 `docs/revamp/OVERNIGHT.md` (working rules, probes, the rejected-design record).
 

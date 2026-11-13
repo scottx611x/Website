@@ -6,9 +6,18 @@
 <style>
   /* Light like every other bird page; ink on paper, green accents, neon fills. */
   .livewire .mono{font-family:var(--mono); font-variant-numeric:tabular-nums}
-  .lv-find{display:flex; justify-content:center; margin:0 0 2rem}
+  /* The day in one sentence, with search beside it: what four stat cards
+     and a search band used to take 200px to say. */
+  .lv-bar{display:flex; justify-content:center; align-items:center; flex-wrap:wrap; gap:.7rem 1.4rem; margin:1.2rem 0 1.9rem}
+  .lv-tally{margin:0; font-size:.76rem; color:var(--muted); text-align:center; letter-spacing:.02em}
+  .lv-tally a{color:inherit; text-decoration:none; white-space:nowrap}
+  .lv-tally a:hover{color:var(--accent)}
+  .lv-tally b{font-family:var(--display); font-weight:600; font-size:1.12rem; color:var(--ink); letter-spacing:-.01em; margin-right:.1em; display:inline-block}
+  .lv-tally b.bump{animation:lvBump .7s ease}
+  @keyframes lvBump{30%{color:var(--accent); transform:translateY(-2px)}}
+  .lv-find{display:flex; justify-content:center; margin:0}
   /* Same combobox as the gallery search: one look for "find a bird" sitewide. */
-  .lv-find .bird-combo{width:min(24rem,100%)}
+  .lv-find .bird-combo{width:min(15rem,100%)}
   .lv-find .bird-combo input{width:100%; min-width:0; box-sizing:border-box}
   .livewire .lv-kick{font-family:var(--mono); font-size:.7rem; text-transform:uppercase; letter-spacing:.16em; color:var(--accent); margin:0 0 1rem}
   .livewire section{margin-top:3.2rem}
@@ -16,6 +25,7 @@
   .lv-dot{width:9px;height:9px;border-radius:50%;flex:0 0 auto;margin-top:.26rem;background:var(--lift);box-shadow:0 0 4px 0 rgba(56, 224, 138,.4);animation:dotGlow 3.4s ease-in-out infinite}
   /* Station offline / stale: the dot stops glowing, and an honest banner shows. */
   .lv-status.stale .lv-dot{background:#c0392b;box-shadow:none;animation:none}
+  .lv-status.quiet .lv-dot{animation-duration:7s; opacity:.55}  /* a lull breathes slower */
   .lv-offline{max-width:640px;margin:1rem auto 0;padding:.7rem 1rem;border-radius:10px;
     background:rgba(192,57,43,.08);border:1px solid rgba(192,57,43,.3);color:#8f2a1f;
     font-family:var(--mono);font-size:.76rem;line-height:1.5;text-align:center}
@@ -29,7 +39,35 @@
   /* One "just heard" object: the bird's portrait and its actual voice, one card. */
   .lv-herocard{position:relative; border-radius:16px; overflow:hidden; border:1px solid rgba(13, 18, 14,.12); background:var(--ink); box-shadow:0 14px 38px -20px rgba(13, 18, 14,.55)}
   .lv-portrait{position:relative; aspect-ratio:3/2; overflow:hidden; background-size:cover; background-position:center}
-  .lv-portrait::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 24%,rgba(6,10,7,.5) 58%,rgba(6,10,7,.92))}
+  .lv-portrait::after{content:"";position:absolute;inset:0;z-index:1;background:linear-gradient(180deg,transparent 24%,rgba(6,10,7,.5) 58%,rgba(6,10,7,.92))}
+  /* The photo drifts a few pixels over half a minute so the biggest thing on
+     a page called Live is never a still. */
+  .lv-ph{position:absolute; inset:0; background-size:cover; background-position:center; transform-origin:60% 40%;
+    animation:lvDrift 30s ease-in-out infinite alternate; will-change:transform; transition:filter 2s ease}
+  @keyframes lvDrift{from{transform:scale(1.03)} to{transform:scale(1.09) translate3d(-1.2%,-.8%,0)}}
+  .lv-now.night .lv-ph{filter:saturate(.55) brightness(.82)}
+  /* An arrival: the new card lays over the old and fades up; its photo
+     settles from a closer crop and the name sets itself word by word. */
+  #lv-hero{position:relative}
+  #lv-hero > .lv-over{position:absolute; inset:0; z-index:2}
+  #lv-hero > .lv-enter{animation:lvHeroIn .8s cubic-bezier(.2,.7,.1,1) both}
+  @keyframes lvHeroIn{from{opacity:0}}
+  #lv-hero > .lv-leave .lv-body,#lv-hero > .lv-leave .lv-stamp{opacity:0; transition:opacity .25s ease}
+  .lv-enter .lv-ph{animation:lvSettle 1.6s cubic-bezier(.2,.7,.1,1) both, lvDrift 30s 1.6s ease-in-out infinite alternate}
+  @keyframes lvSettle{from{transform:scale(1.16)} to{transform:scale(1.03)}}
+  .lv-nm .w{display:inline-block}
+  .lv-enter .lv-nm .w{animation:lvWord .8s cubic-bezier(.2,.7,.1,1) both; animation-delay:calc(.28s + var(--i) * 80ms)}
+  @keyframes lvWord{from{opacity:0; transform:translateY(.5em); filter:blur(5px)}}
+  .lv-enter .lv-when,.lv-enter .lv-meta,.lv-enter .lv-fact{animation:lvFade .7s .6s both}
+  @keyframes lvFade{from{opacity:0}}
+  /* A first gets a stamp, pressed on in ink, and keeps it for that bird only. */
+  .lv-stamp{position:absolute; z-index:3; top:.95rem; left:.95rem; font-family:var(--mono); font-size:.6rem; letter-spacing:.16em; text-transform:uppercase;
+    color:var(--ink); background:var(--paper); padding:.34rem .62rem .3rem; border-radius:3px; transform:rotate(-2.5deg);
+    box-shadow:inset 0 0 0 1.5px var(--ink), 0 8px 20px -10px rgba(0,0,0,.7)}
+  .lv-enter .lv-stamp{animation:lvStamp .5s 1s cubic-bezier(.3,1.5,.5,1) both}
+  @keyframes lvStamp{from{opacity:0; transform:rotate(-9deg) scale(1.8)}}
+  .lv-fact{font-family:var(--display); font-style:italic; font-size:clamp(.92rem,1.6vw,1.05rem); line-height:1.3; margin:.5rem 0 0; color:rgba(244,241,233,.88)}
+  .lv-ghostcard .lv-fact{color:var(--muted)}
   .lv-portrait .lv-body{text-shadow:0 1px 10px rgba(6,10,7,.65)}
   .lv-ghostcard{position:relative; aspect-ratio:3/2; background:var(--paper-2); display:flex; align-items:flex-end}
   .lv-ghostcard .feather{position:absolute;inset:0;background:no-repeat center 38%/30%;opacity:.2}
@@ -193,6 +231,11 @@
   .lv-row{cursor:pointer}
   .lv-row .rn a{cursor:pointer}
   .lv-row.flash{animation:lvIn .9s ease}
+  /* the bird that just left the hero drops into the top of the feed */
+  .lv-chain.arrive{animation:lvDrop .75s cubic-bezier(.2,.7,.1,1) both}
+  @keyframes lvDrop{from{opacity:0; transform:translateY(-16px); background:rgba(56,224,138,.22)} 55%{opacity:1} to{background:transparent}}
+  .lv-chip.arrive{animation:lvPop .6s cubic-bezier(.3,1.5,.5,1) both}
+  @keyframes lvPop{from{opacity:0; transform:scale(.6)}}
   @keyframes lvIn{from{background:rgba(56, 224, 138,.25)}to{background:transparent}}
   .lv-av{width:34px;height:34px;border-radius:50%;flex:0 0 auto;background-size:cover;background-position:center;border:1.5px solid rgba(13, 18, 14,.15)}
   .lv-av.miss{border:1.5px dashed rgba(176,125,36,.6);background:var(--paper-2) no-repeat center/60%}
@@ -233,36 +276,26 @@
   .lv-ranges{display:flex; gap:.4rem; flex-wrap:wrap; margin-bottom:1rem}
   .lv-range{font-family:var(--mono); font-size:.68rem; letter-spacing:.08em; text-transform:uppercase; padding:.34rem .8rem; border-radius:999px; border:1px solid rgba(13, 18, 14,.2); background:transparent; color:var(--ink); cursor:pointer}
   .lv-range.on{background:var(--ink); color:var(--lift); border-color:var(--ink)}
-  .lv-chart{display:flex; align-items:flex-end; gap:2px; height:96px; margin-bottom:.3rem}
-  .lv-bar{flex:1; min-width:2px; background:linear-gradient(180deg,var(--accent),rgba(47, 125, 79,.25)); border-radius:2px 2px 0 0; position:relative; cursor:default}
-  .lv-bar.zero{background:rgba(13, 18, 14,.07); height:3px !important}
-  .lv-bar{cursor:pointer}
-  .lv-bar:hover{background:var(--lift)}
-  .lv-bar.sel{background:var(--amber); box-shadow:0 0 0 1.5px rgba(13, 18, 14,.5)}
-  .lv-bar:focus-visible{outline:2px solid var(--accent); outline-offset:2px}
+  .lv-more{margin:2.4rem 0 0}
+  .lv-bar + section{margin-top:0}
+  .lv-trackmore{align-self:flex-start; margin:.7rem 0 0 var(--mkl); font-family:var(--mono); font-size:.68rem; letter-spacing:.06em; text-transform:uppercase;
+    border:none; background:none; padding:.2rem 0; color:var(--accent); cursor:pointer}
+  .lv-trackmore:hover{color:var(--ink)}
+  @media (max-width:720px){.lv-trackmore{margin-left:0}}
   .lv-clear{font-family:var(--mono); font-size:.62rem; letter-spacing:.06em; text-transform:uppercase; margin-left:.5rem; padding:.14rem .5rem; border-radius:999px; border:1px solid rgba(13, 18, 14,.25); background:transparent; color:var(--muted); cursor:pointer; vertical-align:middle}
   .lv-clear:hover{background:var(--ink); color:var(--paper); border-color:var(--ink)}
-  .lv-axis{display:flex; justify-content:space-between; font-family:var(--mono); font-size:.64rem; color:var(--muted); margin-bottom:1rem}
-  .lv-sum{display:flex; gap:1.6rem; flex-wrap:wrap; font-size:.78rem; color:var(--muted); margin-bottom:1.1rem}
-  .lv-sum b{display:block; color:var(--ink); font-family:var(--display); font-size:1.45rem; font-weight:600; letter-spacing:-.02em; line-height:1.1}
-  .lv-top{display:flex; flex-direction:column; gap:.35rem; max-width:34rem}
-  .lv-toprow{display:flex; align-items:center; gap:.6rem; font-size:.85rem}
-  .lv-toprow .tn{flex:0 0 11rem; font-family:var(--display); white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
-  .lv-toprow .tn a{text-decoration:none} .lv-toprow .tn a:hover{color:var(--accent)}
-  .lv-toprow .tb{flex:1; height:8px; border-radius:4px; background:rgba(13, 18, 14,.08); overflow:hidden}
-  .lv-toprow .tb>i{display:block;height:100%;background:var(--tkc, var(--accent))}
-  .lv-toprow .tc{font-family:var(--mono); font-size:.7rem; color:var(--muted); width:3rem; text-align:right}
-
   /* Today's soundtrack: one 24h band per species, every recording a tick. */
   .lv-trackhint{color:var(--muted); font-size:.72rem; margin:-.6rem 0 1rem}
   /* --tl is the species-label column; --mkl is where the day starts.
      The marks and the hour axis both key off --mkl so they cannot drift
      away from the tick bands. */
-  .lv-trackwrap{position:relative; --tl:10rem; --mkl:calc(var(--tl) + 10px)}
+  .lv-trackwrap{position:relative; --tl:11rem; --mkl:calc(var(--tl) + 10px); --mkr:42px}
   .lv-trackrows{display:flex; flex-direction:column; gap:5px}
   .lv-trow{display:flex; align-items:center; gap:10px}
   .lv-trow .tl{flex:0 0 var(--tl); font-family:var(--mono); font-size:.7rem; text-align:right;
-    overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+    display:flex; justify-content:flex-end; align-items:baseline; min-width:0; white-space:nowrap}
+  .lv-trow .tl a,.lv-trow .tl b{overflow:hidden; text-overflow:ellipsis; min-width:0}
+  .lv-trow .tpl{flex:0 0 32px; display:flex; justify-content:center}
   .lv-trow .tl a{color:var(--ink); text-decoration:none}
   .lv-trow .tl a:hover{color:var(--accent)}
   .lv-trow .tl .miss{color:var(--amber)}
@@ -275,6 +308,9 @@
   .lv-tk.lo{opacity:.22}
   button.lv-tk{cursor:pointer}
   button.lv-tk:hover{width:4px; opacity:1; box-shadow:0 0 5px 1px rgba(47, 125, 79,.4)}
+  /* a new recording's mark lands on its row as the bird arrives */
+  button.lv-tk.land{transform-origin:50% 100%; animation:lvLand 1s cubic-bezier(.3,1.4,.5,1) both}
+  @keyframes lvLand{from{transform:scaleY(0); opacity:1} 45%{box-shadow:0 0 12px 3px rgba(56,224,138,.75); width:4px; background:var(--lift)} to{transform:none}}
   button.lv-tk.playing{width:4px; opacity:1; background:var(--lift);
     box-shadow:0 0 7px 2px rgba(56, 224, 138,.55); animation:lv-tkpulse 1.1s ease-in-out infinite}
   @keyframes lv-tkpulse{50%{box-shadow:0 0 3px 1px rgba(56, 224, 138,.3)}}
@@ -283,9 +319,11 @@
      band gets the full width, and rows grow enough to be tappable. */
   @media (max-width: 720px){
     .lv-trackwrap{--tl:0; --mkl:0}
-    .lv-trow{display:block; margin-bottom:.1rem}
-    .lv-trow .tl{flex:none; width:auto; text-align:left; font-size:.68rem;
+    .lv-trow{display:grid; grid-template-columns:minmax(0,1fr) 32px; column-gap:10px; align-items:center; margin-bottom:.1rem}
+    .lv-trow .tl{grid-column:1; grid-row:1; flex:none; width:auto; justify-content:flex-start; font-size:.68rem;
       line-height:1.25; padding:0 0 1px}
+    .lv-trow .tband{grid-column:1; grid-row:2}
+    .lv-trow .tpl{grid-column:2; grid-row:1 / 3}
     .lv-trow .tband{height:26px}
     .lv-trackrows{gap:9px}
     .lv-tk{width:3px}
@@ -300,7 +338,7 @@
   .lv-daystep b{font-family:var(--mono); font-size:.72rem; font-weight:600}
   .lv-trow .tl b{font-weight:600}
   .lv-trow .tl .tn2{color:var(--muted); margin-left:.4rem; font-weight:400}
-  .lv-trackmarks{position:absolute; left:var(--mkl); right:0; top:0; bottom:1.35rem;
+  .lv-trackmarks{position:absolute; left:var(--mkl); right:var(--mkr); top:0; bottom:1.35rem;
     pointer-events:none}
   .lv-tmk{position:absolute; top:0; bottom:0; border-left:1px dashed rgba(13, 18, 14,.16)}
   .lv-tmk.sunrise{border-left-color:rgba(232,176,75,.6)}
@@ -310,26 +348,11 @@
   .lv-tmk.sunrise::after{background:var(--amber); box-shadow:0 0 5px 1px rgba(232,176,75,.5)}
   .lv-tmk.sunset::after{background:#6f7b8a}
   .lv-tmk.now::after{display:none}
-  .lv-trackax{display:flex; justify-content:space-between; margin-left:var(--mkl);
+  .lv-trackax{display:flex; justify-content:space-between; margin-left:var(--mkl); margin-right:var(--mkr);
     color:var(--muted); font-size:.62rem; margin-top:.35rem}
 
-  /* Most vocal today: ranked rows, count bar, clearest clip playable. */
-  .lv-boardrows{display:flex; flex-direction:column; gap:10px; max-width:46rem}
-  .lv-brow{display:flex; align-items:center; gap:12px}
-  .lv-brow .brk{font-family:var(--display); font-size:1.15rem; color:var(--tkc, var(--accent)); flex:0 0 1.6rem; text-align:right}
-  .lv-brow .lv-av{width:34px; height:34px; flex:0 0 34px}
-  .lv-brow .bmain{flex:1; min-width:0}
-  .lv-brow .bname{font-size:.85rem; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
-  .lv-brow .bname a{color:var(--ink); text-decoration:none}
-  .lv-brow .bname a:hover{color:var(--accent)}
-  .lv-brow .bname .bfam{font-family:var(--mono); font-weight:400; font-size:.64rem; color:var(--muted); margin-left:.45rem}
-  .lv-brow .bbar{height:6px; border-radius:3px; background:rgba(13, 18, 14,.08); overflow:hidden; margin:.3rem 0}
-  .lv-brow .bbar>i{display:block; height:100%; background:var(--tkc, var(--accent))}
-  .lv-brow .bmeta{font-family:var(--mono); font-size:.66rem; color:var(--muted)}
-  .lv-brow .lv-rowplay{flex:0 0 auto}
-
   .livewire{-webkit-tap-highlight-color:transparent}
-  .lv-spec,.lv-rowspec,.lv-expand,.lv-playbtn,.lv-rowplay,.lv-range,.lv-bar,.lv-hb,.lv-xn,.lv-zoom{touch-action:manipulation}
+  .lv-spec,.lv-rowspec,.lv-expand,.lv-playbtn,.lv-rowplay,.lv-range,.lv-hb,.lv-xn,.lv-zoom{touch-action:manipulation}
   @media(pointer:coarse){
     .lv-expand{width:32px; height:32px; font-size:.8rem}
     .lv-rowplay{width:32px; height:32px; font-size:.7rem}
@@ -339,19 +362,19 @@
     .livewire section{margin-top:2.2rem}
     .lv-rowspec{margin-left:0}
     .lv-spec img{height:96px}
-    .lv-toprow .tn{flex:0 0 42%}
     .lv-status{text-align:center}
     .lv-when{font-size:.62rem}
     .lv-wall{grid-template-columns:repeat(auto-fill,minmax(78px,1fr)); gap:.4rem}
     .lv-trow .tl{font-size:.6rem}
-    .lv-brow .bname .bfam{display:none}
   }
   .lv-logmore{display:inline-block; margin-top:1rem; font-size:.72rem; text-transform:uppercase; letter-spacing:.1em; color:var(--accent); text-decoration:none; border-bottom:1px solid transparent}
   .lv-logmore:hover{color:var(--lift); border-color:currentColor}
   .lv-empty{padding:3rem 0 1rem; text-align:center}
   .lv-empty h2{font-family:var(--display); font-weight:500; font-size:1.6rem; margin-bottom:.5rem}
   .lv-empty p{color:var(--muted); max-width:32rem; margin:.4rem auto}
-  @media(prefers-reduced-motion:reduce){.lv-dot{animation:none} .lv-row.flash{animation:none} .lv-zoom{animation:none} button.lv-tk.playing{animation:none}}
+  @media(prefers-reduced-motion:reduce){.lv-dot{animation:none} .lv-row.flash{animation:none} .lv-zoom{animation:none} button.lv-tk.playing{animation:none}
+    .lv-ph,.lv-enter .lv-ph,.lv-enter .lv-nm .w,.lv-enter .lv-when,.lv-enter .lv-meta,.lv-enter .lv-fact,.lv-enter .lv-stamp,
+    #lv-hero > .lv-enter,.lv-chain.arrive,.lv-chip.arrive,button.lv-tk.land,.lv-tally b.bump{animation:none}}
 </style>
 
 {% macro feather(fill) %}<span class="feather" style="background-image:url('data:image/svg+xml;utf8,{{ ('<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"' ~ fill ~ '\"><path d=\"M23 6c-1 0-1.8.3-2.5.9C19 5.6 16.8 4.7 14 5.2c-4 .7-5.6 4-9 4.3-2 .2-3.3-.6-3.3-.6S2 12 6 12.6c-.7 1-2 1.7-3.5 1.9 0 0 1.2 1.5 3.6 1.1-.5.9-1.6 2-3.6 2.4 0 0 3.4 1.6 6.9-.6 2.9-1.8 4-4.8 6.1-6.9C22.5 9.4 24 8 23 6z\"/></svg>') }}')"></span>{% endmacro %}
@@ -376,23 +399,25 @@
     </div>
     {% else %}
 
-    <div class="stat-cards" id="lv-counts">
-        <a class="stat-card" href="#lv-wall"><span class="stat-num">{{ sound.counts.speciesToday or 0 }}</span><span class="stat-lbl">species today</span></a>
-        <a class="stat-card" href="/birds/live/log"><span class="stat-num">{{ sound.counts.callsToday or 0 }}</span><span class="stat-lbl">recordings today</span></a>
-        <a class="stat-card" href="/birds/heard"><span class="stat-num">{{ sound.counts.speciesAllTime or 0 }}</span><span class="stat-lbl">species heard all-time</span></a>
-        <a class="stat-card" href="/birds/live/log"><span class="stat-num">{{ "{:,}".format(sound.counts.callsAllTime or 0) }}</span><span class="stat-lbl">recordings all-time</span></a>
+    {# One sentence instead of four cards; JS keeps it current and ticks the
+       numbers up as birds arrive. Search sits beside it, not in its own band. #}
+    <div class="lv-bar">
+      <p class="lv-tally mono" id="lv-tally">
+        <a href="#lv-wall"><b data-n="{{ sound.counts.speciesToday or 0 }}">{{ sound.counts.speciesToday or 0 }}</b> species</a> &middot;
+        <a href="/birds/live/log"><b data-n="{{ sound.counts.callsToday or 0 }}">{{ "{:,}".format(sound.counts.callsToday or 0) }}</b> recordings today</a> &middot;
+        <a href="/birds/heard"><b data-n="{{ sound.counts.speciesAllTime or 0 }}">{{ sound.counts.speciesAllTime or 0 }}</b> species all-time</a>
+      </p>
+      {# Find any bird the mic has ever heard — photographed or not — and land on
+         its page, where every recording of it can be browsed. #}
+      <form class="lv-find" action="/birds/heard" method="get" role="search">
+        <div class="filter-search bird-combo" id="lvCombo">
+          <input type="search" name="q" placeholder="Find a bird&hellip;" aria-label="Find a bird" autocomplete="off"
+                 role="combobox" aria-expanded="false" aria-controls="lvComboList" aria-autocomplete="list">
+          <div class="bird-combo-pop" id="lvComboList" role="listbox" hidden aria-label="Birds heard"></div>
+        </div>
+        <script>var LV_FIND = [{% for s in sound.species %}{{ {"n": s.display, "f": s.fam or "", "c": s.count or 0}|tojson }}{% if not loop.last %},{% endif %}{% endfor %}];</script>
+      </form>
     </div>
-
-    {# Find any bird the mic has ever heard — photographed or not — and land on
-       its page, where every recording of it can be browsed. #}
-    <form class="lv-find" action="/birds/heard" method="get" role="search">
-      <div class="filter-search bird-combo" id="lvCombo">
-        <input type="search" name="q" placeholder="Find a bird&hellip;" aria-label="Find a bird" autocomplete="off"
-               role="combobox" aria-expanded="false" aria-controls="lvComboList" aria-autocomplete="list">
-        <div class="bird-combo-pop" id="lvComboList" role="listbox" hidden aria-label="Birds heard"></div>
-      </div>
-      <script>var LV_FIND = [{% for s in sound.species %}{{ {"n": s.display, "f": s.fam or "", "c": s.count or 0}|tojson }}{% if not loop.last %},{% endif %}{% endfor %}];</script>
-    </form>
 
     {# NOW — most recent call: the photo, and the sound itself #}
     {# The hero is the newest recording we can actually PLAY, so the card always
@@ -482,14 +507,11 @@
       </div>
     </section>
 
-    {# HEARD TODAY VS PHOTOGRAPHED — scoped to the active day #}
+    {# HEARD TODAY — the wall says heard-vs-shot itself: a never-photographed
+       bird is a ghost chip, and the kicker counts them. #}
     <section>
-      <p class="lv-kick">Heard today vs shot</p>
-      <div class="stat-cards">
-        <div class="stat-card"><span class="stat-num" id="lv-hvt-heard">{{ sound.hvToday.heard }}</span><span class="stat-lbl">species today</span></div>
-        <div class="stat-card"><span class="stat-num" id="lv-hvt-shot">{{ sound.hvToday.shot }}</span><span class="stat-lbl">also in the gallery</span></div>
-        <div class="stat-card"><span class="stat-num amber" id="lv-hvt-miss">{{ sound.hvToday.miss }}</span><span class="stat-lbl">not photographed</span></div>
-      </div>
+      {% set _miss = sound.hvToday.miss if sound.hvToday else 0 %}
+      <p class="lv-kick" id="lv-wallkick">Heard today &middot; {{ 'all photographed' if not _miss else (_miss ~ ' never photographed') }}</p>
       <div class="lv-wall" id="lv-wall">
         {% for s in sound.speciesToday %}
           {% if s.photo %}
@@ -523,26 +545,7 @@
       </div>
     </section>
 
-    {# MOST VOCAL TODAY — species ranked by recordings, clearest clip playable #}
-    <section id="lv-board" hidden>
-      <p class="lv-kick">Most vocal today</p>
-      <div class="lv-boardrows" id="lv-boardrows"></div>
-    </section>
-
-    {# HISTORY — the same strip through four lenses #}
-    <section id="lv-history" hidden>
-      <p class="lv-kick">History</p>
-      <div class="lv-ranges" role="tablist" aria-label="History range">
-        <button class="lv-range on" data-range="7">Week</button>
-        <button class="lv-range" data-range="30">Month</button>
-        <button class="lv-range" data-range="365">Year</button>
-        <button class="lv-range" data-range="0">All-time</button>
-      </div>
-      <div class="lv-sum" id="lv-sum"></div>
-      <div class="lv-chart" id="lv-chart"></div>
-      <div class="lv-axis" id="lv-axis"></div>
-      <div class="lv-top" id="lv-top"></div>
-    </section>
+    <p class="lv-more"><a class="lv-logmore mono" href="/birds/stats#ear-block">Every day since the mic went up is on Stats &rarr;</a></p>
 
     {% endif %}
 </section>
@@ -560,6 +563,15 @@
   var slugify = function (n) { return (n || "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, ""); };
   var birdHref = function (n) { return "/birds/species/" + slugify(n); };
   var FEATHER = {{ feather('%23a9761f')|string|tojson }};  // not-photographed chip glyph
+  var REDUCED = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  function rkey(r) { return r.audio || ((r.t || "") + "|" + (r.display || "")); }
+  /* Arrivals. A 60s poll can bring several birds at once; showing them all
+     in one jump reads as a refresh, not as a yard. New detections queue up
+     and are released one at a time, in the order they were heard. Until its
+     turn a queued detection is invisible everywhere (feed, soundtrack, wall,
+     counts), so each release is one event in every place at once. */
+  var pending = [], pendingSet = {}, releaseTimer = null;
+  function vis(r) { return !pendingSet[rkey(r)]; }
   var ICON_HIDE = {{ icon('eyeoff')|string|tojson }};      // curate: hide one recording
   // A per-recording hide button (curate mode only) — hides just this clip, not the
   // whole species. The endpoint already accepts { clip } and apply_sound_curation
@@ -621,24 +633,80 @@
     var mins = (Date.now() - new Date(LIVE.generated).getTime()) / 60000, stale = mins > STALE_MIN;
     var upd = document.getElementById("lv-upd"), st = document.querySelector(".lv-status"),
         off = document.getElementById("lv-offline"), kick = document.getElementById("lv-nowkick");
+    var mood = stale ? null : moodLine();
     if (st) st.classList.toggle("stale", stale);
+    if (st) st.classList.toggle("quiet", !!(mood && mood.quiet));
     if (upd) upd.textContent = stale
       ? "station offline · last heard " + rel(LIVE.generated)
-      : "listening · North Andover, MA · updated " + rel(LIVE.generated) + weatherBit();
-    if (kick) kick.textContent = stale ? "Last heard" : "Just heard";
+      : mood.text + weatherBit();
+    if (kick) kick.textContent = (stale || mood.quiet) ? "Last heard" : "Just heard";
+    var now = document.querySelector(".lv-now");
+    if (now) now.classList.toggle("night", !!(mood && mood.night));
     if (off) {
       off.hidden = !stale;
       if (stale) off.innerHTML = "<b>Mic offline</b> · last recording " + rel(LIVE.generated);
     }
   }
-  // Ambient weather garnish: the next sun event, and rain when it's raining.
+  /* One honest sentence about right now, from the data on the page: the
+     dawn chorus when the last 20 minutes run well above a typical hour, the
+     length of a lull, or at night when the yard usually wakes up. */
+  function minuteOfDay(ms) { var d = new Date(ms); return d.getHours() * 60 + d.getMinutes(); }
+  function lastHeard() {
+    var best = null;
+    (LIVE.dayrecs || []).concat(LIVE.recent || []).forEach(function (r) {
+      if (vis(r) && (!best || r.t > best.t)) best = r;
+    });
+    return best;
+  }
+  function sunMinutes() {
+    var w = LIVE.weather || {};
+    if (!w.sunrise || !w.sunset) return null;
+    // by time of day, so yesterday's sun times still place tonight correctly
+    return { rise: minuteOfDay(+new Date(w.sunrise)), set: minuteOfDay(+new Date(w.sunset)) };
+  }
+  function isNight() {
+    var sun = sunMinutes(), n = minuteOfDay(Date.now());
+    return sun ? (n < sun.rise || n >= sun.set) : (n < 360 || n >= 1080);
+  }
+  function wakeLabel() {
+    var s = (LIVE.rhythm || {}).firstSong; if (!s) return "";
+    var m = +s.slice(0, 2) * 60 + +s.slice(3, 5);
+    m = Math.round(m / 5) * 5;   // "around" means around
+    var d = new Date(); d.setHours(Math.floor(m / 60), m % 60, 0, 0);
+    return clock(d.toISOString());
+  }
+  function fmtGap(min) {
+    if (min < 60) return Math.round(min) + " min";
+    var h = Math.floor(min / 60), m = Math.round(min % 60);
+    return h + " hr" + (h < 3 && m >= 5 ? " " + m + " min" : "");
+  }
+  function moodLine() {
+    var last = lastHeard(), now = Date.now();
+    var gap = last ? (now - new Date(last.t)) / 60000 : Infinity;
+    var rain = (LIVE.weather || {}).raining ? "raining · " : "";
+    if (isNight() && gap > 30) {
+      var wk = wakeLabel();
+      return { quiet: true, night: true,
+               text: rain + "night · the yard is asleep" + (wk ? " · first song is usually around " + wk : "") };
+    }
+    var n20 = (LIVE.dayrecs || []).filter(function (r) {
+      return vis(r) && now - new Date(r.t) < 20 * 60000;
+    }).length;
+    var typical = (((LIVE.rhythm || {}).perHour || [])[new Date().getHours()] || 0) / 3;
+    if (n20 >= 8 && n20 >= 2 * typical) {
+      var sun = sunMinutes(), n = minuteOfDay(now);
+      var dawn = sun ? (n >= sun.rise - 90 && n <= sun.rise + 180) : n < 600;
+      return { text: rain + (dawn ? "dawn chorus" : "busier than usual") + " · " + n20 + " recordings in 20 min" };
+    }
+    if (gap >= 10 && gap !== Infinity) return { quiet: true, text: rain + "quiet for " + fmtGap(gap) };
+    return { text: rain + "listening · North Andover, MA" };
+  }
+  // Ambient garnish: the next sun event.
   function weatherBit() {
     var w = LIVE.weather; if (!w) return "";
-    var s = "", now = Date.now(),
-        sr = w.sunrise ? +new Date(w.sunrise) : 0, ss = w.sunset ? +new Date(w.sunset) : 0;
-    if (sr && ss) s += (now >= sr && now < ss) ? " · sunset " + clock(w.sunset) : " · sunrise " + clock(w.sunrise);
-    if (w.raining) s += " · raining";
-    return s;
+    var sun = sunMinutes(); if (!sun) return "";
+    var n = minuteOfDay(Date.now());   // by time of day: before dawn, the next sunrise is today's
+    return n < sun.rise ? " · sunrise " + clock(w.sunrise) : (n < sun.set ? " · sunset " + clock(w.sunset) : "");
   }
 
   /* ---- the sound itself: one audio pipe, but every call keeps its own view.
@@ -765,6 +833,7 @@
     audio.addEventListener("loadedmetadata", paint);
     // Clips not public yet (or expired): pull the whole affordance, no broken UI.
     audio.addEventListener("error", function () { root.classList.add("no-media"); });
+    audio.addEventListener("pause", function () { scheduleRelease(900); });
 
     // Hover to scrub: a ghost needle + time bubble track the cursor (pointer
     // devices); the click handlers already seek to where you release.
@@ -941,7 +1010,8 @@
       return;
     }
     var b = e.target.closest(".lv-rowplay"); if (!b) return;
-    var wrap = b.closest(".lv-rowwrap"), r = findRec(b.getAttribute("data-audio"));
+    var wrap = b.closest(".lv-rowwrap"),
+        r = findRec(b.getAttribute("data-audio")) || trackRecs[b.getAttribute("data-audio")];
     if (!r) return;
     if (current && current.audio === r.audio) {
       if (audio.paused) audio.play().catch(function(){}); else audio.pause();
@@ -957,12 +1027,35 @@
   });
 
   /* ---- renderers (poll updates re-use these) ---- */
-  function renderCounts(c) {
-    document.getElementById("lv-counts").innerHTML =
-      '<a class="stat-card" href="#lv-wall"><span class="stat-num">' + (c.speciesToday || 0) + '</span><span class="stat-lbl">species today</span></a>' +
-      '<a class="stat-card" href="/birds/live/log"><span class="stat-num">' + (c.callsToday || 0) + '</span><span class="stat-lbl">recordings today</span></a>' +
-      '<a class="stat-card" href="/birds/heard"><span class="stat-num">' + (c.speciesAllTime || 0) + '</span><span class="stat-lbl">species heard all-time</span></a>' +
-      '<a class="stat-card" href="/birds/live/log"><span class="stat-num">' + (c.callsAllTime || 0).toLocaleString() + '</span><span class="stat-lbl">recordings all-time</span></a>';
+  /* Today's numbers come from the recordings the page is SHOWING, so they
+     never disagree with the wall or the soundtrack, and they tick up as each
+     queued bird lands. */
+  function todayVisible() {
+    var todayKey = new Date().toDateString();
+    return (LIVE.dayrecs || []).filter(function (r) {
+      return vis(r) && new Date(r.t).toDateString() === todayKey;
+    });
+  }
+  function renderTally() {
+    var el = document.getElementById("lv-tally"); if (!el) return;
+    var c = LIVE.counts || {}, recs = todayVisible(), sp = {};
+    recs.forEach(function (r) { sp[slugify(r.display)] = 1; });
+    var have = (LIVE.dayrecs || []).length;
+    var vals = [have ? Object.keys(sp).length : (c.speciesToday || 0),
+                have ? recs.length : (c.callsToday || 0), c.speciesAllTime || 0];
+    el.querySelectorAll("b").forEach(function (b, i) { countTo(b, vals[i]); });
+  }
+  function countTo(b, to) {
+    var from = +b.getAttribute("data-n") || 0;
+    b.setAttribute("data-n", to);
+    if (from === to || REDUCED || to < from || to - from > 40) { b.textContent = to.toLocaleString(); return; }
+    b.classList.remove("bump"); void b.offsetWidth; b.classList.add("bump");
+    var t0 = performance.now();
+    (function step(now) {
+      var k = Math.min(1, (now - t0) / 520);
+      b.textContent = Math.round(from + (to - from) * (1 - Math.pow(1 - k, 3))).toLocaleString();
+      if (k < 1) requestAnimationFrame(step);
+    })(t0);
   }
   function confHTML(r) {
     return '<span class="lv-conf">conf <span class="lv-meter"><i style="width:' + Math.round(r.conf * 100) + '%"></i></span> ' + Math.round(r.conf * 100) + '%</span>';
@@ -980,6 +1073,7 @@
   }
   /* The heard-vs-shot wall is scoped to TODAY and rebuilt on each poll so a
      newly-heard species shows up without a reload. */
+  var wallSeen = null;   // slugs on the wall last render; null until the first
   function renderWall() {
     var wall = document.getElementById("lv-wall");
     if (!wall) return;
@@ -988,26 +1082,31 @@
     // locally, so hiding every clip of a species drops it from the wall at once.
     var todayKey = new Date().toDateString(), heard = {}, meta = {};
     (LIVE.dayrecs || []).forEach(function (r) {
-      if (new Date(r.t).toDateString() === todayKey) heard[slugify(r.display)] = true;
+      if (vis(r) && new Date(r.t).toDateString() === todayKey) heard[slugify(r.display)] = true;
     });
     (LIVE.species || []).forEach(function (s) { meta[slugify(s.display)] = s; });
     var list = Object.keys(heard).map(function (sl) { return meta[sl]; }).filter(Boolean)
       .sort(function (a, b) { return (a.last || "") < (b.last || "") ? 1 : (a.last || "") > (b.last || "") ? -1 : 0; });
+    var seen = wallSeen;
+    wallSeen = {};
     wall.innerHTML = list.map(function (s) {
       var slug = slugify(s.display), fam = esc(s.fam || "");
+      var pop = seen && !seen[slug] && !REDUCED ? " arrive" : "";
+      wallSeen[slug] = 1;
       if (s.photo) {
-        return '<a class="lv-chip" data-slug="' + slug + '" data-fam="' + fam + '" href="' + birdHref(s.display) +
+        return '<a class="lv-chip' + pop + '" data-slug="' + slug + '" data-fam="' + fam + '" href="' + birdHref(s.display) +
           '" style="background-image:url(\'' + s.photo + '\')" title="' + esc(s.display) + ' · ' + (s.count || 0) + '×">' +
           '<span class="cl">' + esc(s.display) + '</span></a>';
       }
-      return '<span class="lv-chip miss" data-slug="' + slug + '" data-fam="' + fam +
+      return '<span class="lv-chip miss' + pop + '" data-slug="' + slug + '" data-fam="' + fam +
         '" title="' + esc(s.display) + ' · heard, not photographed">' + FEATHER + '<span class="cl">' + esc(s.display) + '</span></span>';
     }).join("");
     var empty = document.getElementById("lv-wall-empty");
     if (empty) empty.hidden = list.length > 0;
     var shot = 0; list.forEach(function (s) { if (s.shot) shot++; });
-    var set = function (id, v) { var el = document.getElementById(id); if (el) el.textContent = v; };
-    set("lv-hvt-heard", list.length); set("lv-hvt-shot", shot); set("lv-hvt-miss", list.length - shot);
+    var kick = document.getElementById("lv-wallkick"), miss = list.length - shot;
+    if (kick) kick.textContent = !list.length ? "Heard today"
+      : "Heard today · " + (miss ? miss + " never photographed" : "all photographed");
     applyFocus();
   }
   /* ---- Today's soundtrack + Most vocal: both draw from the day's visible
@@ -1016,7 +1115,7 @@
   function todayScoped() {
     var todayKey = new Date().toDateString();
     var recs = (LIVE.dayrecs || []).filter(function (r) {
-      return new Date(r.t).toDateString() === todayKey;
+      return vis(r) && new Date(r.t).toDateString() === todayKey;
     });
     if (focusSlug || focusFam) recs = recs.filter(matchesFocus);
     if (MULTI && nodeSel) recs = recs.filter(function (r) { return r.node === nodeSel; });
@@ -1035,7 +1134,10 @@
      archive (history.json, fetched once on first use) and "last 7 days" stacks
      one row per day for side-by-side comparison. Ticks are indexed so a click
      can open the full-screen viewer for that exact recording. */
-  var trackMode = "today", trackDate = null, HIST = null, histLoading = false, trackRecs = {};
+  var trackMode = "today", trackDate = null, HIST = null, histLoading = false, trackRecs = {}, trackAll = false;
+  document.addEventListener("click", function (e) {
+    if (e.target.closest("#lv-trackmore")) { trackAll = !trackAll; renderTrack(); }
+  });
   function localISO(d) {
     return d.getFullYear() + "-" + ("0" + (d.getMonth() + 1)).slice(-2) + "-" + ("0" + d.getDate()).slice(-2);
   }
@@ -1143,7 +1245,7 @@
           : d.toLocaleDateString("en-US", { weekday: "short", month: "numeric", day: "numeric" });
         out.push('<div class="lv-trow"><span class="tl"><b>' + lbl + '</b>' +
           '<span class="tn2">' + recs.length + '</span></span><div class="tband">' +
-          recs.map(function (r) { return tickHTML(r, thr); }).join("") + '</div></div>');
+          recs.map(function (r) { return tickHTML(r, thr); }).join("") + '</div><span class="tpl"></span></div>');
       }
       rows.innerHTML = out.join("");
       sec.hidden = false;
@@ -1166,20 +1268,38 @@
         return;
       }
     }
+    // Most vocal first: this IS the leaderboard now (it used to be a second
+    // section ranking the same species by the same count). Each row ends in
+    // its clearest clip.
     var by = {}, order = [];
     recs.forEach(function (r) {
       var k = slugify(r.display);
-      if (!by[k]) { by[k] = { display: r.display, shot: false, first: r.t, recs: [] }; order.push(by[k]); }
-      by[k].recs.push(r);
-      by[k].shot = by[k].shot || !!r.shot;
-      if (r.t < by[k].first) by[k].first = r.t;
+      if (!by[k]) { by[k] = { display: r.display, shot: false, first: r.t, recs: [], hi: 0, best: null }; order.push(by[k]); }
+      var c = by[k];
+      c.recs.push(r);
+      c.shot = c.shot || !!r.shot;
+      if (r.t < c.first) c.first = r.t;
+      if ((r.conf || 0) >= thr) c.hi++;
+      if (r.audio && (!c.best || (r.conf || 0) > (c.best.conf || 0))) c.best = r;
     });
-    order.sort(function (a, b) { return a.first < b.first ? -1 : a.first > b.first ? 1 : 0; });
+    order.sort(function (a, b) {
+      return (b.hi - a.hi) || (b.recs.length - a.recs.length) || (a.first < b.first ? -1 : 1);
+    });
+    // The ten most vocal; the long tail of once-heard birds is one tap away.
+    var TOP = 10, extra = order.length - TOP;
+    if (extra > 2 && !trackAll) order = order.slice(0, TOP); else extra = trackAll && extra > 2 ? extra : 0;
     rows.innerHTML = order.map(function (sp) {
+      if (sp.best) trackRecs[sp.best.audio] = sp.best;
+      var n = sp.hi || sp.recs.length;
       return '<div class="lv-trow"><span class="tl">' +
-        '<a href="' + birdHref(sp.display) + '"' + (sp.shot ? '' : ' class="miss"') + '>' + esc(sp.display) + '</a></span>' +
-        '<div class="tband">' + sp.recs.map(function (r) { return tickHTML(r, thr); }).join("") + '</div></div>';
-    }).join("");
+        '<a href="' + birdHref(sp.display) + '"' + (sp.shot ? '' : ' class="miss"') + '>' + esc(sp.display) + '</a>' +
+        '<span class="tn2" title="' + n + ' recording' + (n === 1 ? '' : 's') + '">' + n + '</span></span>' +
+        '<div class="tband">' + sp.recs.map(function (r) { return tickHTML(r, thr); }).join("") + '</div>' +
+        '<span class="tpl">' + (sp.best ? '<span class="lv-rowwrap" data-audio="' + esc(sp.best.audio) + '"><button class="lv-rowplay" data-audio="' +
+          esc(sp.best.audio) + '" title="play the clearest ' + esc(sp.display) + ' clip (' + Math.round((sp.best.conf || 0) * 100) +
+          '%)" aria-label="play the clearest ' + esc(sp.display) + ' recording">&#9654;</button></span>' : '') + '</span></div>';
+    }).join("") + (extra > 2 ? '<button type="button" class="lv-trackmore" id="lv-trackmore">' +
+      (trackAll ? 'top ten only' : '+' + extra + ' more heard ' + (trackMode === "today" ? 'today' : 'that day')) + '</button>' : '');
     var w = LIVE.weather;
     var mk = function (iso, cls, tip) {
       return '<span class="lv-tmk ' + cls + '" style="left:' + dayPct(iso) + '%" title="' + tip + " " + clock(iso) + '"></span>';
@@ -1189,45 +1309,6 @@
       (w && w.sunrise ? mk(w.sunrise, "sunrise", "sunrise") : "") +
       (w && w.sunset ? mk(w.sunset, "sunset", "sunset") : "") +
       mk(new Date().toISOString(), "now", "now");
-  }
-  function renderBoard() {
-    var sec = document.getElementById("lv-board"), rows = document.getElementById("lv-boardrows");
-    if (!sec || !rows) return;
-    var thr = confMin / 100;
-    var recs = todayScoped().filter(function (r) { return (r.conf || 0) >= thr; });
-    var meta = speciesMeta(), by = {}, order = [];
-    recs.forEach(function (r) {
-      var k = slugify(r.display);
-      if (!by[k]) { by[k] = { display: r.display, fam: r.fam, n: 0, first: r.t, last: r.t, best: null }; order.push(by[k]); }
-      var c = by[k];
-      c.n++;
-      if (r.t < c.first) c.first = r.t;
-      if (r.t > c.last) c.last = r.t;
-      if (r.audio && (!c.best || (r.conf || 0) > (c.best.conf || 0))) c.best = r;
-    });
-    // A leaderboard of one isn't a leaderboard — need at least two species today.
-    sec.hidden = order.length < 2;
-    if (order.length < 2) { rows.innerHTML = ""; return; }
-    order.sort(function (a, b) { return b.n - a.n || (a.first < b.first ? -1 : 1); });
-    var top = order.slice(0, 10), max = top[0].n;
-    rows.innerHTML = top.map(function (c, i) {
-      var m = meta[slugify(c.display)] || {};
-      var av = m.photo
-        ? '<span class="lv-av" style="background-image:url(\'' + m.photo + '\')"></span>'
-        : '<span class="lv-av miss"></span>';
-      var span = clock(c.first) + (c.n > 1 ? " &rarr; " + clock(c.last) : "");
-      // on the ROW, so the rank numeral and the bar share one hue — they are
-      // one object, and a custom property only cascades to descendants
-      return '<div class="lv-brow" style="--tkc:' + famColor(c) + '">' +
-        '<span class="brk">' + (i + 1) + '</span>' + av +
-        '<div class="bmain"><div class="bname"><a href="' + birdHref(c.display) + '">' + esc(c.display) + '</a>' +
-        (c.fam ? '<span class="bfam">' + esc(c.fam) + '</span>' : '') + '</div>' +
-        '<div class="bbar"><i style="width:' + Math.max(4, Math.round(c.n / max * 100)) + '%"></i></div>' +
-        '<div class="bmeta">' + c.n + ' recording' + (c.n === 1 ? '' : 's') + ' &middot; ' + span + '</div></div>' +
-        (c.best ? '<div class="lv-rowwrap" data-audio="' + esc(c.best.audio) + '"><button class="lv-rowplay" data-audio="' + esc(c.best.audio) + '" title="play the clearest ' + esc(c.display) + ' clip (' + Math.round((c.best.conf || 0) * 100) + '%)" aria-label="play the clearest ' + esc(c.display) + ' recording">&#9654;</button></div>' : '') +
-        '</div>';
-    }).join("");
-    syncViews();
   }
   /* Find a bird: the gallery's combobox, over every bird the mic has heard.
      Empty, it lists the most recently heard; typed, prefix beats word-start
@@ -1301,21 +1382,76 @@
     input.addEventListener("blur", function () { setTimeout(function () { setOpen(false); }, 120); });
     box.closest("form").addEventListener("submit", function (ev) { ev.preventDefault(); go(items[0] || rank(input.value.trim().toLowerCase())[0]); });
   })();
-  function renderHero(r) {
+  /* The gallery's web copy, not the 400px grid thumbnail the species pool
+     carries: the hero is the biggest picture on the page. The thumb is layered
+     underneath so something shows while the big one loads. */
+  function webPhoto(u) { return u ? u.replace("/birds/thumbs/", "/birds/images/") : u; }
+  function addDays(iso, n) {
+    var d = new Date(iso + "T12:00:00"); d.setDate(d.getDate() + n); return localISO(d);
+  }
+  function daysBetween(a, b) { return Math.round((new Date(b + "T12:00:00") - new Date(a + "T12:00:00")) / 864e5); }
+  function fmtDate(iso, ref) {
+    var d = new Date(iso + "T12:00:00");
+    return d.toLocaleDateString("en-US", iso.slice(0, 4) === ref.slice(0, 4)
+      ? { month: "long", day: "numeric" } : { month: "long", day: "numeric", year: "numeric" });
+  }
+  /* What is true and worth saying about this bird, right now: a stamp for a
+     first, and one line from the yard's own history. Nothing invented —
+     every sentence is a count over recordings on the page or in the rollup. */
+  function heroNotes(r) {
+    var out = { stamp: "", line: "" };
+    var daily = LIVE.daily || [], station = daily.length ? daily[daily.length - 1].d : null;
+    var isToday = !!station && (r.t || "").slice(0, 10) === station;
+    if (r.new) out.stamp = "new to the yard";
+    else if (isToday && !(LIVE.dayrecs || []).some(function (x) {
+      return vis(x) && x.display === r.display && (x.t || "").slice(0, 10) === station && x.t < r.t;
+    })) out.stamp = "first of the day";
+    if (!isToday) return out;
+    var t = +new Date(r.t);
+    var both = !!r.node && (LIVE.dayrecs || []).some(function (x) {
+      return x.display === r.display && x.node && x.node !== r.node && Math.abs(+new Date(x.t) - t) < 20000;
+    });
+    var f = ((LIVE.rhythm || {}).facts || {})[r.display];
+    var since = (daily[0] || {}).d;
+    if (both) out.line = "Both mics caught this one.";
+    else if (f && f.prev && daysBetween(f.prev, station) >= 14) out.line = "First one here since " + fmtDate(f.prev, station) + ".";
+    else if (f && since && f.streak >= 7 && addDays(station, 1 - f.streak) <= since) out.line = "Heard every day since the mic went up.";
+    else if (f && f.streak >= 3) out.line = "Heard here " + f.streak + " days running.";
+    return out;
+  }
+  var shownHero = null;
+  function renderHero(r, animate) {
     var h = document.getElementById("lv-hero");
-    var photo = heroPhoto(r);
-    var tags = r.new ? '<span class="lv-tag new">first recording</span>' : '';
-    if (photo) {
-      h.innerHTML = '<div class="lv-portrait" style="background-image:url(\'' + photo + '\')"><div class="lv-body">' +
+    if (rkey(r) === shownHero && h.firstElementChild) return;  // a poll must not restart the picture
+    shownHero = rkey(r);
+    var photo = heroPhoto(r), notes = heroNotes(r);
+    var words = String(r.display || "").split(" ").map(function (w, i) {
+      return '<span class="w" style="--i:' + i + '">' + esc(w) + '</span>';
+    }).join(" ");
+    var stamp = notes.stamp ? '<span class="lv-stamp">' + esc(notes.stamp) + '</span>' : '';
+    var line = notes.line ? '<p class="lv-fact">' + esc(notes.line) + '</p>' : '';
+    var meta = '<div class="lv-meta">' + confHTML(r) + nodeDot(r.node) + ((CURATE && r.audio) ? hideBtn(r.audio) : '') + '</div>';
+    var html = photo
+      ? '<div class="lv-portrait"><div class="lv-ph" style="background-image:url(\'' + webPhoto(photo) + '\'),url(\'' + photo + '\')"></div>' +
+        stamp + '<div class="lv-body">' +
         '<div class="lv-when" data-t="' + esc(r.t) + '" data-lead="' + esc(r.fam) + '"></div>' +
-        '<div class="lv-nm"><a href="' + birdHref(r.display) + '">' + esc(r.display) + '</a></div>' +
-        '<div class="lv-meta">' + tags + confHTML(r) + nodeDot(r.node) + ((CURATE && r.audio) ? hideBtn(r.audio) : '') + '</div></div></div>';
-    } else {
-      h.innerHTML = '<div class="lv-ghostcard"><div class="lv-body">' +
+        '<div class="lv-nm"><a href="' + birdHref(r.display) + '">' + words + '</a></div>' + meta + line + '</div></div>'
+      : '<div class="lv-ghostcard">' + FEATHER + stamp + '<div class="lv-body">' +
         '<div class="lv-when" data-t="' + esc(r.t) + '" data-lead="heard, not photographed"></div>' +
-        '<div class="lv-nm">' + esc(r.display) + '</div>' +
-        '<div class="lv-meta">' + tags + confHTML(r) + nodeDot(r.node) + ((CURATE && r.audio) ? hideBtn(r.audio) : '') + '</div></div></div>';
-    }
+        '<div class="lv-nm">' + words + '</div>' + meta + line + '</div></div>';
+    if (!animate || REDUCED || !h.firstElementChild) { h.innerHTML = html; return; }
+    // Cross-fade: the new bird is laid over the old one and fades up while its
+    // photo settles and its name sets itself word by word; the old card goes
+    // once it is fully covered.
+    var tmp = document.createElement("div"); tmp.innerHTML = html;
+    var next = tmp.firstElementChild;
+    next.classList.add("lv-enter", "lv-over");
+    Array.prototype.forEach.call(h.children, function (old) { old.classList.add("lv-leave"); });
+    h.appendChild(next);
+    setTimeout(function () {
+      Array.prototype.slice.call(h.children).forEach(function (c) { if (c !== next) c.remove(); });
+      next.classList.remove("lv-over");
+    }, 950);
   }
   /* ---- the feed: contiguous same-species calls fold into one chain row
      showing the run's best confidence; ×N expands the individual calls.
@@ -1372,7 +1508,7 @@
     // from a previous night. Keep only the viewer's current calendar day.
     var todayKey = new Date().toDateString();
     var shown = base.filter(function (r) {
-      return !isHeroRec(r) && new Date(r.t).toDateString() === todayKey;
+      return vis(r) && !isHeroRec(r) && new Date(r.t).toDateString() === todayKey;
     });
     // Focus mode FILTERS the feed to the bird/family — a page of dimmed
     // other-species rows read as broken, not focused.
@@ -1448,10 +1584,9 @@
       if (current.needle && needleAt) current.needle.style.left = needleAt;
     }
     feedFade();
-    // The soundtrack + leaderboard share the feed's scoping, so every path that
+    // The soundtrack shares the feed's scoping, so every path that
     // re-renders the feed (poll, slider, hide, node/focus change) refreshes them.
     renderTrack();
-    renderBoard();
     syncViews();
   }
   // The quieter-than-threshold species: counted, and revealable (dimmed) — never
@@ -1513,7 +1648,7 @@
     // The WHOLE day (dayrecs = today's full curated log), not just the recent
     // window — so the morning shows even after it's scrolled out of the feed.
     (LIVE.dayrecs || LIVE.recent || []).forEach(function (r) {
-      if (isHeroRec(r)) return;
+      if (isHeroRec(r) || !vis(r)) return;
       if (MULTI && nodeSel && r.node !== nodeSel) return;  // strip follows the mic filter
       var dt = new Date(r.t);
       if (dt.toDateString() === todayKey) hours[dt.getHours()]++;
@@ -1554,83 +1689,6 @@
     } else note.hidden = true;
   }
 
-  /* ---- history: one daily strip, four lenses ---- */
-  var range = 7;
-  function dayKey(d) { return d.toISOString().slice(0, 10); }
-  function historyDays() {
-    var byDay = {}; (LIVE.daily || []).forEach(function (d) { byDay[d.d] = d; });
-    var first = (LIVE.daily || [])[0];
-    if (!first) return [];
-    var out = [], end = new Date(), n = range;
-    if (!n) { // all-time: from first heard day
-      n = Math.max(1, Math.round((end - new Date(first.d + "T12:00:00")) / 86400000) + 1);
-    }
-    for (var i = n - 1; i >= 0; i--) {
-      var d = new Date(end.getTime() - i * 86400000), k = dayKey(d);
-      out.push(byDay[k] || { d: k, n: 0, sp: {} });
-    }
-    return out;
-  }
-  function bucket(days) {
-    // keep the strip readable: day bars up to ~60, then week, then month
-    if (days.length <= 62) return { unit: "day", rows: days };
-    var size = days.length <= 400 ? 7 : 30, rows = [];
-    for (var i = 0; i < days.length; i += size) {
-      var chunk = days.slice(i, i + size), sp = {};
-      chunk.forEach(function (d) { for (var k in (d.sp || {})) sp[k] = (sp[k] || 0) + d.sp[k]; });
-      rows.push({ d: chunk[0].d, n: chunk.reduce(function (a, d) { return a + d.n; }, 0), sp: sp });
-    }
-    return { unit: size === 7 ? "week" : "month", rows: rows };
-  }
-  function fmtDay(k) { return new Date(k + "T12:00:00").toLocaleDateString([], { month: "short", day: "numeric" }); }
-  var picked = -1; // clicked bar -> every number below scopes to that slice
-  function renderHistory() {
-    var sec = document.getElementById("lv-history");
-    if (!(LIVE.daily || []).length) { sec.hidden = true; return; }
-    sec.hidden = false;
-    var days = historyDays(), b = bucket(days), mx = 1, i;
-    if (picked >= b.rows.length) picked = -1;
-    for (i = 0; i < b.rows.length; i++) mx = Math.max(mx, b.rows[i].n);
-    document.getElementById("lv-chart").innerHTML = b.rows.map(function (r, j) {
-      return '<div class="lv-bar' + (r.n ? '' : ' zero') + (j === picked ? ' sel' : '') +
-        '" data-i="' + j + '" role="button" tabindex="0" style="height:' + Math.max(4, Math.round(r.n / mx * 100)) + '%" title="' +
-        fmtDay(r.d) + (b.unit !== "day" ? " +" : "") + ' · ' + r.n + ' recordings — click for the breakdown"></div>';
-    }).join("");
-    document.getElementById("lv-axis").innerHTML =
-      '<span>' + fmtDay(b.rows[0].d) + '</span><span>' + (b.unit === "day" ? 'recordings per day' : 'recordings per ' + b.unit) + '</span><span>today</span>';
-
-    // A clicked bar narrows every number below to that slice of time.
-    var scope = picked >= 0 ? [b.rows[picked]] : days;
-    var sp = {}, calls = 0, busiest = null;
-    scope.forEach(function (d) {
-      calls += d.n;
-      if (!busiest || d.n > busiest.n) busiest = d;
-      for (var k in (d.sp || {})) sp[k] = (sp[k] || 0) + d.sp[k];
-    });
-    var names = Object.keys(sp);
-    var pickedTag = picked >= 0
-      ? '<span><b>' + fmtDay(b.rows[picked].d) + (b.unit !== "day" ? ' +' : '') + '</b><button type="button" class="lv-clear mono" id="lv-clear">&times; whole range</button></span>'
-      : '<span><b>' + fmtDay((LIVE.daily[0] || {}).d) + '</b>listening since</span>';
-    document.getElementById("lv-sum").innerHTML =
-      '<span><b>' + calls.toLocaleString() + '</b>recordings</span>' +
-      '<span><b>' + names.length + '</b>species</span>' +
-      (picked < 0 && busiest && busiest.n ? '<span><b>' + fmtDay(busiest.d) + '</b>busiest day (' + busiest.n + ')</span>' : '') +
-      pickedTag;
-
-    names.sort(function (a, b2) { return sp[b2] - sp[a]; });
-    var topMax = sp[names[0]] || 1;
-    // Seed from the eight rows actually DRAWN, not all 31 species in range:
-    // seeding from the full set spent the five hues on families that never
-    // appear, and most visible rows fell back to the neutral.
-    assignFamilies(names.slice(0, 8).map(function (n) { return { fam: famOfName(n) }; }));
-    document.getElementById("lv-top").innerHTML = names.slice(0, 8).map(function (n) {
-      return '<div class="lv-toprow" style="--tkc:' + famColorName(n) + '">' +
-        '<span class="tn"><a href="' + birdHref(n) + '">' + esc(n) + '</a></span>' +
-        '<span class="tb"><i style="width:' + Math.round(sp[n] / topMax * 100) + '%"></i></span>' +
-        '<span class="tc">' + sp[n] + '&times;</span></div>';
-    }).join("");
-
-  }
   document.addEventListener("click", function (e) {
     // node filter: a chip narrows every feed control to one mic (or back to all)
     var nc = e.target.closest(".node-chip");
@@ -1661,30 +1719,70 @@
       renderFeed(LIVE.recent, false); stampTimes();
       return;
     }
-    if (e.target.closest("#lv-clear")) { picked = -1; renderHistory(); return; }
-    var bar = e.target.closest(".lv-bar");
-    if (bar) {
-      var j = +bar.getAttribute("data-i");
-      picked = (picked === j) ? -1 : j;
-      renderHistory();
-      return;
-    }
-    var b = e.target.closest(".lv-range"); if (!b) return;
-    range = +b.getAttribute("data-range");
-    picked = -1;
-    root.querySelectorAll(".lv-range").forEach(function (x) { x.classList.toggle("on", x === b); });
-    renderHistory();
-  });
-  document.addEventListener("keydown", function (e) {
-    if (e.key !== "Enter" && e.key !== " ") return;
-    var bar = e.target.closest && e.target.closest(".lv-bar");
-    if (bar) { e.preventDefault(); bar.click(); }
   });
 
   /* ---- live: poll and update in place ---- */
+  function byTime(a, b) { return a.t < b.t ? -1 : a.t > b.t ? 1 : 0; }
+  function findByKey(k) {
+    var all = (LIVE.recent || []).concat(LIVE.dayrecs || []);
+    for (var i = 0; i < all.length; i++) if (rkey(all[i]) === k) return all[i];
+    return null;
+  }
+  function heroWorthy(r) {
+    return !!(r && r.audio) && (r.conf || 0) >= confMin / 100 && !(focusSlug || focusFam);
+  }
+  function scheduleRelease(delay) {
+    if (releaseTimer || !pending.length) return;
+    releaseTimer = setTimeout(function () { releaseTimer = null; releaseNext(); }, delay);
+  }
+  function releaseNext() {
+    if (!pending.length) return;
+    // Never cut a song off: while the hero's clip plays, the queue waits.
+    if (current && current.isHero && !audio.paused) { scheduleRelease(1200); return; }
+    var k = pending.shift();
+    delete pendingSet[k];
+    var r = findByKey(k);
+    if (r) arrive(r);
+    if (!pending.length) return;
+    // Spread what is left over the next ~40s (the poll is 60s), never closer
+    // than a beat apart; a quiet low-confidence detection just slips in.
+    var nx = findByKey(pending[0]);
+    scheduleRelease(heroWorthy(nx) ? Math.max(3200, Math.min(6000, 30000 / pending.length)) : 700);
+  }
+  function arrive(r) {
+    var prev = curHero, lead = heroWorthy(r);
+    if (lead) { curHero = r; renderHero(r, true); loadHero(r); }
+    renderTally(); renderHourStrip(); renderFeed(LIVE.recent, false); renderWall(); stampTimes();
+    if (REDUCED) return;
+    // One motion, three places: the old bird drops into the feed, the new
+    // one's mark lands on the soundtrack.
+    var slide = lead ? (prev && slugify(prev.display)) : slugify(r.display);
+    var ch = slide && document.querySelector('#lv-feed .lv-chain[data-key="' + slide + '"]');
+    if (ch) ch.classList.add("arrive");
+    var tk = r.audio && document.querySelector('#lv-trackrows button.lv-tk[data-audio="' + r.audio + '"]');
+    if (tk) tk.classList.add("land");
+  }
   function apply(data, isFirst) {
     var prevTop = LIVE.recent && LIVE.recent[0] && LIVE.recent[0].t;
+    var known = {};
+    if (!isFirst) (LIVE.recent || []).concat(LIVE.dayrecs || []).forEach(function (r) { known[rkey(r)] = 1; });
     LIVE = data;
+    // Queue what is new since the last look. A tab that slept for an hour
+    // comes back to dozens: replay the last few, show the rest at once.
+    var present = {};
+    (data.recent || []).concat(data.dayrecs || []).forEach(function (r) { present[rkey(r)] = 1; });
+    pending = pending.filter(function (k) { return present[k]; });  // curated away meanwhile
+    if (!isFirst && !(focusSlug || focusFam)) {
+      var heroT = curHero ? curHero.t : "";
+      var fresh = (data.recent || []).filter(function (r) {
+        return !known[rkey(r)] && !pendingSet[rkey(r)] && r.t > heroT;
+      }).sort(byTime);
+      if (fresh.length > 6) fresh = fresh.slice(-4);
+      fresh.forEach(function (r) { pending.push(rkey(r)); });
+    }
+    pending.sort(function (a, b) { var x = findByKey(a), y = findByKey(b); return byTime(x || {}, y || {}); });
+    pendingSet = {};
+    pending.forEach(function (k) { pendingSet[k] = 1; });
     // Nodes can appear/vanish between polls (a second mic comes online) — recompute
     // so MULTI, the filter, and every dot track the live roster.
     NODES = (data.nodes || []).filter(function (n) { return n && n.name; });
@@ -1698,7 +1796,7 @@
     // the focused bird's newest playable clip; if that bird isn't in the recent
     // feed (last heard days ago), build a hero from the species rollup so it still
     // leads, with its real last-heard time.
-    var pool = (focusSlug || focusFam) ? data.recent.filter(matchesFocus) : data.recent;
+    var pool = ((focusSlug || focusFam) ? data.recent.filter(matchesFocus) : data.recent).filter(vis);
     // Hero respects the confidence slider too — don't headline a sub-threshold clip
     // when the feed is filtered (fall back to newest playable only if none clear it).
     var heroThr = confMin / 100;
@@ -1713,14 +1811,13 @@
                        audio: sp.audio, spec: sp.spec };
     }
     hero = hero || pool[0] || data.recent[0];  // last resort: show the card even if silent
-    renderCounts(data.counts || {});
     curHero = hero;   // feed excludes this exact clip so it isn't shown twice
-    renderHero(hero);
+    renderHero(hero, !isFirst);
     renderNodes();
     renderHourStrip();
-    renderFeed(data.recent, newTop);
+    renderFeed(data.recent, newTop && !pending.length);
     renderWall();
-    renderHistory();
+    renderTally();
     stampTimes();
     // Load the hero's player on first paint or whenever the hero clip changes —
     // don't reload (and interrupt playback) just because a no-audio detection
@@ -1728,6 +1825,7 @@
     var top = hero && hero.audio ? hero : null;
     if (top && (isFirst || !heroClip || top.audio !== heroClip.audio)) loadHero(top);
     applyFocus();  // the feed just re-rendered — keep the deep-link focus on
+    scheduleRelease(1400);
   }
   function poll() {
     fetch("/birds/live.json").then(function (r) { return r.json(); }).then(function (d) {
@@ -1779,6 +1877,7 @@
       .then(function () {
         LIVE.recent = (LIVE.recent || []).filter(function (r) { return r.audio !== clip; });
         LIVE.dayrecs = (LIVE.dayrecs || []).filter(function (r) { return r.audio !== clip; });
+        shownHero = null;
         apply(LIVE, true);
         showToast("Recording hidden", function () {  // undo -> un-hide + re-fetch
           fetch("/curate/sound", { method: "POST", headers: { "Content-Type": "application/json" },
@@ -1834,7 +1933,7 @@
 
   poll();  // embedded data may be a cached/bfcache snapshot — pull live at once
   setInterval(poll, 60000);
-  setInterval(stampTimes, 30000);
+  setInterval(stampTimes, 15000);
   // A backgrounded or bfcache-restored tab (common on phones) can show a stale
   // snapshot — refresh the instant it's shown again or refocused.
   window.addEventListener("pageshow", function (e) { if (e.persisted) poll(); });

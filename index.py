@@ -1222,7 +1222,87 @@ def _live_view():
         miss_t = [s for s in today_sp if not s["shot"]]
         view["speciesToday"] = today_sp
         view["hvToday"] = {"heard": len(today_sp), "shot": len(today_sp) - len(miss_t), "miss": len(miss_t)}
+        if station_today:
+            try:
+                view["rhythm"] = _live_rhythm(station_today)
+            except Exception:  # noqa: BLE001 — garnish; never break the page for it
+                view["rhythm"] = None
     return view
+
+
+def _yard_rhythm(rows, today, canon=None, window=28):
+    """What the yard's recent history says about today, for the live page's
+    small true sentences. `rows` are log rows (local-ISO `t`, newest first or
+    not), `today` a local YYYY-MM-DD.
+
+    - facts[display] = {"streak": days heard in a row up to and including
+      today, "prev": the last day before today it was heard (or None)}
+    - firstSong: the median time the yard wakes up, "HH:MM": each recent
+      day's first BURST (3 recordings inside 15 minutes), so a lone night
+      call (a passing swan, an owl) does not count as the morning
+    - perHour: average recordings per clock hour over the last `window`
+      complete days, so "busier than usual" compares like with like.
+    """
+    canon = canon or (lambda n: n)
+    days = collections.defaultdict(set)          # display -> {date}
+    morning = collections.defaultdict(list)      # date -> minutes before noon
+    per_day_hour = collections.Counter()         # (date, hour) -> n
+    start = (datetime.date.fromisoformat(today) - datetime.timedelta(days=window)).isoformat()
+    for r in rows:
+        t = r.get("t") or ""
+        if len(t) < 16:
+            continue
+        d, hm = t[:10], t[11:16]
+        name = canon(r.get("display") or r.get("common") or "")
+        if name:
+            days[name].add(d)
+        if start <= d < today:
+            m = int(hm[:2]) * 60 + int(hm[3:])
+            if m < 720:
+                morning[d].append(m)
+            per_day_hour[(d, int(t[11:13]))] += 1
+    facts = {}
+    t0 = datetime.date.fromisoformat(today)
+    for name, ds in days.items():
+        if today not in ds:
+            continue
+        streak, d = 0, t0
+        while d.isoformat() in ds:
+            streak += 1
+            d -= datetime.timedelta(days=1)
+        before = sorted(x for x in ds if x < today)
+        facts[name] = {"streak": streak, "prev": before[-1] if before else None}
+    wake = []
+    for ms in morning.values():
+        ms.sort()
+        for i in range(len(ms) - 2):
+            if ms[i + 2] - ms[i] <= 15:
+                wake.append(ms[i])
+                break
+    song = None
+    if wake:
+        wake.sort()
+        m = wake[len(wake) // 2]
+        song = "%02d:%02d" % (m // 60, m % 60)
+    ndays = len({d for d, _ in per_day_hour}) or 1
+    per_hour = [round(sum(n for (d, h), n in per_day_hour.items() if h == hh) / ndays, 2)
+                for hh in range(24)]
+    return {"facts": facts, "firstSong": song, "perHour": per_hour}
+
+
+def _live_rhythm(today):
+    """_yard_rhythm over the merged log, memoised per log generation and day.
+    `today` is the station's own date (its last daily rollup), not the server's."""
+    log = _sound_log_merged() or {}
+    memo = {}
+
+    def canon(n):
+        if n not in memo:
+            c = birds._canon_species(n)
+            memo[n] = c[0] if c else n
+        return memo[n]
+    return birds._memoed("yard_rhythm:%s|%s" % (log.get("generated"), today), birds._MEMO_TTL,
+                         lambda: _yard_rhythm(log.get("log") or [], today, canon))
 
 
 @app.route("/birds/live", methods=["GET"])

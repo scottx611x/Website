@@ -858,6 +858,56 @@ class OriginalCropTestCase(unittest.TestCase):
             self.assertIsNone(birds.original_crop(url.replace("p1-0", "p9-9")))  # unknown
 
 
+class YardRhythmTestCase(unittest.TestCase):
+    """The live page's small true sentences come from _yard_rhythm."""
+
+    def rows(self, *specs):
+        return [{"t": t, "common": c} for t, c in specs]
+
+    def test_streak_and_previous_day(self):
+        out = index._yard_rhythm(self.rows(
+            ("2026-11-13T07:00:00-05:00", "Carolina Wren"),
+            ("2026-11-12T07:00:00-05:00", "Carolina Wren"),
+            ("2026-11-11T07:00:00-05:00", "Carolina Wren"),
+            ("2026-11-09T07:00:00-05:00", "Carolina Wren"),     # gap breaks the run
+            ("2026-11-13T08:00:00-05:00", "Dark-eyed Junco"),
+            ("2026-04-02T08:00:00-04:00", "Dark-eyed Junco"),
+            ("2026-11-12T09:00:00-05:00", "Blue Jay"),           # not heard today
+        ), "2026-11-13")
+        self.assertEqual(out["facts"]["Carolina Wren"], {"streak": 3, "prev": "2026-11-12"})
+        self.assertEqual(out["facts"]["Dark-eyed Junco"], {"streak": 1, "prev": "2026-04-02"})
+        self.assertNotIn("Blue Jay", out["facts"])
+
+    def test_first_song_is_the_median_first_burst(self):
+        def burst(day, hm):
+            h, m = map(int, hm.split(":"))
+            return [("%sT%02d:%02d:00-05:00" % (day, h, m + k), "A") for k in (0, 4, 9)]
+        out = index._yard_rhythm(self.rows(
+            *burst("2026-11-13", "04:00"),                      # today: not part of "usual"
+            ("2026-11-12T02:10:00-05:00", "Tundra Swan"),       # a lone night call
+            *burst("2026-11-12", "06:40"),
+            *burst("2026-11-11", "06:20"),
+            ("2026-11-10T05:40:00-05:00", "A"), ("2026-11-10T06:05:00-05:00", "A"),  # too spread out
+            *burst("2026-11-10", "06:30"),
+        ), "2026-11-13")
+        self.assertEqual(out["firstSong"], "06:30")
+
+    def test_per_hour_is_an_average_over_days_with_recordings(self):
+        out = index._yard_rhythm(self.rows(
+            ("2026-11-12T07:05:00-05:00", "A"), ("2026-11-12T07:10:00-05:00", "A"),
+            ("2026-11-11T07:15:00-05:00", "A"), ("2026-11-11T07:20:00-05:00", "A"),
+            ("2026-11-11T07:25:00-05:00", "A"), ("2026-11-11T08:00:00-05:00", "A"),
+        ), "2026-11-13")
+        self.assertEqual(out["perHour"][7], 2.5)
+        self.assertEqual(out["perHour"][8], 0.5)
+        self.assertEqual(len(out["perHour"]), 24)
+
+    def test_canon_folds_names(self):
+        out = index._yard_rhythm(self.rows(("2026-11-13T07:00:00-05:00", "carolina wren")),
+                                 "2026-11-13", canon=lambda n: n.title())
+        self.assertIn("Carolina Wren", out["facts"])
+
+
 class ClipInstantTestCase(unittest.TestCase):
     """One station names clips in local time with a Z; the upload time says
     which reading is real, so dawn birds stop appearing at 1 AM."""
