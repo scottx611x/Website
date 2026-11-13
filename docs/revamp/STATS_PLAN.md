@@ -1,5 +1,13 @@
 # /birds/stats: pick a bird, the page answers
 
+> **Status 2026-11-13:** phases 1-3 shipped (c13959a, 0ec8ca6, 2caa622).
+> Probes: `statpin`, `statarrive`. Height 7,364 -> 5,867px desktop and
+> 8,415 -> 6,353px phone: short of the 4,800 / 5,800 targets, because the
+> sections kept as-is (30-row rhythm, map, river) are most of what is left.
+> Deviation: on touch the whole row pins (the bar is hidden on phones and
+> the name fills the row); the pin chip's name links to the profile there.
+> Phase 4 (river palette) not started: show both versions first.
+
 A design brief for a fresh session to implement. Read all of it, then
 `docs/revamp/OVERNIGHT.md` (working rules, probes, rejected designs) and
 `docs/revamp/LIVE_PLAN.md` (the same recipe, already shipped on Live).
