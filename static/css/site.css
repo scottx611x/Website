@@ -925,11 +925,27 @@ a.stat-card:hover { border-color: var(--accent); }
 .stat-span { text-align: center; color: var(--muted); font-size: 0.8rem; margin: 0.4rem 0 0.9rem; }
 .stat-sub { color: var(--muted); font-size: 0.72rem; margin: 0 0 1rem; }
 
-.stat-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.2rem; }
+/* The day / the collection in one sentence: Live and Stats both open with it,
+   where four stat cards used to take a screen to say the same. */
+.tally { margin: 0; font-size: 0.76rem; color: var(--muted); text-align: center; letter-spacing: 0.02em; line-height: 1.9; }
+.tally a { color: inherit; text-decoration: none; white-space: nowrap; }
+.tally a:hover { color: var(--accent); }
+.tally b { font-family: var(--display); font-weight: 600; font-size: 1.12rem; color: var(--ink);
+  letter-spacing: -0.01em; margin-right: 0.1em; display: inline-block; font-variant-numeric: tabular-nums; }
+.tally b.bump { animation: tallyBump 0.7s ease; }
+.tally .nowrap { white-space: nowrap; }
+@keyframes tallyBump { 30% { color: var(--accent); transform: translateY(-2px); } }
+@media (prefers-reduced-motion: reduce) { .tally b.bump { animation: none; } }
+.stat-tally { margin: 1.1rem auto 1.4rem; max-width: 52rem; }
+
+.stat-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1.6rem; }
 .stat-span-2 { grid-column: 1 / -1; }
 /* min-width: 0 lets blocks shrink below their content (the fixed-width calendar
    SVG was stretching the whole page sideways on phones). */
-.stat-block { min-width: 0; padding: 1.5rem 1.6rem; border-radius: 12px; background: var(--paper); border: 1px solid rgba(13, 18, 14, 0.1); }
+/* Sections sit on the paper, a hairline apart. The bordered card around
+   every one of them read as ten separate posters. */
+.stat-block { min-width: 0; padding: 2rem 0 0.4rem; border-top: 1px solid rgba(13, 18, 14, 0.12); }
+.stat-grid > .stat-block:first-child { border-top: none; padding-top: 0.6rem; }
 
 /* Jump nav for the stats page. Ten sections over ~8 screens is unnavigable
    without it. Sticky, and itself horizontally scrollable when space is tight. */
@@ -1119,6 +1135,19 @@ a.river-readout:hover .riv-go { text-decoration: underline; }
 
 /* The chart IS the scrubber -- one control, dragged left to right along the
    list. Its own cursor lives on the surface rect inside the SVG. */
+.ll-side { display: flex; flex-direction: column; gap: 1rem; min-width: 0; }
+.ll-years { display: flex; flex-direction: column; gap: 2px; }
+.ll-yrow { display: grid; grid-template-columns: 2.6rem 1fr 2rem; align-items: center; gap: 0.6rem;
+  padding: 0.18rem 0.35rem; border: none; border-radius: 5px; background: transparent;
+  font: inherit; font-size: 0.72rem; color: var(--muted); cursor: pointer; text-align: left; }
+.ll-yrow:hover { background: rgba(47, 125, 79, 0.07); color: var(--ink); }
+.ll-yrow.on { color: var(--ink); }
+.ll-yrow.on .ll-yy { font-weight: 700; }
+.ll-ybar { height: 0.5rem; border-radius: 999px; background: rgba(13, 18, 14, 0.06); overflow: hidden; }
+.ll-ybar i { display: block; height: 100%; width: var(--w); border-radius: 999px; background: #a9d6a0; transition: background 0.2s; }
+.ll-yrow:hover .ll-ybar i, .ll-yrow.on .ll-ybar i { background: var(--accent); }
+.ll-yc { text-align: right; font-variant-numeric: tabular-nums; }
+.ll-yrow:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 .ll-track { position: relative; padding-top: 1.45rem; margin-bottom: 1rem; }
 .ll-ribbon { touch-action: pan-y; }
 .ll-ribbon:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 6px; }
@@ -1266,6 +1295,24 @@ a.pheno-cell:hover, a.pheno-cell:focus-visible {
 @media (max-width: 760px) { .ear-grid { grid-template-columns: minmax(0, 1fr); } }
 .bird-avatar.ear-miss { display: flex; align-items: center; justify-content: center; font-size: 1rem; border: 1.5px dashed rgba(176, 125, 36, 0.6); }
 .bar-fill.ear { background: linear-gradient(90deg, #a9761f, var(--amber)); }
+.bar-fill.split { display: flex; overflow: hidden; background: none; }
+.bar-fill.split i { display: block; height: 100%; min-width: 2px; }
+.stats .sp-sec-h { display: flex; align-items: center; justify-content: space-between; gap: 0.6rem 1rem; flex-wrap: wrap; }
+.board-seg { margin-bottom: 0.4rem; }
+.board-rows .bar-row.rich { grid-template-columns: 2.3rem minmax(7rem, 16rem) 1fr 2.6rem; }
+.chart-readout:empty { display: none; }
+/* Stats: with the cards gone, the per-day strip leads the Heard section at
+   full width and the rows below get a real bar to draw the mic split in. */
+.stats .ear-grid { grid-template-columns: minmax(0, 1fr); gap: 0.4rem; }
+.stats .ear-side { order: -1; }
+.stats .ear-daily { height: 38px; margin-top: 0.2rem; }
+.stats #ear-bars .bar-row.rich { grid-template-columns: 2.3rem minmax(7rem, 16rem) 3.6rem 1fr 3.4rem; }
+.stats .ll-hero { align-items: start; }
+.stats .ll-side .ll-ticket { align-self: stretch; }
+@media (max-width: 560px) {
+  .stats #ear-bars .bar-row.rich { grid-template-columns: 2.3rem minmax(5rem, 1fr) 3rem 4.5rem 2.8rem; }
+  .stats #ear-bars .bar-sub { display: none; }
+}
 .ear-main { min-width: 0; }
 .ear-controls { display: flex; flex-wrap: wrap; gap: 0.5rem 0.9rem; margin-bottom: 0.9rem; }
 .ear-seg { display: inline-flex; border: 1px solid rgba(13, 18, 14, 0.15); border-radius: 999px; overflow: hidden; }

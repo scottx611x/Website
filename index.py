@@ -1626,6 +1626,13 @@ def birds_stats():
                 grows.append(row)
             geo = {"nodes": nodes, "nodeTotals": pat.get("nodeTotals") or {},
                    "colors": colors, "species": grows}
+            # The Heard rows carry the mic split themselves now (the separate
+            # "Around the yard" list repeated the same birds and counts).
+            if ear:
+                split = {g["name"]: g["parts"] for g in grows}
+                for h in ear["heard"]:
+                    if h["name"] in split:
+                        h["parts"] = split[h["name"]]
     # Single-species OR single-family focus (?bird=X / ?family=F, deep-linked
     # from a profile or the family eyebrow): the headline numbers filter to that
     # context so "by the numbers" actually means ITS numbers, while the charts

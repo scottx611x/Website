@@ -9,12 +9,6 @@
   /* The day in one sentence, with search beside it: what four stat cards
      and a search band used to take 200px to say. */
   .lv-bar{display:flex; justify-content:center; align-items:center; flex-wrap:wrap; gap:.7rem 1.4rem; margin:1.2rem 0 1.9rem}
-  .lv-tally{margin:0; font-size:.76rem; color:var(--muted); text-align:center; letter-spacing:.02em}
-  .lv-tally a{color:inherit; text-decoration:none; white-space:nowrap}
-  .lv-tally a:hover{color:var(--accent)}
-  .lv-tally b{font-family:var(--display); font-weight:600; font-size:1.12rem; color:var(--ink); letter-spacing:-.01em; margin-right:.1em; display:inline-block}
-  .lv-tally b.bump{animation:lvBump .7s ease}
-  @keyframes lvBump{30%{color:var(--accent); transform:translateY(-2px)}}
   .lv-find{display:flex; justify-content:center; margin:0}
   /* Same combobox as the gallery search: one look for "find a bird" sitewide. */
   .lv-find .bird-combo{width:min(15rem,100%)}
@@ -374,7 +368,7 @@
   .lv-empty p{color:var(--muted); max-width:32rem; margin:.4rem auto}
   @media(prefers-reduced-motion:reduce){.lv-dot{animation:none} .lv-row.flash{animation:none} .lv-zoom{animation:none} button.lv-tk.playing{animation:none}
     .lv-ph,.lv-enter .lv-ph,.lv-enter .lv-nm .w,.lv-enter .lv-when,.lv-enter .lv-meta,.lv-enter .lv-fact,.lv-enter .lv-stamp,
-    #lv-hero > .lv-enter,.lv-chain.arrive,.lv-chip.arrive,button.lv-tk.land,.lv-tally b.bump{animation:none}}
+    #lv-hero > .lv-enter,.lv-chain.arrive,.lv-chip.arrive,button.lv-tk.land}
 </style>
 
 {% macro feather(fill) %}<span class="feather" style="background-image:url('data:image/svg+xml;utf8,{{ ('<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"' ~ fill ~ '\"><path d=\"M23 6c-1 0-1.8.3-2.5.9C19 5.6 16.8 4.7 14 5.2c-4 .7-5.6 4-9 4.3-2 .2-3.3-.6-3.3-.6S2 12 6 12.6c-.7 1-2 1.7-3.5 1.9 0 0 1.2 1.5 3.6 1.1-.5.9-1.6 2-3.6 2.4 0 0 3.4 1.6 6.9-.6 2.9-1.8 4-4.8 6.1-6.9C22.5 9.4 24 8 23 6z\"/></svg>') }}')"></span>{% endmacro %}
@@ -402,7 +396,7 @@
     {# One sentence instead of four cards; JS keeps it current and ticks the
        numbers up as birds arrive. Search sits beside it, not in its own band. #}
     <div class="lv-bar">
-      <p class="lv-tally mono" id="lv-tally">
+      <p class="tally mono" id="lv-tally">
         <a href="#lv-wall"><b data-n="{{ sound.counts.speciesToday or 0 }}">{{ sound.counts.speciesToday or 0 }}</b> species</a> &middot;
         <a href="/birds/live/log"><b data-n="{{ sound.counts.callsToday or 0 }}">{{ "{:,}".format(sound.counts.callsToday or 0) }}</b> recordings today</a> &middot;
         <a href="/birds/heard"><b data-n="{{ sound.counts.speciesAllTime or 0 }}">{{ sound.counts.speciesAllTime or 0 }}</b> species all-time</a>

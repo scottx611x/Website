@@ -17,57 +17,39 @@
         {% set subnav_active = 'stats' %}{% include '_birds_nav.html' %}
     </header>
 
-    {% if focus %}
-    <div class="stat-cards">
-        {% set fq = ('bird=' ~ focus.bird|urlencode) if focus.bird else ('family=' ~ focus.family|urlencode) %}
-        {% if focus.species %}<a class="stat-card" href="/birds?{{ fq }}"><span class="stat-num">{{ focus.species }}</span><span class="stat-lbl">{{ 'species' }}</span></a>{% endif %}
-        {% if focus.photographed %}<a class="stat-card" href="/birds?{{ fq }}"><span class="stat-num">{{ "{:,}".format(focus.photos) }}</span><span class="stat-lbl">{{ 'photo' if focus.photos == 1 else 'photos' }}</span></a>{% endif %}
-        {% if focus.videos %}<a class="stat-card" href="/birds?{{ fq }}&media=video"><span class="stat-num">{{ focus.videos }}</span><span class="stat-lbl">{{ 'video' if focus.videos == 1 else 'videos' }}</span></a>{% endif %}
-        {% if focus.active_months %}<a class="stat-card" href="#days"><span class="stat-num">{{ focus.active_months }}</span><span class="stat-lbl">{{ 'month' if focus.active_months == 1 else 'months' }} active</span></a>{% endif %}
-        {% if focus.places %}<a class="stat-card" href="/birds/map?{{ fq }}"><span class="stat-num">{{ focus.places }}</span><span class="stat-lbl">{{ 'place' if focus.places == 1 else 'places' }}</span></a>{% endif %}
-        {% if focus.away %}<a class="stat-card" href="/birds?{{ fq }}&area=elsewhere"><span class="stat-num">{{ focus.away }}</span><span class="stat-lbl">shot away {{ icon('alert') }}</span></a>{% endif %}
-        {% if focus.recordings %}<a class="stat-card" href="/birds/live?{{ fq }}"><span class="stat-num">{{ "{:,}".format(focus.recordings) }}</span><span class="stat-lbl">{{ 'recording' if focus.recordings == 1 else 'recordings' }}</span></a>{% endif %}
-    </div>
-    {% else %}
-    {# Two labeled clusters mirror the two ways I record birds — so "species"
-       reads unambiguously in each. The collection span lives in the date line
-       below (no redundant "months" card); the away count lives in the map
-       section below (no redundant "outside N. Andover" card). #}
-    <div class="stat-clusters">
-        <div class="stat-cluster">
-            <p class="stat-cluster-h mono">{{ icon('camera') }} Shot</p>
-            <div class="stat-cards">
-                <a class="stat-card" href="/birds"><span class="stat-num">{{ stats.species }}</span><span class="stat-lbl">species</span></a>
-                <a class="stat-card" href="/birds"><span class="stat-num">{{ "{:,}".format(stats.photos) }}</span><span class="stat-lbl">photos{% if stats.videos %} &middot; {{ stats.videos }} video{{ 's' if stats.videos != 1 }}{% endif %}</span></a>
-            </div>
-        </div>
-        {% if ear %}
-        <div class="stat-cluster">
-            <p class="stat-cluster-h mono">{{ icon('wave') }} Heard</p>
-            <div class="stat-cards">
-                <a class="stat-card" href="/birds/heard"><span class="stat-num">{{ ear.heard|length }}</span><span class="stat-lbl">species</span></a>
-                <a class="stat-card" href="/birds/live/log"><span class="stat-num">{{ "{:,}".format(ear.calls) }}</span><span class="stat-lbl">recordings</span></a>
-            </div>
-        </div>
-        {% endif %}
-    </div>
-    {% endif %}
+    {# One sentence instead of four cards and a date line (same .tally as
+       Live). Focused, it carries that bird's or family's numbers. #}
     {% set fd = focus if (focus and focus.first) else (stats if stats.first else None) %}
-    {% if fd %}
-    <p class="stat-span mono">{{ fd.first.strftime('%b %-d, %Y') }} &rarr; {{ fd.last.strftime('%b %-d, %Y') }}</p>
+    <p class="tally mono stat-tally">
+    {% if focus %}
+        {% set fq = ('bird=' ~ focus.bird|urlencode) if focus.bird else ('family=' ~ focus.family|urlencode) %}
+        {% set parts = [] %}
+        {% if focus.species and not focus.bird %}{% set _ = parts.append('<a href="/birds?' ~ fq ~ '"><b>' ~ focus.species ~ '</b> species</a>') %}{% endif %}
+        {% if focus.photographed %}{% set _ = parts.append('<a href="/birds?' ~ fq ~ '"><b>' ~ "{:,}".format(focus.photos) ~ '</b> ' ~ ('photo' if focus.photos == 1 else 'photos') ~ '</a>') %}{% endif %}
+        {% if focus.videos %}{% set _ = parts.append('<a href="/birds?' ~ fq ~ '&media=video"><b>' ~ focus.videos ~ '</b> ' ~ ('video' if focus.videos == 1 else 'videos') ~ '</a>') %}{% endif %}
+        {% if focus.active_months %}{% set _ = parts.append('<a href="#days"><b>' ~ focus.active_months ~ '</b> ' ~ ('month' if focus.active_months == 1 else 'months') ~ ' active</a>') %}{% endif %}
+        {% if focus.places %}{% set _ = parts.append('<a href="/birds/map?' ~ fq ~ '"><b>' ~ focus.places ~ '</b> ' ~ ('place' if focus.places == 1 else 'places') ~ '</a>') %}{% endif %}
+        {% if focus.away %}{% set _ = parts.append('<a href="/birds?' ~ fq ~ '&area=elsewhere"><b>' ~ focus.away ~ '</b> shot away</a>') %}{% endif %}
+        {% if focus.recordings %}{% set _ = parts.append('<a href="/birds/live?' ~ fq ~ '"><b>' ~ "{:,}".format(focus.recordings) ~ '</b> ' ~ ('recording' if focus.recordings == 1 else 'recordings') ~ '</a>') %}{% endif %}
+        {{ parts|join(' &middot; ')|safe }}{% if fd %} &middot; <span class="nowrap">since {{ fd.first.strftime('%b %Y') }}</span>{% endif %}
+    {% else %}
+        <a href="/birds"><b>{{ stats.species }}</b> species photographed</a> &middot;
+        <a href="/birds"><b>{{ "{:,}".format(stats.photos) }}</b> photos</a> &middot;
+        {% if ear %}<a href="/birds/heard"><b>{{ ear.heard|length }}</b> heard</a> &middot;
+        <a href="/birds/live/log"><b>{{ "{:,}".format(ear.calls) }}</b> recordings</a> &middot;{% endif %}
+        {% if fd %}<span class="nowrap">since {{ fd.first.strftime('%b %Y') }}</span>{% endif %}
     {% endif %}
+    </p>
 
-    {# Ten sections over roughly eight screens — without wayfinding you scroll
+    {# Eight sections over several screens — without wayfinding you scroll
        blind. Sticky, scroll-spied, horizontally scrollable when narrow. #}
     <nav class="stat-jump" id="stat-jump" aria-label="Jump to section">
       <a href="#s-life">Life list</a>
       <a href="#s-year">Year</a>
       <a href="#days">Shooting days</a>
       <a href="#board">Most shot</a>
-      <a href="#s-family">Families</a>
       <a href="#ear-block">Heard</a>
       <a href="#rhythm-block">Rhythm</a>
-      <a href="#geo-block">Yard</a>
       <a href="#places-block">Places</a>
       <a href="#s-river">River</a>
     </nav>
@@ -82,32 +64,22 @@
              all. The wall addresses every one; the ribbon keeps the crescendo. -->
         <div class="stat-block stat-span-2" id="s-life">
             <h2>The life list</h2>
-            <p class="stat-sub mono">{{ series.accum|length }} species</p>
 
             <div class="ll-hero">
                 <div class="ll-shot" id="ll-shot">
                     <img id="ll-img" alt="" draggable="false">
                 </div>
-                <a class="ll-ticket" id="ll-ticket" href="/birds">
-                    <span class="ll-no mono" id="ll-no"></span>
-                    <span class="ll-name" id="ll-name"></span>
-                    <span class="ll-meta mono" id="ll-meta"></span>
-                    <span class="ll-cta mono" id="ll-cta"></span>
-                </a>
-            </div>
-
-            {# ONE scrubbable thing. The chart used to run left-to-right by
-               DATE, which made it unscrubbable -- 92 of the 129 lifers shared
-               8% of the width. Transposed, it carries both jobs: x is rank, so
-               every bird gets equal room (8.3px, not 1.7px), and y is the date,
-               so the shape still tells the story -- a steep climb is a drought
-               between lifers, a flat shelf is a burst like 2026. #}
-            <div class="ll-track">
-                <span class="ll-scrublab mono" id="ll-scrublab" aria-hidden="true"></span>
-                <div id="accum-chart" class="d3-chart ll-ribbon" role="slider" tabindex="0"
-                     aria-label="Scrub through the life list"
-                     aria-valuemin="1" aria-valuemax="{{ series.accum|length }}"
-                     aria-valuenow="{{ series.accum|length }}"></div>
+                <div class="ll-side">
+                    <a class="ll-ticket" id="ll-ticket" href="/birds">
+                        <span class="ll-no mono" id="ll-no"></span>
+                        <span class="ll-name" id="ll-name"></span>
+                        <span class="ll-meta mono" id="ll-meta"></span>
+                        <span class="ll-cta mono" id="ll-cta"></span>
+                    </a>
+                    {# The crescendo the chart was drawing, at a size every year
+                       can be clicked: a year jumps the wall to its birds. #}
+                    <div class="ll-years mono" id="ll-years" role="list" aria-label="New species by year"></div>
+                </div>
             </div>
 
             <div class="ll-wallwrap" id="ll-wallwrap">
@@ -136,7 +108,6 @@
 
         <div class="stat-block stat-span-2" id="s-year">
             <h2>The year, in birds</h2>
-            <p class="stat-sub mono">{{ series.pheno|length }} species, month by month</p>
             <div class="pheno-controls">
                 <input id="pheno-search" class="pheno-search mono" type="search"
                        placeholder="Filter species or family&hellip;" autocomplete="off">
@@ -156,12 +127,19 @@
             <div id="cal-chart" class="d3-chart cal-scroll"></div>
         </div>
 
-        <!-- Most photographed -->
-        <div class="stat-block" id="board">
-            <h2>Most photographed</h2>
+        <!-- Most photographed: by species, or by family (one section; the
+             treemap's unlabeled cells said less than a ranked row does) -->
+        <div class="stat-block stat-span-2" id="board">
+            <div class="sp-sec-h">
+                <h2>Most photographed</h2>
+                <div class="ear-seg board-seg mono" role="group" aria-label="Rank by">
+                    <button type="button" data-by="species" class="on">species</button><button type="button" data-by="family">families ({{ stats.families|length }})</button>
+                </div>
+            </div>
+            <div class="board-rows" id="board-rows">
             {% set smax = series.top[0].n %}
-            {% for t in series.top %}
-            <a class="bar-row rich" href="/birds/species/{{ t.name|slug }}">
+            {% for t in series.top[:12] %}
+            <a class="bar-row rich" href="/birds/species/{{ t.name|slug }}" data-slug="{{ t.name|slug }}">
                 <img class="bird-avatar" src="{{ t.img }}" alt="" loading="lazy"
                      onerror="this.classList.add('missing')">
                 <span class="bar-label">{{ t.name }} <span class="bar-sub">{{ t.fam }}</span></span>
@@ -169,21 +147,15 @@
                 <span class="bar-val mono">{{ t.n }}</span>
             </a>
             {% endfor %}
-        </div>
-
-        <!-- By family treemap -->
-        <div class="stat-block" id="s-family">
-            <h2>By family</h2>
-            <p class="stat-sub mono">{{ stats.families|length }} families</p>
-            <div id="fam-chart" class="d3-chart"></div>
-            <p class="chart-readout mono" id="fam-readout"></p>
+            </div>
         </div>
 
         <!-- Heard from the yard: the mic's numbers beside the camera's -->
         {% if ear %}
         <div class="stat-block stat-span-2" id="ear-block">
             <h2>Heard from the yard</h2>
-            <p class="stat-sub mono"><a href="/birds/live">live &rarr;</a></p>
+            <p class="stat-sub mono">
+                {% if geo %}{% for n in geo.nodes %}<span class="geo-key"><span class="geo-dot" style="background: {{ geo.colors[n] }}"></span>{{ n }} <b>{{ "{:,}".format(geo.nodeTotals[n] or 0) }}</b></span> &middot; {% endfor %}{% endif %}<a href="/birds/live">live &rarr;</a></p>
             <div class="ear-grid">
                 <div class="ear-main">
                     <div class="ear-controls mono">
@@ -210,12 +182,6 @@
                     <p class="ear-more mono" id="ear-more"></p>
                 </div>
                 <div class="ear-side">
-                    <div class="ear-cards mono">
-                        <a class="ear-card" href="/birds/live/log"><b>{{ "{:,}".format(ear.calls) }}</b> recordings logged</a>
-                        <a class="ear-card" href="/birds/heard"><b>{{ ear.heard|length }}</b> species heard all-time</a>
-                        <button type="button" class="ear-card" data-earfilt="shot"><b>{{ ear.shot }}</b> also photographed</button>
-                        <button type="button" class="ear-card amber" data-earfilt="ear"><b>{{ ear.heard|length - ear.shot }}</b> heard, not photographed</button>
-                    </div>
                     {% if ear.daily|length > 1 %}
                     <a class="ear-daily" href="/birds/live/log" title="browse recordings by day">
                         {% set dmax = ear.daily|map(attribute='n')|max or 1 %}
@@ -262,28 +228,6 @@
                     <span class="rhythm-peak mono">{{ r.peaklab }}</span>
                 </a>
                 {% endfor %}
-            </div>
-        </div>
-        {% endif %}
-
-        <!-- Around the yard: which mic hears each bird (two-node geography) -->
-        {% if geo and geo.species %}
-        <div class="stat-block stat-span-2" id="geo-block">
-            <h2>Around the yard</h2>
-            <p class="stat-sub mono">
-                {% for n in geo.nodes %}<span class="geo-key"><span class="geo-dot" style="background: {{ geo.colors[n] }}"></span>{{ n }} <b>{{ "{:,}".format(geo.nodeTotals[n] or 0) }}</b></span>{% if not loop.last %} &middot; {% endif %}{% endfor %}</p>
-            <div class="geo-bars">
-                {% for g in geo.species if g.total >= 4 %}{% if loop.index <= 18 %}
-                <a class="geo-row" href="/birds/species/{{ g.name|slug }}">
-                    {% if g.img %}<img class="bird-avatar" src="{{ g.img }}" alt="" loading="lazy" onerror="this.classList.add('missing')">
-                    {% else %}<span class="bird-avatar ear-miss" title="heard, not photographed">&#129718;</span>{% endif %}
-                    <span class="geo-label">{{ g.name }} <span class="bar-sub">{{ g.fam if g.shot else '🎧 not photographed' }}</span></span>
-                    <span class="geo-track">
-                        {% for p in g.parts %}{% if p.pct %}<span class="geo-seg" style="width: {{ p.pct }}%; background: {{ geo.colors[p.node] }}" title="{{ p.node }} &middot; {{ p.n }} ({{ p.pct }}%)"></span>{% endif %}{% endfor %}
-                    </span>
-                    <span class="geo-val mono">{{ g.total }}</span>
-                </a>
-                {% endif %}{% endfor %}
             </div>
         </div>
         {% endif %}
@@ -424,6 +368,7 @@
         window.SPECIES_PLACES = {{ species_places|tojson }};  // read by the deep-link focus (outside this IIFE)
         window.SPECIES_RANKED = {{ species_ranked|tojson }};  // [name, count] all species, for the leaderboard ghost
         window.EAR_HEARD = {{ (ear.heard if ear else [])|tojson }};  // every species the mic has heard, for the ear-block ghost
+        window.EAR_NODE_COLORS = {{ (geo.colors if geo else {})|tojson }};
         var CURATE = {{ 'true' if curate else 'false' }};
         var FAM = [{% for fam, count in stats.families %}{ name: {{ fam|tojson }}, n: {{ count }}, spp: {{ stats.family_species[fam] }} }{{ "," if not loop.last }}{% endfor %}];
         var GREEN = "#2f7d4f", NEON = "#38e08a", INK = "#0d120e", MUTED = "#8a9486";
@@ -442,6 +387,7 @@
         if (typeof d3 === "undefined") return;   // CDN blocked? page still works
 
         function chartWidth(el) { return Math.max(el.clientWidth, 300); }
+        function webPhoto(u) { return u ? u.replace("/birds/thumbs/", "/birds/images/") : u; }
         function birdURL(name) { return "/birds/species/" + (name || "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, ""); }
 
         // One floating tooltip for the matrix / calendar / treemap. Content is
@@ -578,145 +524,72 @@
                 tiles = Array.prototype.slice.call(wall.querySelectorAll(".ll-tile"));
             })();
 
-            // ---------- the chart, which IS the scrubber ----------
-            // x is rank and y is date -- the transpose of the obvious chart,
-            // and the only arrangement where one element can both tell the
-            // story and be dragged. Plotted against time, 92 of these 129 sat
-            // inside 8% of the width and 38 pairs shared an x position
-            // outright; here every lifer owns an equal slice.
-            var el = document.getElementById("accum-chart");
-            var lab = document.getElementById("ll-scrublab");
-            var x, y, handle, focus, fmtYear = d3.timeFormat("%Y");
-            function renderCurve() {
-                el.innerHTML = "";
-                var W = chartWidth(el), narrow = W < 520, H = narrow ? 150 : 180,
-                    m = { t: 20, r: narrow ? 12 : 18, b: 18, l: narrow ? 34 : 42 };
-                x = d3.scaleLinear([0, data.length - 1], [m.l, W - m.r]);
-                y = d3.scaleTime(d3.extent(data, function (d) { return d.d; }), [H - m.b, m.t]);
-                var svg = d3.select(el).append("svg").attr("viewBox", "0 0 " + W + " " + H)
-                    .style("touch-action", "pan-y");
-                var line = d3.line().x(function (d, i) { return x(i); })
-                    .y(function (d) { return y(d.d); });
-                var area = d3.area().x(function (d, i) { return x(i); })
-                    .y0(H - m.b).y1(function (d) { return y(d.d); });
-                svg.append("path").datum(data).attr("d", area).attr("fill", NEON).attr("opacity", 0.09);
-                svg.append("path").datum(data).attr("d", line).attr("fill", "none")
-                    .attr("stroke", GREEN).attr("stroke-width", 2).attr("stroke-linejoin", "round");
-                // Years read off the y axis now, so a long flat run IS a year
-                // that added a lot of birds in a hurry.
-                svg.append("g").attr("transform", "translate(" + m.l + ",0)")
-                    .call(d3.axisLeft(y).ticks(narrow ? 4 : 6).tickFormat(fmtYear).tickSizeOuter(0));
-                svg.append("g").attr("transform", "translate(0," + (H - m.b) + ")")
-                    .call(d3.axisBottom(x).ticks(narrow ? 4 : 7)
-                        .tickFormat(function (v) { return "#" + (Math.round(v) + 1); }).tickSizeOuter(0));
-                svg.selectAll(".domain, .tick line").attr("stroke", "rgba(13,18,14,0.18)");
-                svg.selectAll(".tick text").attr("fill", MUTED);
-                // Where each year begins, so the bursts read as spans of the
-                // LIST rather than spans of the calendar. The lean years all
-                // start within the first twenty ranks, so a label is only drawn
-                // where there is room for it -- unlabelled, the bunched rules
-                // were just noise.
-                var prevYear = null, lastLabelX = -999;
-                data.forEach(function (d, i) {
-                    var yr = d.d.getFullYear();
-                    if (yr === prevYear) return;
-                    prevYear = yr;
-                    if (i === 0) return;
-                    var px = x(i);
-                    svg.append("line").attr("x1", px).attr("x2", px)
-                        .attr("y1", m.t).attr("y2", H - m.b)
-                        .attr("stroke", "rgba(13,18,14,0.09)").attr("stroke-width", 1);
-                    if (px - lastLabelX < 34) return;
-                    lastLabelX = px;
-                    svg.append("text").attr("x", px + 3).attr("y", m.t - 6)
-                        .attr("class", "chart-tick").attr("fill", MUTED).text(yr);
+            // ---------- the years ----------
+            // One row per year, newest first: how many species it added, as a
+            // bar. Where the chart drew this as a curve too steep to click,
+            // every year here is a full-width target that jumps the wall.
+            var yearsEl = document.getElementById("ll-years");
+            (function buildYears() {
+                if (!yearsEl) return;
+                var by = {}, ys = [];
+                data.forEach(function (d) {
+                    var y = d.d.getFullYear();
+                    if (!by[y]) { by[y] = { y: y, n: 0, newest: d.n - 1 }; ys.push(by[y]); }
+                    by[y].n++;
+                    by[y].newest = d.n - 1;          // data is oldest first
                 });
-                handle = svg.append("line").attr("y1", m.t - 4).attr("y2", H - m.b)
-                    .attr("stroke", GREEN).attr("stroke-width", 2).attr("opacity", 0);
-                focus = svg.append("circle").attr("r", 5.5).attr("fill", NEON)
-                    .attr("stroke", GREEN).attr("stroke-width", 2).attr("opacity", 0);
-                // One transparent surface over the plot catches every pointer,
-                // so there is no dead zone between the line and the axis.
-                svg.append("rect").attr("x", m.l).attr("y", m.t)
-                    .attr("width", Math.max(1, W - m.r - m.l)).attr("height", Math.max(1, H - m.b - m.t))
-                    .attr("fill", "transparent").style("cursor", "ew-resize")
-                    .on("pointerdown", function (ev) {
-                        scrubbing = true;
-                        if (ev.target.setPointerCapture) ev.target.setPointerCapture(ev.pointerId);
-                        show(idxFromX(ev.clientX), true);
-                        ev.preventDefault();
-                    })
-                    .on("pointermove", function (ev) {
-                        if (!scrubbing) return;
-                        // one update per frame: a drag fires far more often,
-                        // and each update touches 129 tiles
-                        pending = idxFromX(ev.clientX);
-                        if (!raf) raf = requestAnimationFrame(flush);
-                    })
-                    .on("pointerup", endScrub)
-                    .on("pointercancel", endScrub);
-                plot = { m: m, W: W, H: H };
+                ys.reverse();
+                var max = ys.reduce(function (m, r) { return Math.max(m, r.n); }, 1);
+                yearsEl.innerHTML = ys.map(function (r) {
+                    return '<button type="button" class="ll-yrow" role="listitem" data-year="' + r.y + '" data-i="' + r.newest + '"' +
+                        ' title="' + r.n + ' new species in ' + r.y + '">' +
+                        '<span class="ll-yy">' + r.y + '</span>' +
+                        '<span class="ll-ybar"><i style="--w:' + Math.max(3, Math.round(r.n / max * 100)) + '%"></i></span>' +
+                        '<span class="ll-yc">' + r.n + '</span></button>';
+                }).join("");
+                yearsEl.addEventListener("click", function (ev) {
+                    var b = ev.target.closest(".ll-yrow"); if (!b) return;
+                    show(+b.dataset.i, false);
+                    var head = wall.querySelector('.ll-year[data-year="' + b.dataset.year + '"]');
+                    if (head) {
+                        var to = head.getBoundingClientRect().top - wall.getBoundingClientRect().top + wall.scrollTop - 4;
+                        if (wall.scrollTo) wall.scrollTo({ top: Math.max(0, to), behavior: "smooth" });
+                        else wall.scrollTop = Math.max(0, to);
+                    }
+                });
+            })();
+            function markYear(d) {
+                if (!yearsEl) return;
+                var y = String(d.d.getFullYear());
+                yearsEl.querySelectorAll(".ll-yrow").forEach(function (b) {
+                    b.classList.toggle("on", b.dataset.year === y);
+                });
             }
-            var plot = null, scrubbing = false, pending = null, raf = 0;
-            function idxFromX(clientX) {
-                var r = el.getBoundingClientRect();
-                if (!plot || !r.width) return sel;
-                // the svg is scaled to the element, so map through the viewBox
-                var k = plot.W / r.width;
-                var px = (clientX - r.left) * k;
-                var f = (px - plot.m.l) / Math.max(1, plot.W - plot.m.r - plot.m.l);
-                return Math.max(0, Math.min(data.length - 1, Math.round(f * (data.length - 1))));
-            }
-            function flush() {
-                raf = 0;
-                if (pending == null) return;
-                var i = pending; pending = null;
-                if (i !== sel) show(i, true);
-            }
-            function endScrub() { scrubbing = false; }
-            function paintScrub(d) {
-                if (!handle || !plot) return;
-                var px = x(sel);
-                handle.attr("x1", px).attr("x2", px).attr("opacity", 0.75);
-                focus.attr("cx", px).attr("cy", y(d.d)).attr("opacity", 1);
-                var r = el.getBoundingClientRect();
-                var frac = plot.W ? px / plot.W : 0;
-                lab.style.left = (frac * 100) + "%";
-                lab.textContent = "#" + d.n + "  " + d.s + "  \u00b7  " + fmtYear(d.d);
-                el.setAttribute("aria-valuenow", d.n);
-                el.setAttribute("aria-valuetext", "#" + d.n + " " + d.s);
-            }
-            el.addEventListener("keydown", function (ev) {
-                var step = ev.shiftKey ? 10 : 1, to = null;
-                if (ev.key === "ArrowRight" || ev.key === "ArrowUp") to = sel + step;
-                else if (ev.key === "ArrowLeft" || ev.key === "ArrowDown") to = sel - step;
-                else if (ev.key === "Home") to = 0;
-                else if (ev.key === "End") to = data.length - 1;
-                if (to == null) return;
-                show(to, true); ev.preventDefault();
-            });
-            renderCurve();
 
             // ---------- selection ----------
             function show(i, scrollTo) {
                 sel = Math.max(0, Math.min(i, data.length - 1));
                 var d = data[sel];
                 if (d.idx == null) d.idx = Math.max(0, (d.cands || []).indexOf(d.img));
-                if (imgEl.getAttribute("src") !== d.img) imgEl.src = d.img;
+                var big = webPhoto(d.img);
+                if (imgEl.dataset.for !== d.img) {
+                    imgEl.dataset.for = d.img;
+                    imgEl.onerror = function () { if (imgEl.src !== d.img) imgEl.src = d.img; };
+                    imgEl.src = big;
+                }
                 frame(d);
                 ticket.href = birdURL(d.s);
                 tNo.textContent = "No. " + d.n;
                 tName.textContent = d.s;
                 tMeta.textContent = fmtDate(d.d) + " · " + d.fam;
                 tCta.textContent = (d.total === 1 ? "1 photo" : d.total + " photos") + " →";
-                // the handle and the dot are the chart's job now -- see paintScrub
                 tiles.forEach(function (t) {
                     var on = +t.dataset.i === sel;
                     t.classList.toggle("on", on);
                     t.setAttribute("aria-selected", on ? "true" : "false");
                     if (on && scrollTo) scrollWallTo(t, false);
                 });
-                paintScrub(d);
+                markYear(d);
                 updateCurate();
             }
 
@@ -799,7 +672,7 @@
                 if (cands.length < 2) return;
                 d.idx = (((d.idx || 0) + dir) % cands.length + cands.length) % cands.length;
                 d.img = cands[d.idx];
-                imgEl.src = d.img; frame(d);
+                imgEl.dataset.for = ""; show(sel, false);
                 updateCurate(); saveLifer(d, false);
             }
             function bumpZoom(step) {
@@ -818,7 +691,7 @@
                     var d = data[sel];
                     d.idx = 0; d.img = (d.cands || [])[0] || d.img;
                     d.pos = 0.35; d.posx = 0.5; d.zoom = null;
-                    imgEl.src = d.img; frame(d);
+                    imgEl.dataset.for = ""; show(sel, false);
                     updateCurate(); saveLifer(d, true);
                     if (savedEl) savedEl.textContent = "reset ✓";
                 });
@@ -847,7 +720,7 @@
                 shotEl.classList.add("is-curate");
             }
 
-            llState = { reflow: function () { renderCurve(); show(sel, false); } };
+            llState = { reflow: function () { show(sel, false); } };
             show(data.length - 1, false);
         }
 
@@ -1011,8 +884,7 @@
                 }
                 readout.textContent = spotlight >= 0
                     ? visible.length + " species in " + MONTHS[spotlight]
-                    : (query ? visible.length + " of " + rows.length + " species"
-                             : rows.length + " species");
+                    : (query ? visible.length + " of " + rows.length + " species" : "");
             }
             search.addEventListener("input", function () {
                 query = search.value.trim().toLowerCase();
@@ -1145,71 +1017,38 @@
             el.scrollLeft = el.scrollWidth;
         }
 
-        // ---- By family: treemap — area = photos, depth of green = species ----
-        function renderFam() {
-            var el = document.getElementById("fam-chart");
-            el.innerHTML = "";
-            var readout = document.getElementById("fam-readout");
-            var W = chartWidth(el), H = Math.max(280, Math.round(W * 0.9));
-            var sppMax = d3.max(FAM, function (f) { return f.spp; });
-            var fill = d3.scaleQuantize([1, sppMax + 1], RAMP);
-            var root = d3.hierarchy({ children: FAM }).sum(function (f) { return f.n || 0; })
-                .sort(function (a, b) { return b.value - a.value; });
-            d3.treemap().size([W, H]).paddingInner(2).round(true)(root);
-            var svg = d3.select(el).append("svg").attr("viewBox", "0 0 " + W + " " + H);
-            root.leaves().forEach(function (leaf) {
-                var f = leaf.data, w = leaf.x1 - leaf.x0, h = leaf.y1 - leaf.y0;
-                var bg = fill(f.spp);
-                var dark = RAMP.indexOf(bg) >= 3;   // ink on light greens, white on dark
-                var g = svg.append("a").attr("href", "/birds?family=" + encodeURIComponent(f.name))
-                    .attr("class", "fam-cell");
-                g.append("rect").attr("x", leaf.x0).attr("y", leaf.y0)
-                    .attr("width", w).attr("height", h).attr("rx", 3).attr("fill", bg);
-                // Direct labels only where they genuinely fit — one line, or two
-                // for long names like "Chickadees & Titmice"; the tooltip +
-                // readout carry the rest.
-                var lines = null, words = f.name.split(" ");
-                if (w > f.name.length * 6.2 + 12) {
-                    lines = [f.name];
-                } else if (words.length > 1) {
-                    var mid = Math.ceil(words.length / 2);
-                    var l1 = words.slice(0, mid).join(" "), l2 = words.slice(mid).join(" ");
-                    if (w > Math.max(l1.length, l2.length) * 6.2 + 12) lines = [l1, l2];
-                }
-                if (lines && h > 16 + lines.length * 15) {
-                    lines.forEach(function (line, li) {
-                        g.append("text").attr("x", leaf.x0 + 7).attr("y", leaf.y0 + 16 + li * 14)
-                            .attr("class", "fam-label" + (dark ? " inverse" : ""))
-                            .text(line);
-                    });
-                    var sub = f.n + " · " + f.spp + " spp.";
-                    if (h > 32 + lines.length * 15 && w > sub.length * 5.6 + 12) {
-                        g.append("text").attr("x", leaf.x0 + 7)
-                            .attr("y", leaf.y0 + 17 + lines.length * 14)
-                            .attr("class", "fam-sub" + (dark ? " inverse" : ""))
-                            .text(sub);
-                    }
-                }
-                g.on("pointermove", function (ev) {
-                    tipShow(ev, [f.name,
-                                 f.n + (f.n === 1 ? " photo" : " photos") + " · " +
-                                 f.spp + (f.spp === 1 ? " species" : " species")]);
-                    readout.textContent = f.name + " · " + f.n + " photos, " + f.spp + " species";
-                }).on("pointerleave", tipHide);
+        // ---- Most photographed: species <-> families, same row design ----
+        function renderBoard() {
+            var host = document.getElementById("board-rows");
+            var seg = document.querySelector(".board-seg");
+            if (!host || !seg) return;
+            var speciesHTML = host.innerHTML;
+            // A family's face is its most-photographed member's best shot.
+            var face = {};
+            (S.pheno || []).forEach(function (r) {
+                var img = (r.imgs || []).filter(Boolean)[0];
+                if (img && (!face[r.fam] || r.total > face[r.fam].n)) face[r.fam] = { n: r.total, img: img };
             });
-
-            // A /birds/stats?bird=X deep-link lights up that bird's family cell.
-            window.lvFocusFam = function (famName) {
-                var found = false;
-                el.querySelectorAll(".fam-cell").forEach(function (c) {
-                    var fam = decodeURIComponent((c.getAttribute("href") || "").split("family=")[1] || "");
-                    var on = famName && fam === famName;
-                    c.classList.toggle("fam-focus", !!on);
-                    c.style.opacity = famName ? (on ? "1" : "0.32") : "1";
-                    if (on) found = true;
-                });
-                return found;
-            };
+            function esc(v) { var e = document.createElement("i"); e.textContent = v == null ? "" : v; return e.innerHTML; }
+            function familyHTML() {
+                var max = FAM.reduce(function (m, f) { return Math.max(m, f.n); }, 1);
+                return FAM.slice().sort(function (a, b) { return b.n - a.n; }).slice(0, 12).map(function (f) {
+                    var img = face[f.name] && face[f.name].img;
+                    return '<a class="bar-row rich" href="/birds?family=' + encodeURIComponent(f.name) + '" data-fam="' + esc(f.name) + '">' +
+                        (img ? '<img class="bird-avatar" src="' + img + '" alt="" loading="lazy" onerror="this.classList.add(\'missing\')">'
+                             : '<span class="bird-avatar"></span>') +
+                        '<span class="bar-label">' + esc(f.name) + ' <span class="bar-sub">' + f.spp + (f.spp === 1 ? ' species' : ' species') + '</span></span>' +
+                        '<span class="bar-track"><span class="bar-fill" style="width:' + Math.max(2, Math.round(f.n / max * 1000) / 10) + '%"></span></span>' +
+                        '<span class="bar-val mono">' + f.n + '</span></a>';
+                }).join("");
+            }
+            seg.addEventListener("click", function (ev) {
+                var b = ev.target.closest("button"); if (!b) return;
+                seg.querySelectorAll("button").forEach(function (x) { x.classList.toggle("on", x === b); });
+                host.dataset.by = b.dataset.by;
+                host.innerHTML = b.dataset.by === "family" ? familyHTML() : speciesHTML;
+                if (window.__statsRefocus) window.__statsRefocus();
+            });
         }
 
         // ---- The river: a bird-face rides each current; touch one to meet it ----
@@ -1670,12 +1509,12 @@
         renderAccum();
         renderPheno();
         renderCal();
-        renderFam();
+        renderBoard();
         var rt;
         addEventListener("resize", function () {
             clearTimeout(rt);
             rt = setTimeout(function () {
-                renderRiver(); renderFam();
+                renderRiver();
                 // Only the ribbon depends on width; rebuilding the whole life
                 // list would drop the wall's scroll position and the selection.
                 if (llState) llState.reflow(); else renderAccum();
@@ -1715,7 +1554,7 @@
     // Count the headline numbers up from zero on first view.
     (function () {
         if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-        document.querySelectorAll(".stat-num").forEach(function (el) {
+        document.querySelectorAll(".stat-tally b").forEach(function (el) {
             var target = parseInt(el.textContent.replace(/,/g, ""), 10);
             if (isNaN(target)) return;
             var fmt = el.textContent.indexOf(",") !== -1;
@@ -1753,6 +1592,21 @@
             return d < 30 ? d + "d ago" : Math.floor(d / 30) + "mo ago";
         }
         var sortBy = "count", filt = "all", expanded = false, CAP = 8, focusName = null;
+        var NODE_COLORS = window.EAR_NODE_COLORS || {};
+        // Each bar's length is the bird's count; inside it, which mic heard it
+        // (what the separate "Around the yard" list used to say on its own).
+        function barHTML(h, max) {
+            var w = Math.max(2, Math.round(h.n / max * 100));
+            var parts = (h.parts || []).filter(function (p) { return p.pct > 0; });
+            if (!parts.length) {
+                return '<span class="bar-track"><span class="bar-fill' + (h.shot ? '' : ' ear') + '" style="width:' + w + '%"></span></span>';
+            }
+            return '<span class="bar-track"><span class="bar-fill split" style="width:' + w + '%">' +
+                parts.map(function (p) {
+                    return '<i style="width:' + p.pct + '%;background:' + (NODE_COLORS[p.node] || "var(--accent)") +
+                        '" title="' + esc(p.node) + ' · ' + p.n + ' (' + p.pct + '%)"></i>';
+                }).join("") + '</span></span>';
+        }
         function view() {
             var v = all.filter(function (h) {
                 return filt === "all" || (filt === "shot" ? h.shot : !h.shot);
@@ -1773,7 +1627,7 @@
                     '<span class="bar-label">' + esc(h.name) +
                         ' <span class="bar-sub">' + (h.shot ? esc(h.fam) : '🎧 not photographed') + '</span></span>' +
                     '<span class="ear-last mono">' + rel(h.last) + '</span>' +
-                    '<span class="bar-track"><span class="bar-fill' + (h.shot ? '' : ' ear') + '" style="width:' + Math.max(2, Math.round(h.n / max * 100)) + '%"></span></span>' +
+                    barHTML(h, max) +
                     '<span class="bar-val mono">' + h.n + '×</span></a>';
             }).join("") || '<p class="ear-none mono">nothing matches this filter.</p>';
             if (v.length > CAP) {
@@ -1796,15 +1650,6 @@
         });
         moreEl.addEventListener("click", function (e) {
             if (e.target.closest(".ear-toggle")) { expanded = !expanded; render(); }
-        });
-        // Side stat cards drive the leaderboard filter (photographed / not yet).
-        var cards = document.querySelector(".ear-cards");
-        if (cards) cards.addEventListener("click", function (e) {
-            var c = e.target.closest("[data-earfilt]"); if (!c) return;
-            var want = c.getAttribute("data-earfilt");
-            var btn = box.parentElement.querySelector('.ear-filter [data-filt="' + want + '"]');
-            if (btn) btn.click();
-            box.parentElement.scrollIntoView({ behavior: "smooth", block: "nearest" });
         });
         // Focus hook for the deep-link (?bird=X): show + pulse that species.
         window.__earFocus = function (name) {
@@ -1858,7 +1703,7 @@
                 // the focused bird still shows its rank and count.
                 var ranked = window.SPECIES_RANKED || [], rk = -1, cnt = 0, img = null;
                 for (var i = 0; i < ranked.length; i++) { if (ranked[i][0] === name) { rk = i + 1; cnt = ranked[i][1]; img = ranked[i][2]; break; } }
-                var board = document.getElementById("board");
+                var board = document.getElementById("board-rows");
                 if (rk > 0 && board) {
                     var smax = (ranked[0] && ranked[0][1]) || 1, nm = name.replace(/[<&>]/g, "");
                     row = document.createElement("a");
@@ -1887,7 +1732,7 @@
             }
             // Land on the life list (the lifer view) if we could pin it there;
             // otherwise the phenology matrix we just filtered.
-            var target = onLifeList ? document.getElementById("accum-chart")
+            var target = onLifeList ? document.getElementById("ll-shot")
                 : (row || document.getElementById("pheno-matrix"));
             if (target && !scrolled) { scrolled = true; target.scrollIntoView({ behavior: "smooth", block: "center" }); }
         }
