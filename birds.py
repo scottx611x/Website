@@ -2987,6 +2987,42 @@ def original_url(url, expires=3600):
         return None
 
 
+_CROPS = None
+_CROPS_AT = 0.0
+ORIGINAL_CROPS_KEY = "originals_crops.json"   # under S3_PREFIX
+CROP_MIN_SCORE = 0.9
+
+
+def original_crop(url):
+    """Where the posted frame sits inside its full-size original, or None.
+
+    [x0, y0, x1, y1] as fractions of the original. None means the original IS
+    the posted framing (every post since mid-2026: the pipeline exports at the
+    post's aspect). The historic backfill is different — the archive holds the
+    whole 3:2 exposure and the post a square cut from it — so the touch loupe
+    needs this to put the original's pixels under the fingertip. Written by
+    tools/originals_crops.py; read once per ten minutes like has_original.
+    """
+    global _CROPS, _CROPS_AT
+    if _CROPS is None or _time.time() - _CROPS_AT > _ORIGINALS_TTL:
+        _CROPS, _CROPS_AT = {}, _time.time()
+        if os.environ.get("BIRDS_USE_S3"):
+            try:
+                import boto3
+
+                raw = boto3.client("s3").get_object(
+                    Bucket=S3_BUCKET,
+                    Key="{}/{}".format(S3_PREFIX, ORIGINAL_CROPS_KEY))["Body"].read()
+                _CROPS = json.loads(raw) or {}
+            except Exception:  # noqa: BLE001 - absent until the tool has run
+                pass
+    key = original_key(url)
+    e = _CROPS.get(key.rsplit("/", 1)[-1]) if key else None
+    if e and e.get("box") and (e.get("score") or 0) >= CROP_MIN_SCORE:
+        return e["box"]
+    return None
+
+
 _ORIGINALS = None
 _ORIGINALS_AT = 0.0
 _ORIGINALS_TTL = 600

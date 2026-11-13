@@ -833,6 +833,65 @@ class LinkPostOriginalsTestCase(unittest.TestCase):
         self.assertEqual(got, {})
 
 
+class OriginalCropTestCase(unittest.TestCase):
+    """The loupe's crop box: used only when confidently found."""
+
+    def _with(self, crops):
+        body = mock.Mock(); body.read.return_value = __import__("json").dumps(crops).encode()
+        s3 = mock.Mock(); s3.get_object.return_value = {"Body": body}
+        birds._CROPS = None
+        return mock.patch("boto3.client", return_value=s3), \
+            mock.patch.dict("os.environ", {"BIRDS_USE_S3": "1"})
+
+    def tearDown(self):
+        birds._CROPS = None
+
+    def test_box_by_original_filename(self):
+        url = "https://x/%s/images/p1-0.jpg" % birds.S3_PREFIX
+        a, b = self._with({"p1-0.jpg": {"box": [0.1, 0, 0.8, 1], "score": 0.99, "same": False},
+                           "p1-1.jpg": {"box": [0, 0, 1, 1], "score": 0.6, "same": False},
+                           "p1-2.jpg": {"box": None, "score": 1.0, "same": True}})
+        with a, b:
+            self.assertEqual(birds.original_crop(url), [0.1, 0, 0.8, 1])
+            self.assertIsNone(birds.original_crop(url.replace("p1-0", "p1-1")))  # weak
+            self.assertIsNone(birds.original_crop(url.replace("p1-0", "p1-2")))  # same framing
+            self.assertIsNone(birds.original_crop(url.replace("p1-0", "p9-9")))  # unknown
+
+
+class ClipInstantTestCase(unittest.TestCase):
+    """One station names clips in local time with a Z; the upload time says
+    which reading is real, so dawn birds stop appearing at 1 AM."""
+
+    def _up(self, iso):
+        import datetime
+        return datetime.datetime.fromisoformat(iso)
+
+    def test_local_named_clip_read_as_local(self):
+        import sound_index
+        t = sound_index._instant("20261112T063941Z", self._up("2026-11-12T11:39:45+00:00"))
+        self.assertEqual(t.isoformat(), "2026-11-12T06:39:41-05:00")
+
+    def test_utc_named_clip_read_as_utc(self):
+        import sound_index
+        t = sound_index._instant("20261112T113939Z", self._up("2026-11-12T11:39:50+00:00"))
+        self.assertEqual(t.isoformat(), "2026-11-12T06:39:39-05:00")
+
+    def test_daylight_time_offset(self):
+        import sound_index
+        t = sound_index._instant("20260815T063000Z", self._up("2026-08-15T10:30:20+00:00"))
+        self.assertEqual(t.isoformat(), "2026-08-15T06:30:00-04:00")
+
+    def test_no_upload_time_falls_back_to_utc(self):
+        import sound_index
+        self.assertEqual(sound_index._instant("20261112T113939Z").isoformat(),
+                         "2026-11-12T06:39:39-05:00")
+
+    def test_late_reupload_falls_back_to_utc(self):
+        import sound_index
+        t = sound_index._instant("20261112T113939Z", self._up("2026-11-20T00:00:00+00:00"))
+        self.assertEqual(t.isoformat(), "2026-11-12T06:39:39-05:00")
+
+
 class PhotoHideTestCase(unittest.TestCase):
     """Hiding a photo drops it from the public gallery but keeps the entry."""
 

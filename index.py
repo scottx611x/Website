@@ -907,6 +907,7 @@ def birds_family_json(slug):
             frames.append({
                 "thumb": birds.thumb_url(src), "full": src, "name": nm,
                 "orig": birds.original_url(src) if birds.has_original(src) else None,
+                "ocrop": birds.original_crop(src),
                 "date": (dates[i] if (i < len(dates) and dates[i])
                          else (sh.get("_sort") or sh.get("date"))),
                 "where": (locs[i] if (i < len(locs) and locs[i]) else sh.get("location")),
@@ -992,6 +993,8 @@ def birds_species_json(slug):
         frame = {"thumb": birds.thumb_url(imgs[0]), "full": imgs[0],
                  # the full-res export, when one was still on disk to upload
                  "orig": birds.original_url(imgs[0]) if birds.has_original(imgs[0]) else None,
+                 # where this frame sits in that original, if it was cropped
+                 "ocrop": birds.original_crop(imgs[0]),
                  "date": f.get("_sort") or f.get("date"),
                  "where": (locs[0] if locs else None),
                  "vid": 1 if (vids and vids[0]) else 0,
@@ -1321,6 +1324,10 @@ def _sound_log_merged():
             for k, v in r.items():
                 if v not in (None, "") and prev.get(k) in (None, ""):
                     prev[k] = v
+            # And the station's own timestamp beats the one parsed from the
+            # filename, which for one station is local time mislabelled Z.
+            if r.get("t"):
+                prev["t"] = r["t"]
         if not rows:                      # archive absent: the log alone still works
             return live
         rows.sort(key=lambda r: r.get("t") or "", reverse=True)

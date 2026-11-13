@@ -200,6 +200,28 @@ body.field-view .gallery-header.is-stuck{
 .bf-oimg[hidden]{display:none!important}
 .bf-oimg{max-width:100%;max-height:74vh;display:block;object-fit:contain;
   border-radius:3px;background:#0d120e;transition:filter .25s,opacity .25s}
+/* Touch loupe: press and hold the photo and a magnifier rises above the
+   finger, like the one iOS shows over text. It replaces the long-press
+   "Save Image" callout on the photo itself (full size ↗ still saves). */
+@media (hover:none) and (pointer:coarse){
+  img.bf-oimg{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
+}
+.bf-loupe{position:fixed;left:0;top:0;z-index:60;width:var(--lp,132px);height:var(--lp,132px);
+  pointer-events:none;opacity:0;will-change:transform,opacity;transition:opacity .14s}
+.bf-loupe.on{opacity:1}
+/* The disc is the inner element so it can grow out of the fingertip while
+   the outer one only travels. */
+.bf-loupe>i{position:absolute;inset:0;border-radius:50%;
+  background-color:#0d120e;background-repeat:no-repeat;
+  box-shadow:0 0 0 2px rgba(255,255,255,.88),0 0 0 3px rgba(13,18,14,.35),
+             0 10px 28px rgba(0,0,0,.5);
+  transform:scale(.55);transition:transform .2s cubic-bezier(.2,1.5,.4,1)}
+.bf-loupe.on>i{transform:scale(1)}
+/* Fetching the full-size original: the ring breathes until it lands. */
+.bf-loupe.hd-wait>i{animation:bfLoupeWait 1.1s ease-in-out infinite}
+@keyframes bfLoupeWait{50%{box-shadow:0 0 0 2px rgba(255,255,255,.35),0 0 0 3px rgba(13,18,14,.35),
+  0 10px 28px rgba(0,0,0,.5)}}
+@media (prefers-reduced-motion:reduce){.bf-loupe>i{transition:none;transform:none;animation:none!important}}
 /* .loading (the thumbnail standing in while the full frame downloads) has no
    style on purpose: it is a real photo, so the sharper one just replaces it. */
 /* Only reachable in full screen: the stage becomes the render root there, so
@@ -2404,11 +2426,11 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
          for the record has them: copy them onto this bird's frames. */
       var origs = {};
       (d.frames || []).forEach(function (fr) {
-        if (fr.orig) origs[fr.pid + "-" + fr.idx] = fr.orig;
+        if (fr.orig) origs[fr.pid + "-" + fr.idx] = fr;
       });
       allFrames.forEach(function (fr) {
         var o = origs[fr.pid + "-" + fr.idx];
-        if (o) fr.orig = o;
+        if (o) { fr.orig = o.orig; fr.ocrop = o.ocrop || null; }
       });
       paintOriginal(frames[fi]);
     }
@@ -2891,6 +2913,7 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
 
   var scrollAt = 0;
   function closeOver(fromPop) {
+    if (loupe && loupe.end) loupe.end();
     setBusy(false);
     setImm(false);
     if (!fromPop && location.hash && /^#(bird|family)\//.test(location.hash)) {
@@ -3007,6 +3030,198 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
     else if (e.key === "ArrowRight") showFrame(fi + 1);
   });
 
+  /* ---------- touch loupe ----------
+     Press and hold the photo: after a beat a round magnifier rises above the
+     finger and follows it. It opens at 3x on the 1440 px web copy already on
+     the stage (a phone shows that at ~400 px, so there is detail to reveal at
+     once). If the frame has a full-size original, holding is the cue to fetch
+     it: 20-24 MP, ~16 MB, so only on a hold and once per frame. When it lands
+     the loupe sharpens and eases in to 5x, where the original's detail is.
+     Lining it up: recent originals are the posted framing exactly. Older
+     ones (the historic backfill) are the whole exposure and the post a cut
+     from it, so those frames carry `ocrop`, the cut's box inside the original
+     (found by tools/originals_crops.py), and the loupe maps through it. An
+     original that neither matches nor has a box is not used — the magnified
+     view would land off the fingertip.
+
+     A quick drag is still a swipe (the hold has to come first, and moving
+     before it cancels), and while the loupe is up it owns the touch: the
+     page does not scroll and the swipe below stands down on release. */
+  var loupe = { claimed: false };
+  (function () {
+    var img = $("bf-oimg"), stage = img.parentNode;
+    var HOLD = 260, SLOP = 9, LIFT = 30, ZOOM_WEB = 3, ZOOM_HD = 5;
+    var el = null, timer = null, on = false, start = null, last = null, raf = 0;
+    var down = false;                            // a finger is on the photo
+    var zoom = ZOOM_WEB, zoomTo = ZOOM_WEB, hdSrc = null, hdFor = null;
+    var FULL = [0, 0, 1, 1], hdBox = FULL;       // the posted frame inside hdSrc
+    var hdCache = [];                            // [{url, ok, img, waiters}], newest last
+
+    function reduceMotion() {
+      return !!(window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches);
+    }
+    function dia() { return Math.round(Math.min(300, Math.max(200, innerWidth * 0.62))); }
+
+    /* The original for this frame: resolves ok=true only once it has loaded
+       AND the posted frame's region of it (the whole thing, or `box`) has the
+       web copy's shape. Keeps the last three so going back and forth between
+       frames does not re-download 16 MB each time. */
+    function hd(url, aspect, box, cb) {
+      for (var i = 0; i < hdCache.length; i++) {
+        var c = hdCache[i];
+        if (c.url !== url) continue;
+        if (c.ok !== null) cb(c.ok); else c.waiters.push(cb);
+        return;
+      }
+      var e = { url: url, ok: null, img: new Image(), waiters: [cb] };
+      hdCache.push(e);
+      if (hdCache.length > 3) hdCache.shift();
+      function settle(ok) {
+        e.ok = ok;
+        e.waiters.splice(0).forEach(function (w) { w(ok); });
+      }
+      e.img.onload = function () {
+        var a = (e.img.naturalWidth * (box[2] - box[0])) /
+                (e.img.naturalHeight * (box[3] - box[1]));
+        // decode() keeps the swap from flashing a half-painted 24 MP frame
+        var go = function () { settle(Math.abs(a / aspect - 1) < (box === FULL ? 0.02 : 0.04)); };
+        if (e.img.decode) e.img.decode().then(go, go); else go();
+      };
+      e.img.onerror = function () { settle(false); };   // e.g. the signed URL expired
+      e.img.src = url;
+    }
+    function contentRect() {
+      // object-fit:contain letterboxes inside the element box; magnify the
+      // picture, not the bars.
+      var r = img.getBoundingClientRect(), nw = img.naturalWidth, nh = img.naturalHeight;
+      if (!nw || !nh || !r.width || !r.height) return r;
+      var s = Math.min(r.width / nw, r.height / nh), w = nw * s, h = nh * s;
+      return { left: r.left + (r.width - w) / 2, top: r.top + (r.height - h) / 2, width: w, height: h };
+    }
+    function paint() {
+      raf = 0;
+      if (!on || !last) return;
+      var d = dia(), r = contentRect();
+      var u = Math.max(0, Math.min(r.width, last.x - r.left));
+      var v = Math.max(0, Math.min(r.height, last.y - r.top));
+      // Ease toward the target zoom, on the fingertip, so the step up to
+      // the original reads as the loupe focusing rather than a jump.
+      if (Math.abs(zoomTo - zoom) > 0.01 && !reduceMotion()) { zoom += (zoomTo - zoom) * 0.16; schedule(); }
+      else zoom = zoomTo;
+      var ZOOM = zoom;
+      var src = hdSrc || img.currentSrc || img.src, disc = el.firstChild;
+      if (el.dataset.src !== src) {
+        el.dataset.src = src;
+        disc.style.backgroundImage = 'url("' + src.replace(/"/g, '\\"') + '")';
+      }
+      el.style.setProperty("--lp", d + "px");
+      // Scale the source so the posted frame's region spans the photo at
+      // ZOOM, then shift so the fingertip's point sits mid-disc. For the web
+      // copy and a same-framing original the region is the whole image.
+      var b = hdSrc ? hdBox : FULL;
+      var bw = r.width * ZOOM / (b[2] - b[0]), bh = r.height * ZOOM / (b[3] - b[1]);
+      disc.style.backgroundSize = bw + "px " + bh + "px";
+      disc.style.backgroundPosition = (d / 2 - b[0] * bw - u * ZOOM) + "px " +
+                                      (d / 2 - b[1] * bh - v * ZOOM) + "px";
+      // Above the finger, where the finger is not covering it; flips below
+      // only when there is no room at the top of the screen.
+      var x = Math.max(6, Math.min(innerWidth - d - 6, last.x - d / 2));
+      var y = last.y - d - LIFT - 22;
+      if (y < 6) y = last.y + LIFT + 22;
+      el.style.transform = "translate3d(" + x + "px," + y + "px,0)";
+      // The inner disc scales up from the fingertip, so the loupe reads as
+      // rising out of the photo rather than appearing from nowhere.
+      disc.style.transformOrigin = (last.x - x) + "px " + (last.y - y) + "px";
+    }
+    function schedule() { if (!raf) raf = requestAnimationFrame(paint); }
+    function begin() {
+      timer = null;
+      if (!start || img.hidden || !img.naturalWidth) return;
+      if (!el) {
+        el = document.createElement("div");
+        el.className = "bf-loupe";
+        el.setAttribute("aria-hidden", "true");
+        el.appendChild(document.createElement("i"));
+      }
+      // Inside the stage, so it still shows when the stage is the full-screen
+      // element (anything outside it is not painted then).
+      if (el.parentNode !== stage) stage.appendChild(el);
+      on = true; loupe.claimed = true;
+      last = start;
+      var f = frames[fi];
+      if (hdFor !== f) { hdSrc = null; hdBox = FULL; hdFor = f; }
+      zoom = zoomTo = hdSrc ? ZOOM_HD : ZOOM_WEB;
+      if (f && f.orig && !hdSrc) {
+        var url = f.orig, aspect = img.naturalWidth / img.naturalHeight;
+        var box = (f.ocrop && f.ocrop.length === 4) ? f.ocrop : FULL;
+        el.classList.add("hd-wait");
+        hd(url, aspect, box, function (ok) {
+          if (hdFor !== f) return;               // paged to another frame since
+          if (el) el.classList.remove("hd-wait");
+          if (!ok) return;
+          hdSrc = url; hdBox = box;
+          if (on) { zoomTo = ZOOM_HD; schedule(); }
+        });
+      }
+      paint();
+      void el.offsetWidth;                       // commit the start pose first
+      el.classList.add("on");
+      if (navigator.vibrate) try { navigator.vibrate(8); } catch (e) { /* not allowed */ }
+    }
+    function end() {
+      clearTimeout(timer); timer = null; start = null;
+      if (!on) return;
+      on = false;
+      if (raf) { cancelAnimationFrame(raf); raf = 0; }
+      if (el) el.classList.remove("on");
+    }
+
+    img.addEventListener("touchstart", function (e) {
+      loupe.claimed = false;
+      end();
+      down = true;
+      if (e.touches.length !== 1) return;        // a second finger is a pinch
+      start = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+      timer = setTimeout(begin, HOLD);
+    }, { passive: true });
+    // Not passive: once the loupe is up, the drag is the loupe's, and the
+    // overlay must not scroll out from under it.
+    img.addEventListener("touchmove", function (e) {
+      var t = e.touches[0];
+      if (e.touches.length !== 1) { end(); return; }
+      if (!on) {
+        if (start && Math.hypot(t.clientX - start.x, t.clientY - start.y) > SLOP) {
+          clearTimeout(timer); timer = null; start = null;   // it was a swipe
+        }
+        return;
+      }
+      e.preventDefault();
+      last = { x: t.clientX, y: t.clientY };
+      schedule();
+    }, { passive: false });
+    function lift(e) { if (!e.touches.length) down = false; end(); }
+    img.addEventListener("touchend", lift, { passive: true });
+    img.addEventListener("touchcancel", lift, { passive: true });
+    // Chrome on Android opens its image menu (open / download / Lens / share)
+    // on a long press, and that menu takes the touch away: the loupe would
+    // never see the drag. It asks first via contextmenu, so decline whenever a
+    // finger is on the photo. A mouse right-click (no touch in progress) still
+    // gets the normal menu. iOS has no such event; the CSS callout rule
+    // covers it. Android can also start dragging the image out on a hold.
+    img.addEventListener("contextmenu", function (e) {
+      if (down || on || loupe.claimed) e.preventDefault();
+    });
+    img.draggable = false;
+    img.addEventListener("dragstart", function (e) { if (down) e.preventDefault(); });
+    img.addEventListener("click", function (e) {
+      if (loupe.claimed) { loupe.claimed = false; e.stopPropagation(); e.preventDefault(); }
+    }, true);
+    // Paging away or closing mid-hold must not leave a loupe hanging.
+    addEventListener("blur", end);
+    document.addEventListener("visibilitychange", end);
+    loupe.end = end;
+  })();
+
   /* Swipe, because this is a photo viewer on a phone and the arrows are a
      mouse idea. The overlay had NO touch handling at all — every pointer
      listener in this file is bound to the canvas — so the only way to page
@@ -3024,11 +3239,16 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
     var t0 = null, swiped = false;
     over.addEventListener("touchstart", function (e) {
       swiped = false;
+      // A fresh touch: whatever the loupe claimed belonged to the last one.
+      // (The photo's own touchstart runs first and never claims at start.)
+      loupe.claimed = false;
       if (e.touches.length !== 1) { t0 = null; return; }
       if (e.target.closest && e.target.closest(OPT_OUT)) { t0 = null; return; }
       t0 = { x: e.touches[0].clientX, y: e.touches[0].clientY };
     }, { passive: true });
     over.addEventListener("touchend", function (e) {
+      // A hold that raised the loupe is not a swipe, however far it wandered.
+      if (loupe.claimed) { t0 = null; return; }
       if (!t0) return;
       var dx = e.changedTouches[0].clientX - t0.x;
       var dy = e.changedTouches[0].clientY - t0.y;
