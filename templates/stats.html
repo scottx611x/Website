@@ -59,6 +59,13 @@
       </span>
     </nav>
 
+    {# Charts draw themselves once, the first time they scroll into view.
+       Decided here, before anything paints, so nothing flashes drawn and
+       then vanishes; no IntersectionObserver or reduced motion = just drawn. #}
+    <script>
+      if ("IntersectionObserver" in window && !matchMedia("(prefers-reduced-motion: reduce)").matches)
+        document.documentElement.classList.add("stats-arrive");
+    </script>
     <div class="stat-grid">
         <!-- The life list.
              Three pieces, because one chart could not do all three jobs: the
@@ -998,6 +1005,7 @@
                     .attr("width", cell + gap).attr("height", cell + gap)
                     .attr("fill", "transparent").style("cursor", "pointer");
                 var dot = parent.append("circle").attr("class", "cal-day").attr("data-key", key)
+                    .style("--d", (wk * 11) + "ms")
                     .attr("cx", cx).attr("cy", cy).attr("r", rScale(day.n)).attr("fill", "#2f7d4f")
                     .style("pointer-events", "none");
                 if (isToday(d)) dot.attr("stroke", "#e8b04b").attr("stroke-width", 1.5);
@@ -1860,6 +1868,35 @@
 </script>
 
 <script>
+/* First sight: each section's chart draws itself once as it scrolls in, then
+   never again. Bars grow from zero, year rows top to bottom, the punchcard
+   left to right in date order, rhythm ridges rise from their baselines, the
+   river wipes in. Rows rendered later (a filter, a sort) just appear. */
+(function () {
+  if (!document.documentElement.classList.contains("stats-arrive")) return;
+  var blocks = document.querySelectorAll(".stat-block");
+  blocks.forEach(function (b) {
+    b.querySelectorAll(".bar-row, .ll-yrow, .rhythm-row:not(.axis)").forEach(function (r, i) {
+      r.style.setProperty("--i", Math.min(i, 24));
+    });
+  });
+  var io = new IntersectionObserver(function (es) {
+    es.forEach(function (e) {
+      if (!e.isIntersecting) return;
+      e.target.classList.add("arrived");
+      io.unobserve(e.target);
+    });
+  }, { threshold: 0.12 });
+  blocks.forEach(function (b) { io.observe(b); });
+  // Belt and braces: never leave a chart undrawn if the observer misses.
+  setTimeout(function () {
+    blocks.forEach(function (b) {
+      var r = b.getBoundingClientRect();
+      if (r.top < innerHeight && r.bottom > 0) b.classList.add("arrived");
+    });
+  }, 2500);
+})();
+
 /* Scroll-spy for the jump nav. IntersectionObserver only, no scroll handler,
    so it costs nothing per frame. */
 (function () {

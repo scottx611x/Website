@@ -1322,6 +1322,23 @@ a.pheno-cell:hover, a.pheno-cell:focus-visible {
 .rhythm-row.pin .rhythm-name { color: var(--accent); font-weight: 600; }
 .pin-note { margin-top: 0.4rem; }
 @media (prefers-reduced-motion: reduce) { .pin-chip { animation: none; } }
+/* First sight (stats): the hidden state applies only under .stats-arrive,
+   which is set only when motion is welcome; .arrived releases it, once. */
+/* (the site-wide bar-grow keyframe ran at load, off screen, and its fill
+   would override this; first sight replaces it here) */
+.stats-arrive .stat-block .bar-fill, .stats-arrive .stat-block .ll-ybar i {
+  animation: none; transform-origin: left center; transition: transform 0.65s cubic-bezier(.2, .7, .1, 1);
+  transition-delay: calc(var(--i, 0) * 35ms); }
+.stats-arrive .stat-block:not(.arrived) .bar-fill,
+.stats-arrive .stat-block:not(.arrived) .ll-ybar i { transform: scaleX(0); }
+.stats-arrive #days circle.cal-day { transform-box: fill-box; transform-origin: center;
+  transition: transform 0.35s cubic-bezier(.3, 1.4, .5, 1); transition-delay: var(--d, 0ms); }
+.stats-arrive #days:not(.arrived) circle.cal-day { transform: scale(0); }
+.stats-arrive .rhythm-spark { transform-origin: 50% 100%; transition: transform 0.55s cubic-bezier(.2, .7, .1, 1);
+  transition-delay: calc(var(--i, 0) * 15ms); }
+.stats-arrive #rhythm-block:not(.arrived) .rhythm-spark { transform: scaleY(0); }
+.stats-arrive #river-chart svg { transition: clip-path 1s cubic-bezier(.3, .6, .2, 1); clip-path: inset(0 0 0 0); }
+.stats-arrive #s-river:not(.arrived) #river-chart svg { clip-path: inset(0 100% 0 0); }
 /* Stats: with the cards gone, the per-day strip leads the Heard section at
    full width and the rows below get a real bar to draw the mic split in. */
 .stats .ear-grid { grid-template-columns: minmax(0, 1fr); gap: 0.4rem; }
