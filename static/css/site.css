@@ -1301,6 +1301,27 @@ a.pheno-cell:hover, a.pheno-cell:focus-visible {
 .board-seg { margin-bottom: 0.4rem; }
 .board-rows .bar-row.rich { grid-template-columns: 2.3rem minmax(7rem, 16rem) 1fr 2.6rem; }
 .chart-readout:empty { display: none; }
+/* The pin: one bird, answered for by every section. Its chip rides the end
+   of the sticky jump bar (sticky inside the bar's own scroller on phones). */
+.pin-chip { position: sticky; right: 0; margin-left: auto; flex: none; display: inline-flex; align-items: center;
+  gap: 0.4rem; padding: 0.18rem 0.25rem 0.18rem 0.2rem; border-radius: 999px;
+  background: var(--ink); color: var(--paper); box-shadow: -10px 0 12px -6px rgba(244, 241, 233, 0.95);
+  animation: pinIn 0.35s cubic-bezier(.3, 1.4, .5, 1); }
+.pin-chip[hidden] { display: none; }
+.pin-chip img { width: 1.5rem; height: 1.5rem; border-radius: 50%; object-fit: cover; }
+.stat-jump .pin-chip .pin-name { padding: 0 0.1rem; border: none; color: var(--paper); font-size: 0.72rem; }
+.stat-jump .pin-chip .pin-name:hover { color: var(--lift); background: none; }
+.pin-x { width: 1.5rem; height: 1.5rem; border-radius: 50%; border: none; background: rgba(244, 241, 233, 0.14);
+  color: var(--paper); font-size: 0.95rem; line-height: 1; cursor: pointer; }
+.pin-x:hover { background: rgba(244, 241, 233, 0.3); }
+@keyframes pinIn { from { opacity: 0; transform: scale(0.85); } }
+.pheno-row, .rhythm-row, #board-rows .bar-row, #ear-bars .bar-row { transition: opacity 0.25s ease; }
+.pheno-matrix.pinning .pheno-row:not(.pin):not(.pheno-head) { opacity: 0.35; }
+.pheno-row.pin .pheno-name { color: var(--accent); font-weight: 600; }
+.rhythm-chart.pinning .rhythm-row:not(.pin):not(.axis) { opacity: 0.25; }
+.rhythm-row.pin .rhythm-name { color: var(--accent); font-weight: 600; }
+.pin-note { margin-top: 0.4rem; }
+@media (prefers-reduced-motion: reduce) { .pin-chip { animation: none; } }
 /* Stats: with the cards gone, the per-day strip leads the Heard section at
    full width and the rows below get a real bar to draw the mic split in. */
 .stats .ear-grid { grid-template-columns: minmax(0, 1fr); gap: 0.4rem; }

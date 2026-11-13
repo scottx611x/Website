@@ -52,6 +52,11 @@
       <a href="#rhythm-block">Rhythm</a>
       <a href="#places-block">Places</a>
       <a href="#s-river">River</a>
+      <span class="pin-chip" id="pin-chip" hidden>
+        <img alt="" hidden>
+        <a class="pin-name" href="#"></a>
+        <button type="button" class="pin-x" aria-label="clear the pinned bird" title="clear (Esc)">&times;</button>
+      </span>
     </nav>
 
     <div class="stat-grid">
@@ -218,7 +223,7 @@
                     <span class="rhythm-peak mono">peak</span>
                 </div>
                 {% for r in rhythm.species %}
-                <a class="rhythm-row" href="/birds/species/{{ r.name|slug }}" title="{{ r.name }} &mdash; most vocal around {{ r.peaklab }}">
+                <a class="rhythm-row" href="/birds/species/{{ r.name|slug }}" data-slug="{{ r.name|slug }}" title="{{ r.name }} &mdash; most vocal around {{ r.peaklab }}">
                     <span class="rhythm-head">
                         {% if r.img %}<img class="bird-avatar sm" src="{{ r.img }}" alt="" loading="lazy" onerror="this.classList.add('missing')">
                         {% else %}<span class="bird-avatar sm ear-miss" title="heard, not photographed">&#129718;</span>{% endif %}
@@ -339,6 +344,11 @@
             row.addEventListener("mouseenter", function () { var e = m.getElement(); if (e) e.classList.add("lift"); });
             row.addEventListener("mouseleave", function () { var e = m.getElement(); if (e) e.classList.remove("lift"); });
         });
+        window.placesReset = function () {
+            PTS.forEach(function (p) { var m = byName[p.name]; if (m) m.addTo(map); });
+            map.invalidateSize(false);
+            map.fitBounds(L.latLngBounds(localLL.length ? localLL : ll), { padding: [30, 30], maxZoom: 13, animate: false });
+        };
         // Deep-link focus (?bird=X): show only that bird's spots, refit the map.
         window.placesFocus = function (spots) {
             var keep = {}; spots.forEach(function (s) { keep[s[0]] = 1; });
@@ -362,6 +372,7 @@
 <script>
     (function () {
         var S = {{ series|tojson }};
+        window.STATS_PHENO = S.pheno;   // name/fam/imgs per species, for the pin
         var RIVER = {{ river|tojson }};
         var RIVER_WIN = "year";           // default view: last ~13 months; toggle to "all"
         var RIVER_YEARN = 13;
@@ -621,7 +632,12 @@
             });
             wall.addEventListener("click", function (ev) {
                 var t = ev.target.closest(".ll-tile");
-                if (t) show(+t.dataset.i, false);
+                if (!t) return;
+                show(+t.dataset.i, false);
+                if (window.statsPin) window.statsPin(data[+t.dataset.i].s);
+            });
+            wall.addEventListener("pointerleave", function () {
+                if (window.statsPinned) window.lvFocusLifer(window.statsPinned());
             });
             wall.addEventListener("keydown", function (ev) {
                 if (ev.key === "ArrowRight" || ev.key === "ArrowDown") { show(sel + 1, true); ev.preventDefault(); }
@@ -731,7 +747,8 @@
             var search = document.getElementById("pheno-search");
             var sortBtns = document.querySelectorAll(".pheno-sorts button");
             var nowMonth = new Date().getMonth();
-            var sortMode = "season", spotlight = -1, query = "";
+            var sortMode = "season", spotlight = -1, query = "", pinName = null;
+            window.__phenoPin = function (name) { pinName = name || null; order(); };
             var LIMIT = 16, expanded = false;
 
             function peakMonth(r) {
@@ -852,6 +869,14 @@
                     if (spotlight >= 0 && !w.r.months[spotlight]) return false;
                     return true;
                 });
+                // A pinned bird leads the grid whatever the sort, so it is on
+                // screen without scrolling the page; everyone else dims.
+                if (pinName) {
+                    var pw = rows.find(function (w) { return w.r.name === pinName; });
+                    if (pw) visible = [pw].concat(visible.filter(function (w) { return w !== pw; }));
+                }
+                host.classList.toggle("pinning", !!pinName);
+                rows.forEach(function (w) { w.el.classList.toggle("pin", !!pinName && w.r.name === pinName); });
                 // Collapse the long list by default — the full 86 rows is a wall,
                 // especially on mobile. Search / spotlight always show everything.
                 var capped = !expanded && !query && spotlight < 0;
@@ -1322,12 +1347,14 @@
             // Let a /birds/stats?bird=X deep-link bloom that bird's current — the
             // river keeps every band for context, but the focused one lights up.
             window.lvFocusRiver = function (name) {
+                if (!name) { lockedLi = -1; rest(); return null; }
                 for (var li = 0; li < S2.length; li++) {
                     if (S2[li].name !== name) continue;
                     lockedLi = li;       // hovering explores, leaving snaps back here
                     rest();
-                    return S2[li].fam;   // hand the family to the treemap
+                    return S2[li].fam;
                 }
+                lockedLi = -1; rest();   // not in this window of the river
                 return null;
             };
 
@@ -1372,8 +1399,8 @@
             }
             function bandClick() {
                 var li = lastDownLi;
-                var go = li >= 0 && pendingNav === li && !moved; pendingNav = -1;
-                if (go) location.href = birdURL(S2[li].name);
+                var ok = li >= 0 && !moved; pendingNav = -1;
+                if (ok && window.statsPin) window.statsPin(S2[li].name);
             }
             // Transparent catchers over the band areas funnel pointer events into the
             // exact isPointInFill hit-test. Faces are decorative (pointer-events:none)
@@ -1619,9 +1646,16 @@
         function render() {
             var v = view(), max = v.reduce(function (m, h) { return Math.max(m, h.n); }, 1);
             var shown = (expanded ? v : v.slice(0, CAP));
+            var fi = focusName ? v.findIndex(function (h) { return h.name === focusName; }) : -1;
+            var extra = "";
+            if (focusName && fi >= shown.length) shown = shown.concat([v[fi]]);
+            else if (focusName && fi < 0 && !all.some(function (h) { return h.name === focusName; })) {
+                extra = '<p class="ear-none mono pin-note">' + esc(focusName) + ' &middot; not heard from the yard</p>';
+            }
             box.innerHTML = shown.map(function (h) {
                 var isF = focusName && h.name === focusName;
-                return '<a class="bar-row rich' + (isF ? ' stat-focus' : '') + '" href="/birds/species/' + slugify(h.name) + '">' +
+                var rank = isF && v.indexOf(h) >= CAP && !expanded ? ' ghost' : '';
+                return '<a class="bar-row rich' + (isF ? ' stat-focus' : '') + rank + '" data-slug="' + slugify(h.name) + '" href="/birds/species/' + slugify(h.name) + '">' +
                     (h.img ? '<img class="bird-avatar" src="' + h.img + '" alt="" loading="lazy" onerror="this.classList.add(\'missing\')">'
                            : '<span class="bird-avatar ear-miss" title="heard, not photographed">🪶</span>') +
                     '<span class="bar-label">' + esc(h.name) +
@@ -1629,7 +1663,7 @@
                     '<span class="ear-last mono">' + rel(h.last) + '</span>' +
                     barHTML(h, max) +
                     '<span class="bar-val mono">' + h.n + '×</span></a>';
-            }).join("") || '<p class="ear-none mono">nothing matches this filter.</p>';
+            }).join("") + extra || '<p class="ear-none mono">nothing matches this filter.</p>';
             if (v.length > CAP) {
                 moreEl.hidden = false;
                 moreEl.innerHTML = '<button type="button" class="ear-toggle">' +
@@ -1651,96 +1685,177 @@
         moreEl.addEventListener("click", function (e) {
             if (e.target.closest(".ear-toggle")) { expanded = !expanded; render(); }
         });
-        // Focus hook for the deep-link (?bird=X): show + pulse that species.
-        window.__earFocus = function (name) {
-            if (!all.some(function (h) { return h.name === name; })) return false;
-            focusName = name; filt = "all"; expanded = true;
-            box.parentElement.querySelector('.ear-filter [data-filt="all"]').click();
-            render();
-            var el = box.querySelector(".stat-focus");
-            return el || true;
-        };
+        // The pin: lit in place, appended below the top rows with its rank
+        // marked, or a note when the mic has never caught it. null clears.
+        window.__earFocus = function (name) { focusName = name || null; render(); };
         render();
     })();
 
-    // Deep-link focus: /birds/stats?bird=X (from a species profile) filters the
-    // phenology matrix to that bird and pulses its leaderboard row.
+    /* The pin. Click a bird's row, tile, ridge or current anywhere on the page
+       and every section answers for that bird at once, with no reload and no
+       scroll: the life list shows it, the year grid leads with it, its
+       shooting days keep their ink, its rows light up (or join the list with
+       their rank), its ridge and its current come forward, and the map keeps
+       only its places. Hover stays local to the section under the pointer.
+       The pin sits in the jump bar; Escape, the x, or clicking it again
+       clears. #bird=<slug> makes a pinned view shareable; ?bird= still works
+       as the server-rendered deep link and pins the same way. */
     (function () {
-        var m = /[?&]bird=([^&]+)/.exec(location.search);
-        if (!m) return;
-        var name = decodeURIComponent(m[1].replace(/\+/g, " "));
-        var slug = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
-        // (The shared subnav focus chip names + clears the context now.)
+        var slugify = function (n) { return (n || "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, ""); };
+        var esc = function (s) { var d = document.createElement("i"); d.textContent = s == null ? "" : s; return d.innerHTML; };
+        // slug -> { name, fam, img } from everything the page knows about birds
+        var BIRD = {};
+        function know(name, fam, img) {
+            if (!name) return;
+            var k = slugify(name), b = BIRD[k] || (BIRD[k] = { name: name, fam: fam || "", img: img || null });
+            if (!b.fam && fam) b.fam = fam;
+            if (!b.img && img) b.img = img;
+        }
+        (window.STATS_PHENO || []).forEach(function (r) { know(r.name, r.fam, (r.imgs || []).filter(Boolean)[0]); });
+        (window.SPECIES_RANKED || []).forEach(function (r) { know(r[0], null, r[2]); });
+        (window.EAR_HEARD || []).forEach(function (h) { know(h.name, h.fam, h.img); });
 
-        function runFocus() {
-            var onLifeList = window.lvFocusLifer && window.lvFocusLifer(name);
-            // Light up the bird's current in the river, its family in the treemap,
-            // and the days I shot it in the calendar — context kept, focus shown.
-            var fam = window.lvFocusRiver && window.lvFocusRiver(name);
-            if (fam && window.lvFocusFam) window.lvFocusFam(fam);
-            if (window.lvFocusCal) window.lvFocusCal(name);
-            // Where I find them -> just this bird's spots (rebuild the ranked list
-            // and filter the map to its pins).
-            var spots = (window.SPECIES_PLACES || {})[name];
-            var rank = document.querySelector("#places-block .places-rank");
-            if (spots && spots.length && rank) {
-                rank.innerHTML = spots.map(function (p) {
-                    var away = p[2] === "away", nm = String(p[0]).split(",")[0].replace(/[<&>]/g, "");
-                    return '<li><a class="places-rank-row' + (away ? ' away' : '') + '" href="/birds?bird=' + encodeURIComponent(name) + '&loc=' + encodeURIComponent(p[0]) + '">' +
-                        '<span class="places-rank-dot' + (away ? ' away' : '') + '"></span>' +
-                        '<span class="places-rank-name">' + nm + (away ? ' ⚠️' : '') + '</span>' +
-                        '<span class="places-rank-n mono">' + p[1] + '</span></a></li>';
-                }).join("");
-                var h = document.querySelector("#places-block .places-top-h");
-                if (h) h.textContent = "where I find this bird";
-                if (window.placesFocus) window.placesFocus(spots);
+        var pinned = null;
+        var placesRank = document.querySelector("#places-block .places-rank");
+        var placesHead = document.querySelector("#places-block .places-top-h");
+        var placesOrig = placesRank ? placesRank.innerHTML : "", headOrig = placesHead ? placesHead.textContent : "";
+
+        function boardPin(name, fam) {
+            var host = document.getElementById("board-rows"); if (!host) return;
+            host.querySelectorAll(".ghost").forEach(function (g) { g.remove(); });
+            host.querySelectorAll(".stat-focus").forEach(function (r) { r.classList.remove("stat-focus"); });
+            host.classList.toggle("pinning", !!name);
+            if (!name) return;
+            if (host.dataset.by === "family") {
+                host.querySelectorAll(".bar-row").forEach(function (r) {
+                    if (r.dataset.fam === fam) r.classList.add("stat-focus");
+                });
+                return;
             }
-            var search = document.getElementById("pheno-search");
-            if (search) { search.value = name; search.dispatchEvent(new Event("input", { bubbles: true })); }
-            var row = document.querySelector('#board .bar-row[href$="/species/' + slug + '"]');
+            var slug = slugify(name);
+            var row = host.querySelector('.bar-row[data-slug="' + slug + '"]');
             if (!row) {
-                // Not in the top-N leaderboard — drop a ghost row at the bottom so
-                // the focused bird still shows its rank and count.
+                // outside the top rows: it joins the list with its true rank
                 var ranked = window.SPECIES_RANKED || [], rk = -1, cnt = 0, img = null;
                 for (var i = 0; i < ranked.length; i++) { if (ranked[i][0] === name) { rk = i + 1; cnt = ranked[i][1]; img = ranked[i][2]; break; } }
-                var board = document.getElementById("board-rows");
-                if (rk > 0 && board) {
-                    var smax = (ranked[0] && ranked[0][1]) || 1, nm = name.replace(/[<&>]/g, "");
-                    row = document.createElement("a");
-                    row.className = "bar-row rich ghost";
-                    row.href = "/birds/species/" + slug;
-                    row.innerHTML =
-                        (img ? '<img class="bird-avatar" src="' + img + '" alt="" loading="lazy" onerror="this.classList.add(\'missing\')">' : '') +
-                        '<span class="bar-label">' + nm + ' <span class="bar-sub">#' + rk + '</span></span>' +
-                        '<span class="bar-track"><span class="bar-fill" style="width:' + Math.max(2, Math.round(cnt / smax * 100)) + '%"></span></span>' +
-                        '<span class="bar-val mono">' + cnt + '</span>';
-                    board.appendChild(row);
-                }
+                if (rk < 0) return;
+                var smax = (ranked[0] && ranked[0][1]) || 1;
+                row = document.createElement("a");
+                row.className = "bar-row rich ghost";
+                row.href = "/birds/species/" + slug;
+                row.dataset.slug = slug;
+                row.innerHTML =
+                    (img ? '<img class="bird-avatar" src="' + img + '" alt="" loading="lazy" onerror="this.classList.add(\'missing\')">' : '<span class="bird-avatar"></span>') +
+                    '<span class="bar-label">' + esc(name) + ' <span class="bar-sub">#' + rk + '</span></span>' +
+                    '<span class="bar-track"><span class="bar-fill" style="width:' + Math.max(2, Math.round(cnt / smax * 100)) + '%"></span></span>' +
+                    '<span class="bar-val mono">' + cnt + '</span>';
+                host.appendChild(row);
             }
-            if (row) row.classList.add("stat-focus");
-            // The mic's numbers: hand off to the interactive widget, which shows
-            // + pulses the species (even below the top-8). Falls back to a note.
-            var eb = document.getElementById("ear-block");
-            if (eb && window.__earFocus) {
-                var got = window.__earFocus(name);
-                if (!got && !eb.querySelector(".ear-none")) {
-                    var pn = document.createElement("p");
-                    pn.className = "ear-none mono";
-                    pn.textContent = "the mic hasn't caught this one yet.";
-                    eb.querySelector(".ear-bars").appendChild(pn);
-                }
-            }
-            // Land on the life list (the lifer view) if we could pin it there;
-            // otherwise the phenology matrix we just filtered.
-            var target = onLifeList ? document.getElementById("ll-shot")
-                : (row || document.getElementById("pheno-matrix"));
-            if (target && !scrolled) { scrolled = true; target.scrollIntoView({ behavior: "smooth", block: "center" }); }
+            row.classList.add("stat-focus");
         }
-        var scrolled = false;
-        // Re-runnable: a resize re-renders the river/treemap/life-list and would
-        // otherwise drop the focus (mobile fires a resize when the URL bar hides).
-        window.__statsRefocus = runFocus;
-        setTimeout(runFocus, 500);
+        function rhythmPin(slug) {
+            var chart = document.querySelector(".rhythm-chart"); if (!chart) return;
+            var hit = false;
+            chart.querySelectorAll(".rhythm-row[data-slug]").forEach(function (r) {
+                var on = !!slug && r.dataset.slug === slug;
+                r.classList.toggle("pin", on);
+                if (on) hit = true;
+            });
+            chart.classList.toggle("pinning", !!slug);
+            chart.classList.toggle("pin-miss", !!slug && !hit);
+        }
+        function placesPin(name) {
+            if (!placesRank) return;
+            var spots = name ? (window.SPECIES_PLACES || {})[name] : null;
+            if (!spots || !spots.length) {
+                placesRank.innerHTML = placesOrig;
+                if (placesHead) placesHead.textContent = headOrig;
+                if (window.placesReset) window.placesReset();
+                return;
+            }
+            placesRank.innerHTML = spots.map(function (p) {
+                var away = p[2] === "away", nm = esc(String(p[0]).split(",")[0]);
+                return '<li><a class="places-rank-row' + (away ? ' away' : '') + '" href="/birds?bird=' + encodeURIComponent(name) + '&loc=' + encodeURIComponent(p[0]) + '">' +
+                    '<span class="places-rank-dot' + (away ? ' away' : '') + '"></span>' +
+                    '<span class="places-rank-name">' + nm + (away ? ' ⚠️' : '') + '</span>' +
+                    '<span class="places-rank-n mono">' + p[1] + '</span></a></li>';
+            }).join("");
+            if (placesHead) placesHead.textContent = "where I find this bird";
+            if (window.placesFocus) window.placesFocus(spots);
+        }
+        var chip = document.getElementById("pin-chip");
+        function paintChip(b) {
+            if (!chip) return;
+            chip.hidden = !b;
+            if (!b) return;
+            var img = chip.querySelector("img");
+            if (b.img) { img.src = b.img; img.hidden = false; } else img.hidden = true;
+            var a = chip.querySelector(".pin-name");
+            a.textContent = b.name;
+            a.href = "/birds/species/" + slugify(b.name);
+        }
+
+        function apply() {
+            var b = pinned ? BIRD[pinned] : null, name = b ? b.name : null;
+            document.body.classList.toggle("stats-pinned", !!b);
+            if (name && window.lvFocusLifer) window.lvFocusLifer(name);
+            if (window.__phenoPin) window.__phenoPin(name);
+            if (window.lvFocusCal) window.lvFocusCal(name);
+            boardPin(name, b && b.fam);
+            if (window.__earFocus) window.__earFocus(name);
+            rhythmPin(name ? pinned : null);
+            placesPin(name);
+            if (window.lvFocusRiver) window.lvFocusRiver(name);
+            paintChip(b);
+        }
+        // Pin by name or slug; pinning the pinned bird again clears.
+        function setPin(nameOrSlug, opts) {
+            var k = nameOrSlug ? slugify(nameOrSlug) : null;
+            if (k && !BIRD[k]) k = null;
+            if (k && k === pinned && !(opts && opts.keep)) k = null;
+            pinned = k;
+            apply();
+            var url = location.pathname + location.search + (pinned ? "#bird=" + pinned : "");
+            try { history.replaceState(history.state, "", url); } catch (e) { /* file:// etc */ }
+        }
+        window.statsPin = setPin;
+        window.statsPinned = function () { return pinned && BIRD[pinned] ? BIRD[pinned].name : null; };
+        // Re-renders (resize, the species/families switch) drop the marks.
+        window.__statsRefocus = function () { if (pinned) apply(); };
+
+        // With a mouse, rows pin from anywhere but the bird's NAME, which
+        // stays a link to its profile (as does any modified click). On touch
+        // the bar is hidden and the name fills the row, so the whole row pins;
+        // the pin chip's name is the way to the profile there.
+        var FINE = matchMedia("(pointer: fine)").matches;
+        document.addEventListener("click", function (e) {
+            if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+            var row = e.target.closest("#board-rows .bar-row[data-slug], #ear-bars .bar-row[data-slug], .rhythm-row[data-slug]");
+            if (!row) return;
+            if (FINE && e.target.closest(".bar-label, .rhythm-name")) return;
+            e.preventDefault();
+            setPin(row.dataset.slug);
+        });
+        if (chip) chip.querySelector(".pin-x").addEventListener("click", function () {
+            // A server-rendered ?bird= page also focuses the header; clearing
+            // that means the plain page.
+            if (/[?&](bird|family)=/.test(location.search)) { location.href = location.pathname; return; }
+            setPin(null);
+        });
+        addEventListener("keydown", function (e) {
+            if (e.key === "Escape" && pinned && !e.defaultPrevented) setPin(null);
+        });
+
+        // On load: #bird= pins in place; ?bird= pins and lands on the life list.
+        var hm = /^#bird=([a-z0-9-]+)$/.exec(location.hash || "");
+        var qm = /[?&]bird=([^&]+)/.exec(location.search);
+        setTimeout(function () {
+            if (qm) {
+                setPin(decodeURIComponent(qm[1].replace(/\+/g, " ")), { keep: true });
+                var t = document.getElementById("s-life");
+                if (t && pinned) t.scrollIntoView({ behavior: "smooth", block: "start" });
+            } else if (hm) setPin(hm[1], { keep: true });
+        }, 400);
     })();
 </script>
 
@@ -1751,13 +1866,13 @@
   var nav = document.getElementById("stat-jump");
   if (!nav || !("IntersectionObserver" in window)) return;
   var links = {};
-  nav.querySelectorAll("a").forEach(function (a) { links[a.getAttribute("href").slice(1)] = a; });
+  nav.querySelectorAll('a[href^="#"]').forEach(function (a) { links[a.getAttribute("href").slice(1)] = a; });
   var seen = {};
   var io = new IntersectionObserver(function (entries) {
     entries.forEach(function (e) { seen[e.target.id] = e.isIntersecting ? e.intersectionRatio : 0; });
     var best = null, bestV = 0;
     Object.keys(seen).forEach(function (k) { if (seen[k] > bestV) { bestV = seen[k]; best = k; } });
-    nav.querySelectorAll("a").forEach(function (a) { a.classList.remove("on"); });
+    nav.querySelectorAll('a[href^="#"]').forEach(function (a) { a.classList.remove("on"); });
     if (best && links[best]) {
       var a = links[best];
       a.classList.add("on");
