@@ -121,17 +121,49 @@
            trigger it). Lives here rather than in birds.html so the gallery,
            stats and live all behave the same way — they have the same header
            and the same complaint about it. */
+        /* The collapse must not change the page's layout height. A sticky
+           header keeps its flow space, so when it shrank ~250px everything
+           below moved up by that much, the browser's scroll anchoring pulled
+           scrollY back under the threshold, the header expanded, and round it
+           went — the title flickered and short scrolls snapped to the top.
+           The collapsed header now carries the height it gave up as bottom
+           margin, so nothing below it moves, and anchoring sits out the
+           frame where it changes shape. */
         (function () {
             var hdr, tick = false;
+            function setStuck(on) {
+                if (on === hdr.classList.contains("is-stuck")) return;
+                // Scroll anchoring would still "correct" for the header's own
+                // change of shape; nothing below it moves, so suspend it for
+                // this one layout.
+                var root = document.documentElement;
+                root.style.overflowAnchor = "none";
+                requestAnimationFrame(function () { root.style.overflowAnchor = ""; });
+                hdr.style.transition = "none";          // measure the final size, not a frame of the tween
+                hdr.style.marginBottom = "";
+                var before = hdr.getBoundingClientRect().height + parseFloat(getComputedStyle(hdr).marginBottom);
+                hdr.classList.toggle("is-stuck", on);
+                if (on) {
+                    var cs = getComputedStyle(hdr);
+                    var after = hdr.getBoundingClientRect().height + parseFloat(cs.marginBottom);
+                    if (before > after) hdr.style.marginBottom = (parseFloat(cs.marginBottom) + before - after) + "px";
+                }
+                void hdr.offsetHeight;
+                hdr.style.transition = "";
+            }
             function read() {
                 tick = false;
                 hdr = hdr || document.querySelector(".gallery-header[data-collapse]");
                 if (!hdr || hdr.dataset.pinned) return;
-                hdr.classList.toggle("is-stuck", window.scrollY > 48);
+                setStuck(window.scrollY > 48);
             }
             addEventListener("scroll", function () {
                 if (!tick) { tick = true; requestAnimationFrame(read); }
             }, { passive: true });
+            // A new width means new heights: re-measure from the full header.
+            addEventListener("resize", function () {
+                if (hdr && hdr.classList.contains("is-stuck")) { setStuck(false); read(); }
+            });
             addEventListener("DOMContentLoaded", read);
             read();
         })();
