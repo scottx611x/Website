@@ -222,6 +222,12 @@ body.field-view .gallery-header.is-stuck{
 @keyframes bfLoupeWait{50%{box-shadow:0 0 0 2px rgba(255,255,255,.35),0 0 0 3px rgba(13,18,14,.35),
   0 10px 28px rgba(0,0,0,.5)}}
 @media (prefers-reduced-motion:reduce){.bf-loupe>i{transition:none;transform:none;animation:none!important}}
+/* With a mouse the loupe is a click away: click to raise it, it rides on
+   the pointer (which it replaces), the wheel zooms, click again to drop it. */
+@media (hover:hover) and (pointer:fine){
+  img.bf-oimg{cursor:zoom-in}
+  img.bf-oimg.loupe-on{cursor:none}
+}
 /* .loading (the thumbnail standing in while the full frame downloads) has no
    style on purpose: it is a real photo, so the sharper one just replaces it. */
 /* Only reachable in full screen: the stage becomes the render root there, so
@@ -3046,13 +3052,18 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
 
      A quick drag is still a swipe (the hold has to come first, and moving
      before it cancels), and while the loupe is up it owns the touch: the
-     page does not scroll and the swipe below stands down on release. */
+     page does not scroll and the swipe below stands down on release.
+
+     With a mouse there is no hold and no finger in the way: a click raises
+     it centred ON the pointer, the wheel zooms (1.5x up to 10x on an
+     original), and a second click, Escape, or leaving the photo drops it. */
   var loupe = { claimed: false };
   (function () {
     var img = $("bf-oimg"), stage = img.parentNode;
     var HOLD = 260, SLOP = 9, LIFT = 30, ZOOM_WEB = 3, ZOOM_HD = 5;
     var el = null, timer = null, on = false, start = null, last = null, raf = 0;
     var down = false;                            // a finger is on the photo
+    var mouse = false, userZoom = false;         // following a mouse; wheel has set the zoom
     var zoom = ZOOM_WEB, zoomTo = ZOOM_WEB, hdSrc = null, hdFor = null;
     var FULL = [0, 0, 1, 1], hdBox = FULL;       // the posted frame inside hdSrc
     var hdCache = [];                            // [{url, ok, img, waiters}], newest last
@@ -3060,7 +3071,10 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
     function reduceMotion() {
       return !!(window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches);
     }
-    function dia() { return Math.round(Math.min(300, Math.max(200, innerWidth * 0.62))); }
+    function dia() {
+      if (mouse) return Math.round(Math.min(340, Math.max(220, innerHeight * 0.38)));
+      return Math.round(Math.min(300, Math.max(200, innerWidth * 0.62)));
+    }
 
     /* The original for this frame: resolves ok=true only once it has loaded
        AND the posted frame's region of it (the whole thing, or `box`) has the
@@ -3125,9 +3139,13 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
                                       (d / 2 - b[1] * bh - v * ZOOM) + "px";
       // Above the finger, where the finger is not covering it; flips below
       // only when there is no room at the top of the screen.
-      var x = Math.max(6, Math.min(innerWidth - d - 6, last.x - d / 2));
-      var y = last.y - d - LIFT - 22;
-      if (y < 6) y = last.y + LIFT + 22;
+      var x, y;
+      if (mouse) { x = last.x - d / 2; y = last.y - d / 2; }   // the lens IS the pointer
+      else {
+        x = Math.max(6, Math.min(innerWidth - d - 6, last.x - d / 2));
+        y = last.y - d - LIFT - 22;
+        if (y < 6) y = last.y + LIFT + 22;
+      }
       el.style.transform = "translate3d(" + x + "px," + y + "px,0)";
       // The inner disc scales up from the fingertip, so the loupe reads as
       // rising out of the photo rather than appearing from nowhere.
@@ -3160,13 +3178,13 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
           if (el) el.classList.remove("hd-wait");
           if (!ok) return;
           hdSrc = url; hdBox = box;
-          if (on) { zoomTo = ZOOM_HD; schedule(); }
+          if (on) { if (!userZoom) zoomTo = ZOOM_HD; schedule(); }
         });
       }
       paint();
       void el.offsetWidth;                       // commit the start pose first
       el.classList.add("on");
-      if (navigator.vibrate) try { navigator.vibrate(8); } catch (e) { /* not allowed */ }
+      if (!mouse && navigator.vibrate) try { navigator.vibrate(8); } catch (e) { /* not allowed */ }
     }
     function end() {
       clearTimeout(timer); timer = null; start = null;
@@ -3174,6 +3192,8 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
       on = false;
       if (raf) { cancelAnimationFrame(raf); raf = 0; }
       if (el) el.classList.remove("on");
+      mouse = false; userZoom = false;
+      img.classList.remove("loupe-on");
     }
 
     img.addEventListener("touchstart", function (e) {
@@ -3216,6 +3236,40 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
     img.addEventListener("click", function (e) {
       if (loupe.claimed) { loupe.claimed = false; e.stopPropagation(); e.preventDefault(); }
     }, true);
+    /* Mouse: click to raise, move to steer, wheel to zoom, click to drop. */
+    img.addEventListener("pointerdown", function (e) {
+      if (e.pointerType !== "mouse" || e.button !== 0) return;
+      e.preventDefault();                        // no image drag, no text selection
+      if (on && mouse) { end(); return; }
+      end();
+      mouse = true;
+      start = { x: e.clientX, y: e.clientY };
+      begin();
+      if (on) img.classList.add("loupe-on"); else mouse = false;
+    });
+    img.addEventListener("mousemove", function (e) {
+      if (!on || !mouse) return;
+      last = { x: e.clientX, y: e.clientY };
+      schedule();
+    });
+    img.addEventListener("mouseleave", function () { if (mouse) end(); });
+    img.addEventListener("wheel", function (e) {
+      if (!on || !mouse) return;
+      e.preventDefault();                        // zoom the lens, not scroll the sheet
+      userZoom = true;
+      var step = Math.pow(1.0022, -(e.deltaMode === 1 ? e.deltaY * 33 : e.deltaY));
+      zoomTo = Math.max(1.5, Math.min(hdSrc ? 10 : 6, zoomTo * step));
+      schedule();
+    }, { passive: false });
+    // Escape drops the lens first; the next Escape closes the viewer as before.
+    addEventListener("keydown", function (e) {
+      if (e.key === "Escape" && on && mouse) { end(); e.stopPropagation(); e.preventDefault(); }
+    }, true);
+    // A new frame is a new picture: drop the lens rather than magnify the old one.
+    // (The same frame's sharper copy replacing its thumbnail is not new.)
+    img.addEventListener("load", function () {
+      if (on && mouse && hdFor !== frames[fi]) end(); else if (on) schedule();
+    });
     // Paging away or closing mid-hold must not leave a loupe hanging.
     addEventListener("blur", end);
     document.addEventListener("visibilitychange", end);
