@@ -10,7 +10,15 @@ Nothing needs to be re-uploaded to fix that, because every clip's filename
 carries what we need::
 
     sitta_carolinensis_62p_20261006T171811Z.m4a
-    └── scientific ──┘ └c┘ └──── UTC ─────┘
+    └── scientific ──┘ └c┘ └─── instant ──┘
+
+The instant is NOT always UTC, whatever the Z says. One station names clips in
+UTC; the other names them in its local wall-clock time with the same Z. Read
+as UTC, the second kind landed 4-5 hours early — 6:39 AM dawn chorus showed up
+as Red-bellied Woodpeckers at 1:39 AM — for well over half the archive (28.6k
+of 49k clips by Nov 2026). The filename cannot say which station wrote it, but
+the upload time can: the exporter uploads within seconds of the detection, so
+S3's LastModified is the real instant to within minutes. See _instant().
 
 Scientific name, confidence and the exact instant. The common name, species
 code and canonical scientific spelling come from ``recent.json``, which the
@@ -107,14 +115,34 @@ def species_lookup(s3):
     return out
 
 
-def _row(name, names):
+LOCAL_SLOP_H = 0.5   # how close the upload must be to the local reading
+
+
+def _instant(ts, uploaded=None):
+    """The real moment a clip was recorded, in LOCAL_TZ.
+
+    `ts` is the filename's YYYYMMDDTHHMMSSZ. Read it both ways — as UTC, and as
+    local wall-clock — and keep whichever the upload time agrees with. Without
+    an upload time (or when neither reading is near it: a later re-upload),
+    fall back to UTC, which is what the Z claims.
+    """
+    naive = datetime.datetime.strptime(ts, "%Y%m%dT%H%M%SZ")
+    as_utc = naive.replace(tzinfo=datetime.timezone.utc)
+    if uploaded is not None:
+        as_local = naive.replace(tzinfo=LOCAL_TZ)
+        if (abs((uploaded - as_local).total_seconds()) < LOCAL_SLOP_H * 3600 and
+                abs((uploaded - as_local).total_seconds()) < abs((uploaded - as_utc).total_seconds())):
+            return as_local
+    return as_utc.astimezone(LOCAL_TZ)
+
+
+def _row(name, names, uploaded=None):
     m = CLIP_RE.match(name)
     if not m:
         return None
     slug, conf, ts = m.group("slug"), int(m.group("conf")), m.group("ts")
     try:
-        when = datetime.datetime.strptime(ts, "%Y%m%dT%H%M%SZ").replace(
-            tzinfo=datetime.timezone.utc).astimezone(LOCAL_TZ)
+        when = _instant(ts, uploaded)
     except ValueError:
         return None
     sp = names.get(slug) or {}
@@ -143,14 +171,30 @@ def build(s3=None, write=True):
     seen = {r.get("audio") for r in rows}
 
     names = species_lookup(s3)
-    added = 0
+    by_name = {r.get("audio"): r for r in rows}
+    added = fixed = 0
     paginator = s3.get_paginator("list_objects_v2")
     for page in paginator.paginate(Bucket=S3_BUCKET, Prefix=CLIPS_PREFIX):
         for obj in page.get("Contents") or []:
             name = obj["Key"].rsplit("/", 1)[-1]
-            if not name.endswith(".m4a") or name in seen:
+            if not name.endswith(".m4a"):
                 continue
-            row = _row(name, names)
+            up = obj.get("LastModified")
+            if name in seen:
+                # Existing rows were all read as UTC before _instant existed;
+                # re-derive and correct in place. Same listing, no extra calls.
+                m = CLIP_RE.match(name)
+                prev = by_name.get(name)
+                if m and prev is not None:
+                    try:
+                        t = _instant(m.group("ts"), up).isoformat()
+                    except ValueError:
+                        continue
+                    if prev.get("t") != t:
+                        prev["t"] = t
+                        fixed += 1
+                continue
+            row = _row(name, names, up)
             if row:
                 rows.append(row)
                 seen.add(name)
@@ -162,6 +206,7 @@ def build(s3=None, write=True):
         "count": len(rows),
         "log": rows,
     }
+    build.fixed = fixed
     if write:
         s3.put_object(Bucket=S3_BUCKET, Key=ARCHIVE_KEY,
                       Body=json.dumps(payload, separators=(",", ":")).encode(),
@@ -186,5 +231,6 @@ if __name__ == "__main__":
     dry = "--dry-run" in sys.argv
     rows, added = build(write=not dry)
     span = (rows[-1]["t"][:10], rows[0]["t"][:10]) if rows else ("?", "?")
-    print("archive: %d recordings, %s .. %s (%d new)%s"
-          % (len(rows), span[0], span[1], added, " [dry run]" if dry else ""))
+    print("archive: %d recordings, %s .. %s (%d new, %d times corrected)%s"
+          % (len(rows), span[0], span[1], added, getattr(build, "fixed", 0),
+             " [dry run]" if dry else ""))
