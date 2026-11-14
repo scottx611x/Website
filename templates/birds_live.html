@@ -463,6 +463,22 @@
   .lv-reel .lv-chip.miss{background-color:var(--ink); background-size:100% 100%; border:1.5px dashed rgba(201,154,60,.7)}
   .lv-reel .lv-chip.miss .cl{color:#e0b360; background:linear-gradient(transparent,rgba(6,10,7,.9))}
   .lv-reel .lv-chip.miss .feather{display:none}
+  /* Phase 3: while a clip is on, the voiceprint moves under a fixed needle
+     (38% in) instead of a needle crossing a still picture: played stays lit,
+     the part to come waits at 45%. With no photo, the full-screen
+     spectrogram behind the bird moves with it. Reduced motion keeps the
+     ordinary moving needle. */
+  .lv-stage .lv-player.playing .lv-playbtn{box-shadow:0 0 12px 3px rgba(56,224,138,.85)}
+  .lv-stage .lv-spec{touch-action:pan-y}
+  @media (prefers-reduced-motion:no-preference){
+    .lv-stage .lv-player.voiced .lv-spec img{translate:calc((.38 - var(--p)) * 100%) 0}
+    .lv-stage .lv-player.voiced .lv-needle{left:38%; opacity:1}
+    .lv-stage .lv-player.voiced .lv-wash{left:0; width:38%; opacity:1}
+    .lv-stage .lv-player.voiced .lv-veil{left:38%; opacity:1; background:linear-gradient(90deg,rgba(6,10,7,.25),rgba(6,10,7,.55) 18px)}
+    .lv-stage .lv-player.voiced .lv-spec{cursor:grab}
+    .lv-stage .lv-player.voiced .lv-spec.grabbing{cursor:grabbing}
+    .lv-stage.voicing .lv-phspec{translate:calc((.38 - var(--p)) * 100%) 0}
+  }
   .lv-reel.dragging{cursor:grabbing; scroll-snap-type:none}
   .lv-reel.dragging .lv-chip{pointer-events:none}
   /* Below the stage: the log, on paper, one readable column. */
@@ -911,6 +927,9 @@
     var pb = document.getElementById("lv-playbtn");
     if (pb) pb.innerHTML = (playing && current && current.isHero) ? "&#10074;&#10074;" : "&#9654;";
     if (player) player.classList.toggle("playing", playing && current && current.isHero);
+    // the stage's voiceprint scrolls while its clip is on (playing or paused)
+    if (player) player.classList.toggle("voiced", !!(STAGE && current && current.isHero));
+    if (STAGE) STAGE.classList.toggle("voicing", !!(current && current.isHero));
     if (zoom && zoomRec) {
       var zon = playing && current && current.audio === zoomRec.audio;
       zoom.classList.toggle("zplaying", !!zon);
@@ -946,11 +965,21 @@
   function paint() {
     var d = audio.duration, p = d ? audio.currentTime / d : 0;
     activeSpecs().forEach(function (el) { el.style.setProperty("--p", p); });
+    if (STAGE) STAGE.style.setProperty("--p", (current && current.isHero) ? p : 0);
     var label = fmtT(audio.currentTime) + (d ? " / " + fmtT(d) : "");
     if (current && current.isHero) { var pt = document.getElementById("lv-ptime"); if (pt) pt.textContent = label; }
     if (zoom && zoomRec && current && current.audio === zoomRec.audio) {
       var zt = zoom.querySelector(".lv-ztime"); if (zt) zt.textContent = label;
     }
+  }
+  /* Where on the recording a point on the stage's voiceprint is. While it
+     scrolls, the needle (38%) is "now", so a point maps relative to it. */
+  var SCROLLPRINT = !!STAGE && !REDUCED, printDragged = false;
+  function printScrolls(el) { return SCROLLPRINT && el.id === "lv-spec" && player.classList.contains("voiced"); }
+  function printFrac(el, x) {
+    var box = el.getBoundingClientRect(), f = (x - box.left) / box.width;
+    if (printScrolls(el)) f = f - 0.38 + (+getComputedStyle(el).getPropertyValue("--p") || 0);
+    return Math.max(0, Math.min(1, f));
   }
   var rafId = null;
   function tick() { paint(); rafId = audio.paused ? null : requestAnimationFrame(tick); }
@@ -963,7 +992,8 @@
     });
     document.getElementById("lv-spec").addEventListener("click", function (e) {
       if (e.target.closest(".lv-expand")) return; // enlarge, don't seek
-      var box = this.getBoundingClientRect(), frac = (e.clientX - box.left) / box.width;
+      if (printDragged) { printDragged = false; return; }   // a drag already seeked
+      var box = this.getBoundingClientRect(), frac = printFrac(this, e.clientX);
       if (heroClip) playClip(heroClip, { needle: document.getElementById("lv-needle"), isHero: true }, frac);
     });
     audio.addEventListener("play", function () { syncViews(); startRaf(); });
@@ -974,6 +1004,35 @@
     // Clips not public yet (or expired): pull the whole affordance, no broken UI.
     audio.addEventListener("error", function () { root.classList.add("no-media"); });
     audio.addEventListener("pause", function () { scheduleRelease(900); });
+    // On the stage a finished clip rewinds, so the print does not sit
+    // scrolled off to the left; play starts it again from the top.
+    audio.addEventListener("ended", function () {
+      if (!STAGE || !current || !current.isHero) return;
+      current = null; document.getElementById("lv-spec").style.setProperty("--p", 0);
+      syncViews(); paint();
+    });
+    // Drag the print to scrub (the needle stays put; the call moves).
+    (function () {
+      var sp = document.getElementById("lv-spec"), drag = null;
+      if (!sp) return;
+      sp.addEventListener("pointerdown", function (e) {
+        if (!printScrolls(sp) || e.target.closest(".lv-expand") || !audio.duration) return;
+        drag = { x: e.clientX, t: audio.currentTime, w: sp.getBoundingClientRect().width, moved: false };
+      });
+      window.addEventListener("pointermove", function (e) {
+        if (!drag) return;
+        var dx = e.clientX - drag.x;
+        if (!drag.moved && Math.abs(dx) < 5) return;
+        if (!drag.moved) { drag.moved = true; sp.classList.add("grabbing"); }
+        audio.currentTime = Math.max(0, Math.min(audio.duration - 0.05, drag.t - dx / drag.w * audio.duration));
+        paint();
+      });
+      window.addEventListener("pointerup", function () {
+        if (!drag) return;
+        if (drag.moved) { printDragged = true; setTimeout(function () { printDragged = false; }, 0); }
+        sp.classList.remove("grabbing"); drag = null;
+      });
+    })();
 
     // Hover to scrub: a ghost needle + time bubble track the cursor (pointer
     // devices); the click handlers already seek to where you release.
@@ -987,7 +1046,8 @@
       if (tip) {
         var rec = specRec(el);
         var known = rec && current && current.audio === rec.audio && audio.duration;
-        tip.textContent = known ? fmtT(f * audio.duration) : Math.round(f * 100) + "%";
+        var hf = printScrolls(el) ? printFrac(el, e.clientX) : f;
+        tip.textContent = known ? fmtT(hf * audio.duration) : Math.round(hf * 100) + "%";
       }
     }, { passive: true });
   }
