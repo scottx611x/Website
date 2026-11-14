@@ -79,7 +79,11 @@ async function arrivals(b, reduced) {
   while (Date.now() - t0 < 16000) {
     const n = await name();
     if (n !== last) {
-      changes.push({ at: Date.now() - t0, name: n });
+      // on the stage: the reel's head and the tab title follow the arrival
+      const extra = await p.evaluate(() => ({
+        reelHead: ((document.querySelector('#lv-wall.lv-reel .lv-chip') || {}).querySelector || (() => null)).call(document.querySelector('#lv-wall.lv-reel .lv-chip'), '.cl')?.textContent || null,
+        title: document.title }));
+      changes.push(Object.assign({ at: Date.now() - t0, name: n }, extra));
       last = n;
       if (!reduced && frames < 3) {
         await p.waitForTimeout(350);
@@ -87,7 +91,7 @@ async function arrivals(b, reduced) {
       }
     }
     if (!animSeen) animSeen = await p.evaluate(() => document.getAnimations().some(a =>
-      /lvHeroIn|lvWord|lvDrop|lvLand|lvSettle/.test(a.animationName || '')));
+      /lvHeroIn|lvWipe|lvWord|lvDrop|lvLand|lvSettle/.test(a.animationName || '')));
     await p.waitForTimeout(150);
   }
   const gaps = changes.slice(1).map((c, i) => c.at - changes[i].at);
@@ -96,6 +100,8 @@ async function arrivals(b, reduced) {
     reduced, before, expected: injected.map(r => r.display), changes, gaps,
     inOrder: JSON.stringify(changes.map(c => c.name)) === JSON.stringify(injected.map(r => r.display)),
     minGapOk: gaps.every(g => g >= 2000), arrivalAnimations: animSeen, errors: errs,
+    reelFollows: changes.every(c => c.reelHead == null || c.reelHead === c.name),
+    titleFollows: changes.every(c => !c.reelHead || c.title.indexOf(c.name) > 0),
   };
 }
 

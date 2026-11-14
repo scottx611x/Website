@@ -373,7 +373,7 @@
   .lv-empty p{color:var(--muted); max-width:32rem; margin:.4rem auto}
   @media(prefers-reduced-motion:reduce){.lv-dot{animation:none} .lv-row.flash{animation:none} .lv-zoom{animation:none} button.lv-tk.playing{animation:none}
     .lv-ph,.lv-enter .lv-ph,.lv-enter .lv-nm .w,.lv-enter .lv-when,.lv-enter .lv-meta,.lv-enter .lv-fact,.lv-enter .lv-stamp,
-    #lv-hero > .lv-enter,.lv-chain.arrive,.lv-chip.arrive,button.lv-tk.land}
+    #lv-hero > .lv-enter,.lv-chain.arrive,.lv-chip.arrive,button.lv-tk.land,.lv-stage #lv-hero > .lv-enter,.lv-reel .lv-chip.arrive}
 
   /* ====== ?stage=1 — the first screen is a dark stage the latest bird owns.
      The hero card, its player and the wall are the same elements as on the
@@ -479,6 +479,14 @@
     .lv-stage .lv-player.voiced .lv-spec.grabbing{cursor:grabbing}
     .lv-stage.voicing .lv-phspec{translate:calc((.38 - var(--p)) * 100%) 0}
   }
+  /* Phase 4: an arrival at stage scale. The new bird rises from the reel
+     edge (a clip-path wipe), the old name drops away, and the bird's frame
+     slides into the head of the reel as the others make room (FLIP, JS). */
+  .lv-stage #lv-hero > .lv-enter{animation:lvWipe .75s cubic-bezier(.65,0,.2,1) both}
+  @keyframes lvWipe{from{clip-path:inset(100% 0 0 0)} to{clip-path:inset(0 0 0 0)}}
+  .lv-stage #lv-hero > .lv-leave .lv-body{opacity:0; transform:translateY(28px); transition:opacity .3s ease, transform .45s cubic-bezier(.5,0,.8,.4)}
+  .lv-reel .lv-chip.arrive{animation:lvReelIn .6s .25s cubic-bezier(.2,.7,.1,1) both}
+  @keyframes lvReelIn{from{opacity:0; transform:translateX(-36px) scale(.92)}}
   .lv-reel.dragging{cursor:grabbing; scroll-snap-type:none}
   .lv-reel.dragging .lv-chip{pointer-events:none}
   /* Below the stage: the log, on paper, one readable column. */
@@ -1281,14 +1289,27 @@
     // dayrecs is the curated log (hidden clips gone) and hideClip prunes it
     // locally, so hiding every clip of a species drops it from the wall at once.
     var todayKey = new Date().toDateString(), heard = {}, meta = {};
+    // Ordered by each bird's newest RELEASED recording, not the rollup's
+    // last-heard (which already counts birds still queued to arrive), so the
+    // reel's head is the bird that just took the stage.
     (LIVE.dayrecs || []).forEach(function (r) {
-      if (vis(r) && new Date(r.t).toDateString() === todayKey) heard[slugify(r.display)] = true;
+      if (!vis(r) || new Date(r.t).toDateString() !== todayKey) return;
+      var k = slugify(r.display), t = +new Date(r.t);
+      if (!heard[k] || t > heard[k]) heard[k] = t;
     });
     (LIVE.species || []).forEach(function (s) { meta[slugify(s.display)] = s; });
-    var list = Object.keys(heard).map(function (sl) { return meta[sl]; }).filter(Boolean)
-      .sort(function (a, b) { return (a.last || "") < (b.last || "") ? 1 : (a.last || "") > (b.last || "") ? -1 : 0; });
+    var list = Object.keys(heard).filter(function (sl) { return meta[sl]; })
+      .sort(function (a, b) { return heard[b] - heard[a]; })
+      .map(function (sl) { return meta[sl]; });
     var seen = wallSeen;
     wallSeen = {};
+    // On the stage the reel slides rather than jumps when its order changes:
+    // note where each frame was, and animate from there once it is redrawn.
+    var was = null;
+    if (STAGE && !REDUCED && seen) {
+      was = {};
+      wall.querySelectorAll(".lv-chip").forEach(function (c) { was[c.getAttribute("data-slug")] = c.getBoundingClientRect().left; });
+    }
     wall.innerHTML = list.map(function (s) {
       var slug = slugify(s.display), fam = esc(s.fam || "");
       var pop = seen && !seen[slug] && !REDUCED ? " arrive" : "";
@@ -1307,6 +1328,12 @@
       return '<span class="lv-chip miss' + pop + '" data-slug="' + slug + '" data-fam="' + fam +
         '" title="' + esc(s.display) + ' · heard, not photographed">' + FEATHER + '<span class="cl">' + esc(s.display) + '</span></span>';
     }).join("");
+    if (was && wall.animate) wall.querySelectorAll(".lv-chip").forEach(function (c) {
+      var x0 = was[c.getAttribute("data-slug")]; if (x0 == null) return;
+      var dx = x0 - c.getBoundingClientRect().left; if (Math.abs(dx) < 1) return;
+      c.animate([{ transform: "translateX(" + dx + "px)" }, { transform: "none" }],
+                { duration: 650, easing: "cubic-bezier(.2,.7,.1,1)" });
+    });
     var empty = document.getElementById("lv-wall-empty");
     if (empty) empty.hidden = list.length > 0;
     var shot = 0; list.forEach(function (s) { if (s.shot) shot++; });
@@ -1965,6 +1992,8 @@
     // A bird the visitor picked keeps the stage; the chip counts what landed.
     if (picked && r.audio && (r.conf || 0) >= confMin / 100) { newWhilePicked++; renderBack(); }
     if (lead) { curHero = r; renderHero(r, true); loadHero(r); }
+    // A background tab says the yard is doing something.
+    if (lead && STAGE) document.title = "\u25CF " + r.display + " \u00B7 Live from the yard";
     renderTally(); renderHourStrip(); renderFeed(LIVE.recent, false); renderWall(); stampTimes();
     if (REDUCED) return;
     // One motion, three places: the old bird drops into the feed, the new

@@ -5,7 +5,10 @@
 > until 2026-11-21; then delete its markup in its own commit. Deviations: on
 > wide screens the photo sits right of centre with a blurred copy behind the
 > words (full-bleed shading failed contrast on bright daytime photos); the
-> meta line is paper, not green. Phases 3-4 not started.
+> meta line is paper, not green. Phase 3 shipped 0f85f7f (probe
+> `livevoice`); phase 4 shipped after it (`livefeel` checks reel head + tab
+> title). The reel now orders by each bird's newest released recording.
+> Left: 3b (needs bucket CORS, ask) and 5 (show first).
 
 A design brief for a fresh session to implement. Read all of it, then
 `docs/revamp/OVERNIGHT.md` (working rules, probes, rejected designs) and
