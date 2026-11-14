@@ -26,7 +26,7 @@ async function layout(b, w, h, mobile) {
     xScroll: document.documentElement.scrollWidth > innerWidth,
     tally: document.getElementById('lv-tally').textContent.replace(/\s+/g, ' ').trim(),
     status: document.getElementById('lv-upd').textContent,
-    wallKick: document.getElementById('lv-wallkick').textContent,
+    wallKick: (document.getElementById('lv-wallkick') || {}).textContent || null,   // the stage has a reel instead
     fact: (document.querySelector('#lv-hero .lv-fact') || {}).textContent || null,
     stamp: (document.querySelector('#lv-hero .lv-stamp') || {}).textContent || null,
     trackRows: document.querySelectorAll('#lv-trackrows .lv-trow').length,

@@ -1,5 +1,12 @@
 # /birds/live: the stage
 
+> **Status 2026-11-14:** phases 1-2 shipped (5e562c5, 2009da2, d71288a) and
+> made the default on Scott's "ship it". `?stage=0` keeps the old paper page
+> until 2026-11-21; then delete its markup in its own commit. Deviations: on
+> wide screens the photo sits right of centre with a blurred copy behind the
+> words (full-bleed shading failed contrast on bright daytime photos); the
+> meta line is paper, not green. Phases 3-4 not started.
+
 A design brief for a fresh session to implement. Read all of it, then
 `docs/revamp/OVERNIGHT.md` (working rules, probes, rejected designs) and
 `docs/revamp/LIVE_PLAN.md` (what is on the page today and why).

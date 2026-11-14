@@ -1,11 +1,12 @@
 {% extends 'base.html' %}
 {% block meta_description %}Live bird sounds identified in real time from a microphone in North Andover, MA — cross-referenced with what I've photographed.{% endblock %}
 
-{% block body_class %}{% if request.args.get('stage') == '1' %}lv-staged{% endif %}{% endblock %}
+{% block body_class %}{% if request.args.get('stage') != '0' and has_data %}lv-staged{% endif %}{% endblock %}
 {% block content %}
-{# ?stage=1: the first screen is a dark stage the latest bird owns
-   (docs/revamp/LIVE_STAGE_PLAN.md). Without the flag the page is unchanged. #}
-{% set stage = request.args.get('stage') == '1' %}
+{# The first screen is a dark stage the latest bird owns
+   (docs/revamp/LIVE_STAGE_PLAN.md). Default since 2026-11-14; ?stage=0 keeps
+   the old paper page for a week, then its markup goes. #}
+{% set stage = request.args.get('stage') != '0' %}
 {% from '_icons.html' import icon %}
 <style>
   /* Light like every other bird page; ink on paper, green accents, neon fills. */
