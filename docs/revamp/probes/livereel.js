@@ -30,6 +30,15 @@ const chipName = (p, i) => p.$eval(`#lv-wall .lv-chip:nth-child(${i}) .cl`, e =>
   await c.addCookies([{ name: 'curate', value: '0', url: BASE }]);
   const p = await c.newPage();
   const errs = []; p.on('pageerror', e => errs.push(e.message));
+  // record what each play() starts: which clip, from where
+  await p.addInitScript(() => {
+    window.__plays = [];
+    const play = HTMLMediaElement.prototype.play;
+    HTMLMediaElement.prototype.play = function () {
+      window.__plays.push({ src: (this.src || '').split('/').pop(), at: +this.currentTime.toFixed(2) });
+      return play.apply(this, arguments);
+    };
+  });
   let inject = false;
   await p.route(u => u.pathname === '/birds/live.json', async route => {
     const res = await route.fetch(); const d = await res.json();
@@ -65,6 +74,18 @@ const chipName = (p, i) => p.$eval(`#lv-wall .lv-chip:nth-child(${i}) .cl`, e =>
   await p.keyboard.press('Escape');
   await p.waitForTimeout(1300);
   out.escape = Object.assign({ stage: await stageName(p) }, await state(p));
+
+  // play, then pick another bird and press play: the new bird's clip must
+  // start from the top, not resume the previous one
+  await p.click('#lv-playbtn'); await p.waitForTimeout(1200);
+  const firstPlay = await p.evaluate(() => window.__plays.slice(-1)[0]);
+  await p.click('#lv-playbtn'); await p.waitForTimeout(300);   // pause
+  await p.evaluate(() => { window.__plays = []; });
+  const other = await p.$eval('#lv-wall .lv-chip:not(.on):not(.miss)', e => { const r = e.getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + 12, n: e.querySelector('.cl').textContent.trim() }; });
+  await p.mouse.click(other.x, other.y); await p.waitForTimeout(1300);
+  await p.click('#lv-playbtn'); await p.waitForTimeout(800);
+  out.switchPlay = { first: firstPlay, picked: other.n, plays: await p.evaluate(() => window.__plays) };
+  await p.keyboard.press('Escape'); await p.waitForTimeout(1000);
 
   // the name of a frame is still a link with a mouse
   out.nameIsLink = await p.$eval('#lv-wall a.lv-chip', a => a.getAttribute('href'));
@@ -121,6 +142,7 @@ const chipName = (p, i) => p.$eval(`#lv-wall .lv-chip:nth-child(${i}) .cl`, e =>
     vWheelScrollsPage: out.vWheel.scrollY > 0,
     dragScrollsNotPicks: out.drag.reelLeft > 100 && out.drag.stageUnchanged,
     keyboardSteps: out.keyboard.got === out.keyboard.want,
+    switchPlaysNewClip: !!out.switchPlay.plays.length && out.switchPlay.plays[0].src !== (out.switchPlay.first || {}).src && out.switchPlay.plays[0].at === 0,
     phoneTapPicks: out.phone.got === out.phone.want && /stage=1/.test(out.phone.url) && out.phone.scrollY === out.phone.scrollBefore,
     phoneReelScrollable: out.phone.reelScrollable,
     noErrors: !out.errors.length && !out.phoneErrors.length,

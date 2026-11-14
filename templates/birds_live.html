@@ -863,6 +863,14 @@
     if (!player || !r) return;
     // A bird picked from the reel may have no published clip: no player,
     // rather than the previous bird's voice under this one's name.
+    // A different clip on stage: let go of the old one, or play would resume
+    // the previous bird from where it was paused.
+    if (current && current.isHero && current.audio !== r.audio) {
+      audio.pause(); current = null;
+      var sp0 = document.getElementById("lv-spec"); if (sp0) sp0.style.setProperty("--p", 0);
+      var pt0 = document.getElementById("lv-ptime"); if (pt0) pt0.textContent = "0:00";
+      syncViews();
+    }
     if (!r.audio) { if (STAGE) { player.hidden = true; heroClip = null; } return; }
     heroClip = r;
     player.hidden = false;
