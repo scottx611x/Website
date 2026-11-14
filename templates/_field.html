@@ -2151,6 +2151,11 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
 
   function openSpecies(t) {
     cur = t.slug; frames = []; fi = 0;
+    /* A gallery tile opens in sequence mode, and nothing turned it off: every
+       bird opened after one (a #bird/ link, the "N of M" stepper) kept its
+       nine placeholder thumbnails for good, because fill() leaves the strip
+       alone in sequence mode. A species open is never a sequence. */
+    seqMode = false; seqSpecies = null;
     wantSrc = t.src;            // open on the frame that was actually clicked
     $("bf-otitle").textContent = t.name;
     setFam(t.fam || "");
