@@ -1,4 +1,4 @@
-// /birds/live?sound=1 — "sound on" (LIVE_STAGE_PLAN.md phase 5, show first).
+// /birds/live — "sound on" (LIVE_STAGE_PLAN.md phase 5).
 //   docs/revamp/probes/run.sh livesound
 // With the switch on, each of three injected arrivals plays its own clip
 // once, in order, and none is cut off by the next. With it off, an arrival

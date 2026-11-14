@@ -8,7 +8,8 @@
 > meta line is paper, not green. Phase 3 shipped 0f85f7f (probe
 > `livevoice`); phase 4 shipped after it (`livefeel` checks reel head + tab
 > title). The reel now orders by each bird's newest released recording.
-> Left: 3b (needs bucket CORS, ask) and 5 (show first).
+> Phase 5 ("sound on") shipped to everyone on Scott's "no flag just rip it"
+> (probe `livesound`). Left: 3b (needs bucket CORS in the infra repo, ask).
 
 A design brief for a fresh session to implement. Read all of it, then
 `docs/revamp/OVERNIGHT.md` (working rules, probes, rejected designs) and
