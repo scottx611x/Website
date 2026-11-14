@@ -58,6 +58,13 @@ app.add_template_filter(birds.thumb_url, "thumb")
 app.add_template_filter(birds._species_slug, "slug")  # species name -> /birds/species/<slug>
 
 
+@app.template_filter("compact")
+def _compact_filter(n):
+    """32907 -> "32k": headline counts past 10,000 lose the digits nobody reads."""
+    n = int(n or 0)
+    return "{:,}".format(n) if n < 10000 else "{}k".format(n // 1000)
+
+
 @app.template_filter("shuffle")
 def _shuffle_filter(seq):
     items = list(seq)

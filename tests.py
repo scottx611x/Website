@@ -171,6 +171,15 @@ class RoutesTestCase(GenericTestBase):
         self.assertEqual(self.test_client.get("/archive/nope").status_code, 404)
 
 
+class CompactFilterTestCase(unittest.TestCase):
+    def test_compact(self):
+        f = index.app.jinja_env.filters["compact"]
+        self.assertEqual(f(2064), "2,064")
+        self.assertEqual(f(9999), "9,999")
+        self.assertEqual(f(32907), "32k")
+        self.assertEqual(f(None), "0")
+
+
 class BlogTestCase(unittest.TestCase):
     def test_posts_sorted_newest_first(self):
         dates = [post["date"] for post in blog.list_posts()]

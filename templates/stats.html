@@ -25,18 +25,18 @@
         {% set fq = ('bird=' ~ focus.bird|urlencode) if focus.bird else ('family=' ~ focus.family|urlencode) %}
         {% set parts = [] %}
         {% if focus.species and not focus.bird %}{% set _ = parts.append('<a href="/birds?' ~ fq ~ '"><b>' ~ focus.species ~ '</b> species</a>') %}{% endif %}
-        {% if focus.photographed %}{% set _ = parts.append('<a href="/birds?' ~ fq ~ '"><b>' ~ "{:,}".format(focus.photos) ~ '</b> ' ~ ('photo' if focus.photos == 1 else 'photos') ~ '</a>') %}{% endif %}
+        {% if focus.photographed %}{% set _ = parts.append('<a href="/birds?' ~ fq ~ '"><b>' ~ focus.photos|compact ~ '</b> ' ~ ('photo' if focus.photos == 1 else 'photos') ~ '</a>') %}{% endif %}
         {% if focus.videos %}{% set _ = parts.append('<a href="/birds?' ~ fq ~ '&media=video"><b>' ~ focus.videos ~ '</b> ' ~ ('video' if focus.videos == 1 else 'videos') ~ '</a>') %}{% endif %}
         {% if focus.active_months %}{% set _ = parts.append('<a href="#days"><b>' ~ focus.active_months ~ '</b> ' ~ ('month' if focus.active_months == 1 else 'months') ~ ' active</a>') %}{% endif %}
         {% if focus.places %}{% set _ = parts.append('<a href="/birds/map?' ~ fq ~ '"><b>' ~ focus.places ~ '</b> ' ~ ('place' if focus.places == 1 else 'places') ~ '</a>') %}{% endif %}
         {% if focus.away %}{% set _ = parts.append('<a href="/birds?' ~ fq ~ '&area=elsewhere"><b>' ~ focus.away ~ '</b> shot away</a>') %}{% endif %}
-        {% if focus.recordings %}{% set _ = parts.append('<a href="/birds/live?' ~ fq ~ '"><b>' ~ "{:,}".format(focus.recordings) ~ '</b> ' ~ ('recording' if focus.recordings == 1 else 'recordings') ~ '</a>') %}{% endif %}
+        {% if focus.recordings %}{% set _ = parts.append('<a href="/birds/live?' ~ fq ~ '"><b>' ~ focus.recordings|compact ~ '</b> ' ~ ('recording' if focus.recordings == 1 else 'recordings') ~ '</a>') %}{% endif %}
         {{ parts|join(' &middot; ')|safe }}{% if fd %} &middot; <span class="nowrap">since {{ fd.first.strftime('%b %Y') }}</span>{% endif %}
     {% else %}
         <a href="/birds"><b>{{ stats.species }}</b> species photographed</a> &middot;
-        <a href="/birds"><b>{{ "{:,}".format(stats.photos) }}</b> photos</a> &middot;
+        <a href="/birds"><b>{{ stats.photos|compact }}</b> photos</a> &middot;
         {% if ear %}<a href="/birds/heard"><b>{{ ear.heard|length }}</b> heard</a> &middot;
-        <a href="/birds/live/log"><b>{{ "{:,}".format(ear.calls) }}</b> recordings</a> &middot;{% endif %}
+        <a href="/birds/live/log"><b>{{ ear.calls|compact }}</b> recordings</a> &middot;{% endif %}
         {% if fd %}<span class="nowrap">since {{ fd.first.strftime('%b %Y') }}</span>{% endif %}
     {% endif %}
     </p>
@@ -1595,9 +1595,10 @@
         var ready = document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve();
         ready.then(function () { els.forEach(count); });
         function count(el) {
-            var target = parseInt(el.textContent.replace(/,/g, ""), 10);
-            if (isNaN(target)) return;
-            var fmt = el.textContent.indexOf(",") !== -1;
+            var m = /^([\d,]+)(k?)$/.exec(el.textContent.trim());
+            if (!m) return;
+            var target = parseInt(m[1].replace(/,/g, ""), 10), unit = m[2];
+            var fmt = m[1].indexOf(",") !== -1;
             el.style.width = el.getBoundingClientRect().width + "px";
             el.style.textAlign = "right";
             el.textContent = "0";
@@ -1607,7 +1608,7 @@
                 var k = Math.min((t - t0) / 900, 1);
                 k = 1 - Math.pow(1 - k, 3);   // ease-out cubic
                 var v = Math.round(target * k);
-                el.textContent = fmt ? v.toLocaleString("en-US") : String(v);
+                el.textContent = (fmt ? v.toLocaleString("en-US") : String(v)) + unit;
                 if (k < 1) requestAnimationFrame(tick);
                 else { el.style.width = ""; el.style.textAlign = ""; }
             }
