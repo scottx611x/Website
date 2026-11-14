@@ -50,7 +50,9 @@ async function arrivals(b, reduced) {
     if (inject) {
       // Three new birds, heard 30s, 20s and 10s ago, cloned from real ones so
       // their photos and families are real.
-      const seen = new Set([d.recent[0].display]);
+      // skip the bird already on stage (the newest playable clip over the bar),
+      // or its 'arrival' changes nothing visible
+      const seen = new Set([d.recent[0].display, (d.recent.find(r => r.audio && r.conf >= 0.75) || {}).display]);
       const src = d.recent.filter(r => r.audio && r.conf >= 0.8 && !seen.has(r.display) && seen.add(r.display)).slice(0, 3);
       const now = Date.now();
       injected = src.map((r, i) => Object.assign({}, r, {

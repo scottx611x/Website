@@ -1,7 +1,11 @@
 {% extends 'base.html' %}
 {% block meta_description %}Live bird sounds identified in real time from a microphone in North Andover, MA — cross-referenced with what I've photographed.{% endblock %}
 
+{% block body_class %}{% if request.args.get('stage') == '1' %}lv-staged{% endif %}{% endblock %}
 {% block content %}
+{# ?stage=1: the first screen is a dark stage the latest bird owns
+   (docs/revamp/LIVE_STAGE_PLAN.md). Without the flag the page is unchanged. #}
+{% set stage = request.args.get('stage') == '1' %}
 {% from '_icons.html' import icon %}
 <style>
   /* Light like every other bird page; ink on paper, green accents, neon fills. */
@@ -369,18 +373,129 @@
   @media(prefers-reduced-motion:reduce){.lv-dot{animation:none} .lv-row.flash{animation:none} .lv-zoom{animation:none} button.lv-tk.playing{animation:none}
     .lv-ph,.lv-enter .lv-ph,.lv-enter .lv-nm .w,.lv-enter .lv-when,.lv-enter .lv-meta,.lv-enter .lv-fact,.lv-enter .lv-stamp,
     #lv-hero > .lv-enter,.lv-chain.arrive,.lv-chip.arrive,button.lv-tk.land}
+
+  /* ====== ?stage=1 — the first screen is a dark stage the latest bird owns.
+     The hero card, its player and the wall are the same elements as on the
+     paper page (same JS), laid out full-bleed: the photo is the backdrop,
+     the name is poster-sized, the call is a glowing band and the wall is a
+     reel along the bottom edge. ====== */
+  body.lv-staged{overflow-x:clip}
+  body.lv-staged .site-nav{position:fixed; left:0; right:0; top:0}
+  body.lv-staged .site-nav:not(.scrolled) .brand,
+  body.lv-staged .site-nav:not(.scrolled) nav a{color:var(--paper)}
+  body.lv-staged .site-nav:not(.scrolled) .nav-burger span{background:rgba(244,241,233,.94)}
+  .livewire .lv-stage{--gut:clamp(18px,2.8vw,40px); --reelh:96px; --voice:74px;
+    position:relative; isolation:isolate; width:100vw; left:50%; margin:-4rem 0 0 -50vw;
+    height:100svh; min-height:560px; max-height:1100px; overflow:hidden; background:var(--ink); color:var(--paper)}
+  .lv-stage .lv-herocard{position:absolute; inset:0; border:0; border-radius:0; box-shadow:none; background:var(--ink); overflow:hidden}
+  .lv-stage #lv-hero{position:absolute; inset:0; z-index:0}
+  .lv-stage #lv-hero > .lv-portrait,.lv-stage #lv-hero > .lv-ghostcard{position:absolute; inset:0; aspect-ratio:auto; display:block; background:var(--ink)}
+  .lv-stage .lv-ph{background-position:50% 32%}
+  /* No photo: the call's own spectrogram is the picture. */
+  .lv-stage .lv-phspec{background-size:100% 100%; filter:saturate(1.6) brightness(1.45) blur(1px)}
+  .lv-stage .lv-ghostcard .feather{display:none}
+  .lv-stage .lv-portrait::after,.lv-stage .lv-ghostcard::after{content:""; position:absolute; inset:0; z-index:1; pointer-events:none;
+    /* dark where text sits (the top lines, then the lower half), clear over
+       the bird; measured by the livestage probe on bright daytime photos */
+    background:linear-gradient(180deg,rgba(13,18,14,.86) 0,rgba(13,18,14,.68) 15%,rgba(13,18,14,0) 32%,rgba(13,18,14,0) 34%,rgba(13,18,14,.62) 52%,rgba(13,18,14,.9) 70%,var(--ink) 100%)}
+  /* Wide screens: the photograph sits right of centre and a blurred, dark
+     copy of it fills the left, behind the words, so the bird is not under
+     its own name and the light falls left to right like a film still. */
+  @media (min-width:900px) and (min-aspect-ratio:5/4){
+    .lv-stage .lv-portrait::before{content:""; position:absolute; inset:-80px; background:var(--ph) center/cover; filter:blur(48px) saturate(1.1) brightness(.42)}
+    .lv-stage .lv-portrait .lv-ph{left:30%; -webkit-mask-image:linear-gradient(90deg,transparent 0,#000 26%); mask-image:linear-gradient(90deg,transparent 0,#000 26%)}
+    /* long names break over the dark side instead of running across the bird */
+    .lv-stage .lv-nm{max-width:min(60vw,980px)}
+    .lv-stage .lv-fact{max-width:52vw}
+    .lv-stage .lv-portrait::after{background:
+      linear-gradient(180deg,rgba(13,18,14,.8) 0,rgba(13,18,14,.45) 14%,rgba(13,18,14,0) 28%,rgba(13,18,14,0) 70%,rgba(13,18,14,.85) 86%,var(--ink) 100%),
+      linear-gradient(90deg,rgba(13,18,14,.8) 0,rgba(13,18,14,.74) 34%,rgba(13,18,14,.5) 50%,rgba(13,18,14,.16) 63%,rgba(13,18,14,0) 74%)}
+  }
+  .lv-stage.night .lv-ph{filter:saturate(.5) brightness(.6)}
+  .lv-stage.stale .lv-ph{filter:grayscale(.8) brightness(.45)}
+  .lv-stage .lv-body,.lv-stage .lv-ghostcard .lv-body{position:absolute; z-index:2; left:var(--gut); right:var(--gut);
+    bottom:calc(var(--reelh) + var(--voice) + 58px); padding:0; color:var(--paper); text-shadow:0 2px 24px rgba(6,10,7,.55)}
+  .lv-stage .lv-body a{color:var(--paper)}
+  .lv-stage .lv-when,.lv-stage .lv-ghostcard .lv-when{font-size:.72rem; letter-spacing:.18em; color:rgba(244,241,233,.92)}
+  .lv-stage .lv-nm{font-family:var(--display); font-weight:400; font-size:clamp(46px,9.4vw,150px); line-height:.94; letter-spacing:-.025em; margin:.3rem 0 0; text-wrap:balance}
+  .lv-stage .lv-nm a:hover{color:var(--paper); text-decoration:underline; text-decoration-thickness:2px; text-underline-offset:.12em}
+  .lv-stage .lv-fact,.lv-stage .lv-ghostcard .lv-fact{font-size:clamp(16px,1.6vw,22px); color:rgba(244,241,233,.8); margin-top:.7rem}
+  .lv-stage .lv-meta{margin-top:.7rem}
+  .lv-stage .lv-ghostcard .lv-meter{background:rgba(244,241,233,.28)}
+  .lv-stage .lv-ghostcard .lv-tag{border-color:rgba(244,241,233,.35); color:rgba(244,241,233,.9)}
+  /* A first is stamped in ink on the line above the name, not in a corner. */
+  .lv-stage .lv-stamp{position:relative; top:auto; left:auto; display:inline-block; margin:0 0 .9rem; text-shadow:none}
+  /* The voice: play, the call as a band of light, the time. */
+  .lv-stage .lv-player{position:absolute; left:var(--gut); right:var(--gut); bottom:calc(var(--reelh) + 30px); height:var(--voice);
+    background:transparent; overflow:visible; display:grid; grid-template-columns:56px minmax(0,1fr) auto; gap:18px; align-items:center}
+  .lv-stage .lv-player::before{display:none}
+  .lv-stage .lv-spec{grid-column:2; grid-row:1; min-height:0; height:var(--voice); border-radius:4px; overflow:hidden; background:rgba(6,10,7,.32)}
+  .lv-stage .lv-spec img{height:var(--voice); filter:saturate(1.8) brightness(1.6); mix-blend-mode:screen}
+  .lv-stage .lv-pctl{display:contents}
+  .lv-stage .lv-playbtn{grid-column:1; grid-row:1; width:56px; height:56px; font-size:1.1rem; box-shadow:0 0 30px rgba(56,224,138,.5)}
+  .lv-stage .lv-ptime{grid-column:3; grid-row:1; margin:0}
+  .lv-stage .lv-expand{top:.3rem; right:.3rem}
+  /* The top: site nav (fixed, over the photo), the bird pages, the live line. */
+  .lv-sttop{position:absolute; z-index:3; top:64px; left:var(--gut); right:var(--gut)}
+  .lv-stage .gallery-header{margin:0; padding:0; text-align:left}
+  .lv-stage .birds-subnav{justify-content:flex-start; margin-top:.4rem}
+  .lv-stage .birds-subnav a{color:var(--paper); border-color:rgba(244,241,233,.32); background:rgba(6,10,7,.32); backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px)}
+  .lv-stage .birds-subnav a:hover{border-color:var(--lift); color:var(--lift)}
+  .lv-stage .birds-subnav a.on{background:var(--accent); border-color:var(--accent); color:#fff}
+  .lv-stage .lv-status{justify-content:flex-start; align-items:flex-start; flex-wrap:nowrap; text-align:left; line-height:1.6; color:var(--paper); text-shadow:0 1px 12px rgba(6,10,7,.8); font-size:.7rem; letter-spacing:.14em; text-transform:uppercase; margin-top:1rem}
+  .lv-stage .lv-dot{margin-top:.32rem; box-shadow:0 0 12px var(--lift)}
+  .lv-stage .subnav-focus{justify-content:flex-start}
+  .lv-back{font:inherit; letter-spacing:.1em; text-transform:uppercase; color:var(--ink); background:var(--lift); border:0; border-radius:999px; padding:.3rem .7rem; margin-left:.4rem; cursor:pointer}
+  .lv-back[hidden]{display:none}
+  .lv-stdown{position:absolute; z-index:3; top:calc(64px + .45rem); right:var(--gut); font-size:.68rem; letter-spacing:.16em; text-transform:uppercase; color:rgba(244,241,233,.75); text-decoration:none}
+  .lv-stdown:hover{color:var(--lift)}
+  /* The reel: today's birds, one frame each, newest first. */
+  .lv-reelwrap{position:absolute; z-index:3; left:0; right:0; bottom:16px}
+  .lv-stage .lv-wall.lv-reel{display:flex; gap:10px; overflow-x:auto; overflow-y:hidden; padding:4px var(--gut) 6px;
+    scroll-snap-type:x proximity; scroll-padding:0 var(--gut); scrollbar-width:none; overscroll-behavior-x:contain}
+  .lv-reel::-webkit-scrollbar{display:none}
+  .lv-reel .lv-chip{flex:none; width:96px; height:72px; aspect-ratio:auto; border-radius:3px; border:0; scroll-snap-align:start;
+    opacity:.6; transition:opacity .25s, transform .25s; cursor:pointer; outline-offset:3px}
+  .lv-reel .lv-chip:hover,.lv-reel .lv-chip:focus-visible{opacity:.92}
+  .lv-reel .lv-chip.on{opacity:1; outline:2px solid var(--lift)}
+  .lv-reel .lv-chip .cl{font-family:var(--mono); font-size:.56rem; letter-spacing:.02em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+  .lv-reel .lv-chip.miss{background-color:var(--ink); background-size:100% 100%; border:1.5px dashed rgba(201,154,60,.7)}
+  .lv-reel .lv-chip.miss .cl{color:#e0b360; background:linear-gradient(transparent,rgba(6,10,7,.9))}
+  .lv-reel .lv-chip.miss .feather{display:none}
+  .lv-reel.dragging{cursor:grabbing; scroll-snap-type:none}
+  .lv-reel.dragging .lv-chip{pointer-events:none}
+  /* Below the stage: the log, on paper, one readable column. */
+  .livewire.staged #lv-log{scroll-margin-top:72px}
+  .livewire.staged .lv-bar{margin-top:2.6rem}
+  .livewire.staged .lv-now.lv-log{display:block; max-width:760px; margin:0 auto}
+  @media(max-width:600px){
+    .livewire .lv-stage{--reelh:88px; --voice:60px; min-height:620px}
+    .lv-reel .lv-chip{width:84px; height:64px}
+    .lv-stage .lv-player{grid-template-columns:48px minmax(0,1fr) auto; gap:12px}
+    .lv-stage .lv-playbtn{width:48px; height:48px}
+    .lv-sttop{top:58px}
+    .lv-stdown{display:none}
+    .lv-stage .birds-subnav{justify-content:flex-start}
+    .lv-stage .lv-fact{font-size:15px}
+    .lv-stage .lv-nm{font-size:clamp(46px,12.5vw,64px)}
+    .lv-stage .lv-status{font-size:.62rem; letter-spacing:.12em}
+  }
+  @media(prefers-reduced-motion:reduce){.lv-reel .lv-chip{transition:none}}
 </style>
 
 {% macro feather(fill) %}<span class="feather" style="background-image:url('data:image/svg+xml;utf8,{{ ('<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"' ~ fill ~ '\"><path d=\"M23 6c-1 0-1.8.3-2.5.9C19 5.6 16.8 4.7 14 5.2c-4 .7-5.6 4-9 4.3-2 .2-3.3-.6-3.3-.6S2 12 6 12.6c-.7 1-2 1.7-3.5 1.9 0 0 1.2 1.5 3.6 1.1-.5.9-1.6 2-3.6 2.4 0 0 3.4 1.6 6.9-.6 2.9-1.8 4-4.8 6.1-6.9C22.5 9.4 24 8 23 6z\"/></svg>') }}')"></span>{% endmacro %}
 
-<section class="page wide livewire" id="lv-root">
-    <header class="gallery-header" data-collapse="1">
-        <h1>Live from the yard</h1>
+<section class="page wide livewire{% if stage %} staged{% endif %}" id="lv-root">
+    {% set lvheader %}
+    <header class="gallery-header{% if stage %} lv-sthead{% endif %}"{% if not stage %} data-collapse="1"{% endif %}>
+        <h1{% if stage %} class="vh"{% endif %}>Live from the yard</h1>
         {% set subnav_active = 'live' %}{% include '_birds_nav.html' %}
-        <p class="lv-status mono"><span class="lv-dot"></span> <span id="lv-upd">{% if has_data %}listening &middot; North Andover, MA{% else %}mic online &middot; warming up{% endif %}</span></p>
+        <p class="lv-status mono"><span class="lv-dot"></span> <span id="lv-upd">{% if has_data %}listening &middot; North Andover, MA{% else %}mic online &middot; warming up{% endif %}</span>{% if stage %}<button type="button" class="lv-back" id="lv-back" hidden></button>{% endif %}</p>
         {% if curate %}<div class="lv-supbar" id="lv-supbar" hidden></div>
         <div class="lv-toast" id="lv-toast" hidden></div>{% endif %}
     </header>
+    {% endset %}
+    {% if not stage or not has_data %}{{ lvheader }}{% endif %}
     {# Honest degradation: if the station stops exporting (a home Pi can hang), the
        site must NOT keep presenting the last data as live. JS flips this on when
        the feed's `generated` timestamp goes stale. #}
@@ -392,35 +507,23 @@
       <p>A mic in the yard, naming birds by ear. Nothing over the confidence bar yet.</p>
     </div>
     {% else %}
-
-    {# One sentence instead of four cards; JS keeps it current and ticks the
-       numbers up as birds arrive. Search sits beside it, not in its own band. #}
-    <div class="lv-bar">
-      <p class="tally mono" id="lv-tally">
-        <a href="#lv-wall"><b data-n="{{ sound.counts.speciesToday or 0 }}">{{ sound.counts.speciesToday or 0 }}</b> species</a> &middot;
-        <a href="/birds/live/log"><b data-n="{{ sound.counts.callsToday or 0 }}">{{ "{:,}".format(sound.counts.callsToday or 0) }}</b> recordings today</a> &middot;
-        <a href="/birds/heard"><b data-n="{{ sound.counts.speciesAllTime or 0 }}">{{ sound.counts.speciesAllTime or 0 }}</b> species all-time</a>
-      </p>
-      {# Find any bird the mic has ever heard — photographed or not — and land on
-         its page, where every recording of it can be browsed. #}
-      <form class="lv-find" action="/birds/heard" method="get" role="search">
-        <div class="filter-search bird-combo" id="lvCombo">
-          <input type="search" name="q" placeholder="Find a bird&hellip;" aria-label="Find a bird" autocomplete="off"
-                 role="combobox" aria-expanded="false" aria-controls="lvComboList" aria-autocomplete="list">
-          <div class="bird-combo-pop" id="lvComboList" role="listbox" hidden aria-label="Birds heard"></div>
-        </div>
-        <script>var LV_FIND = [{% for s in sound.species %}{{ {"n": s.display, "f": s.fam or "", "c": s.count or 0}|tojson }}{% if not loop.last %},{% endif %}{% endfor %}];</script>
-      </form>
-    </div>
-
+    {% set wallhtml %}
+      <div class="lv-wall{% if stage %} lv-reel{% endif %}" id="lv-wall"{% if stage %} aria-label="Heard today"{% endif %}>
+        {% for s in sound.speciesToday %}
+          {% if s.photo %}
+          <a class="lv-chip" data-slug="{{ s.display|slug }}" data-fam="{{ s.fam }}" href="/birds/species/{{ s.display|slug }}" style="background-image:url('{{ s.photo }}')" title="{{ s.display }} &middot; {{ s.count }}&times;"><span class="cl">{{ s.display }}</span></a>
+          {% else %}
+          <span class="lv-chip miss" data-slug="{{ s.display|slug }}" data-fam="{{ s.fam }}" title="{{ s.display }} &middot; heard, not photographed">{{ feather('%23a9761f') }}<span class="cl">{{ s.display }}</span></span>
+          {% endif %}
+        {% endfor %}
+      </div>
+    {% endset %}
+    {% set r0 = (sound.recent | selectattr('audio') | first) or sound.recent[0] %}
     {# NOW — most recent call: the photo, and the sound itself #}
     {# The hero is the newest recording we can actually PLAY, so the card always
        has a working player — not just whatever's newest (a clip may not be
        transcoded yet). JS keeps this in sync on every poll. #}
-    {% set r0 = (sound.recent | selectattr('audio') | first) or sound.recent[0] %}
-    <section>
-      <p class="lv-kick" id="lv-nowkick">Just heard</p>
-      <div class="lv-now">
+    {% set herocard %}
         <div class="lv-herocard">
         <div id="lv-hero">
           {% if r0.photo %}
@@ -469,6 +572,41 @@
             </div>
           </div>
         </div>
+    {% endset %}
+    {% if stage %}
+    <section class="lv-stage" id="lv-stage" aria-label="Just heard">
+      {{ herocard }}
+      <div class="lv-sttop">{{ lvheader }}</div>
+      <div class="lv-reelwrap">{{ wallhtml }}</div>
+      <a class="lv-stdown mono" href="#lv-log">the log &darr;</a>
+    </section>
+      <div id="lv-log"></div>
+    {% endif %}
+
+    {# One sentence instead of four cards; JS keeps it current and ticks the
+       numbers up as birds arrive. Search sits beside it, not in its own band. #}
+    <div class="lv-bar">
+      <p class="tally mono" id="lv-tally">
+        <a href="#lv-wall"><b data-n="{{ sound.counts.speciesToday or 0 }}">{{ sound.counts.speciesToday or 0 }}</b> species</a> &middot;
+        <a href="/birds/live/log"><b data-n="{{ sound.counts.callsToday or 0 }}">{{ "{:,}".format(sound.counts.callsToday or 0) }}</b> recordings today</a> &middot;
+        <a href="/birds/heard"><b data-n="{{ sound.counts.speciesAllTime or 0 }}">{{ sound.counts.speciesAllTime or 0 }}</b> species all-time</a>
+      </p>
+      {# Find any bird the mic has ever heard — photographed or not — and land on
+         its page, where every recording of it can be browsed. #}
+      <form class="lv-find" action="/birds/heard" method="get" role="search">
+        <div class="filter-search bird-combo" id="lvCombo">
+          <input type="search" name="q" placeholder="Find a bird&hellip;" aria-label="Find a bird" autocomplete="off"
+                 role="combobox" aria-expanded="false" aria-controls="lvComboList" aria-autocomplete="list">
+          <div class="bird-combo-pop" id="lvComboList" role="listbox" hidden aria-label="Birds heard"></div>
+        </div>
+        <script>var LV_FIND = [{% for s in sound.species %}{{ {"n": s.display, "f": s.fam or "", "c": s.count or 0}|tojson }}{% if not loop.last %},{% endif %}{% endfor %}];</script>
+      </form>
+    </div>
+
+    <section>
+      {% if stage %}<p class="lv-kick">Recent recordings</p>{% else %}<p class="lv-kick" id="lv-nowkick">Just heard</p>{% endif %}
+      <div class="lv-now{% if stage %} lv-log{% endif %}">
+        {% if not stage %}{{ herocard }}{% endif %}
         <div class="lv-side">
           <div class="node-filter" id="lv-nodes" hidden></div>
           <div id="lv-hstrip" hidden>
@@ -501,22 +639,16 @@
       </div>
     </section>
 
+    {% if not stage %}
     {# HEARD TODAY — the wall says heard-vs-shot itself: a never-photographed
        bird is a ghost chip, and the kicker counts them. #}
     <section>
       {% set _miss = sound.hvToday.miss if sound.hvToday else 0 %}
       <p class="lv-kick" id="lv-wallkick">Heard today &middot; {{ 'all photographed' if not _miss else (_miss ~ ' never photographed') }}</p>
-      <div class="lv-wall" id="lv-wall">
-        {% for s in sound.speciesToday %}
-          {% if s.photo %}
-          <a class="lv-chip" data-slug="{{ s.display|slug }}" data-fam="{{ s.fam }}" href="/birds/species/{{ s.display|slug }}" style="background-image:url('{{ s.photo }}')" title="{{ s.display }} &middot; {{ s.count }}&times;"><span class="cl">{{ s.display }}</span></a>
-          {% else %}
-          <span class="lv-chip miss" data-slug="{{ s.display|slug }}" data-fam="{{ s.fam }}" title="{{ s.display }} &middot; heard, not photographed">{{ feather('%23a9761f') }}<span class="cl">{{ s.display }}</span></span>
-          {% endif %}
-        {% endfor %}
-      </div>
+      {{ wallhtml }}
       <p class="lv-wall-empty mono" id="lv-wall-empty"{% if sound.speciesToday %} hidden{% endif %}>Nothing yet today.</p>
     </section>
+    {% endif %}
 
     {# TODAY'S SOUNDTRACK — one 24h line per species, every recording a tick.
        Filled by JS from dayrecs; grows through the day, sun marks for the chorus. #}
@@ -558,6 +690,7 @@
   var birdHref = function (n) { return "/birds/species/" + slugify(n); };
   var FEATHER = {{ feather('%23a9761f')|string|tojson }};  // not-photographed chip glyph
   var REDUCED = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var STAGE = document.getElementById("lv-stage");   // ?stage=1 layout
   function rkey(r) { return r.audio || ((r.t || "") + "|" + (r.display || "")); }
   /* Arrivals. A 60s poll can bring several birds at once; showing them all
      in one jump reads as a refresh, not as a yard. New detections queue up
@@ -636,6 +769,7 @@
     if (kick) kick.textContent = (stale || mood.quiet) ? "Last heard" : "Just heard";
     var now = document.querySelector(".lv-now");
     if (now) now.classList.toggle("night", !!(mood && mood.night));
+    if (STAGE) { STAGE.classList.toggle("night", !!(mood && mood.night)); STAGE.classList.toggle("stale", stale); }
     if (off) {
       off.hidden = !stale;
       if (stale) off.innerHTML = "<b>Mic offline</b> · last recording " + rel(LIVE.generated);
@@ -726,7 +860,10 @@
            (LIVE.dayrecs || []).filter(function (x) { return x.audio === name; })[0];
   }
   function loadHero(r) {
-    if (!player || !r || !r.audio) return;
+    if (!player || !r) return;
+    // A bird picked from the reel may have no published clip: no player,
+    // rather than the previous bird's voice under this one's name.
+    if (!r.audio) { if (STAGE) { player.hidden = true; heroClip = null; } return; }
     heroClip = r;
     player.hidden = false;
     document.getElementById("lv-pname").textContent = r.display;
@@ -1086,11 +1223,17 @@
     wall.innerHTML = list.map(function (s) {
       var slug = slugify(s.display), fam = esc(s.fam || "");
       var pop = seen && !seen[slug] && !REDUCED ? " arrive" : "";
+      var on = STAGE && curHero && slugify(curHero.display) === slug ? " on" : "";
       wallSeen[slug] = 1;
       if (s.photo) {
-        return '<a class="lv-chip' + pop + '" data-slug="' + slug + '" data-fam="' + fam + '" href="' + birdHref(s.display) +
+        return '<a class="lv-chip' + pop + on + '" data-slug="' + slug + '" data-fam="' + fam + '" href="' + birdHref(s.display) +
           '" style="background-image:url(\'' + s.photo + '\')" title="' + esc(s.display) + ' · ' + (s.count || 0) + '×">' +
           '<span class="cl">' + esc(s.display) + '</span></a>';
+      }
+      if (STAGE) {   // a frame of its own call, dashed: heard, never photographed
+        return '<span class="lv-chip miss' + pop + on + '" role="button" tabindex="0" data-slug="' + slug + '" data-fam="' + fam +
+          '"' + (s.spec ? ' style="background-image:url(\'' + MEDIA + esc(s.spec) + '\')"' : '') +
+          ' title="' + esc(s.display) + ' · heard, not photographed"><span class="cl">' + esc(s.display) + '</span></span>';
       }
       return '<span class="lv-chip miss' + pop + '" data-slug="' + slug + '" data-fam="' + fam +
         '" title="' + esc(s.display) + ' · heard, not photographed">' + FEATHER + '<span class="cl">' + esc(s.display) + '</span></span>';
@@ -1425,12 +1568,17 @@
     var stamp = notes.stamp ? '<span class="lv-stamp">' + esc(notes.stamp) + '</span>' : '';
     var line = notes.line ? '<p class="lv-fact">' + esc(notes.line) + '</p>' : '';
     var meta = '<div class="lv-meta">' + confHTML(r) + nodeDot(r.node) + ((CURATE && r.audio) ? hideBtn(r.audio) : '') + '</div>';
+    // On the stage the stamp sits on the line above the name, and a bird
+    // with no photo gets its own spectrogram as the backdrop.
+    var top = STAGE ? "" : stamp, inBody = STAGE ? stamp : "";
+    var ghostBg = (STAGE && r.spec)
+      ? '<div class="lv-ph lv-phspec" style="background-image:url(\'' + MEDIA + esc(r.spec) + '\')"></div>' : FEATHER;
     var html = photo
-      ? '<div class="lv-portrait"><div class="lv-ph" style="background-image:url(\'' + webPhoto(photo) + '\'),url(\'' + photo + '\')"></div>' +
-        stamp + '<div class="lv-body">' +
+      ? '<div class="lv-portrait"' + (STAGE ? ' style="--ph:url(\'' + photo + '\')"' : '') + '><div class="lv-ph" style="background-image:url(\'' + webPhoto(photo) + '\'),url(\'' + photo + '\')"></div>' +
+        top + '<div class="lv-body">' + inBody +
         '<div class="lv-when" data-t="' + esc(r.t) + '" data-lead="' + esc(r.fam) + '"></div>' +
         '<div class="lv-nm"><a href="' + birdHref(r.display) + '">' + words + '</a></div>' + meta + line + '</div></div>'
-      : '<div class="lv-ghostcard">' + FEATHER + stamp + '<div class="lv-body">' +
+      : '<div class="lv-ghostcard">' + ghostBg + top + '<div class="lv-body">' + inBody +
         '<div class="lv-when" data-t="' + esc(r.t) + '" data-lead="heard, not photographed"></div>' +
         '<div class="lv-nm">' + words + '</div>' + meta + line + '</div></div>';
     if (!animate || REDUCED || !h.firstElementChild) { h.innerHTML = html; return; }
@@ -1623,7 +1771,7 @@
       renderFeed(LIVE.recent);
       // if the featured "just heard" clip is now below the bar, re-pick a hero
       // that clears it (so the slider governs the headline too, not just the feed).
-      if (heroClip && (heroClip.conf || 0) < confMin / 100 && !(focusSlug || focusFam)) {
+      if (heroClip && (heroClip.conf || 0) < confMin / 100 && !(focusSlug || focusFam) && !picked) {
         var nh = playable(LIVE.recent).filter(function (x) { return (x.conf || 0) >= confMin / 100; })[0];
         if (nh && (!heroClip || nh.audio !== heroClip.audio)) { curHero = nh; renderHero(nh); loadHero(nh); }
       }
@@ -1723,7 +1871,7 @@
     return null;
   }
   function heroWorthy(r) {
-    return !!(r && r.audio) && (r.conf || 0) >= confMin / 100 && !(focusSlug || focusFam);
+    return !!(r && r.audio) && (r.conf || 0) >= confMin / 100 && !(focusSlug || focusFam) && !picked;
   }
   function scheduleRelease(delay) {
     if (releaseTimer || !pending.length) return;
@@ -1745,6 +1893,8 @@
   }
   function arrive(r) {
     var prev = curHero, lead = heroWorthy(r);
+    // A bird the visitor picked keeps the stage; the chip counts what landed.
+    if (picked && r.audio && (r.conf || 0) >= confMin / 100) { newWhilePicked++; renderBack(); }
     if (lead) { curHero = r; renderHero(r, true); loadHero(r); }
     renderTally(); renderHourStrip(); renderFeed(LIVE.recent, false); renderWall(); stampTimes();
     if (REDUCED) return;
@@ -1805,6 +1955,7 @@
                        audio: sp.audio, spec: sp.spec };
     }
     hero = hero || pool[0] || data.recent[0];  // last resort: show the card even if silent
+    if (picked) hero = picked;   // the reel's pick holds the stage through polls
     curHero = hero;   // feed excludes this exact clip so it isn't shown twice
     renderHero(hero, !isFirst);
     renderNodes();
@@ -1857,6 +2008,104 @@
     }
     // (The feed itself is FILTERED to the focus in renderFeed — no dimming there.)
   }
+
+  /* ---- the reel (?stage=1): pick a bird and the stage becomes that bird,
+     with its clearest clip of today. Nothing plays until play is pressed.
+     New arrivals do not take the stage from a picked bird; they land in the
+     reel and the "back to live" chip counts them. Escape or the chip returns
+     to the latest bird. ---- */
+  var picked = null, newWhilePicked = 0;
+  function clearestToday(display) {
+    var todayKey = new Date().toDateString(), best = null;
+    (LIVE.dayrecs || []).concat(LIVE.recent || []).forEach(function (x) {
+      if (x.display !== display || !x.audio || !vis(x) || new Date(x.t).toDateString() !== todayKey) return;
+      if (!best || (x.conf || 0) > (best.conf || 0)) best = x;
+    });
+    return best;
+  }
+  function recFor(slug) {
+    var s = (LIVE.species || []).filter(function (x) { return slugify(x.display) === slug; })[0];
+    if (!s) return null;
+    return clearestToday(s.display) || { display: s.display, photo: s.photo, fam: s.fam, shot: s.shot,
+      t: s.last, conf: s.maxConf || 0, new: false, audio: s.audio, spec: s.spec };
+  }
+  function markReel() {
+    var slug = curHero ? slugify(curHero.display) : "";
+    document.querySelectorAll("#lv-wall .lv-chip").forEach(function (c) {
+      c.classList.toggle("on", c.getAttribute("data-slug") === slug);
+    });
+  }
+  function renderBack() {
+    var b = document.getElementById("lv-back"); if (!b) return;
+    b.hidden = !picked;
+    b.textContent = newWhilePicked ? "\u25CF " + newWhilePicked + " new \u00B7 back to live" : "\u25CF back to live";
+  }
+  function pick(slug) {
+    if (picked && slugify(picked.display) === slug) { backToLive(); return; }
+    var r = recFor(slug); if (!r) return;
+    if (current && current.isHero && !audio.paused) audio.pause();
+    picked = r; curHero = r;
+    renderHero(r, true); loadHero(r);
+    renderFeed(LIVE.recent, false); stampTimes(); markReel(); renderBack();
+  }
+  function backToLive() {
+    if (!picked) return;
+    picked = null; newWhilePicked = 0;
+    if (current && current.isHero && !audio.paused) audio.pause();
+    apply(LIVE, false);   // re-picks the latest bird and redraws in place
+    markReel(); renderBack();
+  }
+  if (STAGE) (function () {
+    var reel = document.getElementById("lv-wall"), back = document.getElementById("lv-back");
+    if (back) back.addEventListener("click", backToLive);
+    window.addEventListener("keydown", function (e) {
+      if (e.key === "Escape" && picked && !zoom) backToLive();   // the viewer closes first
+    }, true);
+    if (!reel) return;
+    var fine = matchMedia("(hover:hover) and (pointer:fine)").matches;
+    var down = null, dragged = false;
+    reel.addEventListener("click", function (e) {
+      var chip = e.target.closest(".lv-chip"); if (!chip) return;
+      if (dragged) { e.preventDefault(); return; }
+      // With a mouse the frame's name stays a link to the bird's page; on
+      // touch the whole frame picks, and the stage's name is the link.
+      if (fine && chip.tagName === "A" && e.target.closest(".cl")) return;
+      e.preventDefault();
+      pick(chip.getAttribute("data-slug"));
+    });
+    reel.addEventListener("keydown", function (e) {
+      var chip = e.target.closest(".lv-chip"); if (!chip) return;
+      if ((e.key === "Enter" && chip.tagName !== "A") || e.key === " ") {
+        e.preventDefault(); pick(chip.getAttribute("data-slug")); return;
+      }
+      if (e.key !== "ArrowRight" && e.key !== "ArrowLeft") return;
+      var chips = [].slice.call(reel.querySelectorAll(".lv-chip"));
+      var nx = chips[chips.indexOf(chip) + (e.key === "ArrowRight" ? 1 : -1)];
+      if (!nx) return;
+      e.preventDefault();
+      nx.focus({ preventScroll: true });
+      nx.scrollIntoView({ block: "nearest", inline: "nearest", behavior: REDUCED ? "auto" : "smooth" });
+      pick(nx.getAttribute("data-slug"));
+    });
+    // Mouse drag scrolls the reel (touch and trackpads scroll it natively;
+    // a vertical wheel over it still scrolls the page).
+    reel.addEventListener("dragstart", function (e) { e.preventDefault(); });
+    reel.addEventListener("pointerdown", function (e) {
+      if (e.pointerType !== "mouse" || e.button !== 0) return;
+      down = { x: e.clientX, left: reel.scrollLeft }; dragged = false;
+    });
+    window.addEventListener("pointermove", function (e) {
+      if (!down) return;
+      var dx = e.clientX - down.x;
+      if (!dragged && Math.abs(dx) > 6) { dragged = true; reel.classList.add("dragging"); }
+      if (dragged) reel.scrollLeft = down.left - dx;
+    });
+    window.addEventListener("pointerup", function () {
+      if (!down) return;
+      down = null;
+      if (dragged) { reel.classList.remove("dragging"); setTimeout(function () { dragged = false; }, 0); }
+    });
+  })();
 
   apply(LIVE, true);
   // No auto-scroll in focus mode: the hero at the top IS the focused bird;
