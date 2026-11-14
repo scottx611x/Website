@@ -543,9 +543,10 @@
             })();
 
             // ---------- the years ----------
-            // One row per year, newest first: how many species it added, as a
-            // bar. Where the chart drew this as a curve too steep to click,
-            // every year here is a full-width target that jumps the wall.
+            // One chip per year, newest first, with how many species it added;
+            // a tap jumps the wall to that year. (Bars were here, and on a
+            // phone they took a whole screen to say what the wall's year
+            // headings already say.)
             var yearsEl = document.getElementById("ll-years");
             (function buildYears() {
                 if (!yearsEl) return;
@@ -557,13 +558,10 @@
                     by[y].newest = d.n - 1;          // data is oldest first
                 });
                 ys.reverse();
-                var max = ys.reduce(function (m, r) { return Math.max(m, r.n); }, 1);
                 yearsEl.innerHTML = ys.map(function (r) {
                     return '<button type="button" class="ll-yrow" role="listitem" data-year="' + r.y + '" data-i="' + r.newest + '"' +
                         ' title="' + r.n + ' new species in ' + r.y + '">' +
-                        '<span class="ll-yy">' + r.y + '</span>' +
-                        '<span class="ll-ybar"><i style="--w:' + Math.max(3, Math.round(r.n / max * 100)) + '%"></i></span>' +
-                        '<span class="ll-yc">' + r.n + '</span></button>';
+                        '<span class="ll-yy">' + r.y + '</span> <b class="ll-yc">' + r.n + '</b></button>';
                 }).join("");
                 yearsEl.addEventListener("click", function (ev) {
                     var b = ev.target.closest(".ll-yrow"); if (!b) return;

@@ -1136,17 +1136,14 @@ a.river-readout:hover .riv-go { text-decoration: underline; }
 /* The chart IS the scrubber -- one control, dragged left to right along the
    list. Its own cursor lives on the surface rect inside the SVG. */
 .ll-side { display: flex; flex-direction: column; gap: 1rem; min-width: 0; }
-.ll-years { display: flex; flex-direction: column; gap: 2px; }
-.ll-yrow { display: grid; grid-template-columns: 2.6rem 1fr 2rem; align-items: center; gap: 0.6rem;
-  padding: 0.18rem 0.35rem; border: none; border-radius: 5px; background: transparent;
-  font: inherit; font-size: 0.72rem; color: var(--muted); cursor: pointer; text-align: left; }
-.ll-yrow:hover { background: rgba(47, 125, 79, 0.07); color: var(--ink); }
-.ll-yrow.on { color: var(--ink); }
-.ll-yrow.on .ll-yy { font-weight: 700; }
-.ll-ybar { height: 0.5rem; border-radius: 999px; background: rgba(13, 18, 14, 0.06); overflow: hidden; }
-.ll-ybar i { display: block; height: 100%; width: var(--w); border-radius: 999px; background: #a9d6a0; transition: background 0.2s; }
-.ll-yrow:hover .ll-ybar i, .ll-yrow.on .ll-ybar i { background: var(--accent); }
-.ll-yc { text-align: right; font-variant-numeric: tabular-nums; }
+.ll-years { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+.ll-yrow { display: inline-flex; align-items: baseline; gap: 0.35rem; padding: 0.3rem 0.6rem;
+  border: 1px solid rgba(13, 18, 14, 0.16); border-radius: 999px; background: transparent;
+  font: inherit; font-size: 0.72rem; color: var(--muted); cursor: pointer; transition: border-color 0.15s, background 0.15s, color 0.15s; }
+.ll-yrow:hover { border-color: var(--accent); color: var(--ink); }
+.ll-yrow .ll-yc { font-weight: 600; color: var(--ink); font-variant-numeric: tabular-nums; }
+.ll-yrow.on { background: var(--accent); border-color: var(--accent); color: rgba(255, 255, 255, 0.82); }
+.ll-yrow.on .ll-yc { color: #fff; }
 .ll-yrow:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 .ll-track { position: relative; padding-top: 1.45rem; margin-bottom: 1rem; }
 .ll-ribbon { touch-action: pan-y; }
@@ -1326,11 +1323,10 @@ a.pheno-cell:hover, a.pheno-cell:focus-visible {
    which is set only when motion is welcome; .arrived releases it, once. */
 /* (the site-wide bar-grow keyframe ran at load, off screen, and its fill
    would override this; first sight replaces it here) */
-.stats-arrive .stat-block .bar-fill, .stats-arrive .stat-block .ll-ybar i {
+.stats-arrive .stat-block .bar-fill {
   animation: none; transform-origin: left center; transition: transform 0.65s cubic-bezier(.2, .7, .1, 1);
   transition-delay: calc(var(--i, 0) * 35ms); }
-.stats-arrive .stat-block:not(.arrived) .bar-fill,
-.stats-arrive .stat-block:not(.arrived) .ll-ybar i { transform: scaleX(0); }
+.stats-arrive .stat-block:not(.arrived) .bar-fill { transform: scaleX(0); }
 .stats-arrive #days circle.cal-day { transform-box: fill-box; transform-origin: center;
   transition: transform 0.35s cubic-bezier(.3, 1.4, .5, 1); transition-delay: var(--d, 0ms); }
 .stats-arrive #days:not(.arrived) circle.cal-day { transform: scale(0); }
