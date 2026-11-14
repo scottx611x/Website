@@ -1588,11 +1588,18 @@
 <script>
     // Count the headline numbers up from zero on first view.
     (function () {
+        // Each number's box is held at its final width while it counts, so
+        // the centred sentence never re-flows (it used to jump a line on phones).
         if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-        document.querySelectorAll(".stat-tally b").forEach(function (el) {
+        var els = [].slice.call(document.querySelectorAll(".stat-tally b"));
+        var ready = document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve();
+        ready.then(function () { els.forEach(count); });
+        function count(el) {
             var target = parseInt(el.textContent.replace(/,/g, ""), 10);
             if (isNaN(target)) return;
             var fmt = el.textContent.indexOf(",") !== -1;
+            el.style.width = el.getBoundingClientRect().width + "px";
+            el.style.textAlign = "right";
             el.textContent = "0";
             var t0 = null;
             function tick(t) {
@@ -1602,9 +1609,10 @@
                 var v = Math.round(target * k);
                 el.textContent = fmt ? v.toLocaleString("en-US") : String(v);
                 if (k < 1) requestAnimationFrame(tick);
+                else { el.style.width = ""; el.style.textAlign = ""; }
             }
             requestAnimationFrame(tick);
-        });
+        }
     })();
 
     // Interactive "Heard from the yard": the leaderboard re-sorts (most heard /
