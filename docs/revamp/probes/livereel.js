@@ -56,7 +56,9 @@ const chipName = (p, i) => p.$eval(`#lv-wall .lv-chip:nth-child(${i}) .cl`, e =>
   // a poll brings a new bird: the pick keeps the stage
   inject = true;
   await p.evaluate(() => document.dispatchEvent(new Event('visibilitychange')));
-  await p.waitForTimeout(6000);
+  // wait for the poll (a cold server can take seconds), then for the release
+  await p.waitForFunction(() => /new/.test(document.getElementById('lv-back').textContent), null, { timeout: 20000 }).catch(() => {});
+  await p.waitForTimeout(1500);
   out.newWhilePicked = Object.assign({ stage: await stageName(p) }, await state(p));
   inject = false;
 
