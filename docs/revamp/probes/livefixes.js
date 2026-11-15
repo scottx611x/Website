@@ -20,9 +20,9 @@ const S = process.env.PROBE_SERVER || 'http://127.0.0.1:5055';
   const n = await p.locator('#lv-wall .lv-chip').count();
   for (let i = 0; i < Math.min(n, 8); i++) {
     await p.evaluate(i => { const c = document.querySelectorAll('#lv-wall .lv-chip')[i]; c.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true })); }, i);
-    await p.waitForTimeout(500);
-    stamps.push(await p.evaluate(() => { const s = document.querySelector('#lv-hero .lv-stamp'); const f = document.querySelector('#lv-hero .lv-fact');
-      return ((document.querySelector('#lv-hero .lv-nm') || {}).textContent || '').trim() + ' | ' + (s ? s.textContent : '-') + ' | ' + (f ? f.textContent : '-'); }));
+    await p.waitForTimeout(1400);
+    stamps.push(await p.evaluate(() => { const q = sel => document.querySelector('#lv-hero > :not(.lv-leave) ' + sel); const s = q('.lv-stamp'); const f = q('.lv-fact');
+      return ((q('.lv-nm') || {}).textContent || '').trim() + ' | ' + (s ? s.textContent : '-') + ' | ' + (f ? f.textContent : '-'); }));
   }
   stamps.forEach(s => console.log('  ' + s));
   await p.keyboard.press('Escape');
