@@ -1,5 +1,18 @@
 # Bird detail views: open fast, even for the big birds
 
+> **Status 2026-11-15: phases 1-4 shipped** (f95c509, 2f219f6, cd434df).
+> Production, phone profile: Barred Owl JSON 4.6 s -> 0.2 s warm (1.4 s right
+> after a deploy); overlay photo 6.1 s -> 1.0-2.6 s (first paint ~20 ms from a
+> tile); strip 57-138 thumbs -> 18-19; species page 5.8 MB / 4.9 s -> 1.1 MB /
+> 2.0 s. Differences from the plan: CloudFront here is API Gateway's edge, which
+> never caches, so caching is the in-process memo (keyed on manifest ETag +
+> curation stamp) plus the browser; micros live at `birds/thumbs/micro/` so the
+> bucket's public allow-list already covers them; the strip's thumb flood was a
+> smooth scroll sweeping to the opened frame, not lazy-loading alone; the
+> species page's weight was `upgradeThumbs` in base.html swapping phone cards to
+> 1440px. **Pending his yes:** `tools/backfill_micro.py --write` (2,139 objects,
+> ~14 MB); until then the strip uses 640px thumbs (~0.9-1.6 MB per open).
+
 A brief for a fresh session to implement. Read all of it, then
 `docs/revamp/OVERNIGHT.md` (working rules, probes). He said: "red-tailed hawk
 and barred owl are so friggin slow". This plan is measurement-first: every
