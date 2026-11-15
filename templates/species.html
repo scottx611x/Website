@@ -204,7 +204,7 @@
             {% if sp.recent_call %}
             <div class="sp-player" id="sp-player"{% if hc.audio %} data-audio="{{ hc.audio }}"{% endif %}{% if hc.spec %} data-spec="{{ MEDIA }}{{ hc.spec }}"{% endif %}>
                 {% if hc.spec %}
-                <div class="sp-spec" style="background-image:url('{{ MEDIA }}{{ hc.spec }}')"></div>
+                <div class="sp-spec" data-bg="{{ MEDIA }}{{ hc.spec }}"></div>
                 <div class="sp-veil"></div>
                 <div class="sp-needle"></div>
                 <button type="button" class="sp-expand" id="sp-expand" aria-label="enlarge spectrogram">&#8599;</button>
@@ -362,8 +362,21 @@
     }{% endif %}
   };
   var curKey = CLIPS.best && {{ 'true' if best_first else 'false' }} ? "best" : "latest";
-  var audio = new Audio(MEDIA + CLIPS[curKey].audio);
+  // preload none: the clip (~180 KB) downloads when it is played, not with the page.
+  var audio = new Audio(); audio.preload = "none"; audio.src = MEDIA + CLIPS[curKey].audio;
   var spec = CLIPS[curKey].spec;
+  /* The spectrogram is the station's PNG (380-510 KB) and sits well below the
+     photos on a phone: paint it when the player comes near the screen. */
+  (function () {
+    var se = wrap.querySelector(".sp-spec[data-bg]");
+    if (!se) return;
+    function show() { if (!se.style.backgroundImage) se.style.backgroundImage = "url('" + se.getAttribute("data-bg") + "')"; }
+    if (!("IntersectionObserver" in window)) { show(); return; }
+    var io = new IntersectionObserver(function (es) {
+      if (es[0].isIntersecting) { io.disconnect(); show(); }
+    }, { rootMargin: "400px 0px" });
+    io.observe(se);
+  })();
   var raf = null, zoom = null;
   // When you play a row in the archive list, that row's own inline spectrogram is
   // the playhead target (rowBox) instead of the big hero player up top. null = hero.
@@ -548,9 +561,18 @@
   audio.addEventListener("pause", function () { setPlaying(false); });
   audio.addEventListener("ended", function () { setPlaying(false); (rowBox || wrap).style.setProperty("--p", 0); if (!rowBox && zoom) zoom.querySelector(".sp-zwrap").style.setProperty("--zp", 0); });
   function seekFrom(el, clientX) {
-    if (!audio.duration) return;
     var r = el.getBoundingClientRect();
-    audio.currentTime = Math.max(0, Math.min(1, (clientX - r.left) / r.width)) * audio.duration;
+    var at = Math.max(0, Math.min(1, (clientX - r.left) / r.width));
+    if (!audio.duration) {
+      // not loaded yet (preload none): load, then seek where you clicked
+      audio.addEventListener("loadedmetadata", function go() {
+        audio.removeEventListener("loadedmetadata", go);
+        audio.currentTime = at * audio.duration;
+      });
+      audio.play().catch(function () {});
+      return;
+    }
+    audio.currentTime = at * audio.duration;
     if (audio.paused) audio.play().catch(function () {});
   }
   var specEl = wrap.querySelector(".sp-spec");

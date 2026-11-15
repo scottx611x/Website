@@ -975,7 +975,10 @@
                 var col = grid.querySelector(".masonry-col");
                 if (!col) return;
                 var dpr = Math.min(window.devicePixelRatio || 1, 2);
-                if (col.getBoundingClientRect().width * dpr <= 640) return;
+                // A little softness is fine; 1440px copies are not. A phone's
+                // single column (~380px at DPR 2 = 760) kept upgrading, so a
+                // species page downloaded 5 MB of full frames for 12 tiles.
+                if (col.getBoundingClientRect().width * dpr <= 640 * 1.3) return;
                 grid._cards.forEach(function (card) {
                     var img = card.querySelector("img");
                     if (!img || img._full) return;
