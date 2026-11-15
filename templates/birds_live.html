@@ -1226,6 +1226,9 @@
     var wrap = b.closest(".lv-rowwrap"),
         r = findRec(b.getAttribute("data-audio")) || trackRecs[b.getAttribute("data-audio")];
     if (!r) return;
+    // The soundtrack's ▶ has no spectrogram of its own to open, so it played
+    // with nothing on screen and nothing to stop it: give it the viewer.
+    if (b.closest("#lv-track") && r.spec) { openZoom(r); playClip(r, zoomCtx(r)); return; }
     if (current && current.audio === r.audio) {
       if (audio.paused) audio.play().catch(function(){}); else audio.pause();
       return;
@@ -1636,25 +1639,65 @@
   /* What is true and worth saying about this bird, right now: a stamp for a
      first, and one line from the yard's own history. Nothing invented —
      every sentence is a count over recordings on the page or in the rollup. */
+  /* The stamp is one TRUE thing about this recording, and it should not be
+     the same thing every time ("first of the day" on every arrival got old
+     fast). The rare facts always win; otherwise every fact that holds is a
+     candidate and the recording itself picks one (stable across polls), never
+     the kind the previous bird got. The line under the name then says
+     something the stamp did not. */
+  var lastStampKind = null;
+  function hashStr(s) { var h = 0; s = String(s); for (var i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0; return Math.abs(h); }
+  function nth(n) { var s = ["th", "st", "nd", "rd"], v = n % 100; return n + (s[(v - 20) % 10] || s[v] || s[0]); }
+  var WORDNTH = ["", "first", "second", "third"];
   function heroNotes(r) {
     var out = { stamp: "", line: "" };
     var daily = LIVE.daily || [], station = daily.length ? daily[daily.length - 1].d : null;
     var isToday = !!station && (r.t || "").slice(0, 10) === station;
-    if (r.new) out.stamp = "new to the yard";
-    else if (isToday && !(LIVE.dayrecs || []).some(function (x) {
-      return vis(x) && x.display === r.display && (x.t || "").slice(0, 10) === station && x.t < r.t;
-    })) out.stamp = "first of the day";
-    if (!isToday) return out;
-    var t = +new Date(r.t);
-    var both = !!r.node && (LIVE.dayrecs || []).some(function (x) {
+    var t = +new Date(r.t), f = ((LIVE.rhythm || {}).facts || {})[r.display] || null;
+    var sp = (LIVE.species || []).filter(function (s) { return s.display === r.display; })[0] || {};
+    var today = isToday ? (LIVE.dayrecs || []).filter(function (x) {
+      return vis(x) && (x.t || "").slice(0, 10) === station;
+    }) : [];
+    var mine = today.filter(function (x) { return x.display === r.display; });
+    var k = mine.filter(function (x) { return x.t <= r.t; }).length;      // this is the k-th today
+    var both = isToday && !!r.node && today.some(function (x) {
       return x.display === r.display && x.node && x.node !== r.node && Math.abs(+new Date(x.t) - t) < 20000;
     });
-    var f = ((LIVE.rhythm || {}).facts || {})[r.display];
+    var gap = (f && f.prev && isToday) ? daysBetween(f.prev, station) : 0;
+    var w = LIVE.weather || {}, rise = w.sunrise ? +new Date(w.sunrise) : null, set = w.sunset ? +new Date(w.sunset) : null;
+    var sunToday = isToday && rise && set && (w.sunrise || "").slice(0, 10) === station;
+    var firstVoice = isToday && k === 1 && !today.some(function (x) { return x.t < r.t; });
+    var tally = {}; today.forEach(function (x) { tally[x.display] = (tally[x.display] || 0) + 1; });
+    var top = Object.keys(tally).sort(function (a, b) { return tally[b] - tally[a]; })[0];
+
+    var rare = [], pool = [];
+    if (r.new) rare.push(["new", "new to the yard"]);
+    else if (gap >= 14) rare.push(["gap", "back after " + gap + " days"]);
+    else if (sp.heard >= 2 && sp.heard <= 3 && k === mine.length) rare.push(["rare", WORDNTH[sp.heard] + " time ever here"]);
+    if (firstVoice) pool.push(["voice", sunToday && t < rise ? "up before the sun" : "first voice of the day"]);
+    if (sunToday && (t < rise - 36e5 || t > set + 36e5)) pool.push(["night", t > set ? "after dark" : "night caller"]);
+    else if (sunToday && t >= rise && t < rise + 36e5) pool.push(["dawn", "dawn chorus"]);
+    if (both) pool.push(["both", "heard on both mics"]);
+    if (k >= 3) pool.push(["count", nth(k) + " call today"]);
+    if (top === r.display && tally[top] >= 5) pool.push(["top", "most heard today"]);
+    if ((r.conf || 0) >= 0.95) pool.push(["clear", "unmistakable"]);
+    if (f && f.streak >= 5) pool.push(["streak", f.streak + " days straight"]);
+    if (isToday && k === 1 && !firstVoice) pool.push(["first", ["first of the day", "first call today", "checking in"][hashStr(rkey(r)) % 3]]);
+    var pick = rare[0];
+    if (!pick && pool.length) {
+      var fresh = pool.filter(function (c) { return c[0] !== lastStampKind; });
+      if (!fresh.length) fresh = pool;
+      pick = fresh[hashStr(rkey(r)) % fresh.length];
+    }
+    if (pick) { out.stamp = pick[1]; lastStampKind = pick[0]; }
+    var used = pick ? pick[0] : "";
+    if (!isToday) return out;
     var since = (daily[0] || {}).d;
-    if (both) out.line = "Both mics caught this one.";
-    else if (f && f.prev && daysBetween(f.prev, station) >= 14) out.line = "First one here since " + fmtDate(f.prev, station) + ".";
+    if (both && used !== "both") out.line = "Both mics caught this one.";
+    else if (f && f.prev && gap >= 14 && used !== "gap") out.line = "First one here since " + fmtDate(f.prev, station) + ".";
     else if (f && since && f.streak >= 7 && addDays(station, 1 - f.streak) <= since) out.line = "Heard every day since the mic went up.";
-    else if (f && f.streak >= 3) out.line = "Heard here " + f.streak + " days running.";
+    else if (f && f.streak >= 3 && used !== "streak") out.line = "Heard here " + f.streak + " days running.";
+    else if (k >= 2 && used !== "count") out.line = "Its " + nth(k) + " call today.";
     return out;
   }
   var shownHero = null;

@@ -867,6 +867,28 @@ class OriginalCropTestCase(unittest.TestCase):
             self.assertIsNone(birds.original_crop(url.replace("p1-0", "p9-9")))  # unknown
 
 
+class SpeciesFromLogTestCase(unittest.TestCase):
+    """A bird only the second mic heard still gets a species entry."""
+
+    def test_rollup_shape_newest_clip_and_canon(self):
+        rows = [
+            {"common": "Goldeneye", "t": "2026-11-15T03:41:35-05:00", "conf": 0.85, "audio": "b.m4a", "spec": "b.png", "node": "Side Yard"},
+            {"common": "Common Goldeneye", "t": "2026-11-14T19:00:00-05:00", "conf": 0.9, "audio": "a.m4a", "spec": "a.png"},
+            {"common": "Gadwall", "t": "2026-11-15T04:15:28-05:00", "conf": 0.67},
+            {"t": "2026-11-15T04:00:00-05:00"},
+        ]
+        canon = lambda n: "Common Goldeneye" if "Goldeneye" in n else n
+        out = index._species_from_log(rows, canon)
+        self.assertEqual(set(out), {"Common Goldeneye", "Gadwall"})
+        g = out["Common Goldeneye"]
+        self.assertEqual(g["count"], 2)
+        self.assertEqual(g["first"], "2026-11-14T19:00:00-05:00")
+        self.assertEqual(g["last"], "2026-11-15T03:41:35-05:00")
+        self.assertEqual((g["audio"], g["spec"]), ("b.m4a", "b.png"))
+        self.assertEqual(g["maxConf"], 0.9)
+        self.assertNotIn("audio", out["Gadwall"])
+
+
 class YardRhythmTestCase(unittest.TestCase):
     """The live page's small true sentences come from _yard_rhythm."""
 

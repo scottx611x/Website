@@ -1195,8 +1195,18 @@ def _live_view():
             e = enrich(s)
             e["photos"] = (covers.get(e["display"]) or [])[:12]
             return e
-        view["species"] = sorted((with_pool(s) for s in data.get("species", [])),
-                                 key=lambda s: s.get("last") or "", reverse=True)
+        # The station's rollup only counts its own mic (the Back Yard), so a
+        # bird only the Side Yard heard was on stage but missing from the reel.
+        # The merged log has both mics: it fills the gaps, and gives every
+        # species its all-mics recording count (`heard`).
+        agg = _log_species()
+        pool = [with_pool(s) for s in data.get("species", [])]
+        have = {s["display"] for s in pool}
+        pool += [with_pool(a) for d, a in agg.items() if d not in have]
+        for s in pool:
+            a = agg.get(s["display"])
+            s["heard"] = max(a["count"] if a else 0, s.get("count") or 0)
+        view["species"] = sorted(pool, key=lambda s: s.get("last") or "", reverse=True)
         miss = [s for s in view["species"] if not s["shot"]]
         view["missing"] = miss
         n = len(view["species"])
@@ -1295,6 +1305,42 @@ def _yard_rhythm(rows, today, canon=None, window=28):
     per_hour = [round(sum(n for (d, h), n in per_day_hour.items() if h == hh) / ndays, 2)
                 for hh in range(24)]
     return {"facts": facts, "firstSong": song, "perHour": per_hour}
+
+
+def _species_from_log(rows, canon=None):
+    """Per-species rollup of log rows, keyed by canonical display name, in the
+    station rollup's own shape (common, count, first, last, maxConf, and the
+    newest clip's audio/spec), so a species the station's single-mic rollup
+    missed can stand in for one."""
+    canon = canon or (lambda n: n)
+    out = {}
+    for r in rows:
+        raw = r.get("common") or r.get("display") or ""
+        t = r.get("t") or ""
+        if not raw or not t:
+            continue
+        a = out.setdefault(canon(raw), {"common": raw, "count": 0, "first": t, "last": t, "maxConf": 0})
+        a["count"] += 1
+        a["first"] = min(a["first"], t)
+        a["maxConf"] = max(a["maxConf"], r.get("conf") or 0)
+        if t >= a["last"] and (r.get("audio") or "audio" not in a):
+            a["last"] = t
+            for k in ("audio", "spec"):
+                if r.get(k):
+                    a[k] = r[k]
+        a["last"] = max(a["last"], t)
+    return out
+
+
+def _log_species():
+    """_species_from_log over the merged log, memoised per log generation."""
+    log = _sound_log_merged() or {}
+
+    def canon(n):
+        c = birds._canon_species(n)
+        return c[0] if c else n
+    return birds._memoed("log_species:%s" % log.get("generated"), birds._MEMO_TTL,
+                         lambda: _species_from_log(log.get("log") or [], canon))
 
 
 def _live_rhythm(today):
