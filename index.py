@@ -13,6 +13,7 @@ from flask_compress import Compress
 
 import birds
 import blog
+import live_labels
 
 app = Flask(__name__)
 app.debug = False
@@ -1341,6 +1342,36 @@ def _log_species():
         return c[0] if c else n
     return birds._memoed("log_species:%s" % log.get("generated"), birds._MEMO_TTL,
                          lambda: _species_from_log(log.get("log") or [], canon))
+
+
+def _photo_dates(shots):
+    """{display: [capture dates, oldest first]} over the gallery."""
+    out = collections.defaultdict(set)
+    for s in shots:
+        d = birds._shot_capture_date(s)
+        if not d:
+            continue
+        isp, imgs = s.get("image_species") or [], s.get("images") or []
+        for i in range(max(1, len(imgs))):
+            raw = isp[i] if i < len(isp) and isp[i] else s.get("species")
+            for name, _ in birds._canon_species_list(raw):
+                out[name].add(d)
+    return {k: sorted(v) for k, v in out.items()}
+
+
+def _label_index():
+    """live_labels.LabelIndex over the merged (curated) log, memoised per log
+    generation: hiding a clip rebuilds it, so no note points at a hidden one."""
+    log = _sound_log_merged() or {}
+
+    def canon(n):
+        c = birds._canon_species(n)
+        return c[0] if c else n
+
+    def build():
+        return live_labels.LabelIndex(log.get("log") or [], canon,
+                                      _photo_dates(birds.load_gallery(shuffle=False)))
+    return birds._memoed("label_index:%s" % log.get("generated"), 600, build)
 
 
 def _live_rhythm(today):

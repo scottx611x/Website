@@ -5,6 +5,7 @@ from unittest import mock
 import birds
 import blog
 import index
+import live_labels as LL
 
 
 class GenericTestBase(unittest.TestCase):
@@ -1051,6 +1052,128 @@ class CurateOverridePayloadTestCase(GenericTestBase):
         self.assertEqual(fields["image_areas"], {"2": "away"})
         # Scalars are not per-image maps and must not be touched.
         self.assertEqual(fields["capture_date"], "2026-04-02")
+
+
+class LiveLabelsTestCase(unittest.TestCase):
+    """The Live stage's stamp (occasions only) and line (one field note)."""
+
+    def rec(self, sp, t, conf=0.9, node="Back Yard", audio=None):
+        return {"common": sp, "t": t, "conf": conf, "node": node,
+                "audio": audio or "%s_%s.m4a" % (sp, t)}
+
+    def days(self, sp, start, n, hhmm="09:00", step=1):
+        d0 = __import__("datetime").date.fromisoformat(start)
+        out = []
+        for i in range(0, n, step):
+            d = d0 + __import__("datetime").timedelta(days=i)
+            out.append(self.rec(sp, "%sT%s:00-05:00" % (d.isoformat(), hhmm)))
+        return out
+
+    def note(self, rows, t, sp, **kw):
+        idx = LL.LabelIndex(rows, photos=kw.pop("photos", None))
+        x = idx.find({"t": t, "audio": "%s_%s.m4a" % (sp, t)})
+        return LL.note_for(x, idx, **kw), idx, x
+
+    def test_words(self):
+        self.assertEqual(LL.num(4), "four")
+        self.assertEqual(LL.num(412), "412")
+        self.assertEqual(LL.num(1200), "1,200")
+        self.assertEqual(LL.ordinal(2), "second")
+        self.assertIsNone(LL.ordinal(13))
+        self.assertEqual(LL.plural("titmouse"), "titmice")
+        self.assertEqual(LL.plural("goose"), "geese")
+        self.assertEqual(LL.plural("finch"), "finches")
+        self.assertEqual(LL.plural("chickadee"), "chickadees")
+        self.assertEqual(LL.a_an("owl"), "an owl")
+        self.assertEqual(LL.a_an("nuthatch"), "a nuthatch")
+        self.assertEqual(LL.common_word("Black-capped Chickadee"), "chickadee")
+
+    def test_sun_times_north_andover(self):
+        import datetime as dt
+        rise, sett = LL.sun_times(dt.date(2026, 11, 15))
+        est = dt.timezone(dt.timedelta(hours=-5))
+        self.assertEqual(rise.astimezone(est).strftime("%H"), "06")
+        self.assertLess(abs(rise.astimezone(est).minute - 36), 4)
+        self.assertLess(abs((sett.astimezone(est).hour * 60 + sett.astimezone(est).minute) - (16 * 60 + 21)), 4)
+
+    def test_new_to_the_yard(self):
+        n, _, _ = self.note([self.rec("Gadwall", "2026-11-15T10:00:00-05:00")],
+                            "2026-11-15T10:00:00-05:00", "Gadwall")
+        self.assertEqual(n["stamp"], "new to the yard")
+
+    def test_first_since_a_date_not_a_duration(self):
+        rows = self.days("Gadwall", "2026-09-01", 5) + [self.rec("Gadwall", "2026-11-15T10:00:00-05:00")]
+        n, _, _ = self.note(rows, "2026-11-15T10:00:00-05:00", "Gadwall")
+        self.assertEqual(n["stamp"], "first since sep 5")
+
+    def test_second_visit_counts_days_not_recordings(self):
+        rows = [self.rec("Tundra Swan", "2026-11-01T05:%02d:00-05:00" % m) for m in range(10)]
+        rows.append(self.rec("Tundra Swan", "2026-11-12T10:00:00-05:00"))
+        n, _, _ = self.note(rows, "2026-11-12T10:00:00-05:00", "Tundra Swan")
+        self.assertEqual(n["stamp"], "second visit")
+
+    def test_owl_at_night_is_not_an_occasion(self):
+        owl = self.days("Barred Owl", "2026-10-01", 30, "23:00")
+        owl.append(self.rec("Barred Owl", "2026-11-14T23:30:00-05:00"))
+        n, _, _ = self.note(owl, "2026-11-14T23:30:00-05:00", "Barred Owl")
+        self.assertNotEqual(n["stamp"], "night voice")
+        day = self.days("Blue Jay", "2026-10-01", 30, "10:00")
+        day.append(self.rec("Blue Jay", "2026-11-14T23:30:00-05:00"))
+        n, _, _ = self.note(day, "2026-11-14T23:30:00-05:00", "Blue Jay")
+        self.assertEqual(n["stamp"], "night voice")
+        self.assertNotIn(n["kind"], ("habit", "offhabit"))   # the stamp said it
+
+    def test_first_voice_skips_a_lone_night_call(self):
+        rows = (self.days("Tundra Swan", "2026-11-10", 3) + self.days("Northern Cardinal", "2026-11-10", 3)
+                + self.days("Blue Jay", "2026-11-10", 3, "10:00"))
+        rows += [self.rec("Tundra Swan", "2026-11-14T02:00:00-05:00"),
+                 self.rec("Northern Cardinal", "2026-11-14T06:10:00-05:00"),
+                 self.rec("Blue Jay", "2026-11-14T06:20:00-05:00")]
+        idx = LL.LabelIndex(rows)
+        st = {x.sp: LL.stamp_for(x, idx.facts(x), idx) for x in idx.recs if x.day.day == 14}
+        self.assertEqual(st["Northern Cardinal"], ("voice", "first voice"))
+        self.assertNotEqual(st["Tundra Swan"], ("voice", "first voice"))
+        self.assertNotEqual(st["Blue Jay"], ("voice", "first voice"))
+
+    def test_both_mics_is_a_line_not_a_stamp(self):
+        rows = self.days("Blue Jay", "2026-10-01", 40, "15:30") + [
+            self.rec("Blue Jay", "2026-11-14T15:00:00-05:00", node="Back Yard"),
+            self.rec("Blue Jay", "2026-11-14T15:00:05-05:00", node="Side Yard")]
+        n, _, _ = self.note(rows, "2026-11-14T15:00:05-05:00", "Blue Jay", shot=True)
+        self.assertEqual(n["stamp"], "")
+        self.assertEqual(n["line"], "Both mics caught this one.")
+
+    def test_never_photographed_line(self):
+        rows = [self.rec("Gadwall", "2026-11-%02dT10:%02d:00-05:00" % (1 + i // 10, i % 10)) for i in range(40)]
+        n, _, _ = self.note(rows, rows[-1]["t"], "Gadwall")
+        self.assertEqual(n["line"], "Heard 40 times. Never once photographed.")
+
+    def test_regular_since_the_mic_went_up(self):
+        rows = self.days("White-breasted Nuthatch", "2026-07-18", 30)
+        import datetime as dt
+        n, _, _ = self.note(rows, rows[-1]["t"], "White-breasted Nuthatch",
+                            photos={"White-breasted Nuthatch": []}, shot=True)
+        self.assertEqual(n["line"], "Here every day since the mic went up.")
+
+    def test_run_of_one_bird_keeps_its_line_and_each_line_once_a_day(self):
+        rows = self.days("Blue Jay", "2026-10-01", 45)
+        rows += [self.rec("Blue Jay", "2026-11-15T15:00:%02d-05:00" % s) for s in (0, 20, 40)]
+        rows += [self.rec("Gadwall", "2026-11-15T15:05:00-05:00"),
+                 self.rec("Blue Jay", "2026-11-15T15:10:00-05:00")]
+        idx = LL.LabelIndex(rows, photos={"Blue Jay": [__import__("datetime").date(2026, 9, 7)]})
+        today = [x for x in idx.recs if x.local.strftime("%Y-%m-%d") == "2026-11-15"]
+        notes = LL.notes_for_stage(idx, today, shot_of=lambda sp: sp == "Blue Jay")
+        lines = [notes[id(x)]["line"] for x in today]
+        self.assertEqual(len(set(lines[:3])), 1)              # one arrival, one line
+        self.assertTrue(lines[0])
+        self.assertNotEqual(lines[4], lines[0])               # said once a day
+
+    def test_no_banned_phrase_in_the_module(self):
+        src = open(LL.__file__).read().lower()
+        for bad in ("checking in", "unmistakable", "most heard today", "clear as a bell",
+                    "days straight", "call today", "first of the day", "up before the sun",
+                    "dawn chorus"):
+            self.assertNotIn(bad, src)
 
 
 if __name__ == "__main__":
