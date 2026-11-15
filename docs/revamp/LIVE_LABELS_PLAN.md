@@ -1,5 +1,12 @@
 # /birds/live: the stamp and the line under the name
 
+> **Status 2026-11-15: shipped** (live_labels.py, 26241df, e345f06). Changes
+> from this plan after reading the replay: BOTH MICS is a line, not a stamp
+> (two mics made it routine); the "Fourth time this morning" lines are cut
+> (tally voice); company must beat chance by 4x; a run of one bird keeps one
+> line; each line kind is said once per bird per day, most particular first.
+> Replay: `BIRDS_USE_S3=1 .venv/bin/python tools/label_replay.py 14`.
+
 A brief for a fresh session to implement. Read all of it, then
 `docs/revamp/OVERNIGHT.md` (working rules, probes) and skim
 `docs/revamp/LIVE_STAGE_PLAN.md` (the stage these labels sit on).
