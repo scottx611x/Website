@@ -1395,16 +1395,27 @@ def _attach_notes(view, weather):
     # whole of each day on the page, not just the 30h window's tail.
     stage = [x for x in idx.recs if x.day in days and x.conf >= live_labels.STAGE_CONF]
     shot = {s["display"] for s in view.get("species") or [] if s.get("shot")}
-    rain_after = (time_now() - 3600) if weather.get("raining") else None
-    notes = live_labels.notes_for_stage(idx, stage, shot_of=lambda sp: sp in shot,
-                                        raining_after=rain_after)
-    first = {}
-    for x in sorted(stage, key=lambda x: x.ts):
-        n = notes[id(x)]
-        if n["line"] or n["stamp"]:
-            first.setdefault(x.sp, {"stamp": n["stamp"], "line": n["line"]})
+    rain = bool(weather.get("raining"))
+    log = _sound_log_merged() or {}
+
+    def build():
+        notes = live_labels.notes_for_stage(
+            idx, stage, shot_of=lambda sp: sp in shot,
+            raining_after=(time_now() - 3600) if rain else None)
+        first, by_clip = {}, {}
+        for x in sorted(stage, key=lambda x: x.ts):
+            n = notes[id(x)]
+            by_clip[x.raw.get("audio") or x.raw.get("t")] = n
+            if n["line"] or n["stamp"]:
+                first.setdefault(x.sp, {"stamp": n["stamp"], "line": n["line"]})
+        return by_clip, first
+    # Polls between log updates reuse the same notes, keyed by clip (not by
+    # object: the index may be rebuilt under the same generation).
+    notes, first = birds._memoed("label_notes:%s|%s|%s|%d" % (
+        log.get("generated"), ",".join(sorted(str(d) for d in days)), rain, len(shot)),
+        birds._MEMO_TTL, build)
     for x, r in by_audio.values():
-        n = notes.get(id(x))
+        n = notes.get(x.raw.get("audio") or x.raw.get("t"))
         if n:
             r["note"] = {"stamp": n["stamp"], "line": n["line"]}
     at = {r.get("audio"): r.get("note") for r in view["dayrecs"] if r.get("note")}
