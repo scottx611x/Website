@@ -10,8 +10,8 @@
 > bucket's public allow-list already covers them; the strip's thumb flood was a
 > smooth scroll sweeping to the opened frame, not lazy-loading alone; the
 > species page's weight was `upgradeThumbs` in base.html swapping phone cards to
-> 1440px. **Pending his yes:** `tools/backfill_micro.py --write` (2,139 objects,
-> ~14 MB); until then the strip uses 640px thumbs (~0.9-1.6 MB per open).
+> 1440px. Micro backfill run 2026-11-15 (2,139 objects, 12.7 MB): strip now
+> 83-127 KB per open, full photo ~1.0-1.1 s for both big birds.
 
 A brief for a fresh session to implement. Read all of it, then
 `docs/revamp/OVERNIGHT.md` (working rules, probes). He said: "red-tailed hawk
