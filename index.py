@@ -1227,6 +1227,10 @@ def _live_view():
             except (KeyError, ValueError, TypeError):
                 continue
         view["dayrecs"] = dayrecs
+        try:
+            _attach_notes(view, data.get("weather") or {})
+        except Exception:  # noqa: BLE001 — garnish; never break the page for it
+            app.logger.exception("live labels failed")
         # The "heard vs shot" wall is scoped to the active day AND clip-hide-aware:
         # derive today's species from the day's VISIBLE recordings (dayrecs is the
         # curated log, so hidden clips are gone), not the raw daily rollup. Hiding
@@ -1372,6 +1376,48 @@ def _label_index():
         return live_labels.LabelIndex(log.get("log") or [], canon,
                                       _photo_dates(birds.load_gallery(shuffle=False)))
     return birds._memoed("label_index:%s" % log.get("generated"), 600, build)
+
+
+def _attach_notes(view, weather):
+    """Give each day/recent recording its stage note ({stamp, line}), and
+    each species the first line it said today (what a reel pick shows)."""
+    idx = _label_index()
+    by_audio = {}
+    for r in view.get("dayrecs") or []:
+        x = idx.find(r)
+        if x is not None:
+            by_audio[id(x)] = (x, r)
+    stage = [x for x, _ in by_audio.values() if x.conf >= live_labels.STAGE_CONF]
+    if not stage:
+        return
+    days = {x.day for x in stage}
+    # A bird's run and its once-a-day lines start at midnight: replay the
+    # whole of each day on the page, not just the 30h window's tail.
+    stage = [x for x in idx.recs if x.day in days and x.conf >= live_labels.STAGE_CONF]
+    shot = {s["display"] for s in view.get("species") or [] if s.get("shot")}
+    rain_after = (time_now() - 3600) if weather.get("raining") else None
+    notes = live_labels.notes_for_stage(idx, stage, shot_of=lambda sp: sp in shot,
+                                        raining_after=rain_after)
+    first = {}
+    for x in sorted(stage, key=lambda x: x.ts):
+        n = notes[id(x)]
+        if n["line"] or n["stamp"]:
+            first.setdefault(x.sp, {"stamp": n["stamp"], "line": n["line"]})
+    for x, r in by_audio.values():
+        n = notes.get(id(x))
+        if n:
+            r["note"] = {"stamp": n["stamp"], "line": n["line"]}
+    at = {r.get("audio"): r.get("note") for r in view["dayrecs"] if r.get("note")}
+    for r in view.get("recent") or []:
+        if r.get("audio") in at:
+            r["note"] = at[r["audio"]]
+    for s in view.get("species") or []:
+        if s["display"] in first:
+            s["note"] = first[s["display"]]
+
+
+def time_now():
+    return datetime.datetime.now(datetime.timezone.utc).timestamp()
 
 
 def _live_rhythm(today):
