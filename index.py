@@ -7,6 +7,7 @@ import hmac
 import json
 import os
 import random
+import re
 
 from flask import Flask, abort, redirect, render_template, request
 from flask_compress import Compress
@@ -914,7 +915,7 @@ def birds_family_json(slug):
                 continue
             frames.append({
                 "thumb": birds.thumb_url(src), "full": src, "name": nm,
-                "orig": birds.original_url(src) if birds.has_original(src) else None,
+                "orig": birds.original_path(src),
                 "ocrop": birds.original_crop(src),
                 "date": (dates[i] if (i < len(dates) and dates[i])
                          else (sh.get("_sort") or sh.get("date"))),
@@ -970,12 +971,34 @@ def birds_species_json(slug):
     """Everything the site knows about one bird, as JSON, for the gallery's
     per-species detail view.
     species_profile() already gathers across all four views — gallery, stats,
-    map and the mic — so this just trims it to what the overlay renders."""
+    map and the mic — so this just trims it to what the overlay renders.
+
+    A reader's copy is the same for everyone until the gallery changes, so it
+    is built once per gallery generation (birds.memoed_gallery) and served from
+    memory: Barred Owl took 5 s to build. Curate responses are never cached,
+    by us or anyone, because they carry hidden frames."""
+    if _curate_on():
+        resp = app.json.response(_species_payload(slug))
+        resp.headers["Cache-Control"] = "private, no-store"
+        return resp
+    body = birds.memoed_gallery("species_json:" + slug,
+                                lambda: app.json.dumps(_species_payload(slug)))
+    resp = app.response_class(body, mimetype="application/json")
+    if body.startswith('{"error"'):
+        birds._MEMO.pop("species_json:" + slug, None)   # no memo per junk slug
+        resp.status_code = 404
+        resp.headers["Cache-Control"] = "no-store"
+    else:
+        resp.headers["Cache-Control"] = "public, max-age=300, stale-while-revalidate=86400"
+    return resp
+
+
+def _species_payload(slug):
     _starred = birds.load_starred()
     names = birds.species_index()
     name = names.get(slug)
     if not name:
-        return app.json.response({"error": "unknown species"}), 404
+        return {"error": "unknown species"}
     # Curating sees its own hidden frames, flagged, so a mis-hit hide can be
     # undone from the same view that made it. Readers never get them.
     _curate = _curate_on()
@@ -1000,7 +1023,7 @@ def birds_species_json(slug):
         key = "%s-%s" % (f.get("post_id"), idxs[0] if idxs else 0)
         frame = {"thumb": birds.thumb_url(imgs[0]), "full": imgs[0],
                  # the full-res export, when one was still on disk to upload
-                 "orig": birds.original_url(imgs[0]) if birds.has_original(imgs[0]) else None,
+                 "orig": birds.original_path(imgs[0]),
                  # where this frame sits in that original, if it was cropped
                  "ocrop": birds.original_crop(imgs[0]),
                  "date": f.get("_sort") or f.get("date"),
@@ -1100,11 +1123,34 @@ def birds_species_json(slug):
                   for c in alls[:5] if c.get("audio")],
         "nodes": p.get("heard_nodes") or [],
     }
-    resp = app.json.response(out)
-    if _curate:
-        resp.headers["Cache-Control"] = "no-store"
-    else:
-        resp.cache_control.max_age = 300
+    return out
+
+
+_ORIGINAL_NAME = re.compile(r"^[A-Za-z0-9_-]+\.jpg$")
+
+
+@app.route("/birds/original/<name>", methods=["GET"])
+def birds_original(name):
+    """Redirect to a freshly signed link to one frame's full-size original.
+
+    The originals stay private (the bucket policy does not list them); this
+    signs per request, for a frame a reader could see. Hidden frames and
+    excluded posts are curate-only."""
+    if not _ORIGINAL_NAME.match(name):
+        abort(404)
+    src = "/{}/images/{}".format(birds.S3_PREFIX, name)
+    if not birds.has_original(src):
+        abort(404)
+    if not _curate_on():
+        stem = name[:-4]
+        pid = stem.rsplit("-", 1)[0]
+        if stem in birds.hidden_frame_keys() or pid in birds.load_excluded():
+            abort(404)
+    url = birds.original_url(src, expires=3600)
+    if not url:
+        abort(404)
+    resp = redirect(url, code=302)
+    resp.headers["Cache-Control"] = "private, max-age=300"
     return resp
 
 

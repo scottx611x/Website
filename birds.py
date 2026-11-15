@@ -110,10 +110,77 @@ def _memoed(key, ttl, build):
     return val
 
 
+# One client per AWS service for the life of the process. Building a boto3
+# client costs ~5 ms (it loads the service model), and original_url() built
+# one per frame: 213 for Barred Owl, most of a second on every detail open.
+# Clients are thread-safe. Keyed on boto3.client itself so a test that
+# patches it still gets its mock.
+_CLIENTS = {}
+
+
+def _aws(name):
+    import boto3
+
+    fn = boto3.client
+    hit = _CLIENTS.get(name)
+    if hit is None or hit[0] is not fn:
+        hit = _CLIENTS[name] = (fn, fn(name))
+    return hit[1]
+
+
+def _s3():
+    return _aws("s3")
+
+
 def memo_clear():
     """Drop the loader memo — call after writing new data so the next read is
     fresh rather than up to a minute behind."""
     _MEMO.clear()
+    _GEN["epoch"] += 1
+    _GEN["at"] = 0.0
+
+
+# The gallery used to be rebuilt every 60 s whether or not anything changed,
+# and a quiet site is nearly always past the minute: most detail opens paid
+# 1.5 s of S3 reads and parsing before the first byte. It changes only on a
+# sync (the manifest) or a curate save (which bumps the curation stamp), so
+# memos built from it are keyed on those two ETags, checked with two HEADs at
+# most every _GEN_CHECK seconds, and otherwise live for _GALLERY_TTL. A save on
+# this instance bumps `epoch` (memo_clear) and is fresh at once; other
+# instances see the stamp move within _GEN_CHECK.
+_GEN = {"at": 0.0, "val": None, "epoch": 0}
+_GEN_CHECK = 30.0
+_GALLERY_TTL = 900.0
+
+
+def gallery_generation():
+    now = _time.time()
+    if _GEN["val"] is not None and now - _GEN["at"] < _GEN_CHECK:
+        return _GEN["val"]
+    tags = []
+    if os.environ.get("BIRDS_USE_S3"):
+        for key in ("{}/manifest.json".format(S3_PREFIX), _STAMP_KEY):
+            try:
+                tags.append(_s3().head_object(Bucket=S3_BUCKET, Key=key).get("ETag"))
+            except Exception:  # noqa: BLE001 - no stamp yet / hiccup
+                tags.append(None)
+    else:
+        tags.append(data_version())
+    _GEN["val"] = (_GEN["epoch"],) + tuple(tags)
+    _GEN["at"] = now
+    return _GEN["val"]
+
+
+def memoed_gallery(key, build, ttl=None):
+    """_memoed, but valid only while gallery_generation() is unchanged."""
+    gen = gallery_generation()
+    hit = _MEMO.get(key)
+    now = _time.time()
+    if hit and len(hit) > 2 and hit[2] == gen and (now - hit[0]) < (ttl or _GALLERY_TTL):
+        return hit[1]
+    val = build()
+    _MEMO[key] = (now, val, gen)
+    return val
 
 
 def _load_gallery_uncached(shuffle=True):
@@ -1117,7 +1184,7 @@ def _put_share(sid, share):
     if _shares_s3():
         import boto3
 
-        boto3.client("s3").put_object(
+        _s3().put_object(
             Bucket=S3_BUCKET, Key=_share_key(sid), Body=json.dumps(share).encode(),
             ContentType="application/json", CacheControl="no-store")
         return
@@ -1134,7 +1201,7 @@ def get_share(share_id):
         from botocore.exceptions import ClientError
 
         try:
-            obj = boto3.client("s3").get_object(Bucket=S3_BUCKET, Key=_share_key(share_id))
+            obj = _s3().get_object(Bucket=S3_BUCKET, Key=_share_key(share_id))
         except ClientError as exc:
             if exc.response.get("Error", {}).get("Code") in ("NoSuchKey", "404", "AccessDenied"):
                 return None
@@ -1152,7 +1219,7 @@ def load_shares():
                 if v and not v.get("deleted")}
     import boto3
 
-    s3 = boto3.client("s3")
+    s3 = _s3()
     out = {}
     prefix = "{}/shares/".format(S3_PREFIX)
     for page in s3.get_paginator("list_objects_v2").paginate(Bucket=S3_BUCKET, Prefix=prefix):
@@ -1413,7 +1480,7 @@ def _load_post_records():
     try:
         import boto3
 
-        raw = boto3.client("s3").get_object(
+        raw = _s3().get_object(
             Bucket=S3_BUCKET, Key="{}/post_records.json".format(S3_PREFIX))["Body"].read()
         records = json.loads(raw)
         return records if isinstance(records, list) else []
@@ -1553,7 +1620,7 @@ def _assign_frames(shot, names, frames, fetch=None):
         return img.convert("L")
 
     import boto3
-    s3 = boto3.client("s3")
+    s3 = _s3()
     webs = {}
     for i in frames:
         try:
@@ -1596,7 +1663,7 @@ def _copy_original(name, key):
     try:
         import boto3
 
-        boto3.client("s3").copy_object(
+        _s3().copy_object(
             Bucket=S3_BUCKET, Key=key,
             CopySource={"Bucket": S3_BUCKET,
                         "Key": "{}/originals/by-file/{}".format(S3_PREFIX, name)},
@@ -1651,7 +1718,7 @@ def _by_file_names():
         try:
             import boto3
 
-            pg = boto3.client("s3").get_paginator("list_objects_v2")
+            pg = _s3().get_paginator("list_objects_v2")
             for page in pg.paginate(Bucket=S3_BUCKET,
                                     Prefix="{}/originals/by-file/".format(S3_PREFIX)):
                 for o in page.get("Contents") or []:
@@ -2140,7 +2207,7 @@ def _load_manifest_from_s3():
         if _manifest_cache["etag"]:
             params["IfNoneMatch"] = _manifest_cache["etag"]
         try:
-            obj = boto3.client("s3").get_object(**params)
+            obj = _s3().get_object(**params)
         except ClientError as exc:
             # 304 Not Modified -> the cached raw is still current.
             if exc.response.get("ResponseMetadata", {}).get("HTTPStatusCode") == 304:
@@ -2224,7 +2291,7 @@ def _load_curation(path, default):
         if cached and cached.get("etag"):
             params["IfNoneMatch"] = cached["etag"]
         try:
-            obj = boto3.client("s3").get_object(**params)
+            obj = _s3().get_object(**params)
         except ClientError as exc:
             code = exc.response.get("ResponseMetadata", {}).get("HTTPStatusCode")
             err = exc.response.get("Error", {}).get("Code")
@@ -2252,7 +2319,7 @@ def pull_curations():
     import boto3
     from botocore.exceptions import ClientError
 
-    s3 = boto3.client("s3")
+    s3 = _s3()
     changed = []
     for path, key in _CURATION_S3.items():
         try:
@@ -2447,7 +2514,7 @@ def _load_sounds_uncached():
         try:
             import boto3
 
-            body = boto3.client("s3").get_object(Bucket=S3_BUCKET, Key=key)["Body"].read()
+            body = _s3().get_object(Bucket=S3_BUCKET, Key=key)["Body"].read()
             return apply_sound_curation(json.loads(body))
         except Exception:  # noqa: BLE001 - not published yet / unreachable
             return None
@@ -2466,7 +2533,7 @@ def _load_sound_log_uncached():
         try:
             import boto3
 
-            body = boto3.client("s3").get_object(Bucket=S3_BUCKET, Key=key)["Body"].read()
+            body = _s3().get_object(Bucket=S3_BUCKET, Key=key)["Body"].read()
             return apply_sound_curation(json.loads(body))
         except Exception:  # noqa: BLE001 - not published yet / unreachable
             return None
@@ -2490,7 +2557,7 @@ def _load_sound_archive_uncached():
         try:
             import boto3
 
-            body = boto3.client("s3").get_object(Bucket=S3_BUCKET, Key=key)["Body"].read()
+            body = _s3().get_object(Bucket=S3_BUCKET, Key=key)["Body"].read()
             return apply_sound_curation(json.loads(body))
         except Exception:  # noqa: BLE001 - not built yet
             return None
@@ -2511,7 +2578,7 @@ def _load_patterns_uncached():
         try:
             import boto3
 
-            body = boto3.client("s3").get_object(Bucket=S3_BUCKET, Key=key)["Body"].read()
+            body = _s3().get_object(Bucket=S3_BUCKET, Key=key)["Body"].read()
             return json.loads(body)
         except Exception:  # noqa: BLE001 - not published yet / unreachable
             return None
@@ -2531,7 +2598,7 @@ def _load_species_clips_uncached():
         try:
             import boto3
 
-            body = boto3.client("s3").get_object(Bucket=S3_BUCKET, Key=key)["Body"].read()
+            body = _s3().get_object(Bucket=S3_BUCKET, Key=key)["Body"].read()
             return json.loads(body).get("clips", {})
         except Exception:  # noqa: BLE001 - not published yet / unreachable
             return {}
@@ -2585,7 +2652,7 @@ def _save_curation(path, data):
             import boto3
 
             raw = json.dumps(data, indent=2, sort_keys=(path == OVERRIDES_FILE)).encode()
-            resp = boto3.client("s3").put_object(
+            resp = _s3().put_object(
                 Bucket=S3_BUCKET, Key=_CURATION_S3[path], Body=raw,
                 ContentType="application/json", CacheControl="no-store")
             _curation_cache[path] = {"etag": resp.get("ETag"), "raw": raw}
@@ -2611,7 +2678,7 @@ def _bump_curation_stamp():
     try:
         import boto3
 
-        resp = boto3.client("s3").put_object(
+        resp = _s3().put_object(
             Bucket=S3_BUCKET, Key=_STAMP_KEY, Body=repr(_time.time()).encode(),
             ContentType="text/plain", CacheControl="no-store")
         _seen_stamp["etag"] = resp.get("ETag")  # this instance is already fresh
@@ -2627,7 +2694,7 @@ def curation_fresh():
     try:
         import boto3
 
-        etag = boto3.client("s3").head_object(Bucket=S3_BUCKET, Key=_STAMP_KEY).get("ETag")
+        etag = _s3().head_object(Bucket=S3_BUCKET, Key=_STAMP_KEY).get("ETag")
     except Exception:  # noqa: BLE001 - no stamp yet / S3 hiccup: keep the memo
         return
     if etag != _seen_stamp["etag"]:
@@ -2682,7 +2749,7 @@ def _ssm_get(name):
     try:
         import boto3
 
-        resp = boto3.client("ssm").get_parameter(Name=name, WithDecryption=True)
+        resp = _aws("ssm").get_parameter(Name=name, WithDecryption=True)
         return resp["Parameter"]["Value"]
     except Exception:  # noqa: BLE001 - not configured / unavailable locally
         return None
@@ -2692,7 +2759,7 @@ def _ssm_put(name, value):
     try:
         import boto3
 
-        boto3.client("ssm").put_parameter(
+        _aws("ssm").put_parameter(
             Name=name, Value=value, Type="SecureString", Overwrite=True
         )
         return True
@@ -2877,7 +2944,7 @@ def _rehost_video(media_id, src_url):
     try:
         import boto3
 
-        s3 = boto3.client("s3")
+        s3 = _s3()
         try:
             s3.head_object(Bucket=S3_BUCKET, Key=key)
             return public_url
@@ -2914,7 +2981,7 @@ def _rehost_image(media_id, src_url):
     try:
         import boto3
 
-        s3 = boto3.client("s3")
+        s3 = _s3()
         # Already archived? Keep it — that copy survives even if IG removes the
         # post, and we avoid re-downloading. Images are keyed by immutable media id.
         try:
@@ -2981,10 +3048,21 @@ def original_url(url, expires=3600):
     try:
         import boto3
 
-        return boto3.client("s3").generate_presigned_url(
+        return _s3().generate_presigned_url(
             "get_object", Params={"Bucket": S3_BUCKET, "Key": key}, ExpiresIn=expires)
     except Exception:  # noqa: BLE001
         return None
+
+
+def original_path(url):
+    """The site's own stable address for a frame's original, or None.
+
+    The detail JSON used to carry original_url() for every frame: a fresh
+    signature per frame per request, so no response could ever be reused.
+    /birds/original/<file> signs on demand and redirects instead."""
+    if not has_original(url):
+        return None
+    return "/birds/original/" + original_key(url).rsplit("/", 1)[-1]
 
 
 _CROPS = None
@@ -3010,7 +3088,7 @@ def original_crop(url):
             try:
                 import boto3
 
-                raw = boto3.client("s3").get_object(
+                raw = _s3().get_object(
                     Bucket=S3_BUCKET,
                     Key="{}/{}".format(S3_PREFIX, ORIGINAL_CROPS_KEY))["Body"].read()
                 _CROPS = json.loads(raw) or {}
@@ -3045,7 +3123,7 @@ def has_original(url):
             try:
                 import boto3
 
-                pg = boto3.client("s3").get_paginator("list_objects_v2")
+                pg = _s3().get_paginator("list_objects_v2")
                 for page in pg.paginate(Bucket=S3_BUCKET,
                                         Prefix="{}/originals/".format(S3_PREFIX)):
                     for o in page.get("Contents") or []:
@@ -3114,7 +3192,7 @@ def _write_manifest(shots):
     try:
         import boto3
 
-        boto3.client("s3").put_object(
+        _s3().put_object(
             Bucket=S3_BUCKET,
             Key="{}/manifest.json".format(S3_PREFIX),
             Body=payload.encode("utf-8"),
@@ -4174,7 +4252,7 @@ if __name__ == "__main__":  # manual run: python birds.py
 def load_gallery(shuffle=True):
     """Cached front-end to the gallery loader (see _MEMO). Shuffling happens on
     a copy so the memoised list itself is never reordered."""
-    shots = _memoed("gallery", _MEMO_TTL, lambda: _load_gallery_uncached(shuffle=False))
+    shots = memoed_gallery("gallery", lambda: _load_gallery_uncached(shuffle=False))
     if not shuffle:
         return shots
     out = list(shots)
@@ -4204,7 +4282,7 @@ def _load_gallery_with_hidden_uncached():
 
 
 def load_gallery_with_hidden():
-    return _memoed("gallery_hidden", _MEMO_TTL, _load_gallery_with_hidden_uncached)
+    return memoed_gallery("gallery_hidden", _load_gallery_with_hidden_uncached)
 
 
 def hidden_frame_keys():

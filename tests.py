@@ -1054,6 +1054,87 @@ class CurateOverridePayloadTestCase(GenericTestBase):
         self.assertEqual(fields["capture_date"], "2026-04-02")
 
 
+class DetailSpeedTestCase(GenericTestBase):
+    """The bird detail view: cheap to build, cacheable, originals stay private."""
+
+    def setUp(self):
+        super().setUp()
+        birds.memo_clear()
+        names = birds.species_index()
+        self.slug = next(iter(names))
+
+    def tearDown(self):
+        birds._CLIENTS.clear()
+        birds.memo_clear()
+
+    def test_one_s3_client_for_many_signatures(self):
+        s3 = mock.Mock()
+        s3.generate_presigned_url.return_value = "https://s3/x?X-Amz-Signature=1"
+        url = "https://x/%s/images/p1-0.jpg" % birds.S3_PREFIX
+        with mock.patch("boto3.client", return_value=s3) as make, \
+             mock.patch.dict("os.environ", {"BIRDS_USE_S3": "1"}):
+            for _ in range(50):
+                birds.original_url(url)
+        self.assertEqual(make.call_count, 1)
+        self.assertEqual(s3.generate_presigned_url.call_count, 50)
+
+    def test_reader_json_is_unsigned_and_cacheable(self):
+        r = self.test_client.get("/birds/species/%s.json" % self.slug)
+        self.assertEqual(r.status_code, 200)
+        self.assertNotIn(b"X-Amz-Signature", r.data)
+        self.assertIn("public", r.headers["Cache-Control"])
+        self.assertIn("max-age=300", r.headers["Cache-Control"])
+        # served again from the memo, same bytes
+        self.assertEqual(self.test_client.get("/birds/species/%s.json" % self.slug).data, r.data)
+
+    def test_curate_json_is_never_cached(self):
+        with mock.patch.object(index, "_curate_on", return_value=True):
+            r = self.test_client.get("/birds/species/%s.json" % self.slug)
+        self.assertEqual(r.status_code, 200)
+        self.assertIn("no-store", r.headers["Cache-Control"])
+        self.assertNotIn("public", r.headers["Cache-Control"])
+
+    def test_unknown_species_404_and_not_memoised(self):
+        r = self.test_client.get("/birds/species/not-a-bird-xyz.json")
+        self.assertEqual(r.status_code, 404)
+        self.assertNotIn("species_json:not-a-bird-xyz", birds._MEMO)
+
+    def test_original_frames_point_at_the_redirect(self):
+        with mock.patch.object(birds, "has_original", return_value=True):
+            self.assertEqual(birds.original_path("https://x/%s/images/p1-3.jpg" % birds.S3_PREFIX),
+                             "/birds/original/p1-3.jpg")
+        with mock.patch.object(birds, "has_original", return_value=False):
+            self.assertIsNone(birds.original_path("https://x/%s/images/p1-3.jpg" % birds.S3_PREFIX))
+
+    def test_original_redirect_signs_visible_frames_only(self):
+        go = mock.patch.object(birds, "original_url", return_value="https://s3/signed")
+        has = mock.patch.object(birds, "has_original", return_value=True)
+        hidden = mock.patch.object(birds, "hidden_frame_keys", return_value={"p1-2"})
+        excl = mock.patch.object(birds, "load_excluded", return_value={"p9"})
+        with go, has, hidden, excl, mock.patch.object(index, "_curate_on", return_value=False):
+            ok = self.test_client.get("/birds/original/p1-0.jpg")
+            self.assertEqual(ok.status_code, 302)
+            self.assertEqual(ok.headers["Location"], "https://s3/signed")
+            self.assertIn("private", ok.headers["Cache-Control"])
+            self.assertEqual(self.test_client.get("/birds/original/p1-2.jpg").status_code, 404)
+            self.assertEqual(self.test_client.get("/birds/original/p9-0.jpg").status_code, 404)
+            # nothing outside birds/originals/ can be named
+            self.assertEqual(self.test_client.get("/birds/original/..%2Fmanifest.json").status_code, 404)
+            self.assertEqual(self.test_client.get("/birds/original/p1-0.png").status_code, 404)
+        with go, has, hidden, excl, mock.patch.object(index, "_curate_on", return_value=True):
+            self.assertEqual(self.test_client.get("/birds/original/p1-2.jpg").status_code, 302)
+        with go, mock.patch.object(birds, "has_original", return_value=False):
+            self.assertEqual(self.test_client.get("/birds/original/p1-0.jpg").status_code, 404)
+
+    def test_curate_save_refreshes_the_gallery_memo(self):
+        calls = []
+        build = lambda: calls.append(1) or len(calls)
+        self.assertEqual(birds.memoed_gallery("t", build), 1)
+        self.assertEqual(birds.memoed_gallery("t", build), 1)
+        birds.memo_clear()
+        self.assertEqual(birds.memoed_gallery("t", build), 2)
+
+
 class LiveLabelsTestCase(unittest.TestCase):
     """The Live stage's stamp (occasions only) and line (one field note)."""
 
