@@ -16,10 +16,15 @@ const ratio = (a, b) => { const x = lum(a), y = lum(b); return (Math.max(x, y) +
     await p.tap('#navBurger'); await p.waitForTimeout(400);
     const r = await p.evaluate(() => { const nav = document.getElementById('navLinks'); const bg = getComputedStyle(nav).backgroundColor;
       return { bg, vis: getComputedStyle(nav).visibility, links: [...nav.querySelectorAll('a')].map(a => [a.textContent.trim(), getComputedStyle(a).color]) }; });
+    // The link must be what a tap lands on, and the tap must navigate.
+    const hit = await p.evaluate(() => { const a = document.querySelector('#navLinks a[href="/projects"]'); const r = a.getBoundingClientRect();
+      const top = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2); return !!top && a.contains(top); });
+    let went = false;
+    if (hit) { await Promise.all([p.waitForURL('**/projects', { timeout: 8000 }).then(() => went = true).catch(() => {}), p.tap('#navLinks a[href="/projects"]')]); }
     const worst = Math.min(...r.links.map(([, col]) => ratio(col, r.bg)));
-    const ok = r.vis === 'visible' && worst >= 4.5 && !errs.length; if (!ok) bad++;
-    console.log((ok ? 'ok  ' : 'BAD ') + path.padEnd(14) + ' worst contrast ' + worst.toFixed(1) + ' ' + errs.join(' | '));
-    if (path === '/') await p.screenshot({ path: process.env.SP + '/navmenu_home.png' });
+    const ok = hit && went && r.vis === 'visible' && worst >= 4.5 && !errs.length; if (!ok) bad++;
+    console.log((ok ? 'ok  ' : 'BAD ') + path.padEnd(14) + ' worst contrast ' + worst.toFixed(1) + ' tapTarget ' + hit + ' navigates ' + went + ' ' + errs.join(' | '));
+    if (false) await p.screenshot({ path: process.env.SP + '/navmenu_home.png' });
     await c.close();
   }
   await b.close(); process.exit(bad ? 1 : 0);

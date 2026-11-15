@@ -226,6 +226,9 @@ body.home .site-nav:not(.scrolled) .nav-burger span { background: rgba(244, 241,
 /* On the home page, let the sticky ticker (inside .content, z-index:1) rise over
    the nav as you scroll — so drop the nav beneath the content there. */
 body.home .site-nav { z-index: 0; }
+/* ...but an OPEN phone menu must sit on top, or the content under it takes
+   every tap (and a tap outside the menu closes it). */
+body.home.nav-open .site-nav { z-index: 60; }
 .ticker {
     background: var(--ink); color: var(--paper);
     border-top: 1px solid var(--line); border-bottom: 1px solid var(--line);
