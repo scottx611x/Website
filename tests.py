@@ -1126,6 +1126,18 @@ class DetailSpeedTestCase(GenericTestBase):
         with go, mock.patch.object(birds, "has_original", return_value=False):
             self.assertEqual(self.test_client.get("/birds/original/p1-0.jpg").status_code, 404)
 
+    def test_micro_short_side_and_listing(self):
+        from io import BytesIO
+        from PIL import Image
+        buf = BytesIO(); Image.new("RGB", (640, 427), (90, 120, 60)).save(buf, "JPEG")
+        im = Image.open(BytesIO(birds._make_micro(buf.getvalue())))
+        self.assertEqual(min(im.size), birds.MICRO_SIDE)
+        url = "https://x/%s/images/p1-0.jpg" % birds.S3_PREFIX
+        with mock.patch.object(birds, "_MICROS", {"p1-0.jpg"}), \
+             mock.patch.object(birds, "_MICROS_AT", 9e18):
+            self.assertEqual(birds.micro_url(url), url.replace("/images/", "/thumbs/micro/"))
+            self.assertIsNone(birds.micro_url(url.replace("p1-0", "p1-1")))
+
     def test_curate_save_refreshes_the_gallery_memo(self):
         calls = []
         build = lambda: calls.append(1) or len(calls)

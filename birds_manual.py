@@ -138,7 +138,9 @@ def process(src_dir):
             except Exception as exc:  # noqa: BLE001
                 print("  ! skip %s (%s)" % (name, exc))
                 continue
-            for kind, blob in (("images", full), ("thumbs", thumb)):
+            from birds import _make_micro
+            micro = _make_micro(thumb)
+            for kind, blob in (("images", full), ("thumbs", thumb), ("thumbs/micro", micro)):
                 s3.put_object(
                     Bucket=BUCKET, Key="%s/%s/%s.jpg" % (PREFIX, kind, img_id),
                     Body=blob, ContentType="image/jpeg",

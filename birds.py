@@ -2987,6 +2987,7 @@ def _rehost_image(media_id, src_url):
         try:
             s3.head_object(Bucket=S3_BUCKET, Key=key)
             _ensure_thumb(s3, media_id)  # backfill thumbs for older archives
+            # (micros for older archives come from tools/backfill_micro.py)
             return public_url
         except Exception:  # noqa: BLE001 - not there yet, fetch + upload below
             pass
@@ -3001,6 +3002,7 @@ def _rehost_image(media_id, src_url):
             CacheControl="public, max-age=31536000, immutable",
         )
         _ensure_thumb(s3, media_id, resp.content)
+        _ensure_micro(s3, media_id, resp.content)
         return public_url
     except Exception:  # noqa: BLE001 - S3 unavailable: serve Instagram's URL directly
         return src_url
@@ -3184,6 +3186,86 @@ def _ensure_thumb(s3, media_id, data=None):
         _THUMB_DIMS[media_id] = dims
     except Exception:  # noqa: BLE001
         pass
+
+
+# The detail view's filmstrip draws 48-60 px squares (~150 device px), and was
+# loading the 640 px grid thumb (~80 KB) for each. A micro copy, short side
+# MICRO_SIDE, is ~6 KB. Lives under thumbs/ so the bucket's public allow-list
+# already covers it.
+MICRO_SIDE = 160
+
+
+def micro_key(media_id):
+    return "{}/thumbs/micro/{}.jpg".format(S3_PREFIX, media_id)
+
+
+def _make_micro(data):
+    """jpeg bytes of the strip-sized copy: short side MICRO_SIDE (so a square
+    crop of it is never upscaled), from the thumb or the full image."""
+    from io import BytesIO
+
+    from PIL import Image, ImageOps
+
+    im = ImageOps.exif_transpose(Image.open(BytesIO(data))).convert("RGB")
+    k = MICRO_SIDE / float(min(im.width, im.height))
+    if k < 1:
+        im = im.resize((max(1, round(im.width * k)), max(1, round(im.height * k))),
+                       Image.LANCZOS)
+    out = BytesIO()
+    im.save(out, "JPEG", quality=70, optimize=True, progressive=True)
+    return out.getvalue()
+
+
+def _ensure_micro(s3, media_id, data=None):
+    """Create thumbs/micro/{id}.jpg if missing. Best-effort, like the thumb:
+    the strip falls back to the thumb when there is no micro."""
+    key = micro_key(media_id)
+    try:
+        s3.head_object(Bucket=S3_BUCKET, Key=key)
+        return
+    except Exception:  # noqa: BLE001 - not there yet
+        pass
+    try:
+        if data is None:
+            data = s3.get_object(
+                Bucket=S3_BUCKET, Key="{}/thumbs/{}.jpg".format(S3_PREFIX, media_id)
+            )["Body"].read()
+        s3.put_object(Bucket=S3_BUCKET, Key=key, Body=_make_micro(data),
+                      ContentType="image/jpeg",
+                      CacheControl="public, max-age=31536000, immutable")
+        if _MICROS is not None:
+            _MICROS.add(key.rsplit("/", 1)[-1])
+    except Exception:  # noqa: BLE001
+        pass
+
+
+_MICROS = None
+_MICROS_AT = 0.0
+
+
+def micro_url(url):
+    """The strip-sized copy of a frame, or None while it has not been made.
+    Listed and memoised like has_original, so no frame costs a request."""
+    global _MICROS, _MICROS_AT
+    marker = "/{}/images/".format(S3_PREFIX)
+    if marker not in (url or ""):
+        return None
+    if _MICROS is None or _time.time() - _MICROS_AT > _ORIGINALS_TTL:
+        found = set()
+        if os.environ.get("BIRDS_USE_S3"):
+            try:
+                pg = _s3().get_paginator("list_objects_v2")
+                for page in pg.paginate(Bucket=S3_BUCKET,
+                                        Prefix="{}/thumbs/micro/".format(S3_PREFIX)):
+                    for o in page.get("Contents") or []:
+                        found.add(o["Key"].rsplit("/", 1)[-1])
+            except Exception:  # noqa: BLE001 - absent prefix is not fatal
+                pass
+        _MICROS, _MICROS_AT = found, _time.time()
+    name = url.rsplit("/", 1)[-1]
+    if name not in _MICROS:
+        return None
+    return url.replace(marker, "/{}/thumbs/micro/".format(S3_PREFIX))
 
 
 def _write_manifest(shots):

@@ -915,6 +915,7 @@ def birds_family_json(slug):
                 continue
             frames.append({
                 "thumb": birds.thumb_url(src), "full": src, "name": nm,
+                "micro": birds.micro_url(src),
                 "orig": birds.original_path(src),
                 "ocrop": birds.original_crop(src),
                 "date": (dates[i] if (i < len(dates) and dates[i])
@@ -1022,6 +1023,8 @@ def _species_payload(slug):
         areas = f.get("image_areas") or []
         key = "%s-%s" % (f.get("post_id"), idxs[0] if idxs else 0)
         frame = {"thumb": birds.thumb_url(imgs[0]), "full": imgs[0],
+                 # the filmstrip's copy, once it exists (else the thumb)
+                 "micro": birds.micro_url(imgs[0]),
                  # the full-res export, when one was still on disk to upload
                  "orig": birds.original_path(imgs[0]),
                  # where this frame sits in that original, if it was cropped
