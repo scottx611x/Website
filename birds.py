@@ -2742,7 +2742,14 @@ def scheduled_sync(event=None, context=None):
         _ssm_put(SSM_TOKEN_PARAM, token)
     except Exception:  # noqa: BLE001 - token may be <24h old; proceed regardless
         pass
-    return instagram_sync(token=token)
+    result = instagram_sync(token=token)
+    try:  # self-heal the filmstrip's micro copies (see fill_missing_micros)
+        made, missing = fill_missing_micros(limit=500)
+        if missing:
+            print("micros: made %d of %d missing" % (made, missing))
+    except Exception:  # noqa: BLE001 - never fail the sync over a thumbnail
+        pass
+    return result
 
 
 def _ssm_get(name):
@@ -3237,6 +3244,49 @@ def _ensure_micro(s3, media_id, data=None):
             _MICROS.add(key.rsplit("/", 1)[-1])
     except Exception:  # noqa: BLE001
         pass
+
+
+def fill_missing_micros(s3=None, limit=None, workers=8):
+    """Make a micro for every thumb that lacks one; returns (made, missing).
+
+    Uploads make their micro as they go, but that step is best-effort, so the
+    daily sync runs this too: two listings when nothing is missing, and any
+    gap (a failed write, a thumb made some other way) closes within a day."""
+    import concurrent.futures
+
+    s3 = s3 or _s3()
+
+    def names(prefix):
+        out = set()
+        for page in s3.get_paginator("list_objects_v2").paginate(Bucket=S3_BUCKET, Prefix=prefix):
+            for o in page.get("Contents") or []:
+                rest = o["Key"][len(prefix):]
+                if "/" not in rest and rest.endswith(".jpg"):
+                    out.add(rest)
+        return out
+
+    todo = sorted(names("{}/thumbs/".format(S3_PREFIX)) - names("{}/thumbs/micro/".format(S3_PREFIX)))
+    missing = len(todo)
+    if limit is not None:
+        todo = todo[:limit]
+
+    def make(name):
+        try:
+            data = s3.get_object(Bucket=S3_BUCKET,
+                                 Key="{}/thumbs/{}".format(S3_PREFIX, name))["Body"].read()
+            s3.put_object(Bucket=S3_BUCKET, Key=micro_key(name[:-4]), Body=_make_micro(data),
+                          ContentType="image/jpeg",
+                          CacheControl="public, max-age=31536000, immutable")
+            return 1
+        except Exception:  # noqa: BLE001 - retried by the next run
+            return 0
+
+    with concurrent.futures.ThreadPoolExecutor(workers) as ex:
+        made = sum(ex.map(make, todo))
+    if made:
+        global _MICROS
+        _MICROS = None   # relist on next use
+    return made, missing
 
 
 _MICROS = None

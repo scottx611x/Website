@@ -1138,6 +1138,21 @@ class DetailSpeedTestCase(GenericTestBase):
             self.assertEqual(birds.micro_url(url), url.replace("/images/", "/thumbs/micro/"))
             self.assertIsNone(birds.micro_url(url.replace("p1-0", "p1-1")))
 
+    def test_fill_missing_micros_makes_only_the_gaps(self):
+        from io import BytesIO
+        from PIL import Image
+        buf = BytesIO(); Image.new("RGB", (640, 427)).save(buf, "JPEG")
+        pre = birds.S3_PREFIX
+        listing = {pre + "/thumbs/": ["a-0.jpg", "b-0.jpg", "micro/a-0.jpg"],
+                   pre + "/thumbs/micro/": ["a-0.jpg"]}
+        s3 = mock.Mock()
+        s3.get_paginator.return_value.paginate.side_effect = lambda Bucket, Prefix: [
+            {"Contents": [{"Key": Prefix + n} for n in listing[Prefix]]}]
+        s3.get_object.return_value = {"Body": BytesIO(buf.getvalue())}
+        made, missing = birds.fill_missing_micros(s3)
+        self.assertEqual((made, missing), (1, 1))
+        self.assertEqual(s3.put_object.call_args.kwargs["Key"], pre + "/thumbs/micro/b-0.jpg")
+
     def test_curate_save_refreshes_the_gallery_memo(self):
         calls = []
         build = lambda: calls.append(1) or len(calls)
