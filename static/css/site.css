@@ -619,6 +619,11 @@ body.home .site-nav { z-index: 0; }
     }
     body.nav-open .site-nav nav { opacity: 1; visibility: visible; transform: none; }
     .site-nav.scrolled nav a, body.nav-open .site-nav.scrolled nav a { color: var(--ink); }
+    /* The open panel is paper whatever the page under it is: the home and
+       Live-stage rules that paint links cream for their photos must not reach
+       inside it (cream on paper = an empty box). The id outranks them all. */
+    body.nav-open #nav nav a { color: var(--ink); }
+    body.nav-open #nav nav a.nav-archive { color: rgba(13, 18, 14, 0.55); }
 }
 /* Photography takes the same collapse as the gallery — same header, same
    complaint about 575px of it before a photograph. Its contents are different
