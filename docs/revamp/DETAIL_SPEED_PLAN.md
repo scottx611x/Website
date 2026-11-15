@@ -159,8 +159,8 @@ phone profile, for both big birds.
 
 ## Probe
 
-Add `docs/revamp/probes/detailspeed.js` (the measuring script used for this
-plan is the starting point): phone profile with CDP throttling (12 Mbps,
+`docs/revamp/probes/detailspeed.js` is the script that produced the table
+above; extend it as needed: phone profile with CDP throttling (12 Mbps,
 60 ms), opens `#bird/barred-owl`, `#bird/red-tailed-hawk`, `#bird/blue-jay`
 from `/birds` and prints JSON time, first paint on the stage, full photo time,
 strip thumb count and bytes. Run it against production before and after
@@ -180,7 +180,7 @@ tables in the hand-off.
 
 ## Kickoff prompt
 
-> Read `docs/revamp/DETAIL_SPEED_PLAN.md` in full. Write the `detailspeed`
+> Read `docs/revamp/DETAIL_SPEED_PLAN.md` in full. Run the `detailspeed`
 > probe and record the production baseline first. Do phase 1, ship it, and
 > show me before/after numbers. Then phases 2 to 4 in order, one commit and
 > one deploy each. Ask me before running any bucket backfill or touching
