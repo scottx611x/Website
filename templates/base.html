@@ -161,8 +161,12 @@
                 if (!tick) { tick = true; requestAnimationFrame(read); }
             }, { passive: true });
             // A new width means new heights: re-measure from the full header.
+            // Pinned headers (the field) never un-stick: a phone fires resize
+            // whenever its address bar shows or hides, and un-sticking here
+            // with read() then declining to re-stick left the bird field with
+            // the full header boxed over the tiles.
             addEventListener("resize", function () {
-                if (hdr && hdr.classList.contains("is-stuck")) { setStuck(false); read(); }
+                if (hdr && hdr.classList.contains("is-stuck") && !hdr.dataset.pinned) { setStuck(false); read(); }
             });
             addEventListener("DOMContentLoaded", read);
             read();
