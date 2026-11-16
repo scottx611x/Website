@@ -3318,6 +3318,44 @@ def micro_url(url):
     return url.replace(marker, "/{}/thumbs/micro/".format(S3_PREFIX))
 
 
+_FOCUS = None
+_FOCUS_AT = 0.0
+FOCUS_KEY = "focus.json"   # under S3_PREFIX; written by tools/bird_focus.py
+FOCUS_MIN_SCORE = 0.35
+
+
+def focus_table(force=False):
+    """{media id: [fx, fy, aspect, score] or None}: where the bird sits in
+    each frame, as fractions of the frame, from an object detector run
+    offline (tools/bird_focus.py; OpenCV is not on the Lambda). None means
+    the detector looked and found no bird. Read once per ten minutes."""
+    global _FOCUS, _FOCUS_AT
+    if force or _FOCUS is None or _time.time() - _FOCUS_AT > _ORIGINALS_TTL:
+        table = {}
+        if os.environ.get("BIRDS_USE_S3"):
+            try:
+                raw = _s3().get_object(
+                    Bucket=S3_BUCKET,
+                    Key="{}/{}".format(S3_PREFIX, FOCUS_KEY))["Body"].read()
+                table = json.loads(raw) or {}
+            except Exception:  # noqa: BLE001 - absent until the tool has run
+                pass
+        _FOCUS, _FOCUS_AT = table, _time.time()
+    return _FOCUS
+
+
+def focus_point(url):
+    """[fx, fy, aspect] for a frame URL (any size: thumb, web copy, micro),
+    or None when there is no confident bird to centre on."""
+    if not url:
+        return None
+    mid = url.rsplit("/", 1)[-1].split("?", 1)[0].rsplit(".", 1)[0]
+    e = focus_table().get(mid)
+    if not e or (e[3] if len(e) > 3 else 0) < FOCUS_MIN_SCORE:
+        return None
+    return [e[0], e[1], e[2]]
+
+
 def _write_manifest(shots):
     payload = json.dumps(shots, indent=2)
     # Cache to S3 for the running Lambda...

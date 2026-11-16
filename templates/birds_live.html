@@ -1640,6 +1640,35 @@
      each recording: stamps for occasions only, one field note per bird per
      day. See docs/revamp/LIVE_LABELS_PLAN.md. */
   function heroNotes(r) { return r.note || { stamp: "", line: "" }; }
+  /* Crop around the bird, not the frame's middle. A phone's stage is tall
+     and narrow, so a cover crop keeps only the middle half of a landscape
+     frame, and a bird framed on a third-line fell off the side. The server
+     sends where the detector found the bird (LIVE.focus, by media id, as
+     fractions of the frame plus its aspect); this puts that point at the
+     stage's clear band (above the name, below the top lines), clamped so the
+     photo never shows its edge. Frames with no point keep the CSS default. */
+  function focusOf(u) {
+    var m = String(u || "").match(/\/([^\/?]+)\.jpg/);
+    return m && LIVE.focus ? LIVE.focus[m[1]] : null;
+  }
+  var WIDE = window.matchMedia ? window.matchMedia("(min-width:900px) and (min-aspect-ratio:5/4)") : null;
+  function aim(el) {
+    var fx = +el.dataset.fx, fy = +el.dataset.fy, ar = +el.dataset.ar;
+    var cw = el.offsetWidth, ch = el.offsetHeight;
+    if (!cw || !ch || !ar) return;
+    var ih = Math.max(ch, cw / ar), iw = ih * ar;
+    // Wide screens fade the photo's left quarter into the words: aim right of centre.
+    var tx = (STAGE && WIDE && WIDE.matches) ? .6 : .5, ty = STAGE ? .38 : .45;
+    var ox = Math.min(0, Math.max(cw - iw, tx * cw - fx * iw));
+    var oy = Math.min(0, Math.max(ch - ih, ty * ch - fy * ih));
+    el.style.backgroundPosition = Math.round(ox) + "px " + Math.round(oy) + "px";
+    // the slow drift zooms toward the bird, not toward a fixed point
+    el.style.transformOrigin = ((fx * iw + ox) / cw * 100).toFixed(1) + "% " + ((fy * ih + oy) / ch * 100).toFixed(1) + "%";
+  }
+  function aimAll(root) {
+    Array.prototype.forEach.call((root || document).querySelectorAll(".lv-ph[data-fx]"), aim);
+  }
+  addEventListener("resize", function () { aimAll(); });
   var shownHero = null;
   function renderHero(r, animate) {
     var h = document.getElementById("lv-hero");
@@ -1657,15 +1686,17 @@
     var top = STAGE ? "" : stamp, inBody = STAGE ? stamp : "";
     var ghostBg = (STAGE && r.spec)
       ? '<div class="lv-ph lv-phspec" style="background-image:url(\'' + MEDIA + esc(r.spec) + '\')"></div>' : FEATHER;
+    var fp = focusOf(photo);
+    var aimAttr = fp ? ' data-fx="' + fp[0] + '" data-fy="' + fp[1] + '" data-ar="' + fp[2] + '"' : '';
     var html = photo
-      ? '<div class="lv-portrait"' + (STAGE ? ' style="--ph:url(\'' + photo + '\')"' : '') + '><div class="lv-ph" style="background-image:url(\'' + webPhoto(photo) + '\'),url(\'' + photo + '\')"></div>' +
+      ? '<div class="lv-portrait"' + (STAGE ? ' style="--ph:url(\'' + photo + '\')"' : '') + '><div class="lv-ph"' + aimAttr + ' style="background-image:url(\'' + webPhoto(photo) + '\'),url(\'' + photo + '\')"></div>' +
         top + '<div class="lv-body">' + inBody +
         '<div class="lv-when" data-t="' + esc(r.t) + '" data-lead="' + esc(r.fam) + '"></div>' +
         '<div class="lv-nm"><a href="' + birdHref(r.display) + '">' + words + '</a></div>' + meta + line + '</div></div>'
       : '<div class="lv-ghostcard">' + ghostBg + top + '<div class="lv-body">' + inBody +
         '<div class="lv-when" data-t="' + esc(r.t) + '" data-lead="heard, not photographed"></div>' +
         '<div class="lv-nm">' + words + '</div>' + meta + line + '</div></div>';
-    if (!animate || REDUCED || !h.firstElementChild) { h.innerHTML = html; return; }
+    if (!animate || REDUCED || !h.firstElementChild) { h.innerHTML = html; aimAll(h); return; }
     // Cross-fade: the new bird is laid over the old one and fades up while its
     // photo settles and its name sets itself word by word; the old card goes
     // once it is fully covered.
@@ -1674,6 +1705,7 @@
     next.classList.add("lv-enter", "lv-over");
     Array.prototype.forEach.call(h.children, function (old) { old.classList.add("lv-leave"); });
     h.appendChild(next);
+    aimAll(next);
     setTimeout(function () {
       Array.prototype.slice.call(h.children).forEach(function (c) { if (c !== next) c.remove(); });
       next.classList.remove("lv-over");

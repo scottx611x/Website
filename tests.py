@@ -1138,6 +1138,18 @@ class DetailSpeedTestCase(GenericTestBase):
             self.assertEqual(birds.micro_url(url), url.replace("/images/", "/thumbs/micro/"))
             self.assertIsNone(birds.micro_url(url.replace("p1-0", "p1-1")))
 
+    def test_focus_point_by_media_id_and_confidence(self):
+        table = {"p1-0": [0.2, 0.4, 1.5, 0.8], "p1-1": [0.9, 0.5, 1.5, 0.2], "p1-2": None}
+        with mock.patch.object(birds, "_FOCUS", table), \
+             mock.patch.object(birds, "_FOCUS_AT", 9e18):
+            # any size of the frame resolves to the same point
+            for d in ("thumbs", "images", "thumbs/micro"):
+                self.assertEqual(birds.focus_point("https://x/birds/%s/p1-0.jpg" % d), [0.2, 0.4, 1.5])
+            self.assertIsNone(birds.focus_point("https://x/birds/thumbs/p1-1.jpg"))  # unsure
+            self.assertIsNone(birds.focus_point("https://x/birds/thumbs/p1-2.jpg"))  # no bird
+            self.assertIsNone(birds.focus_point("https://x/birds/thumbs/p9-0.jpg"))  # not run
+            self.assertIsNone(birds.focus_point(None))
+
     def test_fill_missing_micros_makes_only_the_gaps(self):
         from io import BytesIO
         from PIL import Image

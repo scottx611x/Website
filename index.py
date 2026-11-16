@@ -1276,6 +1276,17 @@ def _live_view():
             except (KeyError, ValueError, TypeError):
                 continue
         view["dayrecs"] = dayrecs
+        # Where the bird is in each stage photo, so the hero can crop around
+        # it instead of the frame's middle (tools/bird_focus.py). Keyed by
+        # media id; photos with no confident bird are left out.
+        focus = {}
+        for u in ([p for s in pool for p in s.get("photos") or []]
+                  + [s.get("photo") for s in pool]
+                  + [r.get("photo") for r in view["recent"] + dayrecs]):
+            pt = birds.focus_point(u)
+            if pt:
+                focus[u.rsplit("/", 1)[-1].rsplit(".", 1)[0]] = pt
+        view["focus"] = focus
         try:
             _attach_notes(view, data.get("weather") or {})
         except Exception:  # noqa: BLE001 — garnish; never break the page for it

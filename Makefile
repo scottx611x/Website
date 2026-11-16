@@ -1,4 +1,4 @@
-.PHONY: ci test run hooks pull-curations push-curations wildlife deploy
+.PHONY: ci test run hooks pull-curations push-curations wildlife deploy focus
 
 ## deploy: stamp version.txt with HEAD (busts the 1-year asset cache) + zappa update.
 ## Always deploy with this, never bare `zappa update` — zappa zeroes file mtimes in
@@ -56,6 +56,10 @@ push-curations:
 ## wildlife: publish non-bird photos from wildlife_incoming/<Category>/ to S3 + /photography
 wildlife:
 	@BIRDS_S3_BUCKET=birds-scott-ouellette python wildlife.py $(DIR)
+
+## focus: find the bird in any new gallery frames (Live stage crops around it); local only, needs OpenCV
+focus:
+	@BIRDS_USE_S3=1 BIRDS_S3_BUCKET=birds-scott-ouellette .venv/bin/python -W ignore tools/bird_focus.py --write
 
 ## hooks: install the git pre-push hook that runs `earthly +test`
 hooks:
