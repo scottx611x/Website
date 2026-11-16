@@ -3377,8 +3377,10 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
      frames was to hit a 2rem chevron, while the gallery's lightbox has had
      swipe for months. Same gesture, both surfaces.
 
-     Horizontal pages the filmstrip; a downward drag dismisses, which is what
-     a sheet-like overlay is expected to do. Anything that scrolls on its own
+     Horizontal pages the filmstrip. A downward drag only leaves immersive
+     mode; it no longer closes the detail view, because a hard pull down is
+     also how you scroll back up the panel, and losing the bird to that was
+     the complaint. × / Back / Esc still close it. Anything that scrolls on its own
      is excluded by hand: the filmstrip and the map pan horizontally, the
      curate sheet scrolls vertically and holds the text fields, and a video
      owns its own scrubbing. Stealing from those is worse than not having the
@@ -3405,9 +3407,9 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
       if (Math.abs(dx) > 45 && Math.abs(dx) > Math.abs(dy)) {
         swiped = true;
         showFrame(fi + (dx < 0 ? 1 : -1));
-      } else if (dy > 90 && Math.abs(dy) > Math.abs(dx) * 1.5) {
+      } else if (isImm() && dy > 90 && Math.abs(dy) > Math.abs(dx) * 1.5) {
         swiped = true;
-        if (isImm()) setImm(false); else closeOver();
+        setImm(false);
       }
     }, { passive: true });
     // A swipe that ends on the backdrop must not also read as "clicked the
