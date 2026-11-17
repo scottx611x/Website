@@ -1150,6 +1150,22 @@ class DetailSpeedTestCase(GenericTestBase):
             self.assertIsNone(birds.focus_point("https://x/birds/thumbs/p9-0.jpg"))  # not run
             self.assertIsNone(birds.focus_point(None))
 
+    def test_new_post_check_syncs_only_for_unseen_posts(self):
+        def run(ids, known, excluded=()):
+            r = mock.Mock(); r.json.return_value = {"data": [{"id": i} for i in ids]}
+            with mock.patch.object(birds, "resolve_token", return_value="t"), \
+                 mock.patch.object(birds.requests, "get", return_value=r), \
+                 mock.patch.object(birds, "_load_manifest_from_s3",
+                                   return_value=[{"id": k} for k in known]), \
+                 mock.patch.object(birds, "load_excluded", return_value=set(excluded)), \
+                 mock.patch.object(birds, "scheduled_sync") as sync:
+                out = birds.new_post_check()
+            return out["new"], sync.called
+        self.assertEqual(run(["3", "2", "1"], ["2", "1"]), (["3"], True))
+        self.assertEqual(run(["2", "1"], ["2", "1"]), ([], False))
+        self.assertEqual(run(["3", "2"], ["2"], excluded={"3"}), ([], False))  # hidden post
+        self.assertEqual(run(["3"], []), ([], False))   # no manifest: leave it to the daily sync
+
     def test_fill_missing_micros_makes_only_the_gaps(self):
         from io import BytesIO
         from PIL import Image

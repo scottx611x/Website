@@ -1,9 +1,9 @@
 [Unit]
-Description=Hourly: find the bird in new gallery frames
+Description=Every 15 min: find the bird in new gallery frames
 
 [Timer]
 OnBootSec=10min
-OnUnitActiveSec=1h
+OnUnitActiveSec=15min
 RandomizedDelaySec=5min
 
 [Install]

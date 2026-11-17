@@ -1,4 +1,4 @@
-Live stage bird finder on birdpi. Hourly; with no new frames it lists the
+Live stage bird finder on birdpi. Every 15 min; with no new frames it lists the
 thumbs, reads focus.json and exits (the model is not even loaded).
 
 Install / update (from the Website repo on the Mac):

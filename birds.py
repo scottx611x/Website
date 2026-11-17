@@ -2752,6 +2752,31 @@ def scheduled_sync(event=None, context=None):
     return result
 
 
+def new_post_check(event=None, context=None):
+    """Every 15 minutes: run the full sync only if Instagram has a post the
+    manifest does not. One small Graph call (the newest few ids) instead of
+    the daily sync's full walk, so a new post lands on the site within about
+    15 minutes instead of whenever the daily timer next fires (a rate(1 day)
+    rule restarts its clock on every deploy, so that was any time of day).
+    The daily sync still runs for likes, captions and the token refresh."""
+    token = resolve_token()
+    if not token:
+        return {"checked": False}
+    resp = requests.get(
+        "{}/{}/media".format(GRAPH_BASE, os.environ.get("INSTAGRAM_USER_ID", "me")),
+        params={"fields": "id", "access_token": token, "limit": 5}, timeout=20)
+    resp.raise_for_status()
+    newest = [str(m.get("id")) for m in resp.json().get("data", [])]
+    known = {str(p.get("id")) for p in (_load_manifest_from_s3() or [])}
+    if not known:
+        return {"checked": True, "new": []}   # can't tell; leave it to the daily sync
+    new = [i for i in newest if i not in known and i not in load_excluded()]
+    if new:
+        print("new posts %s: syncing" % ",".join(new))
+        scheduled_sync()
+    return {"checked": True, "new": new}
+
+
 def _ssm_get(name):
     try:
         import boto3

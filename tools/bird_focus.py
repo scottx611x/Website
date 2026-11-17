@@ -7,7 +7,7 @@ around it (birds.focus_point, templates/birds_live.html aim()).
 
 Lives on the Pi (birdpi), not the Lambda: it needs OpenCV and a COCO object
 detector (YOLOv5s as ONNX, fetched once into ~/.cache/birds/). A systemd
-timer there runs --write hourly, a no-op unless the site's sync added frames
+timer there runs --write every 15 minutes, a no-op unless the sync added frames
 (tools/pi/). Standalone on purpose (boto3, opencv-python-headless, numpy;
 Pillow for --sheet): it shares nothing with the website but the bucket
 layout. Credentials come from the environment.

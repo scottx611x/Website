@@ -66,6 +66,10 @@
                 "expression": "rate(1 day)"
             },
             {
+                "function": "birds.new_post_check",
+                "expression": "rate(15 minutes)"
+            },
+            {
                 "function": "sound_index.refresh",
                 "expression": "rate(1 hour)"
             }
