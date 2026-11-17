@@ -1,0 +1,14 @@
+Live stage bird finder on birdpi. Hourly; with no new frames it lists the
+thumbs, reads focus.json and exits (the model is not even loaded).
+
+Install / update (from the Website repo on the Mac):
+
+  ssh birdpi 'mkdir -p ~/bird-focus ~/.cache/birds'
+  scp tools/bird_focus.py birdpi:bird-focus/
+  ssh birdpi 'cd ~/bird-focus && [ -d venv ] || python3 -m venv venv; venv/bin/pip install -q boto3 numpy opencv-python-headless Pillow'
+  scp tools/pi/bird-focus.service tools/pi/bird-focus.timer birdpi:/tmp/
+  ssh birdpi 'sudo mv /tmp/bird-focus.* /etc/systemd/system/ && sudo systemctl daemon-reload && sudo systemctl enable --now bird-focus.timer'
+
+Run now:  ssh birdpi 'sudo systemctl start bird-focus.service; journalctl -u bird-focus -n 5'
+Credentials: the sound exporter's (exporter.env); its IAM policy allows
+reading birds/thumbs/* and reading/writing birds/focus.json (infra/website sounds.tf).

@@ -1,0 +1,15 @@
+# birdpi: find the bird in any new gallery frames -> s3 birds/focus.json
+# (Live stage crops around it). Install: see tools/pi/README-bird-focus.
+[Unit]
+Description=Live stage bird finder (tools/bird_focus.py)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=scott
+Nice=15
+IOSchedulingClass=idle
+EnvironmentFile=/home/scott/birdnet-station/exporter.env
+ExecStart=/home/scott/bird-focus/venv/bin/python /home/scott/bird-focus/bird_focus.py --write
+TimeoutStartSec=1h
