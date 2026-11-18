@@ -124,7 +124,7 @@
         {# data-index is what the shared lightbox sorts on: curate mode deals
            cards into masonry columns, so DOM order stops matching what you see
            and prev/next would walk column-by-column without it. #}
-        <figure class="shot {{ span }}{% if p.hidden %} pg-hidden{% endif %}" data-id="{{ p.id }}" data-index="{{ loop.index0 }}" data-ar="{{ ar|round(4) }}" data-image-indices='{{ range(grp|length)|list|tojson }}'
+        <figure class="shot {{ span }}{% if p.hidden %} pg-hidden{% endif %}" data-id="{{ p.id }}" data-subject="{{ p.subject }}" data-index="{{ loop.index0 }}" data-ar="{{ ar|round(4) }}" data-image-indices='{{ range(grp|length)|list|tojson }}'
                 data-images='{{ grp|map(attribute="image")|list|tojson }}' data-captions='{{ caps|tojson }}'
                 data-photo-ids='{{ grp|map(attribute="id", default="")|list|tojson }}'
                 data-titles='{{ grp|map(attribute="title", default="")|list|tojson }}'
@@ -169,6 +169,13 @@
     <p class="pg-empty">Coming soon.</p>
     {% endif %}
 </section>
+
+{# The birds' detail view, reused: a card opens its subject on the same
+   stage, filmstrip, loupe and record panel a bird gets. Its data comes from
+   the page (pg-subjects), not a request. #}
+<script id="pg-subjects" type="application/json">{{ subjects|tojson }}</script>
+{% set tiles = [] %}{% set seq = [] %}{% set stride = 1 %}{% set detail_only = True %}{% set view_ctx = {"photo": 1} %}
+{% include '_field.html' %}
 
 {% if not curate %}
 <script>

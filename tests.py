@@ -1166,6 +1166,29 @@ class DetailSpeedTestCase(GenericTestBase):
         self.assertEqual(run(["3", "2"], ["2"], excluded={"3"}), ([], False))  # hidden post
         self.assertEqual(run(["3"], []), ([], False))   # no manifest: leave it to the daily sync
 
+    def test_photo_subjects_group_and_summarise(self):
+        import index
+        photos = [
+            {"id": "a", "title": "White-tailed Deer", "image": "i/a", "thumb": "t/a", "date": "2026-06-06",
+             "tags": ["mammal"], "location": "Rea St"},
+            {"id": "b", "title": "White-tailed Deer", "image": "i/b", "thumb": "t/b", "date": "2026-07-01",
+             "tags": ["mammal", "deer"], "location": "Nowhere Known"},
+            {"id": "c", "title": "", "species": "", "image": "i/c", "date": ""},
+        ]
+        locs = [{"name": "Rea St.", "lat": 42.6, "lng": -71.1, "area": "local", "match": ["rea st"]}]
+        with mock.patch.object(birds, "load_locations", return_value=locs):
+            out = index._photo_subjects(photos)
+        deer = out["white-tailed-deer"]
+        self.assertEqual((deer["kind"], deer["images"], deer["first"], deer["last"]),
+                         ("subject", 2, "2026-06-06", "2026-07-01"))
+        self.assertEqual(deer["tags"], ["mammal", "deer"])
+        self.assertEqual(deer["months"][5:7], [1, 1])
+        self.assertEqual([(q["name"], q["mapped"]) for q in deer["places"]],
+                         [("Nowhere Known", False), ("Rea St.", True)])
+        self.assertEqual([f["pid"] for f in deer["frames"]], ["a", "b"])
+        self.assertIn("photo-c", out)                      # untitled: its own subject
+        self.assertEqual(index._photo_subject_key(photos[0]), "white-tailed-deer")
+
     def test_fill_missing_micros_makes_only_the_gaps(self):
         from io import BytesIO
         from PIL import Image

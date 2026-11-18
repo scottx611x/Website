@@ -349,22 +349,85 @@ def photography():
                 if key:
                     by_key[key] = g
         random.shuffle(groups)  # a fresh order each visit
+    # Each subject's record for the detail view (the birds' overlay, reused):
+    # its frames, dates, a month chart and places. Built over every visible
+    # photo, not just this tag, so a subject opened from "insect" still shows
+    # all of itself. Keyed like the cards' data-subject.
+    subjects = _photo_subjects(photos)   # hidden ones only reach a curator
+    for g in groups:
+        g["subject"] = _photo_subject_key(g)
     # Per-category counts for the filter bar, and the subject/date span for the
     # header stat strip.
     tag_counts = {}
     for p in photos:
         for t in (p.get("tags") or []):
             tag_counts[t] = tag_counts.get(t, 0) + 1
-    subjects = {(p.get("title") or p.get("species") or p.get("id") or "").strip().lower()
-                for p in photos}
+    subject_names = {(p.get("title") or p.get("species") or p.get("id") or "").strip().lower()
+                     for p in photos}
     years = sorted({(p.get("date") or "")[:4] for p in photos if (p.get("date") or "")[:4].isdigit()})
     return render_template(
         "photography.html", title="Photography", photos=groups,
         all_tags=birds.photo_tags(photos), tag_counts=tag_counts, active_tag=tag,
-        photo_count=len(photos), subject_count=len(subjects),
+        photo_count=len(photos), subject_count=len(subject_names),
+        subjects=subjects,
         year_from=years[0] if years else None, year_to=years[-1] if years else None,
         curate=_curate_on(), local=_is_local(),
     )
+
+
+def _photo_subject_key(p):
+    """A photo's subject as a URL-safe key: the same title (or species) is
+    one subject, as the grid groups them. Falls back to the photo id."""
+    name = (p.get("title") or p.get("species") or "").strip()
+    return birds._species_slug(name) if name else "photo-" + str(p.get("id") or "")
+
+
+def _photo_subjects(photos):
+    """{key: record} in the shape the birds' detail view fills from, with
+    kind "subject": frames oldest first, first/last date, photos per month,
+    and places geocoded against the birds' place list where they match."""
+    idx = birds._place_index(birds.load_locations())
+    out = {}
+    for p in sorted(photos, key=lambda p: (p.get("date") or "", p.get("id") or "")):
+        key = _photo_subject_key(p)
+        rec = out.get(key)
+        if rec is None:
+            rec = out[key] = {
+                "kind": "subject", "key": key,
+                "name": (p.get("title") or p.get("species") or "Photo").strip(),
+                "species": "", "tags": [], "frames": [], "months": [0] * 12,
+                "_places": {}}
+        if p.get("species") and p.get("species") != rec["name"] and not rec["species"]:
+            rec["species"] = p["species"]
+        for t in p.get("tags") or []:
+            if t not in rec["tags"]:
+                rec["tags"].append(t)
+        where = (p.get("location") or "").strip()
+        hit = birds._match_place(where, idx) if where else None
+        place = hit["name"] if hit else where
+        if place:
+            q = rec["_places"].setdefault(place, {
+                "name": place, "count": 0,
+                "lat": hit.get("lat") if hit else None, "lng": hit.get("lng") if hit else None,
+                "area": hit.get("area") if hit else None})
+            q["count"] += 1
+        date = p.get("date") or ""
+        if date[5:7].isdigit() and 1 <= int(date[5:7]) <= 12:
+            rec["months"][int(date[5:7]) - 1] += 1
+        rec["frames"].append({
+            "thumb": p.get("thumb") or p.get("image"), "full": p.get("image"),
+            "orig": None, "date": date or None, "where": place or None,
+            "vid": 0, "pid": p.get("id"), "idx": 0, "away": 0, "star": 0, "hid": 0,
+            "w": p.get("w"), "h": p.get("h")})
+    for rec in out.values():
+        dates = [f["date"] for f in rec["frames"] if f["date"]]
+        rec["first"], rec["last"] = (dates[0], dates[-1]) if dates else (None, None)
+        rec["images"] = len(rec["frames"])
+        places = sorted(rec.pop("_places").values(), key=lambda q: (-q["count"], q["name"]))
+        for q in places:
+            q["mapped"] = bool(q["lat"] and q["lng"])
+        rec["places"] = places
+    return out
 
 
 @app.route("/photography/edit", methods=["POST"])

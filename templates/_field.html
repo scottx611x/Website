@@ -249,6 +249,9 @@ body.field-view .gallery-header.is-stuck{
    screen without a click, so this fills the window instead and looks the
    same; × / Esc / swipe down drop back to the ordinary detail view. */
 .bf-stage.imm{position:fixed;inset:0;z-index:45}
+/* A photography subject: stars and the yard's recordings are bird things. */
+.bf-over[data-kind="subject"] #bf-ostaronly,.bf-over[data-kind="subject"] #bf-ostar,
+.bf-over[data-kind="subject"] #bf-ocurate{display:none}
 .bf-over.imm-on .bf-oclose{display:none}
 /* The loading mark sits on a small dark disc: a bare white ring vanished
    against a pale sky, which is half of what gets photographed. It fades in
@@ -339,7 +342,7 @@ body.field-view .gallery-header.is-stuck{
   padding:1.5rem 1.4rem 3rem;display:flex;flex-direction:column;gap:1.5rem;
   overflow-y:auto;max-height:100svh}
 .bf-side h2{font-family:var(--display);font-size:1.5rem;font-weight:600;
-  letter-spacing:-.02em;margin:0}
+  letter-spacing:-.02em;margin:0;padding-right:2.4rem}   /* clear of the × above it */
 .bf-side .fam{font-size:.8rem;color:var(--muted);margin:.15rem 0 0}
 .bf-obar{display:flex;align-items:center;justify-content:space-between;
   gap:.6rem 1.2rem;flex-wrap:wrap;margin-top:.8rem}
@@ -828,6 +831,11 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
     return "";
   }
   } catch (_) { return; }
+  /* /photography borrows this detail view too. Its cards are subjects (five
+     deer shots are one deer), and every subject's record comes embedded in
+     the page, so opening one needs no request. */
+  var PHOTO = !!CTX.photo, SUBJ = {};
+  if (PHOTO) { try { SUBJ = JSON.parse(document.getElementById("pg-subjects").textContent) || {}; } catch (_) { SUBJ = {}; } }
   // An empty field has nothing to draw. Without a canvas there is still the
   // detail view to run: a species page passes no tiles at all.
   if ((!TILES.length || !SEQ.length) && document.getElementById("bf-canvas")) return;
@@ -2315,6 +2323,44 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
       });
   }
 
+  /* ---------- a photography subject ----------
+     Same overlay as a bird, filled from the page's own data. The record
+     panel says what applies to a photo subject (photos, category, first and
+     latest) and leaves out what does not (lifer rank, the yard's recordings). */
+  function openSubject(key, src) {
+    var d = SUBJ[key];
+    if (!d) return false;
+    cur = key; frames = []; fi = 0;
+    seqMode = false; seqSpecies = null; famMode = false;
+    wantSrc = src || null;
+    over.dataset.kind = "subject";
+    $("bf-otitle").textContent = d.name;
+    $("bf-ofam").textContent = [d.species].concat((d.tags || []).slice(0, 3)).filter(Boolean).join("  \u00b7  ");
+    paintCtx(null);
+    if (src) { $("bf-oimg").src = src; } else { $("bf-oimg").removeAttribute("src"); }
+    $("bf-oimg").alt = d.name || "";
+    $("bf-ocount").textContent = "";
+    $("bf-ofull").parentNode.hidden = true;
+    var oh = document.querySelector("#bf-mapwrap h3"); if (oh) oh.textContent = "Where";
+    if (orand) { orand.title = orand.ariaLabel = "Another subject at random"; }
+    if (oshuf) { oshuf.title = oshuf.ariaLabel = "Shuffle these photos"; }
+    stop();
+    if (!over.classList.contains("open")) {
+      scrollAt = window.scrollY || 0;
+      over.classList.add("open"); document.body.style.overflow = "hidden";
+      document.body.classList.add("bf-detail");
+    }
+    var hk = "#photo/" + key;
+    if (location.hash !== hk) {
+      try { history.pushState({ bf: 1 }, "", hk); pushedHere = true; } catch (e) { /* file:// */ }
+    }
+    fill(d);
+    return true;
+  }
+  function subjectCard(key) {
+    return document.querySelector('[data-subject="' + String(key).replace(/"/g, "") + '"]');
+  }
+
   /* ---------- sequence mode: the ordered grid's detail ----------
      The field opens a SPECIES and walks its frames. The ordered grid has to
      walk the gallery in the order on screen — that is the whole point of
@@ -2443,6 +2489,15 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
          whatever was underneath. (The field never hit this: the canvas is
          what sits behind there, not cards.) */
       if (Date.now() - seqClosedAt < 450) return;
+      if (PHOTO) {
+        if (e.target.closest(".photo-edit")) return;     // curate fields on the card
+        var pc = e.target.closest("[data-subject]");
+        if (!pc) return;
+        e.preventDefault(); e.stopPropagation();
+        var pim = pc.querySelector("img");
+        openSubject(pc.getAttribute("data-subject"), pim && (pim.currentSrc || pim.src));
+        return;
+      }
       var card = e.target.closest(".masonry [data-images]");
       if (!card) return;
       e.preventDefault();
@@ -2460,6 +2515,14 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
       }
       openSequence(card);
     }, true);
+    if (PHOTO) document.addEventListener("keydown", function (e) {
+      if (e.key !== "Enter" && e.key !== " ") return;
+      var pc = e.target.closest && e.target.closest("[data-subject]");
+      if (!pc || e.target !== pc || over.classList.contains("open")) return;
+      e.preventDefault(); e.stopPropagation();
+      var pim = pc.querySelector("img");
+      openSubject(pc.getAttribute("data-subject"), pim && (pim.currentSrc || pim.src));
+    }, true);
   }
 
   function fill(d) {
@@ -2472,12 +2535,17 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
     // "Frames" was jargon; say what they are, and only mention video when
     // there actually is some.
     var imgN = (d.images != null) ? d.images : (d.count || 0);
-    var fam = d.kind === "family";
+    var fam = d.kind === "family", subj = d.kind === "subject";
     famMode = fam;
-    over.dataset.kind = fam ? "family" : "species";
+    over.dataset.kind = fam ? "family" : (subj ? "subject" : "species");
     // A family has no lifer rank and no single call, so those rows would read
     // as missing data rather than as not applicable.
-    (fam
+    (subj
+      ? [["Photos", imgN],
+         ["Category", (d.tags && d.tags[0]) || "\u2014"],
+         ["First", prettyDay(d.first)],
+         ["Latest", prettyDay(d.last)]]
+      : fam
       ? [[(d.videos ? "Images / Videos" : "Images"),
           (d.videos ? imgN + " / " + d.videos : imgN)],
          ["Species", (d.species || []).length],
@@ -2607,6 +2675,10 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
     // open the gallery scoped to that spot.
     $("bf-oplaces").innerHTML = (d.places || []).length
       ? d.places.map(function (q) {
+          // a photo subject's place is a label: the birds' place filter
+          // would show birds, not this
+          if (subj) return '<li' + (q.mapped ? '' : ' class="unmapped"') + '><span class="bf-placelink">' +
+            esc(q.name) + "</span><em>" + q.count + "</em></li>";
           return '<li' + (q.mapped ? '' : ' class="unmapped"') + '><a class="bf-placelink" href="/birds?loc=' +
             encodeURIComponent(q.name) + '" title="Show every photo from ' + esc(q.name) +
             (q.mapped ? '' : ' (no coordinates, so it cannot be plotted)') + '">' +
@@ -2623,7 +2695,10 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
     // is a contradiction the data never claimed.
     // Each branch hides the other: walking the ordered grid refills this
     // record in place, so the previous bird's panel was left showing.
-    if (d.call && d.call.audio) {
+    if (subj) {
+      $("bf-sound").hidden = true; $("bf-nosound").hidden = true;
+      stop(); audio.removeAttribute("src");
+    } else if (d.call && d.call.audio) {
       $("bf-nosound").hidden = true;
       $("bf-sound").hidden = false;
       var sp = $("bf-ospec");
@@ -2815,13 +2890,18 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
      Shuffle frames — reorder this bird's own frames and start again. */
   var orand = $("bf-orandom"), oshuf = $("bf-oshuffle");
   if (orand) orand.addEventListener("click", function () {
+    if (PHOTO) {
+      var keys = Object.keys(SUBJ).filter(function (k) { return k !== cur; });
+      if (keys.length) openSubject(keys[Math.floor(Math.random() * keys.length)]);
+      return;
+    }
     var pick, guard = 0;
     do { pick = TILES[Math.floor(Math.random() * TILES.length)]; guard++; }
     while (guard < 40 && pick && pick.slug === cur);   // not the one we're on
     if (pick) openSpecies(pick);
   });
   // No tiles to pick from (a species page): the button would do nothing.
-  if (orand && !TILES.length) orand.style.display = "none";
+  if (orand && !TILES.length && !PHOTO) orand.style.display = "none";
   if (oshuf) oshuf.addEventListener("click", function () {
     if (frames.length < 2) return;
     for (var i = frames.length - 1; i > 0; i--) {      // Fisher-Yates
@@ -2955,8 +3035,10 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
   }
   if (oLink) oLink.addEventListener("click", function () {
     var f = frames[fi] || {};
-    var u = location.origin + "/birds/species/" + cur +
-            (f.pid ? "?frame=" + encodeURIComponent(f.pid + "-" + f.idx) : "");
+    var u = (over.dataset.kind === "subject")
+      ? location.origin + "/photography" + (f.pid ? "#img-" + f.pid + ".0" : "#photo/" + cur)
+      : location.origin + "/birds/species/" + cur +
+        (f.pid ? "?frame=" + encodeURIComponent(f.pid + "-" + f.idx) : "");
     // navigator.clipboard is secure-context only, so over plain HTTP on the LAN
     // it simply does not exist — which dropped every copy into a prompt() box.
     // Fall back to a throwaway textarea, which works on an insecure origin.
@@ -3017,7 +3099,7 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
     if (loupe && loupe.end) loupe.end();
     setBusy(false);
     setImm(false);
-    if (!fromPop && location.hash && /^#(bird|family)\//.test(location.hash)) {
+    if (!fromPop && location.hash && /^#(bird|family|photo)\//.test(location.hash)) {
       // Unwind our own entry so Back does not step through every bird you
       // opened — but ONLY if we pushed it during this page's life. history
       // state survives a reload, so trusting it meant a reloaded deep link
@@ -3070,9 +3152,14 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
 
   /* Back/forward, and the initial load, both come through here. */
   function openFromHash() {
-    var m = /^#(bird|family)\/(.+)$/.exec(location.hash || "");
+    var m = /^#(bird|family|photo)\/(.+)$/.exec(location.hash || "");
     if (!m) { if (over.classList.contains("open")) closeOver(true); return; }
     if (over.classList.contains("open")) return;
+    if (m[1] === "photo") {
+      var pcard = subjectCard(m[2]), pi = pcard && pcard.querySelector("img");
+      openSubject(m[2], pi && (pi.currentSrc || pi.src));
+      return;
+    }
     if (m[1] === "family") {
       if (!CTX.family_slug) return;
       var t0 = TILES[SEQ[0]];
@@ -3102,10 +3189,22 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
       }
     }
   }
-  if (!FIELD && /^#img-/.test(location.hash || "")) requestAnimationFrame(openFromImgHash);
+  /* Links the old photography lightbox shared: #img-<photo id>.<n>. */
+  function openPhotoFromImgHash() {
+    var m = /^#img-([^.]+)/.exec(location.hash || "");
+    if (!m) return;
+    for (var k in SUBJ) {
+      var fs = SUBJ[k].frames || [];
+      for (var j = 0; j < fs.length; j++) {
+        if (String(fs[j].pid) === m[1]) { wantSrc = null; openSubject(k, fs[j].thumb); showFrame(j); return; }
+      }
+    }
+  }
+  if (PHOTO && /^#img-/.test(location.hash || "")) requestAnimationFrame(openPhotoFromImgHash);
+  else if (!FIELD && /^#img-/.test(location.hash || "")) requestAnimationFrame(openFromImgHash);
   // A shared ?frame= link lands on the species page: open its detail view on
   // that frame. A #bird/ hash (refresh after opening) takes the branch below.
-  if (wantFrame && !/^#(bird|family)\//.test(location.hash || "")) {
+  if (wantFrame && !/^#(bird|family|photo)\//.test(location.hash || "")) {
     var permaHost = document.querySelector("[data-species-slug]");
     if (permaHost) requestAnimationFrame(function () {
       var slug = permaHost.getAttribute("data-species-slug");
@@ -3113,7 +3212,7 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
       setImm(true);   // a shared photo opens filling the screen
     });
   }
-  else if (/^#(bird|family)\//.test(location.hash || "")) {
+  else if (/^#(bird|family|photo)\//.test(location.hash || "")) {
     // after first paint, so TILES/SEQ and the canvas are ready
     requestAnimationFrame(openFromHash);
   }
