@@ -418,7 +418,7 @@ def _photo_subjects(photos):
             "thumb": p.get("thumb") or p.get("image"), "full": p.get("image"),
             "orig": None, "date": date or None, "where": place or None,
             "vid": 0, "pid": p.get("id"), "idx": 0, "away": 0, "star": 0, "hid": 0,
-            "w": p.get("w"), "h": p.get("h")})
+            "w": p.get("w"), "h": p.get("h"), "tags": p.get("tags") or []})
     for rec in out.values():
         dates = [f["date"] for f in rec["frames"] if f["date"]]
         rec["first"], rec["last"] = (dates[0], dates[-1]) if dates else (None, None)

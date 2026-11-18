@@ -2001,6 +2001,12 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
         } catch (e) { /* file:// */ }
       }
     }
+    if (photoSeq && f.sk && f.sk !== cur && SUBJ[f.sk]) {
+      cur = f.sk;
+      paintSubjectHead(SUBJ[f.sk]);
+      fill(SUBJ[f.sk]);
+      try { history.replaceState(history.state, "", "#photo/" + f.sk); } catch (e) { /* file:// */ }
+    }
     var img = $("bf-oimg"), vid = $("bf-ovid"), stage = img.parentNode;
 
     // A video frame gets the real clip, not its poster — the stage was an
@@ -2327,6 +2333,29 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
      Same overlay as a bird, filled from the page's own data. The record
      panel says what applies to a photo subject (photos, category, first and
      latest) and leaves out what does not (lifer rank, the yard's recordings). */
+  /* The stage walks every photo in the view (the chosen category, ?tag=sadie,
+     or everything), in grid order, and the panel follows whichever subject is
+     on stage, as the birds' ordered grid does. A subject's photos sit
+     together, so the five deer are still five steps in a row. Without this,
+     a one-photo subject was a dead end: 1 / 1 and arrows that did nothing. */
+  var photoSeq = false;
+  var PG_TAG = PHOTO ? (new URLSearchParams(location.search).get("tag") || "") : "";
+  function tagFrames(tag) {
+    var out = [], seen = {};
+    document.querySelectorAll("[data-subject]").forEach(function (card) {
+      var k = card.getAttribute("data-subject");
+      if (seen[k] || !SUBJ[k]) return;
+      seen[k] = 1;
+      SUBJ[k].frames.forEach(function (f) {
+        if (!tag || (f.tags || []).indexOf(tag) >= 0) out.push(Object.assign({ sk: k }, f));
+      });
+    });
+    return out;
+  }
+  function paintSubjectHead(d) {
+    $("bf-otitle").textContent = d.name;
+    $("bf-ofam").textContent = [d.species].concat((d.tags || []).slice(0, 3)).filter(Boolean).join("  \u00b7  ");
+  }
   function openSubject(key, src) {
     var d = SUBJ[key];
     if (!d) return false;
@@ -2334,8 +2363,7 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
     seqMode = false; seqSpecies = null; famMode = false;
     wantSrc = src || null;
     over.dataset.kind = "subject";
-    $("bf-otitle").textContent = d.name;
-    $("bf-ofam").textContent = [d.species].concat((d.tags || []).slice(0, 3)).filter(Boolean).join("  \u00b7  ");
+    paintSubjectHead(d);
     paintCtx(null);
     if (src) { $("bf-oimg").src = src; } else { $("bf-oimg").removeAttribute("src"); }
     $("bf-oimg").alt = d.name || "";
@@ -2354,7 +2382,26 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
     if (location.hash !== hk) {
       try { history.pushState({ bf: 1 }, "", hk); pushedHere = true; } catch (e) { /* file:// */ }
     }
-    fill(d);
+    var all = tagFrames(PG_TAG);
+    photoSeq = all.length > 1;
+    fill(d);                    // the panel; in photoSeq it leaves the strip alone
+    if (photoSeq) {
+      frames = allFrames = all;
+      stripShown = 0; stripEnd = null;
+      if (stripIO) { stripIO.disconnect(); stripIO = null; }
+      $("bf-ostrip").innerHTML = "";
+      growStrip(24);
+      $("bf-ostrip").onclick = function (e) {
+        var im = e.target.closest("img"); if (!im) return;
+        showFrame(+im.dataset.i);
+      };
+      var start = 0;
+      for (var q = 0; q < frames.length; q++) {
+        if (frames[q].sk !== key) continue;
+        if (!wantSrc || frames[q].thumb === wantSrc || frames[q].full === wantSrc) { start = q; break; }
+      }
+      showFrame(start);
+    }
     return true;
   }
   function subjectCard(key) {
@@ -2585,7 +2632,8 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
        and this profile is only the record beside them — so it must not
        repopulate the strip and throw you back to this species' first photo.
        Everything above (the facts, the family box) still applies. */
-    if (!seqMode) frames = scopeFrames(d.frames || []);
+    if (photoSeq) { /* the category's frames, set by openSubject */ }
+    else if (!seqMode) frames = scopeFrames(d.frames || []);
     else {
       /* Grid cards carry no full-size link (each is a signed URL, minted per
          request), so a sorted gallery never showed one. The profile fetched
@@ -2608,7 +2656,7 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
       sc.hidden = false;
       sc.textContent = scoped.shown + " of " + scoped.all + " frames match this view";
     } else { sc.hidden = true; sc.textContent = ""; }
-    if (frames.length && !seqMode) {
+    if (frames.length && !seqMode && !photoSeq) {
       // Barred Owl has 202 frames. Building every thumbnail up front is what
       // made opening a bird feel heavy, so render a first page and extend it
       // as the strip is scrolled.
