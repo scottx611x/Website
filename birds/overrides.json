@@ -253,6 +253,11 @@
       "2": "Ruby-throated Hummingbird"
     }
   },
+  "17904518997486227": {
+    "exclude_images": [
+      0
+    ]
+  },
   "17909494311439462": {
     "images": {
       "2": "Gray Catbird",
@@ -314,6 +319,18 @@
       "3": "Northern Cardinal"
     }
   },
+  "17916674775463421": {
+    "image_locations": {
+      "0": "Barcelona, Spain",
+      "1": "Barcelona, Spain",
+      "2": "Barcelona, Spain",
+      "3": "Barcelona, Spain",
+      "4": "Barcelona, Spain",
+      "5": "Mallorca, Spain",
+      "6": "Barcelona, Spain",
+      "7": "Barcelona, Spain"
+    }
+  },
   "17920375854319161": {
     "image_locations": {
       "0": "Abbott St.",
@@ -348,7 +365,7 @@
       "3": "Rea St."
     },
     "images": {
-      "0": "Cooper's Hawk",
+      "0": "Red-tailed Hawk",
       "1": "Red-tailed Hawk",
       "2": "Red-tailed Hawk",
       "3": "Carolina Wren"
@@ -443,7 +460,7 @@
     },
     "images": {
       "0": "Carolina Wren",
-      "1": "Sharp-shinned Hawk",
+      "1": "Cooper's Hawk",
       "2": "Red-bellied Woodpecker",
       "3": "Red-bellied Woodpecker",
       "4": "Red-bellied Woodpecker",
@@ -498,6 +515,9 @@
     }
   },
   "17942089829983197": {
+    "image_areas": {
+      "2": "away"
+    },
     "image_locations": {
       "0": "Dorchester Ave.",
       "1": "Harborwalk/Congress St. Bridge",
@@ -529,6 +549,14 @@
       "5": "Hairy Woodpecker"
     }
   },
+  "17943548730072017": {
+    "images": {
+      "0": "Sharp-shinned Hawk",
+      "1": "Sharp-shinned Hawk",
+      "2": "Sharp-shinned Hawk",
+      "3": "Sharp-shinned Hawk"
+    }
+  },
   "17945942501979450": {
     "image_locations": {
       "0": "Rea St.",
@@ -548,6 +576,9 @@
     }
   },
   "17954083199932652": {
+    "exclude_images": [
+      1
+    ],
     "image_locations": {
       "0": "Rea St.",
       "1": "Rea St.",
@@ -662,7 +693,7 @@
       "0": "Rock Pigeon",
       "1": "Rock Pigeon",
       "2": "Rock Pigeon",
-      "3": "Cooper's Hawk"
+      "3": "Sharp-shinned Hawk"
     }
   },
   "17983830203791682": {
@@ -881,8 +912,9 @@
   },
   "18006289808839661": {
     "exclude_images": [
+      2,
       3,
-      8
+      4
     ],
     "image_locations": {
       "0": "Rea St.",
@@ -959,6 +991,12 @@
       "5": 5
     }
   },
+  "18019494965942574": {
+    "images": {
+      "3": "Spotted Flycatcher",
+      "4": "Spotted Flycatcher"
+    }
+  },
   "18035778122538850": {
     "image_locations": {},
     "images": {
@@ -975,6 +1013,12 @@
       "3": 5,
       "5": 4,
       "6": 5
+    }
+  },
+  "18043363292627605": {
+    "images": {
+      "1": "Eastern Towhee",
+      "5": "Northern Rough-winged Swallow"
     }
   },
   "18044656358751390": {
@@ -1142,6 +1186,13 @@
       "3": "White-breasted Nuthatch",
       "4": "Downy Woodpecker",
       "5": "Red-bellied Woodpecker"
+    }
+  },
+  "18065840483788498": {
+    "images": {
+      "2": "Red-tailed Hawk & American Crow",
+      "5": "Red-tailed Hawk & American Crow",
+      "6": "Red-tailed Hawk & American Crow"
     }
   },
   "18067337609607323": {
@@ -1360,6 +1411,7 @@
       "8": 4
     }
   },
+  "18077775467387651": {},
   "18078586880177258": {
     "ratings": {
       "0": 5
@@ -1528,6 +1580,23 @@
       "1": "Mourning Dove"
     }
   },
+  "18088261658279880": {
+    "image_areas": {
+      "0": "away",
+      "2": "away",
+      "4": "away",
+      "5": "away",
+      "9": "away"
+    },
+    "image_locations": {
+      "1": "Mallorca, Spain",
+      "3": "Mallorca, Spain",
+      "6": "Mallorca, Spain",
+      "7": "Mallorca, Spain",
+      "8": "Mallorca, Spain",
+      "9": "Mallorca, Spain"
+    }
+  },
   "18088267214054969": {
     "image_locations": {
       "0": "Rea St.",
@@ -1603,7 +1672,7 @@
       "1": "Northern Cardinal",
       "2": "White-breasted Nuthatch",
       "3": "Black-capped Chickadee",
-      "4": "Cooper's Hawk",
+      "4": "Red-tailed Hawk",
       "5": "Blue Jay",
       "6": "Downy Woodpecker"
     }
@@ -1732,6 +1801,12 @@
       "8": 5
     }
   },
+  "18095800802261334": {
+    "image_locations": {
+      "3": "Westborough, MA",
+      "4": "Westborough, MA"
+    }
+  },
   "18095892328850980": {
     "image_locations": {
       "0": "Harborwalk, Boston MA",
@@ -1796,7 +1871,7 @@
       "2": "Mute Swan",
       "3": "Bufflehead",
       "4": "Cooper's Hawk",
-      "5": "Cooper's Hawk",
+      "5": "Sharp-shinned Hawk",
       "6": "Hooded Merganser",
       "7": "Hooded Merganser",
       "8": "Hooded Merganser",
@@ -1882,6 +1957,11 @@
       "7": "Northern Flicker",
       "8": "Mourning Dove",
       "9": "American Crow"
+    }
+  },
+  "18103078306922502": {
+    "images": {
+      "2": "Pileated Woodpecker"
     }
   },
   "18103210889313154": {
@@ -2158,6 +2238,11 @@
       "3": "Black-and-white Warbler",
       "4": "Red-breasted Nuthatch",
       "5": "American Robin"
+    }
+  },
+  "18120215642314878": {
+    "images": {
+      "4": "Black-capped Chickadee"
     }
   },
   "18121643875892716": {
@@ -2765,7 +2850,7 @@
       "4": "Abbot St"
     },
     "images": {
-      "0": "Sharp-shinned Hawk",
+      "0": "Cooper's Hawk",
       "1": "House Sparrow",
       "2": "Cooper's Hawk",
       "3": "Dark-eyed Junco",
@@ -3003,7 +3088,7 @@
       "1": "Tufts Boat House, Medford, MA"
     },
     "images": {
-      "0": "Cooper's Hawk"
+      "0": "Red-tailed Hawk"
     }
   },
   "manual-7d2f884d1f23": {
@@ -3135,6 +3220,21 @@
     },
     "image_locations": {
       "0": "Medford, MA"
+    }
+  },
+  "manual-e01d52b99b42": {
+    "image_locations": {
+      "0": "Mallorca, Spain",
+      "1": "Mallorca, Spain",
+      "10": "Mallorca, Spain",
+      "2": "Mallorca, Spain",
+      "3": "Mallorca, Spain",
+      "4": "Mallorca, Spain",
+      "5": "Mallorca, Spain",
+      "6": "Mallorca, Spain",
+      "7": "Mallorca, Spain",
+      "8": "Mallorca, Spain",
+      "9": "Mallorca, Spain"
     }
   },
   "manual-e4cb9f96eda0": {
