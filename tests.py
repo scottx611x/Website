@@ -1189,6 +1189,21 @@ class DetailSpeedTestCase(GenericTestBase):
         self.assertIn("photo-c", out)                      # untitled: its own subject
         self.assertEqual(index._photo_subject_key(photos[0]), "white-tailed-deer")
 
+    def test_photo_individual_tag_is_one_subject(self):
+        import index
+        photos = [
+            {"id": "a", "title": "Sadie, shaking dry", "image": "i/a", "date": "2026-02-28", "tags": ["mammal", "sadie"]},
+            {"id": "b", "title": "Sadie in a sunbeam", "image": "i/b", "date": "2026-06-01", "tags": ["sadie"]},
+            {"id": "c", "title": "Eastern Chipmunk", "image": "i/c", "date": "2026-06-06", "tags": ["mammal"]},
+        ]
+        with mock.patch.object(birds, "load_locations", return_value=[]):
+            out = index._photo_subjects(photos)
+        self.assertEqual(sorted(out), ["eastern-chipmunk", "sadie"])
+        self.assertEqual((out["sadie"]["name"], out["sadie"]["images"]), ("Sadie", 2))
+        self.assertEqual([f["cap"] for f in out["sadie"]["frames"]],
+                         ["Sadie, shaking dry", "Sadie in a sunbeam"])
+        self.assertIsNone(out["eastern-chipmunk"]["frames"][0]["cap"])
+
     def test_fill_missing_micros_makes_only_the_gaps(self):
         from io import BytesIO
         from PIL import Image

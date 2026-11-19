@@ -367,8 +367,7 @@ def photography():
     for p in photos:
         for t in (p.get("tags") or []):
             tag_counts[t] = tag_counts.get(t, 0) + 1
-    subject_names = {(p.get("title") or p.get("species") or p.get("id") or "").strip().lower()
-                     for p in photos}
+    subject_names = {_photo_subject_key(p) for p in photos}
     years = sorted({(p.get("date") or "")[:4] for p in photos if (p.get("date") or "")[:4].isdigit()})
     return render_template(
         "photography.html", title="Photography", photos=groups,
@@ -385,10 +384,26 @@ def photography():
     )
 
 
+# Tags that name one individual: every photo carrying one is that subject,
+# whatever its title says. Sadie's 44 photos have 40-odd different titles
+# ("Sadie, shaking dry", "Sadie in a sunbeam"), so grouping by title gave her
+# a stack of 3 here and a lone card there.
+PHOTO_INDIVIDUALS = {"sadie": "Sadie"}
+
+
+def _photo_subject_name(p):
+    """The subject a photo belongs to, as shown: a named individual, else
+    its title (or species)."""
+    for t in p.get("tags") or []:
+        if t in PHOTO_INDIVIDUALS:
+            return PHOTO_INDIVIDUALS[t]
+    return (p.get("title") or p.get("species") or "").strip()
+
+
 def _photo_subject_key(p):
-    """A photo's subject as a URL-safe key: the same title (or species) is
-    one subject, as the grid groups them. Falls back to the photo id."""
-    name = (p.get("title") or p.get("species") or "").strip()
+    """A photo's subject as a URL-safe key: photos with the same subject
+    name are one subject. Falls back to the photo id."""
+    name = _photo_subject_name(p)
     return birds._species_slug(name) if name else "photo-" + str(p.get("id") or "")
 
 
@@ -404,7 +419,7 @@ def _photo_subjects(photos):
         if rec is None:
             rec = out[key] = {
                 "kind": "subject", "key": key,
-                "name": (p.get("title") or p.get("species") or "Photo").strip(),
+                "name": _photo_subject_name(p) or "Photo",
                 "species": "", "tags": [], "frames": [], "months": [0] * 12,
                 "_places": {}}
         if p.get("species") and p.get("species") != rec["name"] and not rec["species"]:
@@ -428,7 +443,11 @@ def _photo_subjects(photos):
             "thumb": p.get("thumb") or p.get("image"), "full": p.get("image"),
             "orig": None, "date": date or None, "where": place or None,
             "vid": 0, "pid": p.get("id"), "idx": 0, "away": 0, "star": 0, "hid": 0,
-            "w": p.get("w"), "h": p.get("h"), "tags": p.get("tags") or []})
+            "w": p.get("w"), "h": p.get("h"), "tags": p.get("tags") or [],
+            # the photo's own title where it says more than the subject
+            # ("Sadie, shaking dry" under Sadie), for the stage caption
+            "cap": (p.get("title") or "").strip()
+                   if (p.get("title") or "").strip() != rec["name"] else None})
     for rec in out.values():
         dates = [f["date"] for f in rec["frames"] if f["date"]]
         rec["first"], rec["last"] = (dates[0], dates[-1]) if dates else (None, None)
@@ -920,7 +939,7 @@ def _photo_field_tiles(photos):
     by_subject, order, tiles = {}, [], []
     for p in photos:
         key = _photo_subject_key(p)
-        name = (p.get("title") or p.get("species") or "Photo").strip()
+        name = _photo_subject_name(p) or "Photo"
         tiles.append({
             "src": p.get("thumb") or p.get("image"), "vsrc": None,
             "w": p.get("w") or 0, "h": p.get("h") or 0,

@@ -1914,7 +1914,7 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
     // In a family view the title is the family, so without this the stage
     // never says whether you are looking at a Mourning Dove or a Rock Pigeon.
     $("bf-ocount").textContent =
-      ((isFam() && f.name) ? f.name + "  ·  " : "") +
+      ((isFam() && f.name) ? f.name + "  ·  " : "") + (f.cap ? f.cap + "  ·  " : "") +
       (fi + 1) + " / " + frames.length +
       (f.where ? "  ·  " + f.where : "") + (f.date ? "  ·  " + f.date : "");
     if (isFam()) markMember(f.name);
