@@ -1204,6 +1204,22 @@ class DetailSpeedTestCase(GenericTestBase):
                          ["Sadie, shaking dry", "Sadie in a sunbeam"])
         self.assertIsNone(out["eastern-chipmunk"]["frames"][0]["cap"])
 
+    def test_photo_subjects_join_on_title_or_species(self):
+        import index
+        photos = [
+            {"id": "a", "title": "American Beaver", "species": "North American Beaver (Castor canadensis)"},
+            {"id": "b", "title": "American Beaver", "species": "American Beaver"},
+            {"id": "c", "title": "Beaver dam", "species": "North American Beaver (Castor canadensis)"},
+            {"id": "d", "title": "Painted Turtles", "species": "Painted Turtle"},
+            {"id": "e", "title": "Painted Turtle"},
+            {"id": "f", "title": "Rose"}, {"id": "g", "title": "Rose of Sharon"},
+        ]
+        idx = index._photo_subject_index(photos)
+        self.assertEqual({idx[k] for k in "abc"}, {("american-beaver", "American Beaver")})
+        self.assertEqual(idx["d"], idx["e"])
+        self.assertEqual(idx["d"][1], "Painted Turtle")            # shorter name wins a tie
+        self.assertNotEqual(idx["f"], idx["g"])
+
     def test_fill_missing_micros_makes_only_the_gaps(self):
         from io import BytesIO
         from PIL import Image

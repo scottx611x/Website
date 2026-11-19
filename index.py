@@ -324,7 +324,9 @@ def blog_post(slug):
 def photography():
     if "photography" in HIDDEN_PAGES:
         abort(404)
-    photos = birds.load_photos()
+    # every photo, hidden ones too, so a subject's grouping does not shift
+    # with curate mode
+    photos = _with_subjects(birds.load_photos())
     # Hidden photos stay in the store (and on S3) but leave the public gallery;
     # curate mode still shows them, dimmed, so a hide can be undone.
     if not _curate_on():
@@ -391,26 +393,98 @@ def photography():
 PHOTO_INDIVIDUALS = {"sadie": "Sadie"}
 
 
+def _photo_norm(text):
+    """A title or species reduced for matching: no "(Castor canadensis)",
+    no case, singular ("Painted Turtles" = "Painted Turtle")."""
+    t = re.sub(r"\s*\(.*?\)", "", text or "").strip().lower()
+    t = re.sub(r"[^a-z0-9]+", " ", t).strip()
+    return " ".join(w[:-1] if len(w) > 3 and w.endswith("s") and not w.endswith("ss") else w
+                    for w in t.split())
+
+
+def _photo_subject_index(photos):
+    """{photo id: (key, name)}, one rule for every subject.
+
+    Photos are the same subject when they share a named-individual tag, a
+    title, or a species (all compared via _photo_norm), so "American Beaver"
+    and "North American Beaver (Castor canadensis)" on the same animal, or
+    "Bumblebees on Sedum" with species Bumble Bee, stack together. The
+    subject is called by its most common title; a photo whose title says
+    something else keeps it as its caption."""
+    parent = {}
+
+    def find(x):
+        while parent.setdefault(x, x) != x:
+            parent[x] = parent[parent[x]]
+            x = parent[x]
+        return x
+
+    def union(a, b):
+        parent[find(a)] = find(b)
+
+    for p in photos:
+        pid = "id:" + str(p.get("id") or id(p))
+        find(pid)
+        named = [t for t in (p.get("tags") or []) if t in PHOTO_INDIVIDUALS]
+        if named:
+            union(pid, "ind:" + named[0])
+            continue
+        for kind in ("title", "species"):
+            n = _photo_norm(p.get(kind))
+            if n:
+                union(pid, "name:" + n)
+    groups = {}
+    for p in photos:
+        groups.setdefault(find("id:" + str(p.get("id") or id(p))), []).append(p)
+    out = {}
+    for members in groups.values():
+        named = [t for m in members for t in (m.get("tags") or []) if t in PHOTO_INDIVIDUALS]
+        if named:
+            name = PHOTO_INDIVIDUALS[named[0]]
+        else:
+            counts = {}
+            for m in members:
+                t = (m.get("title") or re.sub(r"\s*\(.*?\)", "", m.get("species") or "")).strip()
+                if t:
+                    counts[t] = counts.get(t, 0) + 1
+            # most photos wins; then the shorter, plainer name
+            name = min(counts, key=lambda t: (-counts[t], len(t), t)) if counts else ""
+        for m in members:
+            key = birds._species_slug(name) if name else "photo-" + str(m.get("id") or "")
+            out[m.get("id")] = (key, name)
+    return out
+
+
+def _with_subjects(photos):
+    """Copies of `photos` stamped with their subject (_sk key, _sn name),
+    indexed together so every caller agrees on the grouping."""
+    idx = _photo_subject_index(photos)
+    return [dict(p, _sk=idx[p.get("id")][0], _sn=idx[p.get("id")][1]) for p in photos]
+
+
+def _photo_subject_of(p):
+    """(key, name) for a photo: its stamp, else the photo on its own."""
+    if "_sk" in p:
+        return p["_sk"], p["_sn"]
+    return _photo_subject_index([p])[p.get("id")]
+
+
 def _photo_subject_name(p):
-    """The subject a photo belongs to, as shown: a named individual, else
-    its title (or species)."""
-    for t in p.get("tags") or []:
-        if t in PHOTO_INDIVIDUALS:
-            return PHOTO_INDIVIDUALS[t]
-    return (p.get("title") or p.get("species") or "").strip()
+    """The subject a photo belongs to, as shown."""
+    return _photo_subject_of(p)[1]
 
 
 def _photo_subject_key(p):
-    """A photo's subject as a URL-safe key: photos with the same subject
-    name are one subject. Falls back to the photo id."""
-    name = _photo_subject_name(p)
-    return birds._species_slug(name) if name else "photo-" + str(p.get("id") or "")
+    """A photo's subject as a URL-safe key (the photo id when untitled)."""
+    return _photo_subject_of(p)[0]
 
 
 def _photo_subjects(photos):
     """{key: record} in the shape the birds' detail view fills from, with
     kind "subject": frames oldest first, first/last date, photos per month,
     and places geocoded against the birds' place list where they match."""
+    if photos and "_sk" not in photos[0]:
+        photos = _with_subjects(photos)
     idx = birds._place_index(birds.load_locations())
     out = {}
     for p in sorted(photos, key=lambda p: (p.get("date") or "", p.get("id") or "")):
