@@ -1,0 +1,10 @@
+[Unit]
+Description=Prune old BirdNET-Go WAV clips daily
+
+[Timer]
+OnCalendar=*-*-* 03:30
+RandomizedDelaySec=10m
+Persistent=true
+
+[Install]
+WantedBy=timers.target

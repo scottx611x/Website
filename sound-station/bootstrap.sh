@@ -55,8 +55,11 @@ echo "==> 5/6  systemd timer (publish to S3 every 60s)"
 sed -e "s|@STATION@|$STATION|g" -e "s|@USER@|$USER_NAME|g" \
     "$HERE/birdnet-export.service" | sudo tee /etc/systemd/system/birdnet-export.service >/dev/null
 sudo cp "$HERE/birdnet-export.timer" /etc/systemd/system/birdnet-export.timer
+# Daily: drop WAV clips older than 30 days (files only; see the unit for why
+# BirdNET-Go's own age retention must stay off).
+sudo cp "$HERE/birdnet-clip-prune.service" "$HERE/birdnet-clip-prune.timer" /etc/systemd/system/
 sudo systemctl daemon-reload
-sudo systemctl enable --now birdnet-export.timer
+sudo systemctl enable --now birdnet-export.timer birdnet-clip-prune.timer
 
 echo "==> 6/6  Done."
 echo "    BirdNET-Go UI:  http://$(hostname -i | awk '{print $1}'):8080"

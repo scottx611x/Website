@@ -1,0 +1,14 @@
+[Unit]
+Description=Delete BirdNET-Go WAV clips older than 30 days (files only)
+# Why not BirdNET-Go's own `retention.policy: age`: its cleanup also blanks
+# detections.clip_name for every file it removes, and the exporter maps DB rows
+# to their published S3 audio by that name, so old recordings would lose their
+# audio on the site. Deleting the files directly leaves the DB alone; the
+# exporter's media_index already holds the S3 refs for every published clip.
+
+[Service]
+Type=oneshot
+User=scott
+Nice=10
+IOSchedulingClass=idle
+ExecStart=/usr/bin/find /home/scott/birdnet-go/data/clips -type f -name *.wav -mtime +30 -delete
