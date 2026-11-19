@@ -1501,6 +1501,13 @@ def _live_view():
                     if birds._sound_canon_key(s.get("display") or s.get("common")) in today_keys]
         miss_t = [s for s in today_sp if not s["shot"]]
         view["speciesToday"] = today_sp
+        # The stage's reel only carries birds that made the stage: one heard
+        # only at 54% is in the tally, not a frame beside the 93% crow.
+        sure = {birds._sound_canon_key(r.get("display") or r.get("common"))
+                for r in dayrecs if (r.get("t") or "")[:10] == station_today
+                and (r.get("conf") or 0) >= live_labels.STAGE_CONF}
+        view["reelToday"] = [s for s in today_sp
+                             if birds._sound_canon_key(s.get("display") or s.get("common")) in sure]
         view["hvToday"] = {"heard": len(today_sp), "shot": len(today_sp) - len(miss_t), "miss": len(miss_t)}
         if station_today:
             try:

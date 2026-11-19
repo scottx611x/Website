@@ -539,7 +539,7 @@
     {% else %}
     {% set wallhtml %}
       <div class="lv-wall{% if stage %} lv-reel{% endif %}" id="lv-wall"{% if stage %} aria-label="Heard today"{% endif %}>
-        {% for s in sound.speciesToday %}
+        {% for s in (sound.reelToday if stage else sound.speciesToday) %}
           {% if s.photo %}
           <a class="lv-chip" data-slug="{{ s.display|slug }}" data-fam="{{ s.fam }}" href="/birds/species/{{ s.display|slug }}" style="background-image:url('{{ s.photo }}')" title="{{ s.display }} &middot; {{ s.count }}&times;"><span class="cl">{{ s.display }}</span></a>
           {% else %}
@@ -1303,7 +1303,7 @@
     // reel's head is the bird that just took the stage. Only a recording
     // that clears the hero's bar counts: a 65% woodpecker after the 93% crow
     // on stage must not jump ahead of it. Birds heard only below the bar
-    // follow, newest first.
+    // are off the stage's reel, and trail the plain wall.
     (LIVE.dayrecs || []).forEach(function (r) {
       if (!vis(r) || new Date(r.t).toDateString() !== todayKey) return;
       var k = slugify(r.display), t = +new Date(r.t);
@@ -1311,7 +1311,9 @@
       if ((r.conf || 0) >= thr && (!sure[k] || t > sure[k])) sure[k] = t;
     });
     (LIVE.species || []).forEach(function (s) { meta[slugify(s.display)] = s; });
-    var list = Object.keys(heard).filter(function (sl) { return meta[sl]; })
+    // On the stage the reel is birds that cleared the bar; the plain wall
+    // (heard vs photographed) still counts everything heard.
+    var list = Object.keys(heard).filter(function (sl) { return meta[sl] && (!STAGE || sure[sl]); })
       .sort(function (a, b) {
         return (!sure[a] - !sure[b]) || ((sure[b] || heard[b]) - (sure[a] || heard[a]));
       })
