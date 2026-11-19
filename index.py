@@ -335,34 +335,25 @@ def photography():
     shown = [p for p in photos if not tag or tag in (p.get("tags") or [])]
     if picked:
         shown = [p for p in shown if _photo_subject_key(p) in picked]
-    if _curate_on() or picked or tag:
-        # One card per photo: the curate edit fields are per-photo, and a
-        # filtered view shows every photo in it rather than stacks (the
-        # detail view walks exactly these cards).
-        if tag and not picked and not _curate_on():
-            random.shuffle(shown)
-        elif picked:
-            # in the order picked, oldest first: the order the detail view
-            # walks them, so the first card opens at 1 / N
-            shown.sort(key=lambda p: (picked.index(_photo_subject_key(p)),
-                                      p.get("date") or "", p.get("id") or ""))
-        else:
-            shown.sort(key=lambda p: p.get("date") or "", reverse=True)
-        groups = [dict(p, group=[p]) for p in shown]
+    # Order and view, as in the bird gallery: Shuffle is the field (the
+    # endless plane); an order is a grid you read from the top.
+    sort = (request.args.get("sort") or "").strip().lower()
+    if sort not in ("newest", "oldest"):
+        sort = ""
+    view = "grid" if (sort or _curate_on()) else "field"
+    # The grid (an order, or curate) is one card per photo: curate's edit
+    # fields are per-photo, and the detail view walks exactly these cards.
+    if sort:
+        shown.sort(key=lambda p: (p.get("date") or "", p.get("id") or ""),
+                   reverse=(sort == "newest"))
+    elif picked:
+        # in the order picked, oldest first: the order the detail view
+        # walks them, so the first card opens at 1 / N
+        shown.sort(key=lambda p: (picked.index(_photo_subject_key(p)),
+                                  p.get("date") or "", p.get("id") or ""))
     else:
-        # One card per SUBJECT: five deer shots become one card whose lightbox
-        # is a 1/5 carousel, like a multi-image post in the bird gallery.
-        by_key, groups = {}, []
-        for p in sorted(shown, key=lambda p: (p.get("date") or "", p.get("id") or "")):
-            key = (p.get("title") or p.get("species") or "").strip().lower()
-            if key and key in by_key:
-                by_key[key]["group"].append(p)
-            else:
-                g = dict(p, group=[p])
-                groups.append(g)
-                if key:
-                    by_key[key] = g
-        random.shuffle(groups)  # a fresh order each visit
+        shown.sort(key=lambda p: p.get("date") or "", reverse=True)
+    groups = [dict(p, group=[p]) for p in shown]
     # Each subject's record for the detail view (the birds' overlay, reused):
     # its frames, dates, a month chart and places. Built over every visible
     # photo, not just this tag, so a subject opened from "insect" still shows
@@ -383,6 +374,9 @@ def photography():
         "photography.html", title="Photography", photos=groups,
         all_tags=birds.photo_tags(photos), tag_counts=tag_counts, active_tag=tag,
         active_subjects=[subjects[k] for k in picked if k in subjects],
+        active_sort=sort, view=view,
+        field=(_photo_field_tiles(random.sample(shown, len(shown)))
+               if view == "field" else ([], [], 1)),
         shown_count=len(shown),
         photo_count=len(photos), subject_count=len(subject_names),
         subjects=subjects,
@@ -874,8 +868,17 @@ def _field_tiles(shots):
                 order.append(nm)
             by_species[nm].append(k)
 
+    seq, stride = _field_order(tiles, by_species, order)
+    return tiles, seq, stride, len(order)
+
+
+def _field_order(tiles, by_species, order, key="name"):
+    """The field's viewing order and column stride for `tiles`, grouped as
+    by_species (name -> tile indices) in first-seen `order`. Sets each tile's
+    "n" (frames of its kind). Shared by the birds and Photography fields."""
+    by_species = {k: list(v) for k, v in by_species.items()}
     for t in tiles:
-        t["n"] = len(by_species.get(t["name"]) or []) or 1
+        t["n"] = len(by_species.get(t[key]) or []) or 1
 
     # Round-robin across species, capped, so a bird never lands beside itself
     # and the tail does not degenerate into whichever species has the most.
@@ -907,7 +910,30 @@ def _field_tiles(shots):
         worst = min(min((cand * c) % P, P - (cand * c) % P) for c in range(1, 9))
         if worst > best:
             best, stride = worst, cand
-    return tiles, seq, stride, len(order)
+    return seq, stride
+
+
+def _photo_field_tiles(photos):
+    """Photography's field: one tile per photo, a subject as the "species"
+    (its key as slug, so a tap opens the subject), its first category as the
+    family line."""
+    by_subject, order, tiles = {}, [], []
+    for p in photos:
+        key = _photo_subject_key(p)
+        name = (p.get("title") or p.get("species") or "Photo").strip()
+        tiles.append({
+            "src": p.get("thumb") or p.get("image"), "vsrc": None,
+            "w": p.get("w") or 0, "h": p.get("h") or 0,
+            "name": name, "fam": (p.get("tags") or [""])[0], "slug": key,
+            "vid": 0, "away": 0, "where": p.get("location") or "",
+            "date": p.get("date") or "", "pid": p.get("id"), "fidx": 0, "star": 0,
+        })
+        if key not in by_subject:
+            by_subject[key] = []
+            order.append(key)
+        by_subject[key].append(len(tiles) - 1)
+    seq, stride = _field_order(tiles, by_subject, order, key="slug")
+    return tiles, seq, stride
 
 
 @app.route("/birds/field", methods=["GET"])

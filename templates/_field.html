@@ -2004,7 +2004,7 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
     if (photoSeq && f.sk && f.sk !== cur && SUBJ[f.sk]) {
       cur = f.sk;
       paintSubjectHead(SUBJ[f.sk]);
-      fill(SUBJ[f.sk]);
+      if (!viewRec) fill(SUBJ[f.sk]);   // a walk's panel already covers it
       try { history.replaceState(history.state, "", "#photo/" + f.sk); } catch (e) { /* file:// */ }
     }
     var img = $("bf-oimg"), vid = $("bf-ovid"), stage = img.parentNode;
@@ -2255,6 +2255,8 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
   }
 
   function openSpecies(t) {
+    // Photography's field: a tile is a subject, opened from the page's data
+    if (PHOTO && SUBJ[t.slug]) return openSubject(t.slug, t.src);
     cur = t.slug; frames = []; fi = 0;
     /* A gallery tile opens in sequence mode, and nothing turned it off: every
        bird opened after one (a #bird/ link, the "N of M" stepper) kept its
@@ -2340,12 +2342,29 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
      the panel following whichever subject is on stage. */
   var photoSeq = false;
   var PG_Q = PHOTO ? new URLSearchParams(location.search) : null;
-  var PG_FILTERED = !!(PG_Q && (PG_Q.get("tag") || PG_Q.get("subject")));
+  // an order is a filter too: the grid is then read in sequence
+  var PG_FILTERED = !!(PG_Q && (PG_Q.get("tag") || PG_Q.get("subject") || PG_Q.get("sort")));
   function viewFrames(key) {
     var tag = function (k) { return function (f) { return Object.assign({ sk: k }, f); }; };
     if (!PG_FILTERED) return SUBJ[key].frames.map(tag(key));
     var out = [], seen = {};
-    document.querySelectorAll("[data-subject]").forEach(function (card) {
+    var cards = document.querySelectorAll("#pg-grid [data-subject]");
+    if (!cards.length) {
+      // The field: no cards to follow, so walk this view's photos a subject
+      // at a time, each oldest first.
+      var inView = {}, order = [];
+      TILES.forEach(function (t) {
+        if (!inView[t.slug]) { inView[t.slug] = {}; order.push(t.slug); }
+        inView[t.slug][t.pid] = 1;
+      });
+      order.forEach(function (k) {
+        (SUBJ[k] ? SUBJ[k].frames : []).forEach(function (f) {
+          if (inView[k][f.pid]) out.push(tag(k)(f));
+        });
+      });
+      return out;
+    }
+    cards.forEach(function (card) {
       var k = card.getAttribute("data-subject"), d = SUBJ[k];
       if (!d) return;
       var ids = [];
@@ -2355,6 +2374,39 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
       });
     });
     return out;
+  }
+  /* The panel for a walk across several subjects (a category, an order):
+     its numbers, year chart and places describe the whole walk, not the one
+     photo on stage. Showing Sadie's 44 photos beside "Photos 1" and a single
+     February bar contradicted the counter right above it. */
+  var viewRec = null;
+  function walkRecord(all) {
+    var months = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], first = "", last = "";
+    var subs = {}, tagN = {};
+    all.forEach(function (f) {
+      var d = f.date || "";
+      if (d) {
+        var m = parseInt(d.slice(5, 7), 10);
+        if (m >= 1 && m <= 12) months[m - 1]++;
+        if (!first || d < first) first = d;
+        if (!last || d > last) last = d;
+      }
+      subs[f.sk] = 1;
+      (f.tags || []).forEach(function (t) { tagN[t] = (tagN[t] || 0) + 1; });
+    });
+    var places = {};
+    Object.keys(subs).forEach(function (k) {
+      ((SUBJ[k] || {}).places || []).forEach(function (q) {
+        var o = places[q.name] || (places[q.name] = Object.assign({}, q, { count: 0 }));
+        o.count += q.count || 0;
+      });
+    });
+    var tag = (PG_Q && PG_Q.get("tag")) ||
+              Object.keys(tagN).sort(function (a, b) { return tagN[b] - tagN[a]; })[0] || "";
+    return { kind: "subject", images: all.length, months: months, first: first, last: last,
+             tags: tag ? [tag] : [], frames: all,
+             places: Object.keys(places).map(function (k) { return places[k]; })
+                       .sort(function (a, b) { return b.count - a.count; }) };
   }
   function paintSubjectHead(d) {
     $("bf-otitle").textContent = d.name;
@@ -2388,7 +2440,8 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
     }
     var all = viewFrames(key);
     photoSeq = all.length > 1;
-    fill(d);                    // the panel; in photoSeq it leaves the strip alone
+    viewRec = (photoSeq && all.some(function (f) { return f.sk !== key; })) ? walkRecord(all) : null;
+    fill(viewRec || d);         // the panel; in photoSeq it leaves the strip alone
     if (photoSeq) {
       frames = allFrames = all;
       stripShown = 0; stripEnd = null;

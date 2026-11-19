@@ -2,10 +2,6 @@
 
 {% block content %}
 <style>
-    .pg-head { text-align:center; max-width:46rem; margin:0 auto; }
-    .pg-head h1 { margin:0; }
-    .pg-stats { display:flex; flex-wrap:wrap; justify-content:center; gap:.4rem 1.3rem; margin:1.2rem 0 0; font-family:var(--mono); font-size:.76rem; color:var(--muted); }
-    .pg-stats b { color:var(--ink); font-weight:600; }
     /* Card caption: subject in the display face, meta in mono; a category tag. */
     /* Decorative overlay only — without this it sits on top of the curate
        edit panel and swallows clicks meant for the fields and hide button. */
@@ -22,33 +18,6 @@
                     padding:.16rem .5rem; border-radius:999px; background:rgba(6,10,7,.55); color:var(--lift); backdrop-filter:blur(3px);
                     opacity:0; transition:opacity .3s; }
     .shot:hover .pg-tag, .shot:focus-visible .pg-tag { opacity:1; }
-    /* Editorial mosaic — a dense CSS grid where a few frames feature large, so
-       a small, uniform-3:2 collection still gets rhythm and presence. */
-    .pg-just { display:grid; grid-template-columns:repeat(4, 1fr); grid-auto-rows:200px;
-               grid-auto-flow:dense; gap:10px; margin-top:2.4rem; }
-    .pg-just .shot { position:relative; margin:0; overflow:hidden; border-radius:6px; cursor:zoom-in;
-                     background:var(--paper-2); opacity:0; transform:translateY(12px);
-                     transition:opacity .55s ease, transform .55s ease; }
-    .pg-just.ready .shot.seen { opacity:1; transform:none; }
-    .pg-just .shot.big  { grid-column:span 2; grid-row:span 2; }
-    .pg-just .shot.wide { grid-column:span 2; }
-    .pg-just .shot.tall { grid-row:span 2; }
-    .pg-just .shot img { width:100%; height:100%; object-fit:cover; display:block; transition:transform .7s ease; }
-    .pg-just .shot:hover img { transform:scale(1.05); }
-    .pg-just .shot:focus-visible { outline:2px solid var(--lift); outline-offset:2px; z-index:2; }
-    @media (hover:hover) {
-      .pg-just .shot::after { content:""; position:absolute; inset:0; opacity:0; pointer-events:none;
-        transition:opacity .3s; mix-blend-mode:screen;
-        background:radial-gradient(240px circle at var(--mx,50%) var(--my,50%), rgba(56, 224, 138,.20), transparent 65%); }
-      .pg-just .shot:hover::after { opacity:1; }
-    }
-    @media (max-width:820px){ .pg-just{grid-template-columns:repeat(3,1fr); grid-auto-rows:160px} }
-    @media (max-width:520px){
-      .pg-just{grid-template-columns:repeat(2,1fr); grid-auto-rows:150px; gap:7px}
-      .pg-just .shot.big{grid-column:span 2; grid-row:span 2}
-      .pg-just .shot.wide{grid-column:span 2; grid-row:span 1}
-      .pg-just .shot.tall{grid-row:span 1}
-    }
     .pg-empty { text-align:center; color:var(--muted); font-family:var(--mono); font-size:.9rem; padding:3rem 0; }
     .photo-edit { display:flex; flex-direction:column; gap:.3rem; padding:.5rem; }
     .photo-edit .pe-field { width:100%; font:inherit; font-size:.82rem; padding:.28rem .45rem;
@@ -67,19 +36,16 @@
                 font-family:var(--mono); font-size:.6rem; letter-spacing:.08em; text-transform:uppercase;
                 padding:.16rem .5rem; border-radius:999px; background:rgba(192,71,59,.9); color:#fff; }
 </style>
+<script>
+    // The gallery's frame: full width, and the field's fixed canvas in Shuffle.
+    document.body.classList.add("birds-fill");
+    {% if view == 'field' %}document.body.classList.add("field-view");{% endif %}
+</script>
 <section class="page wide">
-    <header class="gallery-header" data-collapse="1">
-        <div class="pg-head">
-            <h1>Photography</h1>
-            {% if photo_count %}
-            <p class="pg-stats">
-                <span><b>{{ photo_count }}</b> photo{{ 's' if photo_count != 1 }}</span>
-                {% if subject_count %}<span><b>{{ subject_count }}</b> subject{{ 's' if subject_count != 1 }}</span>{% endif %}
-                {% if all_tags %}<span><b>{{ all_tags|length }}</b> categor{{ 'y' if all_tags|length == 1 else 'ies' }}</span>{% endif %}
-                {% if year_from %}<span>{{ year_from }}{% if year_to and year_to != year_from %}&ndash;{{ year_to }}{% endif %}</span>{% endif %}
-            </p>
-            {% endif %}
-        </div>
+    {# The bird gallery's chrome: one pinned row of title, search and the view
+       menu, so both galleries read as the same thing. #}
+    <header class="gallery-header is-stuck" data-collapse="1" data-pinned="1">
+        <h1>Photography</h1>
         {# The gallery's search box (static/js/combo.js): subjects and
            categories ranked together, the categories as a menu when empty. #}
         {% if photo_count %}
@@ -93,6 +59,30 @@
                            aria-label="Search for a subject or a category">
                     <div class="bird-combo-pop" id="pgComboList" role="listbox" hidden
                          aria-label="Subjects and categories"></div>
+                </div>
+            </div>
+        </div>
+        <div class="view-menu" id="viewMenu">
+            <button type="button" class="vm-btn" id="vmBtn" aria-expanded="false" aria-haspopup="true" aria-controls="vmPop">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18"/><path d="M7 12h10"/><path d="M11 18h2"/></svg>
+                <span id="vmLabel">{% if active_sort == 'newest' %}Newest{% elif active_sort == 'oldest' %}Oldest{% else %}Shuffled{% endif %}</span>
+                <svg class="vm-chev" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+            </button>
+            <div class="vm-pop" id="vmPop" hidden role="menu" aria-label="View options">
+                <p class="vm-count mono">{{ photo_count }} photo{{ 's' if photo_count != 1 }} &middot; {{ subject_count }} subject{{ 's' if subject_count != 1 }}{% if year_from %} &middot; {{ year_from }}{% if year_to and year_to != year_from %}&ndash;{{ year_to }}{% endif %}{% endif %}</p>
+                <p class="vm-head">Order</p>
+                <button type="button" role="menuitemradio" class="vm-opt{% if not active_sort %} on{% endif %}" aria-checked="{{ 'true' if not active_sort else 'false' }}" onclick="pgGo({sort:''})">Shuffle</button>
+                <button type="button" role="menuitemradio" class="vm-opt{% if active_sort == 'newest' %} on{% endif %}" aria-checked="{{ 'true' if active_sort == 'newest' else 'false' }}" onclick="pgGo({sort:'newest'})">Newest</button>
+                <button type="button" role="menuitemradio" class="vm-opt{% if active_sort == 'oldest' %} on{% endif %}" aria-checked="{{ 'true' if active_sort == 'oldest' else 'false' }}" onclick="pgGo({sort:'oldest'})">Oldest</button>
+                <p class="vm-head">Category</p>
+                <button type="button" role="menuitemradio" class="vm-opt{% if not active_tag %} on{% endif %}" aria-checked="{{ 'true' if not active_tag else 'false' }}" onclick="pgGo({tag:''})">Everything<span class="vm-num">{{ photo_count }}</span></button>
+                {% for t in all_tags %}<button type="button" role="menuitemradio" class="vm-opt{% if t == active_tag %} on{% endif %}" aria-checked="{{ 'true' if t == active_tag else 'false' }}" onclick="pgGo({tag:{{ t|tojson|forceescape }}})">{{ t }}<span class="vm-num">{{ tag_counts.get(t, 0) }}</span></button>{% endfor %}
+                <p class="vm-head">Size</p>
+                <div class="vm-size">
+                    <span class="tz-glyph tz-sm" aria-hidden="true">&#9642;</span>
+                    <input type="range" id="thumbZoom" min="-3" max="3" step="1" value="0"
+                           aria-label="Thumbnail size" oninput="setThumbZoom(this.value)">
+                    <span class="tz-glyph tz-lg" aria-hidden="true">&#9642;</span>
                 </div>
             </div>
         </div>
@@ -110,16 +100,12 @@
         {% endif %}
     </header>
 
-    {% if photos %}
-    <div class="{{ 'masonry' if curate else 'pg-just' }}" id="pg-grid">
+    {% if photos and view == 'grid' %}
+    <div class="masonry" id="pg-grid">
         {% for p in photos %}
         {% set ar = (p.w|float / p.h|float) if (p.w and p.h and p.h|float > 0) else 1.5 %}
         {# Feature rhythm: a big block every 7, a wide every 7 (offset), else 1x1.
            Portraits never go 'big'/'wide' (they'd crop badly) — they can go 'tall'. #}
-        {% set portrait = ar < 0.95 %}
-        {% set span = 'big' if (loop.index0 % 7 == 0 and not curate and not portrait)
-                      else ('wide' if (loop.index0 % 7 == 4 and not curate and not portrait)
-                      else ('tall' if (portrait and not curate) else '')) %}
         {% set grp = p.group or [p] %}
         {% set caps = [] %}
         {% for g in grp %}
@@ -136,7 +122,7 @@
         {# data-index is what the shared lightbox sorts on: curate mode deals
            cards into masonry columns, so DOM order stops matching what you see
            and prev/next would walk column-by-column without it. #}
-        <figure class="shot {{ span }}{% if p.hidden %} pg-hidden{% endif %}" data-id="{{ p.id }}" data-subject="{{ p.subject }}" data-index="{{ loop.index0 }}" data-ar="{{ ar|round(4) }}" data-image-indices='{{ range(grp|length)|list|tojson }}'
+        <figure class="shot{% if p.hidden %} pg-hidden{% endif %}" data-id="{{ p.id }}" data-subject="{{ p.subject }}" data-index="{{ loop.index0 }}" data-ar="{{ ar|round(4) }}" data-image-indices='{{ range(grp|length)|list|tojson }}'
                 data-images='{{ grp|map(attribute="image")|list|tojson }}' data-captions='{{ caps|tojson }}'
                 data-photo-ids='{{ grp|map(attribute="id", default="")|list|tojson }}'
                 data-titles='{{ grp|map(attribute="title", default="")|list|tojson }}'
@@ -175,6 +161,8 @@
         {% endfor %}
     </div>
     {% if curate %}<datalist id="photoTagList">{% for t in all_tags %}<option value="{{ t }}">{% endfor %}</datalist>{% endif %}
+    {% elif photos %}
+    {# Shuffle: the field below draws the photos. #}
     {% elif active_subjects %}
     <p class="pg-empty">None of those{% if active_tag %} in &ldquo;{{ active_tag }}&rdquo;{% endif %}. <a href="/photography" style="color:var(--accent)">see everything &rarr;</a></p>
     {% elif active_tag %}
@@ -188,12 +176,12 @@
    stage, filmstrip, loupe and record panel a bird gets. Its data comes from
    the page (pg-subjects), not a request. #}
 <script id="pg-subjects" type="application/json">{{ subjects|tojson }}</script>
-{% set tiles = [] %}{% set seq = [] %}{% set stride = 1 %}{% set detail_only = True %}{% set view_ctx = {"photo": 1} %}
+{% set tiles = field[0] %}{% set seq = field[1] %}{% set stride = field[2] %}{% set detail_only = view != 'field' or not photos %}{% set view_ctx = {"photo": 1} %}
 {% include '_field.html' %}
 
 <script src="{{ url_for('static', filename='js/combo.js', v=asset_v) }}"></script>
 <script>
-    var PG_ACTIVE = { tag: {{ active_tag|tojson }}, subject: {{ active_subjects|map(attribute='key')|join(',')|tojson }} };
+    var PG_ACTIVE = { sort: {{ active_sort|tojson }}, tag: {{ active_tag|tojson }}, subject: {{ active_subjects|map(attribute='key')|join(',')|tojson }} };
     // Same rules as the gallery's birdsGo: a subject adds to the list and a
     // category replaces it, so the result is never ambiguous.
     function pgGo(over) {
@@ -202,9 +190,11 @@
         if (over.addSubject) { if (list.indexOf(over.addSubject) < 0) list.push(over.addSubject); tag = ""; }
         if (over.removeSubject) list = list.filter(function (k) { return k !== over.removeSubject; });
         if ("tag" in over) { tag = over.tag; list = []; }
+        var sort = "sort" in over ? over.sort : PG_ACTIVE.sort;
         var p = new URLSearchParams();
         if (tag) p.set("tag", tag);
         if (list.length) p.set("subject", list.join(","));
+        if (sort) p.set("sort", sort);
         var q = p.toString().replace(/%2C/g, ",");
         location.href = "/photography" + (q ? "?" + q : "");
         return false;
@@ -226,6 +216,7 @@
                      alt: [d.species].concat((d.places || []).map(function (p) { return p.name; }), d.tags || []),
                      meta: ((d.tags || [])[0] ? d.tags[0] + " · " : "") + n + (n === 1 ? " photo" : " photos") };
         });
+        galleryViewMenu();
         searchCombo({
             box: document.getElementById("pgCombo"),
             input: document.getElementById("pgSearch"),
@@ -242,32 +233,6 @@
     })();
 </script>
 
-{% if not curate %}
-<script>
-  // The mosaic lays out in pure CSS grid; JS only handles reveal + spotlight.
-  (function () {
-    var grid = document.getElementById("pg-grid");
-    if (!grid || !grid.classList.contains("pg-just")) return;
-    var items = Array.prototype.slice.call(grid.querySelectorAll(".shot"));
-    grid.classList.add("ready");
-    // Scroll-reveal + cursor spotlight for the mosaic.
-    if ("IntersectionObserver" in window && !matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      var obs = new IntersectionObserver(function (es) {
-        es.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add("seen"); obs.unobserve(e.target); } });
-      }, { threshold: 0, rootMargin: "0px 0px 8% 0px" });
-      items.forEach(function (s) { obs.observe(s); });
-    } else { items.forEach(function (s) { s.classList.add("seen"); }); }
-    if (matchMedia("(hover: hover)").matches) {
-      grid.addEventListener("pointermove", function (e) {
-        var c = e.target.closest(".shot"); if (!c) return;
-        var r = c.getBoundingClientRect();
-        c.style.setProperty("--mx", (e.clientX - r.left) + "px");
-        c.style.setProperty("--my", (e.clientY - r.top) + "px");
-      });
-    }
-  })();
-</script>
-{% endif %}
 {% if curate %}
 <script>
     // Tell the shared lightbox these cards are photos, so its curate panel

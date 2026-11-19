@@ -19,14 +19,14 @@ const OUT = process.env.OUT || '.';
     }
     await p.fill('#pgSearch', 'darner'); await p.waitForTimeout(150);
     await Promise.all([p.waitForNavigation(), p.keyboard.press('Enter')]); await p.waitForTimeout(800);
-    console.log(vp.width, 'picked ->', p.url().replace(S, ''), 'cards', await p.$$eval('#pg-grid .shot', x => x.length),
+    console.log(vp.width, 'picked ->', p.url().replace(S, ''), 'photos', await p.evaluate(() => new Set(JSON.parse(document.getElementById('bf-tiles').textContent).map(t => t.pid)).size),
       'chips', JSON.stringify(await p.$$eval('.bird-active .chip', x => x.map(c => c.textContent.trim()))),
       'meta', await p.$eval('.bird-active-meta', e => e.textContent.trim()));
     await p.screenshot({ path: OUT + '/pgsearch-picked-' + vp.width + '.png' });
     await p.fill('#pgSearch', 'cottontail'); await p.waitForTimeout(150);
     await Promise.all([p.waitForNavigation(), p.keyboard.press('Enter')]); await p.waitForTimeout(800);
-    console.log(vp.width, 'added ->', p.url().replace(S, ''), 'cards', await p.$$eval('#pg-grid .shot', x => x.length));
-    await p.locator('#pg-grid .shot').nth(0).click(); await p.waitForTimeout(1000);
+    console.log(vp.width, 'added ->', p.url().replace(S, ''), 'photos', await p.evaluate(() => new Set(JSON.parse(document.getElementById('bf-tiles').textContent).map(t => t.pid)).size));
+    await p.evaluate(() => { location.hash = '#photo/mosaic-darner'; }); await p.waitForTimeout(1200);
     console.log(vp.width, 'detail', await p.$eval('#bf-ocount', e => e.textContent));
     await p.goBack(); await p.waitForTimeout(300);
     await Promise.all([p.waitForNavigation(), p.locator('.bird-active .chip').first().click()]); await p.waitForTimeout(500);

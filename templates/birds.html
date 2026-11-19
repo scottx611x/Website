@@ -167,26 +167,8 @@
         </div>
         <script>
             (function () {
-                var box = document.getElementById("viewMenu");
-                var btn = document.getElementById("vmBtn");
-                var pop = document.getElementById("vmPop");
-                if (!box || !btn || !pop) return;
-                function set(v) {
-                    pop.hidden = !v;
-                    box.classList.toggle("is-open", v);
-                    btn.setAttribute("aria-expanded", v ? "true" : "false");
-                }
-                btn.addEventListener("click", function (e) {
-                    e.stopPropagation();
-                    set(pop.hidden);
-                });
-                // The size slider lives in here, so dragging it must not count
-                // as "clicked away".
-                pop.addEventListener("click", function (e) { e.stopPropagation(); });
-                document.addEventListener("click", function () { set(false); });
-                document.addEventListener("keydown", function (e) {
-                    if (e.key === "Escape" && !pop.hidden) { set(false); btn.focus(); }
-                });
+                // open/close: static/js/combo.js, shared with Photography
+                var set = galleryViewMenu();
 
                 /* Survey toggle. The field owns the threshold, so this just
                    drives the width across it and lets setOverview react — two

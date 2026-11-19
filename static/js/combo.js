@@ -148,3 +148,34 @@
     });
   };
 })();
+
+/* The gallery's view menu (#viewMenu / #vmBtn / #vmPop): open, close on a
+ * click elsewhere or Escape, and restore the saved thumbnail size. Shared by
+ * /birds and Photography. Returns set(open) for callers that close it. */
+window.galleryViewMenu = function () {
+  var box = document.getElementById("viewMenu");
+  var btn = document.getElementById("vmBtn");
+  var pop = document.getElementById("vmPop");
+  if (!box || !btn || !pop) return function () {};
+  function set(v) {
+    pop.hidden = !v;
+    box.classList.toggle("is-open", v);
+    btn.setAttribute("aria-expanded", v ? "true" : "false");
+  }
+  btn.addEventListener("click", function (e) {
+    e.stopPropagation();
+    set(pop.hidden);
+  });
+  // The size slider lives in here, so dragging it must not count as
+  // "clicked away".
+  pop.addEventListener("click", function (e) { e.stopPropagation(); });
+  document.addEventListener("click", function () { set(false); });
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape" && !pop.hidden) { set(false); btn.focus(); }
+  });
+  try {
+    var v = localStorage.getItem("birdsThumbZoom"), z = document.getElementById("thumbZoom");
+    if (v && z) z.value = v;
+  } catch (_) { /* private mode */ }
+  return set;
+};
