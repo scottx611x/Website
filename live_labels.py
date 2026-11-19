@@ -150,7 +150,7 @@ class LabelIndex(object):
                 run.append(dict(c))
             self.cum[sp] = run
         # The day's stage opener: first stage-worthy recording after
-        # sunrise - 90 min, so a lone owl at 3am is not "the first voice".
+        # sunrise - 90 min, so a lone owl at 3am is not "the first call".
         self.opener = {}
         for x in recs:
             if x.conf >= STAGE_CONF and x.day not in self.opener:
@@ -263,7 +263,7 @@ def stamp_for(x, f, idx):
             and f["parts"]["night"] < 0.05 * f["n_prior"]:
         return ("night", "night voice")
     if idx.opener.get(x.day) is x:
-        return ("voice", "first voice")
+        return ("voice", "first call")
     if f["best_day"] >= 10 and f["k_today"] == f["best_day"] + 1:
         return ("biggest", "its biggest day")
     return None
