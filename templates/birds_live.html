@@ -1296,18 +1296,25 @@
     // Today's heard species = distinct species in today's VISIBLE recordings.
     // dayrecs is the curated log (hidden clips gone) and hideClip prunes it
     // locally, so hiding every clip of a species drops it from the wall at once.
-    var todayKey = new Date().toDateString(), heard = {}, meta = {};
+    var todayKey = new Date().toDateString(), heard = {}, sure = {}, meta = {};
+    var thr = confMin / 100;
     // Ordered by each bird's newest RELEASED recording, not the rollup's
     // last-heard (which already counts birds still queued to arrive), so the
-    // reel's head is the bird that just took the stage.
+    // reel's head is the bird that just took the stage. Only a recording
+    // that clears the hero's bar counts: a 65% woodpecker after the 93% crow
+    // on stage must not jump ahead of it. Birds heard only below the bar
+    // follow, newest first.
     (LIVE.dayrecs || []).forEach(function (r) {
       if (!vis(r) || new Date(r.t).toDateString() !== todayKey) return;
       var k = slugify(r.display), t = +new Date(r.t);
       if (!heard[k] || t > heard[k]) heard[k] = t;
+      if ((r.conf || 0) >= thr && (!sure[k] || t > sure[k])) sure[k] = t;
     });
     (LIVE.species || []).forEach(function (s) { meta[slugify(s.display)] = s; });
     var list = Object.keys(heard).filter(function (sl) { return meta[sl]; })
-      .sort(function (a, b) { return heard[b] - heard[a]; })
+      .sort(function (a, b) {
+        return (!sure[a] - !sure[b]) || ((sure[b] || heard[b]) - (sure[a] || heard[a]));
+      })
       .map(function (sl) { return meta[sl]; });
     var seen = wallSeen;
     wallSeen = {};

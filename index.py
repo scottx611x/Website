@@ -1660,11 +1660,13 @@ def _attach_notes(view, weather):
         notes = live_labels.notes_for_stage(
             idx, stage, shot_of=lambda sp: sp in shot,
             raining_after=(time_now() - 3600) if rain else None)
-        first, by_clip = {}, {}
+        # The window spans yesterday too: a reel pick must not show the
+        # line a bird said yesterday (yesterday's "first voice", say).
+        first, by_clip, today = {}, {}, max(days)
         for x in sorted(stage, key=lambda x: x.ts):
             n = notes[id(x)]
             by_clip[x.raw.get("audio") or x.raw.get("t")] = n
-            if n["line"] or n["stamp"]:
+            if x.day == today and (n["line"] or n["stamp"]):
                 first.setdefault(x.sp, {"stamp": n["stamp"], "line": n["line"]})
         return by_clip, first
     # Polls between log updates reuse the same notes, keyed by clip (not by

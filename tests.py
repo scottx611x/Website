@@ -1325,6 +1325,27 @@ class LiveLabelsTestCase(unittest.TestCase):
         self.assertNotEqual(st["Tundra Swan"], ("voice", "first voice"))
         self.assertNotEqual(st["Blue Jay"], ("voice", "first voice"))
 
+    def test_reel_pick_note_is_todays_not_yesterdays(self):
+        # The crow opened yesterday; today the robin did. A reel pick of the
+        # crow must not wear yesterday's "first voice".
+        import index
+        from unittest import mock
+        rows = (self.days("American Crow", "2026-10-20", 25, "12:00")
+                + self.days("American Robin", "2026-10-20", 25, "12:00"))
+        rows += [self.rec("American Crow", "2026-11-18T06:19:00-05:00"),
+                 self.rec("American Robin", "2026-11-19T06:27:00-05:00"),
+                 self.rec("American Crow", "2026-11-19T07:36:00-05:00")]
+        idx = LL.LabelIndex(rows)
+        view = {"dayrecs": [dict(r, display=r["common"]) for r in rows[-3:]],
+                "species": [{"display": "American Crow"}, {"display": "American Robin"}]}
+        with mock.patch.object(index, "_label_index", return_value=idx), \
+                mock.patch.object(index, "_sound_log_merged", return_value={"generated": "t-reel"}):
+            index._attach_notes(view, {})
+        self.assertEqual(view["dayrecs"][0]["note"]["stamp"], "first voice")   # yesterday's own clip keeps it
+        crow = view["species"][0].get("note") or {}
+        self.assertNotEqual(crow.get("stamp"), "first voice")
+        self.assertEqual(view["species"][1]["note"]["stamp"], "first voice")
+
     def test_both_mics_is_a_line_not_a_stamp(self):
         rows = self.days("Blue Jay", "2026-10-01", 40, "15:30") + [
             self.rec("Blue Jay", "2026-11-14T15:00:00-05:00", node="Back Yard"),
