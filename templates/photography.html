@@ -7,7 +7,7 @@
     .pg-stats { display:flex; flex-wrap:wrap; justify-content:center; gap:.4rem 1.3rem; margin:1.2rem 0 0; font-family:var(--mono); font-size:.76rem; color:var(--muted); }
     .pg-stats b { color:var(--ink); font-weight:600; }
     /* Filter: a horizontally-scrollable rail of category pills, site idiom. */
-    .pg-filter { display:flex; gap:.45rem; flex-wrap:wrap; justify-content:center; margin:1.8rem auto 0; max-width:52rem; }
+    .pg-filter { display:flex; gap:.45rem; flex-wrap:wrap; justify-content:center; margin:1.1rem auto 0; max-width:52rem; }
     .pg-chip { display:inline-flex; align-items:baseline; gap:.4rem; font-family:var(--mono); font-size:.76rem; padding:.35rem .85rem; border-radius:999px;
                border:1px solid rgba(13, 18, 14,.16); color:var(--ink); text-decoration:none; transition:background .15s, border-color .15s, color .15s; white-space:nowrap; }
     .pg-chip .n { font-size:.66rem; color:var(--muted); }
@@ -88,12 +88,37 @@
             </p>
             {% endif %}
         </div>
+        {# The gallery's search box (static/js/combo.js): subjects and
+           categories ranked together, the categories as a menu when empty. #}
+        {% if photo_count %}
+        <div class="bird-filter">
+            <div class="filter-controls">
+                <div class="filter-search bird-combo" id="pgCombo">
+                    <input type="search" id="pgSearch" autocomplete="off"
+                           role="combobox" aria-expanded="false" aria-controls="pgComboList"
+                           aria-autocomplete="list" aria-haspopup="listbox"
+                           placeholder="{% if active_subjects %}Add a subject&hellip;{% else %}Search photos&hellip;{% endif %}"
+                           aria-label="Search for a subject or a category">
+                    <div class="bird-combo-pop" id="pgComboList" role="listbox" hidden
+                         aria-label="Subjects and categories"></div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
         {% if all_tags %}
         <div class="pg-filter">
-            <a href="/photography" class="pg-chip{% if not active_tag %} on{% endif %}">all <span class="n">{{ photo_count }}</span></a>
+            <a href="/photography" class="pg-chip{% if not active_tag and not active_subjects %} on{% endif %}">all <span class="n">{{ photo_count }}</span></a>
             {% for t in all_tags %}
             <a href="/photography?tag={{ t|urlencode }}" class="pg-chip{% if t == active_tag %} on{% endif %}">{{ t }} <span class="n">{{ tag_counts.get(t, 0) }}</span></a>
             {% endfor %}
+        </div>
+        {% endif %}
+        {% if active_subjects %}
+        <div class="bird-active">
+            <div class="filter-chips">
+                {% for d in active_subjects %}<button type="button" class="chip" onclick="pgGo({removeSubject:{{ d.key|tojson|forceescape }}})">{{ d.name }} <span>&times;</span></button>{% endfor %}
+            </div>
+            <p class="bird-active-meta">{{ shown_count }} photo{{ 's' if shown_count != 1 }}{% if active_tag %} &middot; in {{ active_tag }}{% endif %}</p>
         </div>
         {% endif %}
     </header>
@@ -163,6 +188,8 @@
         {% endfor %}
     </div>
     {% if curate %}<datalist id="photoTagList">{% for t in all_tags %}<option value="{{ t }}">{% endfor %}</datalist>{% endif %}
+    {% elif active_subjects %}
+    <p class="pg-empty">None of those{% if active_tag %} in &ldquo;{{ active_tag }}&rdquo;{% endif %}. <a href="/photography" style="color:var(--accent)">see everything &rarr;</a></p>
     {% elif active_tag %}
     <p class="pg-empty">Nothing tagged &ldquo;{{ active_tag }}&rdquo; yet. <a href="/photography" style="color:var(--accent)">see everything &rarr;</a></p>
     {% else %}
@@ -176,6 +203,57 @@
 <script id="pg-subjects" type="application/json">{{ subjects|tojson }}</script>
 {% set tiles = [] %}{% set seq = [] %}{% set stride = 1 %}{% set detail_only = True %}{% set view_ctx = {"photo": 1} %}
 {% include '_field.html' %}
+
+<script src="{{ url_for('static', filename='js/combo.js', v=asset_v) }}"></script>
+<script>
+    var PG_ACTIVE = { tag: {{ active_tag|tojson }}, subject: {{ active_subjects|map(attribute='key')|join(',')|tojson }} };
+    // Same rules as the gallery's birdsGo: a subject adds to the list and a
+    // category replaces it, so the result is never ambiguous.
+    function pgGo(over) {
+        var list = PG_ACTIVE.subject ? PG_ACTIVE.subject.split(",") : [];
+        var tag = PG_ACTIVE.tag;
+        if (over.addSubject) { if (list.indexOf(over.addSubject) < 0) list.push(over.addSubject); tag = ""; }
+        if (over.removeSubject) list = list.filter(function (k) { return k !== over.removeSubject; });
+        if ("tag" in over) { tag = over.tag; list = []; }
+        var p = new URLSearchParams();
+        if (tag) p.set("tag", tag);
+        if (list.length) p.set("subject", list.join(","));
+        var q = p.toString().replace(/%2C/g, ",");
+        location.href = "/photography" + (q ? "?" + q : "");
+        return false;
+    }
+    (function () {
+        var SUBJ = {};
+        try { SUBJ = JSON.parse(document.getElementById("pg-subjects").textContent); } catch (_) {}
+        var counts = {{ tag_counts|tojson }};
+        var cats = {{ all_tags|tojson }}.map(function (t) {
+            var n = counts[t] || 0;
+            return { kind: "tag", broad: true, name: t, count: n,
+                     meta: "category · " + n + (n === 1 ? " photo" : " photos") };
+        });
+        var subs = Object.keys(SUBJ).map(function (k) {
+            var d = SUBJ[k], n = d.frames.length;
+            // A subject also answers to its species, its places and its
+            // categories, so "rea st" or "dragonfly" find it too.
+            return { kind: "subject", key: k, name: d.name, count: n,
+                     alt: [d.species].concat((d.places || []).map(function (p) { return p.name; }), d.tags || []),
+                     meta: ((d.tags || [])[0] ? d.tags[0] + " · " : "") + n + (n === 1 ? " photo" : " photos") };
+        });
+        searchCombo({
+            box: document.getElementById("pgCombo"),
+            input: document.getElementById("pgSearch"),
+            pop: document.getElementById("pgComboList"),
+            entries: cats.concat(subs),
+            browse: cats,
+            browseHead: "Browse by category",
+            none: function (q) { return "Nothing matches “" + q + "”"; },
+            choose: function (o) {
+                if (o.kind === "tag") pgGo({ tag: o.name });
+                else pgGo({ addSubject: o.key });
+            }
+        });
+    })();
+</script>
 
 {% if not curate %}
 <script>

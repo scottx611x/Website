@@ -330,10 +330,21 @@ def photography():
     if not _curate_on():
         photos = [p for p in photos if not p.get("hidden")]
     tag = (request.args.get("tag") or "").strip()
+    # ?subject=a,b -- picked from the search box, like the gallery's ?bird=.
+    picked = [k for k in (request.args.get("subject") or "").split(",") if k.strip()]
     shown = [p for p in photos if not tag or tag in (p.get("tags") or [])]
-    if _curate_on():
-        # stable, one card per photo: the edit fields are per-photo
-        shown.sort(key=lambda p: p.get("date") or "", reverse=True)
+    if picked:
+        shown = [p for p in shown if _photo_subject_key(p) in picked]
+    if _curate_on() or picked:
+        # One card per photo: the curate edit fields are per-photo, and a
+        # searched-for subject should show all of itself, not one card.
+        if picked:
+            # in the order picked, oldest first: the order the detail view
+            # walks them, so the first card opens at 1 / N
+            shown.sort(key=lambda p: (picked.index(_photo_subject_key(p)),
+                                      p.get("date") or "", p.get("id") or ""))
+        else:
+            shown.sort(key=lambda p: p.get("date") or "", reverse=True)
         groups = [dict(p, group=[p]) for p in shown]
     else:
         # One card per SUBJECT: five deer shots become one card whose lightbox
@@ -368,6 +379,8 @@ def photography():
     return render_template(
         "photography.html", title="Photography", photos=groups,
         all_tags=birds.photo_tags(photos), tag_counts=tag_counts, active_tag=tag,
+        active_subjects=[subjects[k] for k in picked if k in subjects],
+        shown_count=len(shown),
         photo_count=len(photos), subject_count=len(subject_names),
         subjects=subjects,
         year_from=years[0] if years else None, year_to=years[-1] if years else None,
