@@ -335,10 +335,13 @@ def photography():
     shown = [p for p in photos if not tag or tag in (p.get("tags") or [])]
     if picked:
         shown = [p for p in shown if _photo_subject_key(p) in picked]
-    if _curate_on() or picked:
+    if _curate_on() or picked or tag:
         # One card per photo: the curate edit fields are per-photo, and a
-        # searched-for subject should show all of itself, not one card.
-        if picked:
+        # filtered view shows every photo in it rather than stacks (the
+        # detail view walks exactly these cards).
+        if tag and not picked and not _curate_on():
+            random.shuffle(shown)
+        elif picked:
             # in the order picked, oldest first: the order the detail view
             # walks them, so the first card opens at 1 / N
             shown.sort(key=lambda p: (picked.index(_photo_subject_key(p)),

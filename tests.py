@@ -87,7 +87,7 @@ class RoutesTestCase(GenericTestBase):
             r = self.test_client.get("/photography")
         self.assertEqual(r.status_code, 200)
         self.assertIn(b"Red Fox", r.data)
-        self.assertIn(b"tag=wildlife", r.data)  # a tag filter chip
+        self.assertIn(b'"wildlife"', r.data)  # a category in the search menu
 
     def test_photography_tag_filter_narrows(self):
         photos = [

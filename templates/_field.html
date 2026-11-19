@@ -2333,21 +2333,25 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
      Same overlay as a bird, filled from the page's own data. The record
      panel says what applies to a photo subject (photos, category, first and
      latest) and leaves out what does not (lifer rank, the yard's recordings). */
-  /* The stage walks every photo in the view (the chosen category, ?tag=sadie,
-     or everything), in grid order, and the panel follows whichever subject is
-     on stage, as the birds' ordered grid does. A subject's photos sit
-     together, so the five deer are still five steps in a row. Without this,
-     a one-photo subject was a dead end: 1 / 1 and arrows that did nothing. */
+  /* What the stage walks. Unfiltered, a card is a stack of one subject, so
+     it opens that subject only: the "9" badge means 9 photos. Filtered (a
+     category such as ?tag=sadie, or subjects picked in the search) the grid
+     is one card per photo, and the stage walks the cards in grid order with
+     the panel following whichever subject is on stage. */
   var photoSeq = false;
-  var PG_TAG = PHOTO ? (new URLSearchParams(location.search).get("tag") || "") : "";
-  function tagFrames(tag) {
+  var PG_Q = PHOTO ? new URLSearchParams(location.search) : null;
+  var PG_FILTERED = !!(PG_Q && (PG_Q.get("tag") || PG_Q.get("subject")));
+  function viewFrames(key) {
+    var tag = function (k) { return function (f) { return Object.assign({ sk: k }, f); }; };
+    if (!PG_FILTERED) return SUBJ[key].frames.map(tag(key));
     var out = [], seen = {};
     document.querySelectorAll("[data-subject]").forEach(function (card) {
-      var k = card.getAttribute("data-subject");
-      if (seen[k] || !SUBJ[k]) return;
-      seen[k] = 1;
-      SUBJ[k].frames.forEach(function (f) {
-        if (!tag || (f.tags || []).indexOf(tag) >= 0) out.push(Object.assign({ sk: k }, f));
+      var k = card.getAttribute("data-subject"), d = SUBJ[k];
+      if (!d) return;
+      var ids = [];
+      try { ids = JSON.parse(card.getAttribute("data-photo-ids") || "[]"); } catch (e) { /* */ }
+      d.frames.forEach(function (f) {
+        if (ids.indexOf(f.pid) >= 0 && !seen[f.pid]) { seen[f.pid] = 1; out.push(tag(k)(f)); }
       });
     });
     return out;
@@ -2382,7 +2386,7 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
     if (location.hash !== hk) {
       try { history.pushState({ bf: 1 }, "", hk); pushedHere = true; } catch (e) { /* file:// */ }
     }
-    var all = tagFrames(PG_TAG);
+    var all = viewFrames(key);
     photoSeq = all.length > 1;
     fill(d);                    // the panel; in photoSeq it leaves the strip alone
     if (photoSeq) {
