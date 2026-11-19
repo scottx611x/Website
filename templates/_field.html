@@ -904,6 +904,13 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
       var t = TILES[SEQ[i]];
       var rr = (t.w > 0 && t.h > 0) ? (t.h / t.w) : 1;
       ratio[i] = Math.max(0.6, Math.min(1.85, rr));
+      /* Photography: nearly every frame is 3:2, so true shapes made a wall
+         of identical rows. A steady per-photo crop (wide, as shot, tall)
+         staggers the columns into a mosaic; cover-fit keeps each crop tidy. */
+      if (PHOTO) {
+        var h = (SEQ[i] * 2654435761) >>> 0;
+        ratio[i] = Math.max(0.5, Math.min(1.9, rr * [0.8, 1, 1, 1.35, 1.75][h % 5]));
+      }
       if (OVERVIEW) {
         // sqrt, not linear: 202 frames next to 1 would otherwise make a tower
         // beside a sliver and nothing in between would be legible.
