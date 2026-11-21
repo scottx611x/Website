@@ -149,6 +149,20 @@ class LabelIndex(object):
                 c[x.part] += 1
                 run.append(dict(c))
             self.cum[sp] = run
+        # Per species, its days in order: where each day's recordings start in
+        # by[sp], how many it made that day, and the best day before each one,
+        # so facts() looks a day up instead of rescanning the bird's history.
+        self.dayx = {}
+        for sp, xs in by.items():
+            days, start, best, top = [], [], [0], 0
+            for k, x in enumerate(xs):
+                if not days or x.day != days[-1]:
+                    if days:
+                        top = max(top, k - start[-1])
+                        best.append(top)
+                    days.append(x.day)
+                    start.append(k)
+            self.dayx[sp] = (days, start, best)
         # The day's stage opener: first stage-worthy recording after
         # sunrise - 90 min, so a lone owl at 3am is not "the first call".
         self.opener = {}
@@ -193,11 +207,10 @@ class LabelIndex(object):
         i = bisect.bisect_left(tss, x.ts)
         while i < len(xs) and xs[i] is not x:
             i += 1
-        prior = xs[:i]
-        days_prior = sorted({p.day for p in prior})
-        before_today = [d for d in days_prior if d < x.day]
-        today = [p for p in prior if p.day == x.day] + [x]
-        per_day = collections.Counter(p.day for p in prior if p.day < x.day)
+        days, start, best = self.dayx[x.sp]
+        j = bisect.bisect_left(days, x.day)       # days[j] is x's own day
+        before_today = days[:j]
+        today = xs[start[j]:i + 1]
         cum = self.cum[x.sp][i - 1] if i else dict.fromkeys(_PARTS, 0)
         # streak: consecutive days up to and including today
         streak_start, d = x.day, x.day - datetime.timedelta(days=1)
@@ -205,14 +218,14 @@ class LabelIndex(object):
         while d in have:
             streak_start, d = d, d - datetime.timedelta(days=1)
         return {
-            "n_prior": len(prior),
-            "first_day": days_prior[0] if days_prior else x.day,
+            "n_prior": i,
+            "first_day": days[0],
             "prev_day": before_today[-1] if before_today else None,
             "visit_days": len(before_today) + 1,
             "k_today": len(today),
             "first_today": len(today) == 1,
             "first_dark_today": x.dark_by > 0 and not any(p.dark_by > 0 for p in today[:-1]),
-            "best_day": max(per_day.values()) if per_day else 0,
+            "best_day": best[j],
             "parts": cum,
             "streak_start": streak_start,
             "both": bool(x.node) and any(

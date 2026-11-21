@@ -411,7 +411,24 @@ _SPECIES_ALIAS = {
 _IRREGULAR_PLURALS = {"geese": "goose"}
 
 
+_CANON_MEMO = {}
+
+
 def _canon_species(name):
+    """(display name, family) for a raw species label, or None if not a real bird.
+    Memoised per label: _BIRDS is fixed at import, and the live page asks about
+    the same few hundred labels ~130k times per log generation."""
+    try:
+        return _CANON_MEMO[name]
+    except (KeyError, TypeError):
+        pass
+    out = _canon_species_uncached(name)
+    if isinstance(name, str) and len(_CANON_MEMO) < 20000:
+        _CANON_MEMO[name] = out
+    return out
+
+
+def _canon_species_uncached(name):
     """(display name, family) for a raw species label, or None if not a real bird.
 
     Tolerant of how Scott actually types captions: an explicit alias wins, then an
