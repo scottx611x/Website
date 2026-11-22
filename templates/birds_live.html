@@ -393,7 +393,10 @@
   .lv-stage .lv-herocard{position:absolute; inset:0; border:0; border-radius:0; box-shadow:none; background:var(--ink); overflow:hidden}
   .lv-stage #lv-hero{position:absolute; inset:0; z-index:0}
   .lv-stage #lv-hero > .lv-portrait,.lv-stage #lv-hero > .lv-ghostcard{position:absolute; inset:0; aspect-ratio:auto; display:block; background:var(--ink)}
-  .lv-stage .lv-ph{background-position:50% 32%}
+  .lv-stage .lv-ph{background-position:50% 32%; background-repeat:no-repeat}
+  /* A big bird zoomed out to fit a phone (aim()): the blurred copy fills
+     above and below the photo, whose edges fade into it. */
+  .lv-stage .lv-portrait.lv-fit::before{content:""; position:absolute; inset:-80px; background:var(--ph) center/cover; filter:blur(48px) saturate(1.1) brightness(.42)}
   /* No photo: the call's own spectrogram is the picture. */
   .lv-stage .lv-phspec{background-size:100% 100%; filter:saturate(1.6) brightness(1.45) blur(1px)}
   .lv-stage .lv-ghostcard .feather{display:none}
@@ -1333,8 +1336,10 @@
       var on = STAGE && curHero && slugify(curHero.display) === slug ? " on" : "";
       wallSeen[slug] = 1;
       if (s.photo) {
+        // the same frame the hero shows for this bird, not the species' default
+        var ph = STAGE ? (heroPhoto(s) || s.photo) : s.photo;
         return '<a class="lv-chip' + pop + on + '" data-slug="' + slug + '" data-fam="' + fam + '" href="' + birdHref(s.display) +
-          '" style="background-image:url(\'' + s.photo + '\')" title="' + esc(s.display) + ' · ' + (s.count || 0) + '×">' +
+          '" style="background-image:url(\'' + ph + '\')" title="' + esc(s.display) + ' · ' + (s.count || 0) + '×">' +
           '<span class="cl">' + esc(s.display) + '</span></a>';
       }
       if (STAGE) {   // a frame of its own call, dashed: heard, never photographed
@@ -1662,15 +1667,32 @@
   }
   var WIDE = window.matchMedia ? window.matchMedia("(min-width:900px) and (min-aspect-ratio:5/4)") : null;
   function aim(el) {
-    var fx = +el.dataset.fx, fy = +el.dataset.fy, ar = +el.dataset.ar;
+    var fx = +el.dataset.fx, fy = +el.dataset.fy, ar = +el.dataset.ar, bw = +el.dataset.bw || 0;
     var cw = el.offsetWidth, ch = el.offsetHeight;
     if (!cw || !ch || !ar) return;
     var ih = Math.max(ch, cw / ar), iw = ih * ar;
+    var wide = STAGE && WIDE && WIDE.matches;
+    // A cover crop on a phone keeps a narrow slice of the frame; aiming its
+    // centre at a big bird's middle still cut its head off (a woodpecker's
+    // centre is its back). So when the bird is wider than the slice, zoom
+    // out until it fits, never narrower than the screen, and let the
+    // blurred copy of the photo fill the space above and below.
+    var fit = false;
+    if (STAGE && !wide && bw && bw * iw > .86 * cw) {
+      var niw = Math.max(cw, .86 * cw / bw);
+      if (niw < iw - 1) { iw = niw; ih = iw / ar; fit = ih < ch; }
+    }
     // Wide screens fade the photo's left quarter into the words: aim right of centre.
-    var tx = (STAGE && WIDE && WIDE.matches) ? .6 : .5, ty = STAGE ? .38 : .45;
+    var tx = wide ? .6 : .5, ty = STAGE ? .38 : .45;
     var ox = Math.min(0, Math.max(cw - iw, tx * cw - fx * iw));
-    var oy = Math.min(0, Math.max(ch - ih, ty * ch - fy * ih));
+    var oy = fit ? Math.max(0, Math.min(ch - ih, ty * ch - fy * ih))
+                 : Math.min(0, Math.max(ch - ih, ty * ch - fy * ih));
+    el.style.backgroundSize = iw < Math.max(ch, cw / ar) * ar - 1 ? Math.round(iw) + "px " + Math.round(ih) + "px" : "";
     el.style.backgroundPosition = Math.round(ox) + "px " + Math.round(oy) + "px";
+    var mask = fit ? "linear-gradient(180deg,transparent " + Math.round(oy) + "px,#000 " + Math.round(oy + 56) + "px,#000 " +
+      Math.round(oy + ih - 56) + "px,transparent " + Math.round(oy + ih) + "px)" : "";
+    el.style.webkitMaskImage = mask; el.style.maskImage = mask;
+    if (el.parentNode) el.parentNode.classList.toggle("lv-fit", fit);
     // the slow drift zooms toward the bird, not toward a fixed point
     el.style.transformOrigin = ((fx * iw + ox) / cw * 100).toFixed(1) + "% " + ((fy * ih + oy) / ch * 100).toFixed(1) + "%";
   }
@@ -1696,7 +1718,8 @@
     var ghostBg = (STAGE && r.spec)
       ? '<div class="lv-ph lv-phspec" style="background-image:url(\'' + MEDIA + esc(r.spec) + '\')"></div>' : FEATHER;
     var fp = focusOf(photo);
-    var aimAttr = fp ? ' data-fx="' + fp[0] + '" data-fy="' + fp[1] + '" data-ar="' + fp[2] + '"' : '';
+    var aimAttr = fp ? ' data-fx="' + fp[0] + '" data-fy="' + fp[1] + '" data-ar="' + fp[2] + '"' +
+      (fp.length > 4 ? ' data-bw="' + fp[3] + '" data-bh="' + fp[4] + '"' : '') : '';
     var html = photo
       ? '<div class="lv-portrait"' + (STAGE ? ' style="--ph:url(\'' + photo + '\')"' : '') + '><div class="lv-ph"' + aimAttr + ' style="background-image:url(\'' + webPhoto(photo) + '\'),url(\'' + photo + '\')"></div>' +
         top + '<div class="lv-body">' + inBody +

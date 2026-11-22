@@ -3418,15 +3418,16 @@ def focus_table(force=False):
 
 
 def focus_point(url):
-    """[fx, fy, aspect] for a frame URL (any size: thumb, web copy, micro),
-    or None when there is no confident bird to centre on."""
+    """[fx, fy, aspect] or [fx, fy, aspect, bw, bh] (the bird's box size, as
+    fractions of the frame) for a frame URL (any size: thumb, web copy,
+    micro), or None when there is no confident bird to centre on."""
     if not url:
         return None
     mid = url.rsplit("/", 1)[-1].split("?", 1)[0].rsplit(".", 1)[0]
     e = focus_table().get(mid)
     if not e or (e[3] if len(e) > 3 else 0) < FOCUS_MIN_SCORE:
         return None
-    return [e[0], e[1], e[2]]
+    return [e[0], e[1], e[2]] + (list(e[4:6]) if len(e) >= 6 else [])
 
 
 def _write_manifest(shots):

@@ -6,7 +6,9 @@ around it (birds.focus_point, templates/birds_live.html aim()).
     python bird_focus.py --write            # detect and save to S3
 
 Lives on the Pi (birdpi), not the Lambda: it needs OpenCV and a COCO object
-detector (YOLOv5s as ONNX, fetched once into ~/.cache/birds/). A systemd
+detector (YOLOv5m as ONNX, fetched once into ~/.cache/birds/). YOLOv5s was
+~0.5s a frame but missed 18% of birds, mostly big close-ups: on a sample of
+its misses the m model found 40 of 60 (l: 42, at twice m's 1s a frame). A systemd
 timer there runs --write every 15 minutes, a no-op unless the sync added frames
 (tools/pi/). Standalone on purpose (boto3, opencv-python-headless, numpy;
 Pillow for --sheet): it shares nothing with the website but the bucket
@@ -15,9 +17,12 @@ layout. Credentials come from the environment.
 COCO's "bird" class is preferred; any other animal class is taken when no
 bird is found (a hawk read as a cat still marks where it is).
 
-Output: birds/focus.json, {media id: [fx, fy, aspect, score] or null}. fx, fy
-are fractions of the frame: the box's centre across, and 40% of the way down
-the box (heads are near the top). null = looked, found nothing; it is not
+Output: birds/focus.json, {media id: [fx, fy, aspect, score, bw, bh] or null}.
+fx, fy are fractions of the frame: the box's centre across, and 40% of the way
+down the box (heads are near the top); bw, bh are the box's size, also as
+fractions, so the stage can zoom out until a big bird fits (the centre of a
+woodpecker filling the frame is its back, and a phone's slice cut its head).
+Older entries have no bw, bh. null = looked, found nothing; it is not
 retried. Only frames not already in the file are processed, so re-running is
 cheap; --redo processes everything again.
 """
@@ -35,8 +40,8 @@ PREFIX = "birds"
 FOCUS_KEY = "focus.json"        # = birds.FOCUS_KEY
 FOCUS_MIN_SCORE = 0.35          # = birds.FOCUS_MIN_SCORE (only for the count)
 
-MODEL_URL = "https://github.com/ultralytics/yolov5/releases/download/v7.0/yolov5s.onnx"
-MODEL = os.path.expanduser("~/.cache/birds/yolov5s.onnx")
+MODEL_URL = "https://github.com/ultralytics/yolov5/releases/download/v7.0/yolov5m.onnx"
+MODEL = os.path.expanduser("~/.cache/birds/yolov5m.onnx")
 BIRD, ANIMALS = 14, set(range(14, 24))
 _NET = None
 
@@ -54,7 +59,7 @@ def _net():
 
 
 def detect(data):
-    """JPEG bytes -> [fx, fy, aspect, score], or None when no animal is found."""
+    """JPEG bytes -> [fx, fy, aspect, score, bw, bh], or None when no animal is found."""
     import cv2
     import numpy as np
     img = cv2.imdecode(np.frombuffer(data, np.uint8), cv2.IMREAD_COLOR)
@@ -86,7 +91,9 @@ def detect(data):
                                 key=lambda d: d[1][2] * d[1][3])
         fx = min(1, max(0, (x + bw / 2) / s / w))
         fy = min(1, max(0, (y + bh * .4) / s / h))
-        return [round(fx, 3), round(fy, 3), round(w / h, 4), round(c, 2)]
+        bwf = min(1, bw / s / w)
+        bhf = min(1, bh / s / h)
+        return [round(fx, 3), round(fy, 3), round(w / h, 4), round(c, 2), round(bwf, 3), round(bhf, 3)]
     return None
 
 

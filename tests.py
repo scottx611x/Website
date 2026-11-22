@@ -1139,7 +1139,8 @@ class DetailSpeedTestCase(GenericTestBase):
             self.assertIsNone(birds.micro_url(url.replace("p1-0", "p1-1")))
 
     def test_focus_point_by_media_id_and_confidence(self):
-        table = {"p1-0": [0.2, 0.4, 1.5, 0.8], "p1-1": [0.9, 0.5, 1.5, 0.2], "p1-2": None}
+        table = {"p1-0": [0.2, 0.4, 1.5, 0.8], "p1-1": [0.9, 0.5, 1.5, 0.2], "p1-2": None,
+                 "p2-0": [0.5, 0.45, 1.0, 0.9, 0.7, 0.6]}
         with mock.patch.object(birds, "_FOCUS", table), \
              mock.patch.object(birds, "_FOCUS_AT", 9e18):
             # any size of the frame resolves to the same point
@@ -1149,6 +1150,8 @@ class DetailSpeedTestCase(GenericTestBase):
             self.assertIsNone(birds.focus_point("https://x/birds/thumbs/p1-2.jpg"))  # no bird
             self.assertIsNone(birds.focus_point("https://x/birds/thumbs/p9-0.jpg"))  # not run
             self.assertIsNone(birds.focus_point(None))
+            # newer entries carry the box size, for the stage's zoom-to-fit
+            self.assertEqual(birds.focus_point("https://x/birds/thumbs/p2-0.jpg"), [0.5, 0.45, 1.0, 0.7, 0.6])
 
     def test_new_post_check_syncs_only_for_unseen_posts(self):
         def run(ids, known, excluded=()):
