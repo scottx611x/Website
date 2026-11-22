@@ -1696,6 +1696,23 @@
     // the slow drift zooms toward the bird, not toward a fixed point
     el.style.transformOrigin = ((fx * iw + ox) / cw * 100).toFixed(1) + "% " + ((fy * ih + oy) / ch * 100).toFixed(1) + "%";
   }
+  /* A frame the detector could not place (~9% of them): on a phone, show
+     most of its width rather than a blind middle slice, as if the bird might
+     be anywhere in the middle three quarters. Its aspect comes from the
+     image itself. */
+  function aimBlind(root, photo, fp) {
+    if (fp || !photo || !STAGE || (WIDE && WIDE.matches)) return;
+    var el = root.querySelector ? root.querySelector(".lv-ph") : null;
+    if (!el) return;
+    var im = new Image();
+    im.onload = function () {
+      if (!im.naturalWidth || !el.isConnected) return;
+      el.dataset.fx = .5; el.dataset.fy = .45; el.dataset.bw = .75;
+      el.dataset.ar = (im.naturalWidth / im.naturalHeight).toFixed(4);
+      aim(el);
+    };
+    im.src = photo;
+  }
   function aimAll(root) {
     Array.prototype.forEach.call((root || document).querySelectorAll(".lv-ph[data-fx]"), aim);
   }
@@ -1728,7 +1745,7 @@
       : '<div class="lv-ghostcard">' + ghostBg + top + '<div class="lv-body">' + inBody +
         '<div class="lv-when" data-t="' + esc(r.t) + '" data-lead="heard, not photographed"></div>' +
         '<div class="lv-nm">' + words + '</div>' + meta + line + '</div></div>';
-    if (!animate || REDUCED || !h.firstElementChild) { h.innerHTML = html; aimAll(h); return; }
+    if (!animate || REDUCED || !h.firstElementChild) { h.innerHTML = html; aimAll(h); aimBlind(h, photo, fp); return; }
     // Cross-fade: the new bird is laid over the old one and fades up while its
     // photo settles and its name sets itself word by word; the old card goes
     // once it is fully covered.
@@ -1737,7 +1754,7 @@
     next.classList.add("lv-enter", "lv-over");
     Array.prototype.forEach.call(h.children, function (old) { old.classList.add("lv-leave"); });
     h.appendChild(next);
-    aimAll(next);
+    aimAll(next); aimBlind(next, photo, fp);
     setTimeout(function () {
       Array.prototype.slice.call(h.children).forEach(function (c) { if (c !== next) c.remove(); });
       next.classList.remove("lv-over");
