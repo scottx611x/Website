@@ -2561,6 +2561,30 @@ def _load_sound_log_uncached():
         return None
 
 
+_S3_JSON = {}           # key -> (etag, parsed): conditional reads of big JSON
+_ARCHIVE_CURATED = {}   # key -> ((etag, curation), curated archive)
+
+
+def _s3_json_if_changed(key):
+    """(etag, parsed JSON) for an S3 object, re-downloaded only when its ETag
+    moved. Callers must treat the parsed value as read-only: it is shared."""
+    from botocore.exceptions import ClientError
+
+    hit = _S3_JSON.get(key)
+    params = dict(Bucket=S3_BUCKET, Key=key)
+    if hit:
+        params["IfNoneMatch"] = hit[0]
+    try:
+        obj = _s3().get_object(**params)
+    except ClientError as exc:
+        if hit and exc.response.get("ResponseMetadata", {}).get("HTTPStatusCode") == 304:
+            return hit
+        raise
+    val = (obj.get("ETag"), json.loads(obj["Body"].read()))
+    _S3_JSON[key] = val
+    return val
+
+
 def _load_sound_archive_uncached():
     """The FULL recordings archive (birds/sounds/archive.json).
 
@@ -2572,10 +2596,17 @@ def _load_sound_archive_uncached():
     key = "{}/sounds/archive.json".format(S3_PREFIX)
     if os.environ.get("BIRDS_USE_S3"):
         try:
-            import boto3
-
-            body = _s3().get_object(Bucket=S3_BUCKET, Key=key)["Body"].read()
-            return apply_sound_curation(json.loads(body))
+            # It is rebuilt hourly but read every minute: ask S3 whether it
+            # changed, and reuse the parsed + curated copy while it has not
+            # (re-reading it was ~1s of every live page load on Lambda).
+            etag, arch = _s3_json_if_changed(key)
+            cur = json.dumps(load_sound_curation(), sort_keys=True, default=list)
+            hit = _ARCHIVE_CURATED.get(key)
+            if hit and hit[0] == (etag, cur):
+                return hit[1]
+            out = apply_sound_curation(arch)
+            _ARCHIVE_CURATED[key] = ((etag, cur), out)
+            return out
         except Exception:  # noqa: BLE001 - not built yet
             return None
     try:

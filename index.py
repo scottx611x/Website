@@ -1792,7 +1792,9 @@ def _sound_log_merged():
     def _build():
         arch = birds.load_sound_archive() or {}
         live = birds.load_sound_log() or {}
-        rows = list(arch.get("log") or [])
+        # Copies: the merge below fills archive rows in from the log, and the
+        # archive is a shared, cached object (birds._s3_json_if_changed).
+        rows = [dict(r) for r in arch.get("log") or []]
         at = {r.get("audio"): r for r in rows if r.get("audio")}
         for r in (live.get("log") or []):
             if not r.get("audio"):
