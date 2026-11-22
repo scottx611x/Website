@@ -26,7 +26,7 @@
             ".venv/*"
         ],
         "timeout_seconds": 300,
-        "memory_size": 1024,
+        "memory_size": 2048,
         "aws_region": "us-east-1",
         "log_level": "INFO",
         "s3_bucket": "zappa-0206au0bc",
