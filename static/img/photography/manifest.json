@@ -59,6 +59,20 @@
     "h": 1365
   },
   {
+    "id": "42136efb5246",
+    "image": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/images/42136efb5246.jpg",
+    "thumb": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/thumbs/42136efb5246.jpg",
+    "title": "Black Squirrel",
+    "species": "",
+    "location": "",
+    "date": "2026-10-17",
+    "tags": [
+      "mammal"
+    ],
+    "w": 2048,
+    "h": 1365
+  },
+  {
     "id": "60b61a5a6297",
     "image": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/images/60b61a5a6297.jpg",
     "thumb": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/thumbs/60b61a5a6297.jpg",
@@ -406,6 +420,132 @@
     "tags": [
       "mammal",
       "chipmunk"
+    ],
+    "w": 2048,
+    "h": 1365
+  },
+  {
+    "id": "aa7d3c907f62",
+    "image": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/images/aa7d3c907f62.jpg",
+    "thumb": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/thumbs/aa7d3c907f62.jpg",
+    "title": "Sadie Ball Chew",
+    "species": "",
+    "location": "",
+    "date": "2026-09-14",
+    "tags": [
+      "sadie"
+    ],
+    "w": 2048,
+    "h": 1365
+  },
+  {
+    "id": "cce95f98a673",
+    "image": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/images/cce95f98a673.jpg",
+    "thumb": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/thumbs/cce95f98a673.jpg",
+    "title": "Sadie Ball Guard",
+    "species": "",
+    "location": "",
+    "date": "2026-09-14",
+    "tags": [
+      "sadie"
+    ],
+    "w": 2048,
+    "h": 1365
+  },
+  {
+    "id": "b803e4c25b5c",
+    "image": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/images/b803e4c25b5c.jpg",
+    "thumb": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/thumbs/b803e4c25b5c.jpg",
+    "title": "Sadie Ball Pillow",
+    "species": "",
+    "location": "",
+    "date": "2026-09-14",
+    "tags": [
+      "sadie"
+    ],
+    "w": 2048,
+    "h": 1365
+  },
+  {
+    "id": "53d22cd2ca76",
+    "image": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/images/53d22cd2ca76.jpg",
+    "thumb": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/thumbs/53d22cd2ca76.jpg",
+    "title": "Sadie Ball Watch",
+    "species": "",
+    "location": "",
+    "date": "2026-09-14",
+    "tags": [
+      "sadie"
+    ],
+    "w": 2048,
+    "h": 1365
+  },
+  {
+    "id": "7bb5789e8ffb",
+    "image": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/images/7bb5789e8ffb.jpg",
+    "thumb": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/thumbs/7bb5789e8ffb.jpg",
+    "title": "Sadie Harness Portrait",
+    "species": "",
+    "location": "",
+    "date": "2026-09-14",
+    "tags": [
+      "sadie"
+    ],
+    "w": 2048,
+    "h": 1365
+  },
+  {
+    "id": "2e1c1a32a3c8",
+    "image": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/images/2e1c1a32a3c8.jpg",
+    "thumb": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/thumbs/2e1c1a32a3c8.jpg",
+    "title": "Eastern Cottontail 8",
+    "species": "",
+    "location": "",
+    "date": "2026-09-13",
+    "tags": [
+      "mammal"
+    ],
+    "w": 2048,
+    "h": 1365
+  },
+  {
+    "id": "70fd9bb7fdd1",
+    "image": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/images/70fd9bb7fdd1.jpg",
+    "thumb": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/thumbs/70fd9bb7fdd1.jpg",
+    "title": "White Tailed Deer Pair",
+    "species": "",
+    "location": "",
+    "date": "2026-09-13",
+    "tags": [
+      "mammal"
+    ],
+    "w": 2048,
+    "h": 1365
+  },
+  {
+    "id": "5b794f1cc310",
+    "image": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/images/5b794f1cc310.jpg",
+    "thumb": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/thumbs/5b794f1cc310.jpg",
+    "title": "Panicle Hydrangea",
+    "species": "",
+    "location": "",
+    "date": "2026-09-13",
+    "tags": [
+      "flora"
+    ],
+    "w": 2048,
+    "h": 1365
+  },
+  {
+    "id": "ace602f8c52d",
+    "image": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/images/ace602f8c52d.jpg",
+    "thumb": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/thumbs/ace602f8c52d.jpg",
+    "title": "Painted Lady",
+    "species": "",
+    "location": "",
+    "date": "2026-09-12",
+    "tags": [
+      "insect"
     ],
     "w": 2048,
     "h": 1365
