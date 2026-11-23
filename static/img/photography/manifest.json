@@ -63,11 +63,12 @@
     "image": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/images/42136efb5246.jpg",
     "thumb": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/thumbs/42136efb5246.jpg",
     "title": "Black Squirrel",
-    "species": "",
+    "species": "Eastern Gray Squirrel, black morph (Sciurus carolinensis)",
     "location": "",
     "date": "2026-10-17",
     "tags": [
-      "mammal"
+      "mammal",
+      "squirrel"
     ],
     "w": 2048,
     "h": 1365
@@ -429,10 +430,11 @@
     "image": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/images/aa7d3c907f62.jpg",
     "thumb": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/thumbs/aa7d3c907f62.jpg",
     "title": "Sadie Ball Chew",
-    "species": "",
+    "species": "Chocolate Labrador Retriever",
     "location": "",
     "date": "2026-09-14",
     "tags": [
+      "mammal",
       "sadie"
     ],
     "w": 2048,
@@ -443,10 +445,11 @@
     "image": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/images/cce95f98a673.jpg",
     "thumb": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/thumbs/cce95f98a673.jpg",
     "title": "Sadie Ball Guard",
-    "species": "",
+    "species": "Chocolate Labrador Retriever",
     "location": "",
     "date": "2026-09-14",
     "tags": [
+      "mammal",
       "sadie"
     ],
     "w": 2048,
@@ -457,10 +460,11 @@
     "image": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/images/b803e4c25b5c.jpg",
     "thumb": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/thumbs/b803e4c25b5c.jpg",
     "title": "Sadie Ball Pillow",
-    "species": "",
+    "species": "Chocolate Labrador Retriever",
     "location": "",
     "date": "2026-09-14",
     "tags": [
+      "mammal",
       "sadie"
     ],
     "w": 2048,
@@ -471,10 +475,11 @@
     "image": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/images/53d22cd2ca76.jpg",
     "thumb": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/thumbs/53d22cd2ca76.jpg",
     "title": "Sadie Ball Watch",
-    "species": "",
+    "species": "Chocolate Labrador Retriever",
     "location": "",
     "date": "2026-09-14",
     "tags": [
+      "mammal",
       "sadie"
     ],
     "w": 2048,
@@ -485,10 +490,11 @@
     "image": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/images/7bb5789e8ffb.jpg",
     "thumb": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/thumbs/7bb5789e8ffb.jpg",
     "title": "Sadie Harness Portrait",
-    "species": "",
+    "species": "Chocolate Labrador Retriever",
     "location": "",
     "date": "2026-09-14",
     "tags": [
+      "mammal",
       "sadie"
     ],
     "w": 2048,
@@ -498,12 +504,13 @@
     "id": "2e1c1a32a3c8",
     "image": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/images/2e1c1a32a3c8.jpg",
     "thumb": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/thumbs/2e1c1a32a3c8.jpg",
-    "title": "Eastern Cottontail 8",
-    "species": "",
+    "title": "Eastern Cottontail",
+    "species": "Eastern Cottontail (Sylvilagus floridanus)",
     "location": "",
     "date": "2026-09-13",
     "tags": [
-      "mammal"
+      "mammal",
+      "rabbit"
     ],
     "w": 2048,
     "h": 1365
@@ -512,12 +519,13 @@
     "id": "70fd9bb7fdd1",
     "image": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/images/70fd9bb7fdd1.jpg",
     "thumb": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/thumbs/70fd9bb7fdd1.jpg",
-    "title": "White Tailed Deer Pair",
-    "species": "",
+    "title": "White-tailed Deer Pair",
+    "species": "White-tailed Deer (Odocoileus virginianus)",
     "location": "",
     "date": "2026-09-13",
     "tags": [
-      "mammal"
+      "mammal",
+      "deer"
     ],
     "w": 2048,
     "h": 1365
@@ -527,7 +535,7 @@
     "image": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/images/5b794f1cc310.jpg",
     "thumb": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/thumbs/5b794f1cc310.jpg",
     "title": "Panicle Hydrangea",
-    "species": "",
+    "species": "Panicle Hydrangea (Hydrangea paniculata)",
     "location": "",
     "date": "2026-09-13",
     "tags": [
@@ -541,11 +549,12 @@
     "image": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/images/ace602f8c52d.jpg",
     "thumb": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/thumbs/ace602f8c52d.jpg",
     "title": "Painted Lady",
-    "species": "",
+    "species": "Painted Lady (Vanessa cardui)",
     "location": "",
     "date": "2026-09-12",
     "tags": [
-      "insect"
+      "insect",
+      "butterfly"
     ],
     "w": 2048,
     "h": 1365

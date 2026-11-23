@@ -1470,3 +1470,12 @@ class ShareTestCase(GenericTestBase):
     def test_index_is_curate_only(self):
         with self._curate(False):
             self.assertEqual(self.test_client.get("/s").status_code, 404)
+
+
+class WildlifeTitleTestCase(unittest.TestCase):
+    def test_duplicate_number_suffix_is_not_part_of_the_title(self):
+        import wildlife
+        self.assertEqual(wildlife._title_from_filename("eastern-cottontail-8.jpg"), "Eastern Cottontail")
+        self.assertEqual(wildlife._title_from_filename("white-tailed-deer.jpg"), "White Tailed Deer")
+        self.assertEqual(wildlife._title_from_filename("red-fox_ipswich-river.JPG"), "Red Fox Ipswich River")
+        self.assertEqual(wildlife._title_from_filename("2026.jpg"), "2026")

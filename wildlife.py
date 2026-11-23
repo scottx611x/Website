@@ -39,6 +39,8 @@ EXTS = {".jpg", ".jpeg", ".png", ".webp"}
 def _title_from_filename(filename):
     """"red-fox_ipswich-river.JPG" -> "Red Fox Ipswich River" (editable later)."""
     stem = os.path.splitext(os.path.basename(filename))[0]
+    # A trailing "-2"/"-8" is a duplicate-name suffix, not part of the name.
+    stem = re.sub(r"[\s_\-]+\d+$", "", stem.strip()) or stem
     words = re.split(r"[\s_\-]+", stem.strip())
     return " ".join(w[:1].upper() + w[1:] for w in words if w)
 
