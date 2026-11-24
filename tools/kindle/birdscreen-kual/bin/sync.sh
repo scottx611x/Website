@@ -34,17 +34,28 @@ CA=""
 [ -s "$US/koreader/data/ca-bundle.crt" ] && CA="--cacert $US/koreader/data/ca-bundle.crt"
 
 # fetch URL DEST: download via a .part file so a half-written PNG never shows.
+# On failure FETCH_ERR says why (curl's exit code and message).
 fetch() {
-    if curl -fsSL --connect-timeout 15 --max-time 90 $CA -o "$2.part" "$1" && [ -s "$2.part" ]; then
+    if command -v curl >/dev/null 2>&1; then
+        FETCH_ERR=$(curl -fsSL --connect-timeout 15 --max-time 90 $CA -o "$2.part" "$1" 2>&1)
+        rc=$?
+    else
+        FETCH_ERR=$(wget -q -T 60 -O "$2.part" "$1" 2>&1)
+        rc=$?
+        FETCH_ERR="no curl; wget: $FETCH_ERR"
+    fi
+    if [ "$rc" -eq 0 ] && [ -s "$2.part" ]; then
         mv -f "$2.part" "$2"
         return 0
     fi
+    FETCH_ERR="exit $rc: $(echo "$FETCH_ERR" | head -n 1)"
     rm -f "$2.part"
     return 1
 }
 
 if ! fetch "$SITE/kindle.json" "$EXT/pool.json"; then
-    log "offline or site unreachable; nothing changed"
+    wifi=$(lipc-get-prop com.lab126.wifid cmState 2>/dev/null)
+    log "could not get the bird list (Wi-Fi: ${wifi:-unknown}; $FETCH_ERR); nothing changed"
     exit 0
 fi
 # {"frames": ["123-0", "456-1", ...]} -> one key per line, newest first.
@@ -107,6 +118,7 @@ if [ -d "$LINKSS" ]; then
 fi
 
 log "$n birds: $new new, $dropped dropped, $failed failed, $changed Amazon files changed"
+[ "$failed" -gt 0 ] && log "last download failure: $FETCH_ERR"
 
 # Keep the log short.
 tail -n 200 "$LOG" > "$LOG.tmp" && mv -f "$LOG.tmp" "$LOG"
