@@ -13,12 +13,12 @@
        scoping the reveal to .masonry hid every caption from visitors. */
     .shot:hover .pg-cap, .shot:focus-visible .pg-cap { opacity:1; }
     .shot .pg-title { font-family:var(--display); font-weight:500; font-size:1.05rem; line-height:1.15; }
-    .shot .pg-meta { font-family:var(--mono); font-size:.72rem; color:rgba(244, 241, 233,.82); }
-    .shot .pg-tag { position:absolute; top:.55rem; left:.55rem; font-family:var(--mono); font-size:.58rem; letter-spacing:.08em; text-transform:uppercase;
-                    padding:.16rem .5rem; border-radius:999px; background:rgba(6,10,7,.55); color:var(--lift); backdrop-filter:blur(3px);
+    .shot .pg-meta { font-size:.72rem; color:rgba(244, 241, 233,.82); }
+    .shot .pg-tag { position:absolute; top:.55rem; left:.55rem; font-size:.75rem;
+                    padding:.16rem .5rem; border-radius:4px; background:rgba(6,10,7,.55); color:var(--lift); backdrop-filter:blur(3px);
                     opacity:0; transition:opacity .3s; }
     .shot:hover .pg-tag, .shot:focus-visible .pg-tag { opacity:1; }
-    .pg-empty { text-align:center; color:var(--muted); font-family:var(--mono); font-size:.9rem; padding:3rem 0; }
+    .pg-empty { text-align:center; color:var(--muted); font-size:.9rem; padding:3rem 0; }
     .photo-edit { display:flex; flex-direction:column; gap:.3rem; padding:.5rem; }
     .photo-edit .pe-field { width:100%; font:inherit; font-size:.82rem; padding:.28rem .45rem;
                 border:1px solid rgba(13, 18, 14,.18); border-radius:.35rem; background:var(--paper); color:var(--ink); }
@@ -33,8 +33,8 @@
        restore control sits exactly where the hide happened. */
     .shot.pg-hidden img { opacity:.32; filter:grayscale(.7); }
     .shot.pg-hidden::before { content:"hidden"; position:absolute; z-index:3; top:.5rem; right:.5rem;
-                font-family:var(--mono); font-size:.6rem; letter-spacing:.08em; text-transform:uppercase;
-                padding:.16rem .5rem; border-radius:999px; background:rgba(192,71,59,.9); color:#fff; }
+                font-size:.75rem;
+                padding:.16rem .5rem; border-radius:4px; background:rgba(192,71,59,.9); color:#fff; }
 </style>
 <script>
     // The gallery's frame: full width, and the field's fixed canvas in Shuffle.

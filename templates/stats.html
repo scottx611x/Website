@@ -389,7 +389,7 @@
         window.EAR_NODE_COLORS = {{ (geo.colors if geo else {})|tojson }};
         var CURATE = {{ 'true' if curate else 'false' }};
         var FAM = [{% for fam, count in stats.families %}{ name: {{ fam|tojson }}, n: {{ count }}, spp: {{ stats.family_species[fam] }} }{{ "," if not loop.last }}{% endfor %}];
-        var GREEN = "#2f7d4f", NEON = "#38e08a", INK = "#0d120e", MUTED = "#8a9486";
+        var GREEN = "#2f7d4f", NEON = "#8cc49b", INK = "#0d120e", MUTED = "#8a9486";
         // Validated categorical palette (colorblind-safe, fixed order) for the
         // river's species bands; "Other" is a recessive gray. Assigned by the
         // species' rank so a band keeps its color.

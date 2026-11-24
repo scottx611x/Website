@@ -22,7 +22,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="preconnect" href="https://birds-scott-ouellette.s3.amazonaws.com">
-    {% set fonts_href = "https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,500;9..144,600;9..144,900&family=Space+Grotesk:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap" %}
+    {% set fonts_href = "https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,300..900;1,8..60,300..900&display=swap" %}
     {# Load the font CSS without blocking first paint: fetch as print media,
        then flip to all once it arrives. display=swap keeps text visible meanwhile. #}
     <link rel="stylesheet" href="{{ fonts_href }}" media="print" onload="this.media='all'">
@@ -64,7 +64,7 @@
         .site-toast{position:fixed;left:50%;bottom:calc(1.4rem + env(safe-area-inset-bottom,0px));z-index:2000;
             transform:translate(-50%,.6rem);opacity:0;pointer-events:none;
             display:flex;align-items:center;gap:.5rem;max-width:calc(100vw - 32px);
-            background:#2f6b45;color:#fff;padding:.55rem 1rem;border-radius:999px;white-space:nowrap;
+            background:#2f6b45;color:#fff;padding:.55rem 1rem;border-radius:4px;white-space:nowrap;
             box-shadow:0 6px 24px rgba(0,0,0,.35),0 0 0 1px rgba(255,255,255,.12);font-size:.84rem;line-height:1.2;
             transition:opacity .18s ease,transform .18s ease}
         .site-toast.show{opacity:1;transform:translate(-50%,0)}
