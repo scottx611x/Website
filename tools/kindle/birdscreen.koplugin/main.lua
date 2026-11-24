@@ -8,9 +8,8 @@ key, so a bird is downloaded once and dropped when it falls out of the pool.
 KOReader's "random image" sleep screen points at the folder, so every sleep
 shows a different bird without needing Wi-Fi.
 
-The same pool is mirrored into the ScreenSavers hack's folder (linkss) for
-Amazon's own sleep screen, under fixed names so a file Amazon has listed is
-always a valid PNG. Amazon only rereads that folder when it restarts.
+Amazon's own sleep screen (the ScreenSavers hack) is updated by the Bird
+screen KUAL extension's sync script, which this runs after each sync.
 
 It syncs when Wi-Fi connects (or on wake while online), at most every few
 hours, and from Tools > Bird screen > Refresh now. A failed download keeps
@@ -28,8 +27,7 @@ local _ = require("gettext")
 
 local SITE = "https://www.scott-ouellette.com/birds/"
 local DIR = DataStorage:getDataDir() .. "/birdscreen"
-local POOL = 60 -- matches kindle.POOL on the site
-local LINKSS = "/mnt/us/linkss/screensavers" -- Amazon's sleep screen, via the ScreenSavers hack
+local SYNC_SH = "/mnt/us/extensions/birdscreen/bin/sync.sh" -- also updates Amazon's sleep screen
 local MIN_INTERVAL = 3 * 3600 -- seconds between automatic syncs
 
 local BirdScreen = WidgetContainer:extend{
@@ -75,35 +73,17 @@ local function fetch(url, path)
     return false, tostring(status or code)
 end
 
-local function copy(src, dest)
-    local i = io.open(src, "rb")
-    if not i then return false end
-    local data = i:read("*a")
-    i:close()
-    local o = io.open(dest .. ".part", "wb")
-    if not o then return false end
-    o:write(data)
-    o:close()
-    return os.rename(dest .. ".part", dest)
-end
-
 local function birdFile(key)
     return DIR .. "/" .. key .. ".png"
 end
 
--- Fill Amazon's folder slot by slot from the pool (wrapping if there are
--- fewer than POOL birds), rewriting only slots whose bird changed.
-function BirdScreen:mirrorToAmazon(keys)
-    if #keys == 0 or lfs.attributes(LINKSS, "mode") ~= "directory" then return end
-    local placed = G_reader_settings:readSetting("birdscreen_linkss") or {}
-    for slot = 0, POOL - 1 do
-        local key = keys[(slot % #keys) + 1]
-        local dest = string.format("%s/bird-%02d.png", LINKSS, slot)
-        if placed[tostring(slot)] ~= key or lfs.attributes(dest, "mode") ~= "file" then
-            if copy(birdFile(key), dest) then placed[tostring(slot)] = key end
-        end
-    end
-    G_reader_settings:saveSetting("birdscreen_linkss", placed)
+-- Amazon's folder is kept by the Bird screen KUAL extension's sync script
+-- (it matches birds by content, since the ScreenSavers hack renames them).
+-- With the pool now current here it downloads nothing; it only updates that
+-- folder. Run it in the background so the reader stays responsive.
+function BirdScreen:mirrorToAmazon()
+    if lfs.attributes(SYNC_SH, "mode") ~= "file" then return end
+    os.execute("/bin/sh " .. SYNC_SH .. " >/dev/null 2>&1 &")
 end
 
 -- Sync the folder to the site's pool: fetch the list, download missing birds
@@ -147,7 +127,7 @@ function BirdScreen:refresh(force)
             if name:match("%.png$") and not keep[name] then os.remove(DIR .. "/" .. name) end
         end
         if failed == 0 then G_reader_settings:saveSetting("birdscreen_last", os.time()) end
-        self:mirrorToAmazon(keys)
+        self:mirrorToAmazon()
         if force then
             UIManager:show(InfoMessage:new{
                 text = failed == 0

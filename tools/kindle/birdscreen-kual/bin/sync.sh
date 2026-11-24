@@ -1,10 +1,10 @@
 #!/bin/sh
 # Bird screen sync, run hourly by cron (and from KUAL > Bird screen > Sync now).
 #
-# Keeps the latest POOL starred birds from scott-ouellette.com on the Kindle,
+# Keeps the latest starred birds (the site picks how many) from scott-ouellette.com on the Kindle,
 # whatever reader is open:
 #   /mnt/us/koreader/birdscreen/<key>.png     KOReader's sleep screen folder
-#   /mnt/us/linkss/screensavers/bird-NN.png   Amazon's (ScreenSavers hack)
+#   /mnt/us/linkss/screensavers/              Amazon's (ScreenSavers hack)
 # Only birds it lacks are downloaded; birds that left the pool are dropped.
 # With no Wi-Fi it does nothing. Logs to sync.log beside this folder.
 
@@ -13,7 +13,6 @@ US=${BIRDSCREEN_US:-/mnt/us} # overridable for testing off-device
 EXT=$US/extensions/birdscreen
 KO=$US/koreader/birdscreen
 LINKSS=$US/linkss/screensavers
-POOL=60 # matches kindle.POOL on the site
 LOG="$EXT/sync.log"
 KEYS="$EXT/keys.txt"
 LOCK=/tmp/birdscreen.lock
@@ -79,23 +78,35 @@ for f in "$KO"/*.png; do
     fi
 done
 
-# Amazon's folder: fixed names bird-00..bird-59 filled in pool order (wrapping
-# when there are fewer stars), rewriting only slots whose bird changed.
+# Amazon's folder holds exactly the pool. The ScreenSavers hack renames its
+# images (bg_ssNN) whenever it shuffles them, so birds are matched by content,
+# not name: anything that is not a pool bird (its stock images, birds that
+# left the pool) goes, and missing birds are copied in.
 changed=0
 if [ -d "$LINKSS" ]; then
-    slot=0
-    while [ "$slot" -lt "$POOL" ]; do
-        key=$(sed -n "$((slot % n + 1))p" "$KEYS")
-        src="$KO/$key.png"
-        dest=$(printf '%s/bird-%02d.png' "$LINKSS" "$slot")
-        if [ -s "$src" ] && ! cmp -s "$src" "$dest"; then
-            cp -f "$src" "$dest.part" && mv -f "$dest.part" "$dest" && changed=$((changed + 1))
+    : > "$EXT/pool.md5"
+    while read -r key; do
+        [ -s "$KO/$key.png" ] && echo "$(md5sum "$KO/$key.png" | cut -d' ' -f1) $key" >> "$EXT/pool.md5"
+    done < "$KEYS"
+    : > "$EXT/have.md5"
+    for f in "$LINKSS"/*; do
+        [ -f "$f" ] || continue
+        sum=$(md5sum "$f" | cut -d' ' -f1)
+        if grep -q "^$sum " "$EXT/pool.md5" && ! grep -qx "$sum" "$EXT/have.md5"; then
+            echo "$sum" >> "$EXT/have.md5"
+        else
+            rm -f "$f"
+            changed=$((changed + 1))
         fi
-        slot=$((slot + 1))
     done
+    while read -r sum key; do
+        grep -qx "$sum" "$EXT/have.md5" && continue
+        cp -f "$KO/$key.png" "$LINKSS/bird-$key.png.part" && mv -f "$LINKSS/bird-$key.png.part" "$LINKSS/bird-$key.png" && changed=$((changed + 1))
+    done < "$EXT/pool.md5"
+    rm -f "$EXT/have.md5"
 fi
 
-log "$n birds: $new new, $dropped dropped, $failed failed, $changed Amazon slots updated"
+log "$n birds: $new new, $dropped dropped, $failed failed, $changed Amazon files changed"
 
 # Keep the log short.
 tail -n 200 "$LOG" > "$LOG.tmp" && mv -f "$LOG.tmp" "$LOG"
