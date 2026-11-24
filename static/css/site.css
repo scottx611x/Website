@@ -53,14 +53,11 @@ a { color: inherit; text-decoration: none; }
     flex-wrap: wrap;
     gap: 0.5rem 1rem;
     padding: 1.1rem 1.6rem;
-    /* backdrop-filter is deliberately NOT transitioned — browsers can't
-       interpolate it from none and it flashes gray mid-scroll. */
     transition: padding 0.25s, background 0.25s;
 }
 .site-nav.scrolled {
     padding: 0.6rem 1.6rem;
-    background: rgba(13, 18, 14,0.72);
-    backdrop-filter: blur(12px);
+    background: var(--ink);
     border-bottom: 1px solid var(--line);
 }
 .brand {
@@ -118,19 +115,8 @@ body.has-effect .site-footer { position: relative; z-index: 1; }
 #bg-effect {
     position: fixed; inset: 0; z-index: -1; overflow: hidden; background: transparent;
 }
-/* A whisper of motion instead of the legacy animated effects: the hero photo
-   drifts a few percent over a minute and a half, like holding a long lens. */
 #bg-effect img.back {
-    position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
-    z-index: 0; animation: bg-drift 90s ease-in-out infinite alternate;
-    will-change: transform;
-}
-@keyframes bg-drift {
-    from { transform: scale(1.04); }
-    to { transform: scale(1.11) translate(-1.2%, 0.8%); }
-}
-@media (prefers-reduced-motion: reduce) {
-    #bg-effect img.back { animation: none; }
+    position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: 0;
 }
 
 /* Inline line-icons (see _icons.html): sized in em so they track the text/chip
@@ -205,34 +191,23 @@ body.home .site-nav:not(.scrolled) .nav-burger span { background: rgba(244, 241,
     border: 1.5px solid var(--paper);
     transition: transform 0.15s, background 0.2s, border-color 0.2s;
 }
-.btn:hover { transform: translateY(-2px); background: #fff; border-color: #fff; }
+.btn:hover { background: #fff; border-color: #fff; }
 .btn-ghost { background: transparent; color: #fff; border-color: rgba(255,255,255,0.5); }
 .btn-ghost:hover { background: rgba(255,255,255,0.1); border-color: #fff; }
 
-/* ====================== TICKER ====================== */
-/* On the home page, let the sticky ticker (inside .content, z-index:1) rise over
-   the nav as you scroll — so drop the nav beneath the content there. */
-body.home .site-nav { z-index: 0; }
-/* ...but an OPEN phone menu must sit on top, or the content under it takes
-   every tap (and a tap outside the menu closes it). */
-body.home.nav-open .site-nav { z-index: 60; }
+/* Home: every species so far, as one paragraph under the hero. */
 .ticker {
     background: var(--ink); color: var(--paper);
     border-top: 1px solid var(--line); border-bottom: 1px solid var(--line);
-    overflow: hidden; white-space: nowrap; padding: 0.8rem 0;
-    /* Rises up on scroll to take the place of the nav header (sits above it). */
-    position: sticky; top: 0; z-index: 60;
-    box-shadow: 0 6px 18px -8px rgba(0, 0, 0, 0.5);
+    padding: 2.2rem 1.6rem; position: relative; z-index: 1;
 }
 .ticker-track {
-    display: inline-block; font-size: 0.85rem; animation: scroll-x 38s linear infinite;
+    max-width: 1100px; margin: 0 auto; font-family: var(--display); font-size: 1.05rem; line-height: 1.75;
+    color: rgba(244, 241, 233, 0.72);
 }
-.ticker-track span, .ticker-bird { font-style: italic; opacity: 0.8; }
-.ticker-track .sep { color: var(--lift); margin: 0 1.1rem; font-style: normal; opacity: 1; }
-.ticker-bird { color: inherit; text-decoration: none; cursor: pointer; transition: color 0.15s, opacity 0.15s; }
-.ticker-bird:hover, .ticker-bird:focus-visible { opacity: 1; color: var(--lift); text-decoration: underline; text-underline-offset: 3px; }
-.ticker:hover .ticker-track { animation-play-state: paused; }  /* let you click a name */
-@keyframes scroll-x { to { transform: translateX(-50%); } }
+.ticker-n { color: var(--paper); }
+.ticker-bird { color: inherit; text-decoration: none; }
+.ticker-bird:hover, .ticker-bird:focus-visible { color: var(--paper); text-decoration: underline; text-underline-offset: 3px; }
 
 /* ====================== STRIPS ====================== */
 .strip { position: relative; z-index: 1; padding: 6rem 1.6rem; }
@@ -246,8 +221,6 @@ body.home.nav-open .site-nav { z-index: 60; }
 .lede { font-size: 1.08rem; max-width: 40rem; margin: 0; }
 .lede a, .editorial a { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; }
 
-.reveal { opacity: 0; transform: translateY(28px); transition: opacity 0.7s, transform 0.7s; }
-.reveal.in { opacity: 1; transform: none; }
 
 /* editorial (light) */
 .editorial { background: var(--paper); color: var(--ink); }
@@ -261,7 +234,6 @@ body.home.nav-open .site-nav { z-index: 60; }
 }
 .feature-tile.lead { grid-column: span 2; grid-row: span 2; }
 .feature-tile img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.6s; }
-.feature-tile:hover img { transform: scale(1.06); }
 .tile-cap {
     position: absolute; left: 0; right: 0; bottom: 0; padding: 0.6rem 0.7rem;
     font-size: 0.72rem; color: #fff;
@@ -688,22 +660,8 @@ body.home.nav-open .site-nav { z-index: 60; }
     content-visibility: auto; contain-intrinsic-size: auto 340px; }
 /* A frame hidden in curate fades out so the action is visibly confirmed. */
 .masonry .shot.frame-hidden { transition: opacity 0.25s ease, transform 0.25s ease; opacity: 0; transform: scale(0.9); pointer-events: none; }
-/* Scroll-reveal (only once JS marks the grid ready, so no-JS never hides photos) */
-.masonry.reveal-ready .shot { opacity: 0; transform: translateY(14px); transition: opacity 0.5s ease, transform 0.5s ease; }
-.masonry.reveal-ready .shot.seen { opacity: 1; transform: none; }
-/* Cursor spotlight: a soft neon glow follows the pointer over a card */
-@media (hover: hover) {
-    .masonry .shot::after {
-        content: ""; position: absolute; inset: 0; opacity: 0; pointer-events: none;
-        transition: opacity 0.3s ease; mix-blend-mode: screen;
-        background: radial-gradient(240px circle at var(--mx, 50%) var(--my, 50%),
-                    rgba(140, 196, 155, 0.22), transparent 65%);
-    }
-    .masonry .shot:hover::after { opacity: 1; }
-}
 .masonry .shot:focus-visible { outline: 2px solid var(--lift); outline-offset: 2px; }
-.masonry .shot img { width: 100%; height: auto; display: block; transition: transform 0.6s; }
-.masonry .shot:hover img { transform: scale(1.05); }
+.masonry .shot img { width: 100%; height: auto; display: block; }
 .shot figcaption {
     position: absolute; inset: auto 0 0 0; display: flex; justify-content: space-between; gap: 0.5rem;
     font-size: 0.74rem; color: #fff; padding: 0.7rem;
@@ -772,7 +730,7 @@ body.home.nav-open .site-nav { z-index: 60; }
     background: var(--paper); border: 1px solid rgba(47, 125, 79, 0.28); box-shadow: 0 1px 3px rgba(13, 18, 14, 0.05);
     transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
 }
-.featured-project:hover { transform: translateY(-2px); box-shadow: 0 10px 26px -10px rgba(13, 18, 14, 0.22); border-color: var(--accent); }
+.featured-project:hover { border-color: var(--accent); }
 .featured-project .post-title { font-size: 1.3rem; }
 .featured-project p { margin: 0.7rem 0 0; font-size: 0.97rem; line-height: 1.6; max-width: 34rem; }
 /* GitHub / live-site link chips */
@@ -863,7 +821,7 @@ body.home.nav-open .site-nav { z-index: 60; }
 }
 #sightings-map {
     height: min(72vh, 760px); border-radius: 12px; z-index: 1;
-    border: 1px solid rgba(13, 18, 14, 0.12); box-shadow: 0 10px 30px -18px rgba(13, 18, 14, 0.35);
+    border: 1px solid rgba(13, 18, 14, 0.12);
 }
 /* Phones: size the map to the space left under the header/toggle so the whole
    thing — map + legend — fits without scrolling. svh (small viewport) keeps it
@@ -945,7 +903,7 @@ a.stat-card:hover { border-color: var(--accent); }
    the moment you scrolled. It sits below the nav now. */
 .stat-jump { position: sticky; top: 2.9rem; z-index: 30; display: flex; gap: 4px;
   overflow-x: auto; scrollbar-width: none; padding: 0.55rem 0; margin: 0 0 1rem;
-  background: rgba(244, 241, 233, 0.92); backdrop-filter: blur(10px);
+  background: rgba(244, 241, 233, 0.92);
   border-bottom: 1px solid rgba(13, 18, 14, 0.1); }
 .stat-jump::-webkit-scrollbar { display: none; }
 .stat-jump a { flex: none; padding: 0.3rem 0.75rem; border-radius:4px;
@@ -989,14 +947,12 @@ a.stat-card:hover { border-color: var(--accent); }
 .bar-label { font-size: 0.86rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .bar-sub { color: var(--muted); font-size: 0.7rem; }
 .bar-track { height: 0.62rem; background: rgba(13, 18, 14, 0.06); border-radius:4px; overflow: hidden; }
-.bar-fill { display: block; height: 100%; border-radius:4px; background: var(--accent); min-width: 2px;
-    animation: bar-grow 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) both; transform-origin: left; }
-.bar-fill.alt { background: linear-gradient(90deg, var(--accent), var(--lift)); }
+.bar-fill { display: block; height: 100%; border-radius:4px; background: var(--accent); min-width: 2px; }
+.bar-fill.alt { background: var(--lift); }
 .bar-fill.warm { background: #d9863b; }
 /* Locations read as home/neutral green — reserve the amber for "away". */
 .bar-fill.loc { background: #6ba368; }
 .bar-val { font-size: 0.8rem; color: var(--muted); text-align: right; }
-@keyframes bar-grow { from { transform: scaleX(0); } to { transform: scaleX(1); } }
 
 /* d3 charts (life list, phenology matrix, calendar heatmap, family treemap) */
 .d3-chart svg { width: 100%; height: auto; display: block; }
@@ -1040,7 +996,7 @@ a.river-readout:hover .riv-go { text-decoration: underline; }
     position: absolute; top: 0.6rem; left: 0.6rem; z-index: 3; max-width: 17rem;
     display: flex; gap: 0.85rem; align-items: center;
     text-decoration: none; color: var(--ink); padding: 0.65rem 0.8rem 0.65rem 0.65rem;
-    border-radius: 14px; background: rgba(244, 241, 233, 0.82); backdrop-filter: blur(4px);
+    border-radius: 14px; background: rgba(244, 241, 233, .88);
     border-left: 4px solid var(--accent, var(--accent));
     box-shadow: 0 3px 16px -6px rgba(13, 18, 14, 0.32);
 }
@@ -1187,7 +1143,6 @@ a.river-readout:hover .riv-go { text-decoration: underline; }
 .ll-tile img { width: 100%; height: 100%; object-fit: cover; display: block;
     object-position: var(--px, 50%) var(--py, 35%);
     transition: transform 0.25s ease; }
-.ll-tile:hover img, .ll-tile.on img { transform: scale(1.06); }
 /* The rank rides on the tile so the ordering reads without hovering, but
    stays quiet until the tile is the one in the frame. */
 .ll-tn {
@@ -1296,8 +1251,7 @@ a.pheno-cell:hover, a.pheno-cell:focus-visible {
    of the sticky jump bar (sticky inside the bar's own scroller on phones). */
 .pin-chip { position: sticky; right: 0; margin-left: auto; flex: none; display: inline-flex; align-items: center;
   gap: 0.4rem; padding: 0.18rem 0.25rem 0.18rem 0.2rem; border-radius:4px;
-  background: var(--ink); color: var(--paper); box-shadow: -10px 0 12px -6px rgba(244, 241, 233, 0.95);
-  animation: pinIn 0.35s cubic-bezier(.3, 1.4, .5, 1); }
+  background: var(--ink); color: var(--paper); box-shadow: -10px 0 12px -6px rgba(244, 241, 233, 0.95); }
 .pin-chip[hidden] { display: none; }
 .pin-chip img { width: 1.5rem; height: 1.5rem; border-radius: 50%; object-fit: cover; }
 .stat-jump .pin-chip .pin-name { padding: 0 0.1rem; border: none; color: var(--paper); font-size: 0.72rem; }
@@ -1305,30 +1259,12 @@ a.pheno-cell:hover, a.pheno-cell:focus-visible {
 .pin-x { width: 1.5rem; height: 1.5rem; border-radius: 50%; border: none; background: rgba(244, 241, 233, 0.14);
   color: var(--paper); font-size: 0.95rem; line-height: 1; cursor: pointer; }
 .pin-x:hover { background: rgba(244, 241, 233, 0.3); }
-@keyframes pinIn { from { opacity: 0; transform: scale(0.85); } }
 .pheno-row, .rhythm-row, #board-rows .bar-row, #ear-bars .bar-row { transition: opacity 0.25s ease; }
 .pheno-matrix.pinning .pheno-row:not(.pin):not(.pheno-head) { opacity: 0.35; }
 .pheno-row.pin .pheno-name { color: var(--accent); font-weight: 600; }
 .rhythm-chart.pinning .rhythm-row:not(.pin):not(.axis) { opacity: 0.25; }
 .rhythm-row.pin .rhythm-name { color: var(--accent); font-weight: 600; }
 .pin-note { margin-top: 0.4rem; }
-@media (prefers-reduced-motion: reduce) { .pin-chip { animation: none; } }
-/* First sight (stats): the hidden state applies only under .stats-arrive,
-   which is set only when motion is welcome; .arrived releases it, once. */
-/* (the site-wide bar-grow keyframe ran at load, off screen, and its fill
-   would override this; first sight replaces it here) */
-.stats-arrive .stat-block .bar-fill {
-  animation: none; transform-origin: left center; transition: transform 0.65s cubic-bezier(.2, .7, .1, 1);
-  transition-delay: calc(var(--i, 0) * 35ms); }
-.stats-arrive .stat-block:not(.arrived) .bar-fill { transform: scaleX(0); }
-.stats-arrive #days circle.cal-day { transform-box: fill-box; transform-origin: center;
-  transition: transform 0.35s cubic-bezier(.3, 1.4, .5, 1); transition-delay: var(--d, 0ms); }
-.stats-arrive #days:not(.arrived) circle.cal-day { transform: scale(0); }
-.stats-arrive .rhythm-spark { transform-origin: 50% 100%; transition: transform 0.55s cubic-bezier(.2, .7, .1, 1);
-  transition-delay: calc(var(--i, 0) * 15ms); }
-.stats-arrive #rhythm-block:not(.arrived) .rhythm-spark { transform: scaleY(0); }
-.stats-arrive #river-chart svg { transition: clip-path 1s cubic-bezier(.3, .6, .2, 1); clip-path: inset(0 0 0 0); }
-.stats-arrive #s-river:not(.arrived) #river-chart svg { clip-path: inset(0 100% 0 0); }
 /* Stats: with the cards gone, the per-day strip leads the Heard section at
    full width and the rows below get a real bar to draw the mic split in. */
 .stats .ear-grid { grid-template-columns: minmax(0, 1fr); gap: 0.4rem; }
@@ -1406,7 +1342,7 @@ a.rhythm-row:hover .rhythm-spark path { fill: color-mix(in srgb, var(--ridge, va
 .ear-cards span, .ear-cards .ear-card { border: 1px solid rgba(13, 18, 14, 0.12); border-radius: 10px; padding: 0.55rem 0.7rem; font-size: 0.7rem; color: var(--muted); background: #fbf9f3; }
 .ear-cards .ear-card { display: block; text-align: left; width: 100%; font: inherit; cursor: pointer; transition: border-color .15s, transform .15s, box-shadow .15s; }
 .ear-cards a.ear-card { text-decoration: none; }
-.ear-cards .ear-card:hover { border-color: var(--accent); transform: translateY(-1px); box-shadow: 0 3px 10px rgba(13, 18, 14, 0.08); }
+.ear-cards .ear-card:hover { border-color: var(--accent); }
 .ear-cards .ear-card.amber:hover { border-color: #a9761f; }
 .ear-cards .ear-card:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 a.ear-daily { cursor: pointer; }
@@ -1551,7 +1487,7 @@ a.ear-daily:hover .ear-day:not(.zero) { filter: brightness(1.08); }
     position: absolute; top: 0.5rem; right: 0.5rem; z-index: 4; cursor: help;
     width: 1.7rem; height: 1.7rem; border-radius: 50%;
     display: flex; align-items: center; justify-content: center;
-    background: rgba(20, 16, 8, 0.6); backdrop-filter: blur(2px);
+    background: rgba(20, 16, 8, .88);
     box-shadow: 0 1px 4px rgba(0,0,0,0.4); outline: none;
 }
 .away-badge-mark { font-size: 0.95rem; line-height: 1; filter: saturate(1.3); }
@@ -1606,7 +1542,7 @@ a.ear-daily:hover .ear-day:not(.zero) { filter: brightness(1.08); }
     box-shadow: 0 3px 12px rgba(0,0,0,0.28); opacity: 0.72;
     transition: opacity 0.15s ease, transform 0.15s ease;
 }
-.curate-toggle:hover { opacity: 1; transform: translateY(-1px); }
+.curate-toggle:hover { opacity: 1; }
 .curate-toggle.on { background: var(--accent); color: #fff; opacity: 0.96; }
 .curate-logout {
     font-size: 0.66rem; text-decoration: none; white-space: nowrap;
@@ -1755,7 +1691,7 @@ a.ear-daily:hover .ear-day:not(.zero) { filter: brightness(1.08); }
     position: absolute; top: 0.5rem; left: 0.5rem; z-index: 4; cursor: help;
     width: 1.7rem; height: 1.7rem; border-radius: 50%;
     display: flex; align-items: center; justify-content: center;
-    background: rgba(20, 16, 8, 0.6); backdrop-filter: blur(2px);
+    background: rgba(20, 16, 8, .88);
     box-shadow: 0 1px 4px rgba(0,0,0,0.4); outline: none;
 }
 .shot.curating .multi-badge { left: 2.5rem; }   /* make room for the 🔀 badge */
@@ -1948,8 +1884,7 @@ a.ear-daily:hover .ear-day:not(.zero) { filter: brightness(1.08); }
     .strip-head { flex-direction: column; gap: 0.5rem; }
 }
 @media (prefers-reduced-motion: reduce) {
-    .reveal { opacity: 1; transform: none; }
-    .ticker-track, .brand-dot, .scroll-cue span, .cursor, .blink::before { animation: none; }
+    .brand-dot, .scroll-cue span, .cursor, .blink::before { animation: none; }
 }
 
 /* ============================================================================
@@ -2062,14 +1997,13 @@ a.stat-card:active, .bird-stat-link:active,
     opacity: 0; transition: opacity .15s, background .15s, transform .15s;
 }
 .shot:hover > .sel-check, .shot:focus-within > .sel-check, body.sel-on .shot > .sel-check { opacity: 1; }
-.sel-check:hover { background: rgba(255,255,255,.35); color: #fff; transform: scale(1.08); }
+.sel-check:hover { background: rgba(255,255,255,.35); color: #fff; }
 /* the corner badges that also live top-left step aside for the circle */
 .shot:hover > .multi-badge, .shot:hover > .grid-star, .shot:hover > .flag-badge, .shot:hover > .reclassified-badge,
 body.sel-on .shot > .multi-badge, body.sel-on .shot > .grid-star, body.sel-on .shot > .flag-badge, body.sel-on .shot > .reclassified-badge {
     transform: translateX(1.9rem); transition: transform .15s;
 }
 body.sel-on .masonry .shot, body.sel-on .pg-just .shot { cursor: pointer; -webkit-user-select: none; user-select: none; }
-body.sel-on .masonry .shot:hover img { transform: none; }
 .masonry .shot, .pg-just .shot { -webkit-touch-callout: none; }
 .shot.sel-picked { background: rgba(47,125,79,.22); }
 .shot.sel-picked img, .shot.sel-picked video { transform: scale(.86) !important; border-radius: 6px; transition: transform .16s ease, border-radius .16s; }

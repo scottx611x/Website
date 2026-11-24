@@ -67,23 +67,15 @@ body.field-view .page.wide{padding-top:0;padding-bottom:0}
   }
   body.field-view .gallery-header.is-stuck .birds-subnav::-webkit-scrollbar{display:none}
 }
-/* ONE pane of glass behind the whole chrome block, not one per bar.
-   backdrop-filter samples only what is behind its own element, so two
-   adjacent blurred bars do not blend across the boundary between them and
-   the junction renders as a faint line all the way across the screen. A
-   single fixed scrim spanning both removes the boundary entirely. */
+/* One solid panel behind the nav and the filter bar together, so the two
+   read as a single block with no seam between them. */
 body.field-view .site-nav,
 body.field-view .gallery-header.is-stuck{background:transparent}
 body.field-view::before{
   content:"";position:fixed;top:0;left:0;right:0;z-index:39;pointer-events:none;
   height:calc(var(--bf-navh,65px) + var(--bf-barh,50px));
-  background:color-mix(in srgb, var(--paper) 90%, transparent);
-  -webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);
+  background:var(--paper);
   border-bottom:1px solid var(--line);
-}
-@supports not (backdrop-filter: blur(1px)){
-  /* Without blur the translucency just looks like a printing error. */
-  body.field-view::before{background:var(--paper)}
 }
 /* The nav and the bar read as one block of chrome, so only the bottom of the
    block gets a rule — a line under each gave two hairlines 50px apart. */
@@ -146,12 +138,11 @@ body.field-view .gallery-header.is-stuck{
 .bf-tilt{position:absolute;right:.6rem;bottom:.6rem;z-index:6;font:inherit;
   font-size:.7rem;padding:.3rem .8rem;border-radius:4px;cursor:pointer;
   border:1px solid rgba(13, 18, 14,.25);background:rgba(244, 241, 233,.85);
-  color:var(--ink);backdrop-filter:blur(4px)}
+  color:var(--ink);}
 .bf-tilt.on{background:var(--accent);border-color:var(--accent);color:#fff}
 .bf-hint{position:absolute;left:50%;bottom:.6rem;transform:translateX(-50%);
   z-index:5;font-size:.72rem;color:var(--muted);pointer-events:none;
-  padding:.2rem .7rem;border-radius:4px;background:rgba(244, 241, 233,.75);
-  backdrop-filter:blur(4px);transition:opacity .6s .4s}
+  padding:.2rem .7rem;border-radius:4px;background:rgba(244, 241, 233,.88);transition:opacity .6s .4s}
 .bf-canvas.bf-touched .bf-hint{opacity:0}   /* it has served its purpose */
 
 /* ---------- detail modal: image-led, in the site's own type ---------- */
@@ -164,8 +155,8 @@ body.field-view .gallery-header.is-stuck{
 .bf-over.open{display:block}
 .bf-oclose{position:fixed;top:.8rem;right:1rem;z-index:40;border:0;color:#fff;
   font-size:1.6rem;line-height:1;cursor:pointer;opacity:.95;
-  background:rgba(13, 18, 14,.55);border-radius:50%;width:38px;height:38px;
-  display:grid;place-items:center;backdrop-filter:blur(4px)}
+  background:rgba(13, 18, 14,.88);border-radius:50%;width:38px;height:38px;
+  display:grid;place-items:center;}
 .bf-oclose:hover{opacity:1}
 .bf-obody{display:grid;grid-template-columns:minmax(0,1fr) 22rem;
   grid-template-rows:1fr auto;min-height:100svh}
@@ -236,8 +227,7 @@ body.field-view .gallery-header.is-stuck{
 .bf-stage:fullscreen .bf-fsx,.bf-stage:-webkit-full-screen .bf-fsx,.bf-stage.imm .bf-fsx{
   display:grid;place-items:center;position:fixed;top:1rem;right:1.2rem;z-index:10;
   width:42px;height:42px;border-radius:50%;border:0;cursor:pointer;
-  background:rgba(13, 18, 14,.6);color:#fff;font-size:1.6rem;line-height:1;
-  backdrop-filter:blur(4px)}
+  background:rgba(13, 18, 14,.88);color:#fff;font-size:1.6rem;line-height:1;}
 .bf-stage:fullscreen .bf-fsx:hover,.bf-stage.imm .bf-fsx:hover{background:rgba(13, 18, 14,.85)}
 .bf-stage:fullscreen,.bf-stage.imm{background:#0d120e;padding:0}
 .bf-stage:fullscreen .bf-oimg,.bf-stage.imm .bf-oimg{max-height:100vh;max-width:100vw}
@@ -303,7 +293,7 @@ body.field-view .gallery-header.is-stuck{
   .bf-stage{flex-direction:column;gap:.4rem}
   .bf-stage .bf-count{position:static;transform:none;color:var(--muted);
     font-size:.68rem;text-align:center;line-height:1.35;padding:.2rem .4rem 0;
-    max-width:100%;background:none;backdrop-filter:none;text-shadow:none}
+    max-width:100%;background:none;text-shadow:none}
   .bf-arrow{top:40%}
   .bf-strip{padding:.5rem .8rem .8rem;-webkit-overflow-scrolling:touch}
   .bf-strip img{width:48px;height:48px}
@@ -323,8 +313,7 @@ body.field-view .gallery-header.is-stuck{
 .bf-prev{left:.2rem}.bf-next{right:.2rem}
 .bf-count{position:absolute;bottom:.55rem;left:50%;transform:translateX(-50%);
   color:#fff;font-size:.76rem;max-width:calc(100% - 5rem);text-align:center;
-  padding:.22rem .6rem;border-radius:4px;background:rgba(13, 18, 14,.62);
-  backdrop-filter:blur(6px);text-shadow:0 1px 2px rgba(0,0,0,.5)}
+  padding:.22rem .6rem;border-radius:4px;background:rgba(13, 18, 14,.88);text-shadow:0 1px 2px rgba(0,0,0,.5)}
 .bf-strip{display:flex;gap:.35rem;overflow-x:auto;
   padding:.7rem 1.4rem 1.2rem;min-width:0}
 .bf-stripend{flex:none;width:1px;height:1px}
@@ -476,8 +465,7 @@ body.field-view .gallery-header.is-stuck{
 @media (max-width:620px){
   .bf-sheet{position:fixed;left:0;right:0;bottom:0;top:auto;width:auto;
     max-width:none;border-top:0;border-radius:14px 14px 0 0;
-    background:rgba(16,21,17,.94);-webkit-backdrop-filter:blur(14px);
-    backdrop-filter:blur(14px);
+    background:rgba(16,21,17,.94);
     box-shadow:0 -12px 34px -14px rgba(0,0,0,.85)}
   .bf-sheet-bar{background:rgba(255,255,255,.26)}
   /* Right padding clears the absolutely-positioned chevron, which otherwise
@@ -619,7 +607,7 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
 .bf-famlink:hover{color:var(--accent);border-bottom-color:currentColor}
 .bf-orig{position:absolute;right:.9rem;bottom:.55rem;z-index:3;font-size:.75rem;color:rgba(255,255,255,.75);
   text-decoration:none;padding:.25rem .5rem;border-radius:3px;
-  background:rgba(13,18,14,.45);backdrop-filter:blur(4px)}
+  background:rgba(13,18,14,.88);}
 .bf-orig:hover{color:#fff;background:rgba(13,18,14,.7)}
 .bf-orig[hidden]{display:none}
 </style>

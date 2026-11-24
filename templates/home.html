@@ -145,15 +145,14 @@
 
     {% if species %}
     <div class="ticker">
-        <div class="ticker-track" style="animation-duration: {{ [species|length * 4, 40]|max }}s">
-            {% for s in species %}<a class="ticker-bird" href="/birds?bird={{ s|urlencode }}#bird/{{ s|slug }}">{{ s }}</a><span class="sep" aria-hidden="true">&bull;</span>{% endfor %}
-            {% for s in species %}<a class="ticker-bird" href="/birds?bird={{ s|urlencode }}#bird/{{ s|slug }}" tabindex="-1" aria-hidden="true">{{ s }}</a><span class="sep" aria-hidden="true">&bull;</span>{% endfor %}
-        </div>
+        <p class="ticker-track"><span class="ticker-n">On Instagram so far:</span>
+            {% for s in species %}<a class="ticker-bird" href="/birds?bird={{ s|urlencode }}#bird/{{ s|slug }}">{{ s }}</a>{{ "," if not loop.last else "." }}
+            {% endfor %}</p>
     </div>
     {% endif %}
 
     <!-- ============ BIRDS ============ -->
-    <section class="strip editorial reveal">
+    <section class="strip editorial">
         <div class="strip-head">
             <div>
                 <h2>Birds</h2>
@@ -193,7 +192,7 @@
     </section>
 
     {% if wildlife %}
-    <section class="strip editorial reveal">
+    <section class="strip editorial">
         <div class="strip-head">
             <div>
                 <h2>Photography</h2>
@@ -218,7 +217,7 @@
     {% endif %}
 
     <!-- ============ PROJECTS ============ -->
-    <section class="strip techy reveal">
+    <section class="strip techy">
         <div class="strip-head">
             <div>
                 <h2>Projects</h2>
@@ -241,7 +240,7 @@
 
     <!-- ============ WRITING ============ -->
     {% if posts %}
-    <section class="strip writing reveal">
+    <section class="strip writing">
         <div class="strip-head">
             <div><h2>Writing</h2><p class="lede">Code, photography, whatever I'm working on.</p></div>
         </div>
