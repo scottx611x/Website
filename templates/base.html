@@ -261,6 +261,11 @@
         }
         addEventListener("scroll", navScrolled, { passive: true });
         navScrolled();
+        // Reveal-on-scroll
+        var io = new IntersectionObserver(function (entries) {
+            entries.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); } });
+        }, { threshold: 0.12 });
+        document.querySelectorAll(".reveal").forEach(function (el) { io.observe(el); });
 
         // Lightbox: cards carry [data-images] (JSON list). We flatten every image
         // across all cards into one sequence so prev/next pages through whole
@@ -1011,6 +1016,24 @@
                 if (full && full !== img.src) { img._fellBack = true; img.src = full; }
             } catch (_) { /* leave the broken image */ }
         }, true);
+
+        // Gallery scroll-reveal: photos fade up as they enter the viewport.
+        // Gated behind .reveal-ready so a JS failure never hides the grid.
+        (function () {
+            if (!("IntersectionObserver" in window) ||
+                matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+            // threshold 0: lazy images have no height until they load, so any
+            // positive threshold would never fire for below-fold cards.
+            var obs = new IntersectionObserver(function (entries) {
+                entries.forEach(function (e) {
+                    if (e.isIntersecting) { e.target.classList.add("seen"); obs.unobserve(e.target); }
+                });
+            }, { threshold: 0, rootMargin: "0px 0px 6% 0px" });
+            document.querySelectorAll(".masonry").forEach(function (g) {
+                g.classList.add("reveal-ready");
+                g.querySelectorAll(".shot").forEach(function (s) { obs.observe(s); });
+            });
+        })();
 
         /* Video covers play once they scroll into view: muted, looping,
            inline, on every device.
