@@ -1,6 +1,7 @@
 import collections
 import datetime
 from urllib.parse import urlencode
+from zoneinfo import ZoneInfo
 import math
 import hashlib
 import hmac
@@ -14,6 +15,7 @@ from flask_compress import Compress
 
 import birds
 import blog
+import kindle
 import live_labels
 
 app = Flask(__name__)
@@ -1350,6 +1352,41 @@ def birds_original(name):
         abort(404)
     resp = redirect(url, code=302)
     resp.headers["Cache-Control"] = "private, max-age=300"
+    return resp
+
+
+_EASTERN = ZoneInfo("America/New_York")
+
+
+@app.route("/birds/kindle.png", methods=["GET"])
+def birds_kindle():
+    """One starred bird as a Kindle Paperwhite sleep screen.
+
+    ?slot=0..kindle.POOL-1 picks a bird from today's pool (US Eastern days),
+    so the device can hold several and rotate. X-Bird-Frame names the frame."""
+    try:
+        slot = int(request.args.get("slot") or 0)
+    except ValueError:
+        abort(400)
+    if not 0 <= slot < kindle.POOL:
+        abort(400)
+    day = datetime.datetime.now(_EASTERN).date().toordinal()
+    frame = kindle.pick_frame(birds.load_gallery(shuffle=False),
+                              birds.load_starred(), day, slot)
+    if not frame:
+        abort(404)
+    try:
+        r = birds.requests.get(frame["images"][0], timeout=20)
+        r.raise_for_status()
+    except birds.requests.RequestException:
+        abort(502)
+    png = kindle.render(r.content, species=frame.get("species") or "",
+                        date=frame.get("date") or "",
+                        location=frame.get("location") or "",
+                        focus=birds.focus_point(frame["images"][0]))
+    resp = app.response_class(png, mimetype="image/png")
+    resp.headers["Cache-Control"] = "public, max-age=1800"
+    resp.headers["X-Bird-Frame"] = frame["id"]
     return resp
 
 

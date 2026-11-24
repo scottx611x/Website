@@ -1479,3 +1479,64 @@ class WildlifeTitleTestCase(unittest.TestCase):
         self.assertEqual(wildlife._title_from_filename("white-tailed-deer.jpg"), "White Tailed Deer")
         self.assertEqual(wildlife._title_from_filename("red-fox_ipswich-river.JPG"), "Red Fox Ipswich River")
         self.assertEqual(wildlife._title_from_filename("2026.jpg"), "2026")
+
+
+class KindleScreenTestCase(GenericTestBase):
+    def _shot(self, pid, ts, n=2, videos=None):
+        return {"id": pid, "timestamp": ts, "species": "Blue Jay",
+                "images": ["https://x/%s-%d.jpg" % (pid, i) for i in range(n)],
+                "image_indices": list(range(n)), "image_videos": videos or []}
+
+    def test_pool_cycles_every_star_before_repeating(self):
+        import kindle
+        shots = [self._shot("p%d" % n, "2026-01-%02dT00:00:00+0000" % (n + 1), n=3)
+                 for n in range(9)]
+        starred = {"p%d-%d" % (n, i) for n in range(9) for i in range(3)}  # 27 stars
+        seen = [kindle.pick_frame(shots, starred, day, slot)["id"]
+                for day in range(3) for slot in range(kindle.POOL)][:27]
+        self.assertEqual(sorted(seen), sorted(starred))
+        # Stable for a given day and slot; a new day starts a new pool.
+        self.assertEqual(kindle.pick_frame(shots, starred, 5, 2)["id"],
+                         kindle.pick_frame(shots, starred, 5, 2)["id"])
+        self.assertNotEqual(kindle.pick_frame(shots, starred, 5, 0)["id"],
+                            kindle.pick_frame(shots, starred, 6, 0)["id"])
+
+    def test_skips_video_frames_and_returns_none_without_stars(self):
+        import kindle
+        shots = [self._shot("v", "2026-06-01T00:00:00+0000", videos=["https://x/v.mp4", None])]
+        self.assertEqual(kindle.pick_frame(shots, {"v-0", "v-1"}, 1)["id"], "v-1")
+        self.assertIsNone(kindle.pick_frame(shots, {"v-0"}, 1))
+        self.assertIsNone(kindle.pick_frame(shots, set(), 1))
+
+    def test_render_fills_the_paperwhite_screen_in_16_grays(self):
+        import io
+        import kindle
+        from PIL import Image
+        for size in ((1200, 800), (800, 1200)):
+            buf = io.BytesIO()
+            Image.linear_gradient("L").resize(size).convert("RGB").save(buf, "JPEG")
+            out = Image.open(io.BytesIO(kindle.render(buf.getvalue(), "Blue Jay", "Jun 1, 2026", "Rea St.")))
+            self.assertEqual(out.size, (1072, 1448))
+            self.assertEqual(out.mode, "L")
+            self.assertLessEqual(len(out.getcolors()), 16)
+
+    def test_full_bleed_crop_follows_the_bird_and_spares_wide_ones(self):
+        import kindle
+        # 3:2 landscape, bird near the right edge: the slice slides right but stays in frame.
+        l, t, r, b = kindle._full_bleed_box(3000, 2000, [0.9, 0.5, 1.5, 0.1, 0.1])
+        self.assertEqual((t, b), (0, 2000))
+        self.assertAlmostEqual(r, 3000)
+        self.assertAlmostEqual(r - l, 2000 * 1072 / 1448)
+        # A bird wider than a portrait slice keeps the whole photo.
+        self.assertIsNone(kindle._full_bleed_box(3000, 2000, [0.5, 0.5, 1.5, 0.6, 0.3]))
+        # No focus data: centred.
+        l, _, r, _ = kindle._full_bleed_box(3000, 2000, None)
+        self.assertAlmostEqual((l + r) / 2, 1500)
+
+    def test_route_404s_when_nothing_is_starred(self):
+        with mock.patch.object(birds, "load_starred", return_value=set()):
+            self.assertEqual(self.test_client.get("/birds/kindle.png").status_code, 404)
+
+    def test_route_rejects_out_of_range_slots(self):
+        for slot in ("-1", "10", "x"):
+            self.assertEqual(self.test_client.get("/birds/kindle.png?slot=" + slot).status_code, 400)
