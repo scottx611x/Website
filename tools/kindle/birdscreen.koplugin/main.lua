@@ -23,6 +23,7 @@ local _ = require("gettext")
 local URL = "https://www.scott-ouellette.com/birds/kindle.png?slot="
 local DIR = DataStorage:getDataDir() .. "/birdscreen"
 local POOL = 10 -- matches kindle.POOL on the site
+local LINKSS = "/mnt/us/linkss/screensavers" -- Amazon's sleep screen, via the ScreenSavers hack
 local MIN_INTERVAL = 3 * 3600 -- seconds between automatic refreshes
 
 local BirdScreen = WidgetContainer:extend{
@@ -39,6 +40,24 @@ function BirdScreen:init()
         G_reader_settings:makeTrue("birdscreen_configured")
     end
     self.ui.menu:registerToMainMenu(self)
+end
+
+-- Copy a bird into the ScreenSavers hack's folder (linkss), so Amazon's own
+-- sleep screen shows the same pool. Amazon reads that folder at boot, so new
+-- birds appear there after the next restart. Written beside the target and
+-- renamed into place: a half-written PNG would stall Amazon's UI until reboot.
+function BirdScreen:mirrorToAmazon(file, slot)
+    if lfs.attributes(LINKSS, "mode") ~= "directory" then return end
+    local src = io.open(file, "rb")
+    if not src then return end
+    local data = src:read("*a")
+    src:close()
+    local dest = string.format("%s/bird-%02d.png", LINKSS, slot)
+    local out = io.open(dest .. ".part", "wb")
+    if not out then return end
+    out:write(data)
+    out:close()
+    os.rename(dest .. ".part", dest)
 end
 
 -- Download one slot. Returns true on success, or false and a reason.
@@ -61,6 +80,7 @@ function BirdScreen:download(slot)
     socketutil:reset_timeout()
     if code == 200 and (lfs.attributes(tmp, "size") or 0) > 1024 then
         os.rename(tmp, file)
+        self:mirrorToAmazon(file, slot)
         return true
     end
     os.remove(tmp)
