@@ -190,19 +190,30 @@ body.home .site-nav:not(.scrolled) .nav-burger span { background: rgba(244, 241,
 .btn-ghost { background: transparent; color: #fff; border-color: rgba(255,255,255,0.5); }
 .btn-ghost:hover { background: rgba(255,255,255,0.1); border-color: #fff; }
 
-/* Home: every species so far, as one paragraph under the hero. */
+/* Ticker */
+/* On the home page, let the sticky ticker (inside .content, z-index:1) rise over
+   the nav as you scroll — so drop the nav beneath the content there. */
+body.home .site-nav { z-index: 0; }
+/* ...but an OPEN phone menu must sit on top, or the content under it takes
+   every tap (and a tap outside the menu closes it). */
+body.home.nav-open .site-nav { z-index: 60; }
 .ticker {
     background: var(--ink); color: var(--paper);
     border-top: 1px solid var(--line); border-bottom: 1px solid var(--line);
-    padding: 2.2rem 1.6rem; position: relative; z-index: 1;
+    overflow: hidden; white-space: nowrap; padding: 0.8rem 0;
+    /* Rises up on scroll to take the place of the nav header (sits above it). */
+    position: sticky; top: 0; z-index: 60;
+    box-shadow: 0 6px 18px -8px rgba(0, 0, 0, 0.5);
 }
-.ticker-track {font-family:var(--mono); 
-    max-width: 1100px; margin: 0 auto; font-family: var(--display); font-size: 1.05rem; line-height: 1.75;
-    color: rgba(244, 241, 233, 0.72);
+.ticker-track {
+    display: inline-block; font-size: 0.85rem; animation: scroll-x 38s linear infinite;
 }
-.ticker-n { color: var(--paper); }
-.ticker-bird { color: inherit; text-decoration: none; }
-.ticker-bird:hover, .ticker-bird:focus-visible { color: var(--paper); text-decoration: underline; text-underline-offset: 3px; }
+.ticker-track span, .ticker-bird { font-style: italic; opacity: 0.8; }
+.ticker-track .sep { color: var(--lift); margin: 0 1.1rem; font-style: normal; opacity: 1; }
+.ticker-bird { color: inherit; text-decoration: none; cursor: pointer; transition: color 0.15s, opacity 0.15s; }
+.ticker-bird:hover, .ticker-bird:focus-visible { opacity: 1; color: var(--lift); text-decoration: underline; text-underline-offset: 3px; }
+.ticker:hover .ticker-track { animation-play-state: paused; }  /* let you click a name */
+@keyframes scroll-x { to { transform: translateX(-50%); } }
 
 /* Strips */
 .strip { position: relative; z-index: 1; padding: 6rem 1.6rem; }
@@ -1869,7 +1880,7 @@ a.ear-daily:hover .ear-day:not(.zero) { filter: brightness(1.08); }
     .strip-head { flex-direction: column; gap: 0.5rem; }
 }
 @media (prefers-reduced-motion: reduce) {
-    .brand-dot, .scroll-cue span, .cursor, .blink::before { animation: none; }
+    .ticker-track, .brand-dot, .scroll-cue span, .cursor, .blink::before { animation: none; }
 }
 
 /* SOFT-PRESS — one uniform tactile squish on EVERY pressable control, site-wide.

@@ -161,9 +161,10 @@
 
     {% if species %}
     <div class="ticker">
-        <p class="ticker-track"><span class="ticker-n">On Instagram so far:</span>
-            {% for s in species %}<a class="ticker-bird" href="/birds?bird={{ s|urlencode }}#bird/{{ s|slug }}">{{ s }}</a>{{ "," if not loop.last else "." }}
-            {% endfor %}</p>
+        <div class="ticker-track" style="animation-duration: {{ [species|length * 4, 40]|max }}s">
+            {% for s in species %}<a class="ticker-bird" href="/birds?bird={{ s|urlencode }}#bird/{{ s|slug }}">{{ s }}</a><span class="sep" aria-hidden="true">&bull;</span>{% endfor %}
+            {% for s in species %}<a class="ticker-bird" href="/birds?bird={{ s|urlencode }}#bird/{{ s|slug }}" tabindex="-1" aria-hidden="true">{{ s }}</a><span class="sep" aria-hidden="true">&bull;</span>{% endfor %}
+        </div>
     </div>
     {% endif %}
 
