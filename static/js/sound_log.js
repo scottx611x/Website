@@ -79,7 +79,40 @@
     (allSp[e.display] = allSp[e.display] || { slug: e.slug, n: 0 }).n++;
   });
   var cur = 0;                                 // index into days
-  dateEl.min = days[days.length - 1]; dateEl.max = days[0];
+  var ALL = (window.ALL_DAYS && ALL_DAYS.length) ? ALL_DAYS : days;   // every day on record, newest first
+  if (window.INIT_DAY && days.indexOf(INIT_DAY) >= 0) cur = days.indexOf(INIT_DAY);
+  dateEl.min = ALL[ALL.length - 1]; dateEl.max = ALL[0];
+  var daysEl = document.getElementById("dl-days");
+  var SHORT = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  function ymd(dt) {
+    return dt.getFullYear() + "-" + ("0" + (dt.getMonth() + 1)).slice(-2) + "-" + ("0" + dt.getDate()).slice(-2);
+  }
+  var TODAY = ymd(new Date()), YESTERDAY = ymd(new Date(Date.now() - 864e5));
+  // Load a day outside the window this page carries.
+  function loadDay(d) { location.href = "/birds/live/log?day=" + encodeURIComponent(d); }
+  // Step older (+1) or newer (-1), crossing into days the page has not loaded.
+  function step(delta) {
+    var j = cur + delta;
+    if (j >= 0 && j < days.length) { cur = j; render(); return; }
+    var k = ALL.indexOf(days[cur]) + delta;
+    if (k >= 0 && k < ALL.length) loadDay(ALL[k]);
+  }
+  function renderDays() {
+    if (!daysEl) return;
+    daysEl.innerHTML = days.slice().reverse().map(function (d) {
+      var i = days.indexOf(d), p = byDay[d].p;
+      var label = d === TODAY ? "Today" : d === YESTERDAY ? "Yesterday"
+        : SHORT[new Date(Date.UTC(p.y, p.mo - 1, p.d)).getUTCDay()] + " " + MONTHS[p.mo - 1] + " " + p.d;
+      return '<button type="button" data-i="' + i + '"' + (i === cur ? ' class="on" aria-current="date"' : "") + ">" +
+        esc(label) + "<small>" + byDay[d].recs.length + "</small></button>";
+    }).join("");
+    var on = daysEl.querySelector(".on");
+    if (on) daysEl.scrollLeft = on.offsetLeft - (daysEl.clientWidth - on.offsetWidth) / 2;
+  }
+  if (daysEl) daysEl.addEventListener("click", function (ev) {
+    var b = ev.target.closest("button"); if (!b) return;
+    cur = +b.getAttribute("data-i"); render();
+  });
   // Order the day: "most heard" (by activity) or "chronological" (as it unfolded).
   // The choice sticks, so a preferred order becomes the default on the next visit.
   var sortMode = "chrono";
@@ -130,8 +163,14 @@
     var q = (searchEl.value || "").trim().toLowerCase();
     titleEl.textContent = dayLabel(day.p);
     dateEl.value = days[cur];
-    prevEl.disabled = cur >= days.length - 1;   // older = higher index
-    nextEl.disabled = cur <= 0;
+    var at = ALL.indexOf(days[cur]);
+    prevEl.disabled = at >= ALL.length - 1;     // older = higher index
+    nextEl.disabled = at <= 0;
+    renderDays();
+    try {
+      if (!/^#rec-/.test(location.hash))
+        history.replaceState(null, "", "/birds/live/log" + (cur === 0 && !window.INIT_DAY ? "" : "?day=" + days[cur]));
+    } catch (_) {}
     // The mic filter scopes every number and row on the day to one node.
     var recs = (MULTI && nodeSel)
       ? day.recs.filter(function (r) { return r.e.node === nodeSel; })
@@ -280,17 +319,15 @@
   addEventListener("hashchange", openFromRecHash);
 
   // ---- day navigation ----
-  prevEl.addEventListener("click", function () { if (cur < days.length - 1) { cur++; render(); } });
-  nextEl.addEventListener("click", function () { if (cur > 0) { cur--; render(); } });
+  prevEl.addEventListener("click", function () { step(1); });
+  nextEl.addEventListener("click", function () { step(-1); });
   dateEl.addEventListener("change", function () {
     var i = days.indexOf(dateEl.value);
-    if (i >= 0) { cur = i; render(); }
-    else {
-      // nearest day on/before the picked date, else the oldest
-      var target = dateEl.value, best = -1;
-      for (var k = 0; k < days.length; k++) { if (days[k] <= target) { best = k; break; } }
-      cur = best >= 0 ? best : days.length - 1; render();
-    }
+    if (i >= 0) { cur = i; render(); return; }
+    // nearest recorded day on/before the picked date, else the oldest
+    var target = dateEl.value, best = ALL[ALL.length - 1];
+    for (var k = 0; k < ALL.length; k++) { if (ALL[k] <= target) { best = ALL[k]; break; } }
+    if (days.indexOf(best) >= 0) { cur = days.indexOf(best); render(); } else loadDay(best);
   });
   var st; searchEl.addEventListener("input", function () { clearTimeout(st); st = setTimeout(render, 120); });
   // Order toggle: most-heard vs chronological; the pick is remembered.
@@ -309,8 +346,8 @@
   syncSort();
   document.addEventListener("keydown", function (e) {
     if (e.target === searchEl || (e.target.tagName === "INPUT")) return;
-    if (e.key === "ArrowLeft" && cur < days.length - 1) { cur++; render(); }
-    if (e.key === "ArrowRight" && cur > 0) { cur--; render(); }
+    if (e.key === "ArrowLeft") step(1);
+    if (e.key === "ArrowRight") step(-1);
   });
 
   renderNodes();

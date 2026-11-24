@@ -15,6 +15,13 @@
   .dl-arrow{flex:0 0 auto; width:44px; height:44px; border-radius:50%; border:1px solid rgba(13, 18, 14,.18); background:var(--paper); color:var(--ink); font-size:1.1rem; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:background .15s,border-color .15s,color .15s}
   .dl-arrow:hover:not(:disabled){background:var(--ink); color:var(--paper); border-color:var(--ink)}
   .dl-arrow:disabled{opacity:.3; cursor:default}
+  .dl-days{display:flex; gap:.35rem; overflow-x:auto; scrollbar-width:none; margin:1.1rem auto 0; max-width:52rem; padding:0 .2rem}
+  .dl-days::-webkit-scrollbar{display:none}
+  .dl-days button{flex:0 0 auto; white-space:nowrap; font:inherit; font-size:.75rem; padding:.3rem .6rem; border:1px solid rgba(13, 18, 14,.18); border-radius:4px; background:transparent; color:var(--ink); cursor:pointer; line-height:1.25; text-align:center}
+  .dl-days button small{display:block; font-size:.68rem; color:var(--muted)}
+  .dl-days button:hover{border-color:var(--ink)}
+  .dl-days button.on{background:var(--ink); color:var(--paper); border-color:var(--ink)}
+  .dl-days button.on small{color:rgba(244, 241, 233,.7)}
   .dl-daycenter{text-align:center; min-width:min(18rem,74vw)}
   .dl-daytitle{font-family:var(--display); font-weight:500; font-size:1.5rem; line-height:1.1}
   .dl-daysum{font-size:.74rem; color:var(--muted); margin-top:.15rem}
@@ -115,6 +122,7 @@
     </div>
     <button type="button" class="dl-arrow" id="dl-next" aria-label="Later day">&#8250;</button>
   </div>
+  <nav class="dl-days mono" id="dl-days" aria-label="Recent days"></nav>
 
   <input class="dl-search mono" id="dl-search" type="search" placeholder="filter this day's species…" aria-label="Filter species">
   <p class="dl-allhint mono" id="dl-allhint" hidden></p>
@@ -130,6 +138,8 @@
   <script>
     var LOG = {{ log|tojson }};
     var LOG_NODES = {{ nodes|tojson }};
+    var ALL_DAYS = {{ all_days|tojson }};
+    var INIT_DAY = {{ day|tojson }};
     var ICONS = { link: '{{ icon('link') }}', ear: '{{ icon('wave') }}' };
     var MEDIA = "https://birds-scott-ouellette.s3.amazonaws.com/birds/sounds/clips/";
   </script>

@@ -276,6 +276,10 @@
   .lv-range{font-family:var(--mono); font-size:.75rem; padding:.34rem .8rem; border-radius:4px; border:1px solid rgba(13, 18, 14,.2); background:transparent; color:var(--ink); cursor:pointer}
   .lv-range.on{background:var(--ink); color:var(--lift); border-color:var(--ink)}
   .lv-more{margin:2.4rem 0 0}
+  .lv-days{display:flex; flex-wrap:wrap; align-items:center; gap:.4rem; margin:2.4rem 0 0; font-size:.75rem}
+  .lv-days-h{color:var(--muted); margin-right:.3rem}
+  .lv-days a{padding:.3rem .65rem; border:1px solid rgba(13, 18, 14,.2); border-radius:4px; color:var(--ink); text-decoration:none}
+  .lv-days a:hover{background:var(--ink); color:var(--paper); border-color:var(--ink)}
   .lv-bar + section{margin-top:0}
   .lv-trackmore{font-family:var(--mono); align-self:flex-start; margin:.7rem 0 0 var(--mkl); font-size:.75rem;
     border:none; background:none; padding:.2rem 0; color:var(--accent); cursor:pointer}
@@ -661,7 +665,7 @@
             </div>
             {% endfor %}
           </div>
-          <a class="lv-logmore mono" href="/birds/live/log">{{ icon('calendar') }} Browse past recordings by day</a>
+          <a class="lv-logmore mono" href="/birds/live/log">{{ icon('calendar') }} Recordings by day</a>
         </div>
       </div>
     </section>
@@ -698,7 +702,13 @@
       </div>
     </section>
 
-    <p class="lv-more"><a class="lv-logmore mono" href="/birds/stats#ear-block">Every day since the mic went up is on Stats</a></p>
+    {% if sound.recentDays %}
+    <nav class="lv-days mono" aria-label="Recordings by day">
+      <span class="lv-days-h">Recordings by day</span>
+      {% for d in sound.recentDays %}<a href="/birds/live/log?day={{ d.d }}">{{ d.label }}</a>{% endfor %}
+      <a href="/birds/live/log">Older days</a>
+    </nav>
+    {% endif %}
 
     {% endif %}
 </section>

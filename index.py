@@ -1431,6 +1431,7 @@ def _live_view():
         view["weather"] = data.get("weather")
         view["counts"] = data.get("counts", {})
         view["daily"] = data.get("daily", [])
+        view["recentDays"] = _recent_days(view["daily"])
         view["hours"] = data.get("hours", [])
         view["hoursHist"] = data.get("hoursHist", [])  # all-time typical-day overlay
         view["recent"] = [enrich(r) for r in data.get("recent", [])]
@@ -1834,6 +1835,21 @@ def _sound_log_merged():
 LOG_DAYS = 14
 
 
+def _recent_days(daily, n=7):
+    """The station's last `n` days, newest first, labelled for the Live page's
+    day links ("Today", "Yesterday", then "Fri Nov 21")."""
+    out = []
+    dates = [d.get("d") for d in daily if isinstance(d, dict) and d.get("d")][-n:]
+    for i, d in enumerate(reversed(dates)):
+        try:
+            dt = datetime.datetime.strptime(d, "%Y-%m-%d")
+        except ValueError:
+            continue
+        label = "Today" if i == 0 else "Yesterday" if i == 1 else dt.strftime("%a %b %-d")
+        out.append({"d": d, "label": label})
+    return out
+
+
 def _log_view():
     """The full browsable detection log, enriched with display names + photos."""
     data = _sound_log_merged()
@@ -1868,11 +1884,17 @@ def _log_view():
         if d and (not days or days[-1] != d):
             if d not in days:
                 days.append(d)
-    if want:
-        log = [e for e in log if (e.get("t") or "")[:10] == want]
+    # Carry a window of LOG_DAYS around the requested day (newest first), so
+    # the page can step between neighbouring days without a reload.
+    if want and want in days:
+        i = days.index(want)
+        lo = max(0, min(i - LOG_DAYS // 2, len(days) - LOG_DAYS))
+        keep = set(days[lo:lo + LOG_DAYS])
+    elif want:
+        keep = {want}
     else:
         keep = set(days[:LOG_DAYS])
-        log = [e for e in log if (e.get("t") or "")[:10] in keep]
+    log = [e for e in log if (e.get("t") or "")[:10] in keep]
     enriched = [enrich(e) for e in log]
     # Distinct nodes seen in the log, newest first — so the log can filter by node.
     seen, nodes = set(), []
@@ -1893,6 +1915,7 @@ def birds_live_log():
     return render_template(
         "sound_log.html", title="Detection log", log=view["log"],
         nodes=view["nodes"], generated=view["generated"], has_data=bool(view["log"]),
+        all_days=view["all_days"], day=view["day"],
         curate=_curate_on(), local=_is_local())
 
 
