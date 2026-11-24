@@ -1,8 +1,8 @@
 """The Kindle sleep screen: starred birds, drawn for e-ink.
 
-When it has Wi-Fi, the jailbroken Paperwhite downloads the latest POOL starred
-birds (/birds/kindle.png?slot=0..POOL-1, newest first) and shows a random one
-each time it sleeps. All the image work happens here, so the device only saves
+When it has Wi-Fi, the jailbroken Paperwhite reads /birds/kindle.json (the
+latest POOL starred birds, newest first), downloads the ones it lacks from
+/birds/kindle.png?frame=<key>, and shows a random one each time it sleeps. All the image work happens here, so the device only saves
 files. The screen is 1072x1448 at 300ppi, shows 16 grays, and is portrait.
 """
 import io
@@ -16,7 +16,7 @@ MARGIN = 56
 GRAYS = 16  # the Paperwhite 3 panel shows 16 levels
 
 
-POOL = 10  # birds the device holds at once; it shows a random one per sleep
+POOL = 60  # birds the device holds at once; it shows a random one per sleep
 
 
 def starred_frames(shots, starred):
@@ -36,6 +36,20 @@ def starred_frames(shots, starred):
                 out.append((shot.get("timestamp") or "", -i, key, shot, i))
     out.sort(key=lambda t: t[:3], reverse=True)
     return [(key, shot, i) for _, _, key, shot, i in out]
+
+
+def latest_keys(shots, starred):
+    """Star keys of the pool, newest first: what the device should hold."""
+    return [key for key, _, _ in starred_frames(shots, starred)[:POOL]]
+
+
+def frame_for_key(shots, starred, key):
+    """The _pseudo_frame for one starred key, or None if it is not starred
+    (or is a video)."""
+    for k, shot, i in starred_frames(shots, starred):
+        if k == key:
+            return birds._pseudo_frame(shot, i)[0]
+    return None
 
 
 def pick_frame(shots, starred, slot=0):

@@ -1354,20 +1354,36 @@ def birds_original(name):
     return resp
 
 
+@app.route("/birds/kindle.json", methods=["GET"])
+def birds_kindle_pool():
+    """The Kindle's pool: star keys of the latest kindle.POOL birds, newest
+    first. The device fetches the ones it lacks and drops the rest."""
+    keys = kindle.latest_keys(birds.load_gallery(shuffle=False), birds.load_starred())
+    resp = app.response_class(json.dumps({"frames": keys}), mimetype="application/json")
+    resp.headers["Cache-Control"] = "public, max-age=300"
+    return resp
+
+
 @app.route("/birds/kindle.png", methods=["GET"])
 def birds_kindle():
     """One starred bird as a Kindle Paperwhite sleep screen.
 
-    ?slot=0..kindle.POOL-1 is the slot-th newest star, so the device can hold
-    the latest few and rotate. X-Bird-Frame names the frame."""
-    try:
-        slot = int(request.args.get("slot") or 0)
-    except ValueError:
-        abort(400)
-    if not 0 <= slot < kindle.POOL:
-        abort(400)
-    frame = kindle.pick_frame(birds.load_gallery(shuffle=False),
-                              birds.load_starred(), slot)
+    ?frame=<star key> (from /birds/kindle.json) renders that bird; the device
+    names its file after the key, so each bird is downloaded once.
+    ?slot=0..kindle.POOL-1 is the slot-th newest star instead.
+    X-Bird-Frame names the frame."""
+    shots, starred = birds.load_gallery(shuffle=False), birds.load_starred()
+    key = request.args.get("frame")
+    if key is not None:
+        frame = kindle.frame_for_key(shots, starred, key)
+    else:
+        try:
+            slot = int(request.args.get("slot") or 0)
+        except ValueError:
+            abort(400)
+        if not 0 <= slot < kindle.POOL:
+            abort(400)
+        frame = kindle.pick_frame(shots, starred, slot)
     if not frame:
         abort(404)
     try:

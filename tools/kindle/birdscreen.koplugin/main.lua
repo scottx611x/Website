@@ -1,14 +1,20 @@
 --[[--
-Bird screen: starred birds from scott-ouellette.com as KOReader's sleep screen.
+Bird screen: starred birds from scott-ouellette.com as the sleep screen.
 
-The site renders /birds/kindle.png?slot=N for this panel (1072x1448, 16
-grays). This downloads a pool of POOL of them into its own folder and points
-KOReader's "random image" sleep screen at that folder, so every sleep shows a
-different bird without needing Wi-Fi. The pool is the latest POOL starred birds.
+The site lists the latest POOL starred birds at /birds/kindle.json and renders
+each for this panel (1072x1448, 16 grays) at /birds/kindle.png?frame=<key>.
+This keeps a folder holding exactly that pool, one file per bird named by its
+key, so a bird is downloaded once and dropped when it falls out of the pool.
+KOReader's "random image" sleep screen points at the folder, so every sleep
+shows a different bird without needing Wi-Fi.
 
-The pool refreshes when Wi-Fi connects (or on wake while online), at most
-every few hours, and from Tools > Bird screen > Refresh now. A failed
-download keeps that slot's previous bird.
+The same pool is mirrored into the ScreenSavers hack's folder (linkss) for
+Amazon's own sleep screen, under fixed names so a file Amazon has listed is
+always a valid PNG. Amazon only rereads that folder when it restarts.
+
+It syncs when Wi-Fi connects (or on wake while online), at most every few
+hours, and from Tools > Bird screen > Refresh now. A failed download keeps
+what was there.
 --]]--
 
 local DataStorage = require("datastorage")
@@ -20,11 +26,11 @@ local lfs = require("libs/libkoreader-lfs")
 local logger = require("logger")
 local _ = require("gettext")
 
-local URL = "https://www.scott-ouellette.com/birds/kindle.png?slot="
+local SITE = "https://www.scott-ouellette.com/birds/"
 local DIR = DataStorage:getDataDir() .. "/birdscreen"
-local POOL = 10 -- matches kindle.POOL on the site
+local POOL = 60 -- matches kindle.POOL on the site
 local LINKSS = "/mnt/us/linkss/screensavers" -- Amazon's sleep screen, via the ScreenSavers hack
-local MIN_INTERVAL = 3 * 3600 -- seconds between automatic refreshes
+local MIN_INTERVAL = 3 * 3600 -- seconds between automatic syncs
 
 local BirdScreen = WidgetContainer:extend{
     name = "birdscreen",
@@ -42,80 +48,126 @@ function BirdScreen:init()
     self.ui.menu:registerToMainMenu(self)
 end
 
--- Copy a bird into the ScreenSavers hack's folder (linkss), so Amazon's own
--- sleep screen shows the same pool. Amazon reads that folder at boot, so new
--- birds appear there after the next restart. Written beside the target and
--- renamed into place: a half-written PNG would stall Amazon's UI until reboot.
-function BirdScreen:mirrorToAmazon(file, slot)
-    if lfs.attributes(LINKSS, "mode") ~= "directory" then return end
-    local src = io.open(file, "rb")
-    if not src then return end
-    local data = src:read("*a")
-    src:close()
-    local dest = string.format("%s/bird-%02d.png", LINKSS, slot)
-    local out = io.open(dest .. ".part", "wb")
-    if not out then return end
-    out:write(data)
-    out:close()
-    os.rename(dest .. ".part", dest)
-end
-
--- Download one slot. Returns true on success, or false and a reason.
-function BirdScreen:download(slot)
+-- GET url into path (via a .part file renamed into place). Returns true, or
+-- false and a reason.
+local function fetch(url, path)
     local http = require("socket.http")
     local ltn12 = require("ltn12")
     local socket = require("socket")
     local socketutil = require("socketutil")
 
-    local file = string.format("%s/bird-%02d.png", DIR, slot)
-    local tmp = file .. ".part"
+    local tmp = path .. ".part"
     local fh = io.open(tmp, "wb")
     if not fh then return false, "cannot write " .. tmp end
     socketutil:set_timeout(socketutil.FILE_BLOCK_TIMEOUT, socketutil.FILE_TOTAL_TIMEOUT)
     local code, _headers, status = socket.skip(1, http.request{
-        url = URL .. slot,
+        url = url,
         method = "GET",
         sink = ltn12.sink.file(fh), -- closes fh when done
     })
     socketutil:reset_timeout()
-    if code == 200 and (lfs.attributes(tmp, "size") or 0) > 1024 then
-        os.rename(tmp, file)
-        self:mirrorToAmazon(file, slot)
+    if code == 200 and (lfs.attributes(tmp, "size") or 0) > 0 then
+        os.rename(tmp, path)
         return true
     end
     os.remove(tmp)
-    logger.warn("BirdScreen: slot", slot, "failed", code, status)
+    logger.warn("BirdScreen:", url, "failed", code, status)
     return false, tostring(status or code)
 end
 
--- Fetch the whole pool, one slot per UI tick so the reader stays responsive.
+local function copy(src, dest)
+    local i = io.open(src, "rb")
+    if not i then return false end
+    local data = i:read("*a")
+    i:close()
+    local o = io.open(dest .. ".part", "wb")
+    if not o then return false end
+    o:write(data)
+    o:close()
+    return os.rename(dest .. ".part", dest)
+end
+
+local function birdFile(key)
+    return DIR .. "/" .. key .. ".png"
+end
+
+-- Fill Amazon's folder slot by slot from the pool (wrapping if there are
+-- fewer than POOL birds), rewriting only slots whose bird changed.
+function BirdScreen:mirrorToAmazon(keys)
+    if #keys == 0 or lfs.attributes(LINKSS, "mode") ~= "directory" then return end
+    local placed = G_reader_settings:readSetting("birdscreen_linkss") or {}
+    for slot = 0, POOL - 1 do
+        local key = keys[(slot % #keys) + 1]
+        local dest = string.format("%s/bird-%02d.png", LINKSS, slot)
+        if placed[tostring(slot)] ~= key or lfs.attributes(dest, "mode") ~= "file" then
+            if copy(birdFile(key), dest) then placed[tostring(slot)] = key end
+        end
+    end
+    G_reader_settings:saveSetting("birdscreen_linkss", placed)
+end
+
+-- Sync the folder to the site's pool: fetch the list, download missing birds
+-- one per UI tick (so the reader stays responsive), then drop the rest.
 function BirdScreen:refresh(force)
     if self.busy then return end
     local last = G_reader_settings:readSetting("birdscreen_last") or 0
     if not force and os.time() - last < MIN_INTERVAL then return end
-    self.busy = true
-    local got, err = 0, nil
-    local function step(slot)
-        local ok, why = self:download(slot)
-        if ok then got = got + 1 else err = why end
-        if slot + 1 < POOL then
-            UIManager:scheduleIn(0.2, function() step(slot + 1) end)
-            return
-        end
-        self.busy = false
-        if got > 0 then
-            G_reader_settings:saveSetting("birdscreen_last", os.time())
-            os.remove(DIR .. "/bird.png") -- the single seed image from setup
-        end
+
+    local list = DIR .. "/.pool.json"
+    local ok, err = fetch(SITE .. "kindle.json", list)
+    local keys
+    if ok then
+        local fh = io.open(list, "r")
+        local okj, data = pcall(require("json").decode, fh and fh:read("*a") or "")
+        if fh then fh:close() end
+        keys = okj and type(data) == "table" and data.frames
+    end
+    if type(keys) ~= "table" or #keys == 0 then
         if force then
             UIManager:show(InfoMessage:new{
-                text = got == POOL and _("Bird screen updated.")
-                    or string.format(_("Bird screen: got %d of %d birds (%s)."), got, POOL, err or "?"),
+                text = _("Bird screen: could not get the bird list (") .. tostring(err or "empty") .. ")",
+                timeout = 3,
+            })
+        end
+        return
+    end
+
+    local missing = {}
+    for _i, key in ipairs(keys) do
+        if lfs.attributes(birdFile(key), "mode") ~= "file" then table.insert(missing, key) end
+    end
+
+    self.busy = true
+    local got, failed = 0, 0
+    local function finish()
+        self.busy = false
+        local keep = {}
+        for _i, key in ipairs(keys) do keep[key .. ".png"] = true end
+        for name in lfs.dir(DIR) do
+            if name:match("%.png$") and not keep[name] then os.remove(DIR .. "/" .. name) end
+        end
+        if failed == 0 then G_reader_settings:saveSetting("birdscreen_last", os.time()) end
+        self:mirrorToAmazon(keys)
+        if force then
+            UIManager:show(InfoMessage:new{
+                text = failed == 0
+                    and string.format(_("Bird screen: %d birds, %d new."), #keys, got)
+                    or string.format(_("Bird screen: %d new, %d failed; will retry."), got, failed),
                 timeout = 3,
             })
         end
     end
-    step(0)
+    local function step(n)
+        if n > #missing then return finish() end
+        local key = missing[n]
+        if fetch(SITE .. "kindle.png?frame=" .. key, birdFile(key)) then
+            got = got + 1
+        else
+            failed = failed + 1
+        end
+        UIManager:scheduleIn(0.2, function() step(n + 1) end)
+    end
+    step(1)
 end
 
 function BirdScreen:onNetworkConnected()

@@ -1481,6 +1481,11 @@ class WildlifeTitleTestCase(unittest.TestCase):
         self.assertEqual(wildlife._title_from_filename("2026.jpg"), "2026")
 
 
+def kindle_pool():
+    import kindle
+    return kindle.POOL
+
+
 class KindleScreenTestCase(GenericTestBase):
     def _shot(self, pid, ts, n=2, videos=None):
         return {"id": pid, "timestamp": ts, "species": "Blue Jay",
@@ -1492,10 +1497,29 @@ class KindleScreenTestCase(GenericTestBase):
         shots = [self._shot("p%02d" % n, "2026-01-%02dT00:00:00+0000" % (n + 1), n=2)
                  for n in range(12)]
         starred = {"p%02d-0" % n for n in range(12)} | {"p11-1"}
-        ids = [kindle.pick_frame(shots, starred, slot)["id"] for slot in range(kindle.POOL)]
+        ids = [kindle.pick_frame(shots, starred, slot)["id"] for slot in range(10)]
         # Newest post first, its frames in carousel order; the oldest stars drop off.
         self.assertEqual(ids, ["p11-0", "p11-1", "p10-0", "p09-0", "p08-0",
                                "p07-0", "p06-0", "p05-0", "p04-0", "p03-0"])
+
+    def test_latest_keys_caps_at_the_pool_and_frames_resolve_by_key(self):
+        import kindle
+        shots = [self._shot("p%03d" % n, "2026-%02d-%02dT00:00:00+0000" % (n // 28 + 1, n % 28 + 1), n=1)
+                 for n in range(kindle.POOL + 5)]
+        starred = {"p%03d-0" % n for n in range(kindle.POOL + 5)}
+        keys = kindle.latest_keys(shots, starred)
+        self.assertEqual(len(keys), kindle.POOL)
+        self.assertEqual(keys[0], "p%03d-0" % (kindle.POOL + 4))
+        self.assertNotIn("p000-0", keys)
+        self.assertEqual(kindle.frame_for_key(shots, starred, "p000-0")["id"], "p000-0")
+        self.assertIsNone(kindle.frame_for_key(shots, starred, "nope-0"))
+
+    def test_pool_json_and_unknown_frame(self):
+        with mock.patch.object(birds, "load_starred", return_value=set()):
+            r = self.test_client.get("/birds/kindle.json")
+            self.assertEqual(r.status_code, 200)
+            self.assertEqual(r.get_json(), {"frames": []})
+            self.assertEqual(self.test_client.get("/birds/kindle.png?frame=nope-0").status_code, 404)
 
     def test_pool_wraps_when_there_are_few_stars(self):
         import kindle
@@ -1540,5 +1564,5 @@ class KindleScreenTestCase(GenericTestBase):
             self.assertEqual(self.test_client.get("/birds/kindle.png").status_code, 404)
 
     def test_route_rejects_out_of_range_slots(self):
-        for slot in ("-1", "10", "x"):
+        for slot in ("-1", str(kindle_pool()), "x"):
             self.assertEqual(self.test_client.get("/birds/kindle.png?slot=" + slot).status_code, 400)
