@@ -7,6 +7,6 @@
         <id>birdscreen</id>
     </information>
     <menus>
-        <menu type="json" dynamic="false">menu.json</menu>
+        <menu type="json" dynamic="true">menu.json</menu>
     </menus>
 </extension>

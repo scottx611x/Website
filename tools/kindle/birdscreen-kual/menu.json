@@ -4,9 +4,9 @@
             "name": "Bird screen",
             "priority": 0,
             "items": [
-                {"name": "Turn on hourly sync", "priority": 1, "action": "/bin/sh", "params": "/mnt/us/extensions/birdscreen/bin/cron.sh install", "exitmenu": false},
-                {"name": "Sync now", "priority": 2, "action": "/bin/sh", "params": "/mnt/us/extensions/birdscreen/bin/sync.sh manual", "exitmenu": false},
-                {"name": "Turn off hourly sync", "priority": 3, "action": "/bin/sh", "params": "/mnt/us/extensions/birdscreen/bin/cron.sh remove", "exitmenu": false}
+                {"name": "Hourly sync: OFF (tap to turn on)", "priority": 1, "action": "/bin/sh", "params": "/mnt/us/extensions/birdscreen/bin/toggle.sh sync", "exitmenu": false, "refresh": true},
+                {"name": "Change bird while asleep: OFF (tap to turn on)", "priority": 2, "action": "/bin/sh", "params": "/mnt/us/extensions/birdscreen/bin/toggle.sh cycle", "exitmenu": false, "refresh": true},
+                {"name": "Sync now", "priority": 3, "action": "/bin/sh", "params": "/mnt/us/extensions/birdscreen/bin/sync.sh manual", "exitmenu": false}
             ]
         }
     ]
