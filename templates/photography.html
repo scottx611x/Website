@@ -164,9 +164,9 @@
     {% elif photos %}
     {# Shuffle: the field below draws the photos. #}
     {% elif active_subjects %}
-    <p class="pg-empty">None of those{% if active_tag %} in &ldquo;{{ active_tag }}&rdquo;{% endif %}. <a href="/photography" style="color:var(--accent)">see everything &rarr;</a></p>
+    <p class="pg-empty">None of those{% if active_tag %} in &ldquo;{{ active_tag }}&rdquo;{% endif %}. <a href="/photography" style="color:var(--accent)">see everything</a></p>
     {% elif active_tag %}
-    <p class="pg-empty">Nothing tagged &ldquo;{{ active_tag }}&rdquo; yet. <a href="/photography" style="color:var(--accent)">see everything &rarr;</a></p>
+    <p class="pg-empty">Nothing tagged &ldquo;{{ active_tag }}&rdquo; yet. <a href="/photography" style="color:var(--accent)">see everything</a></p>
     {% else %}
     <p class="pg-empty">Coming soon.</p>
     {% endif %}

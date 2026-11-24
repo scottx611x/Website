@@ -167,7 +167,7 @@
         <div class="stat-block stat-span-2" id="ear-block">
             <h2>Heard from the yard</h2>
             <p class="stat-sub mono">
-                {% if geo %}{% for n in geo.nodes %}<span class="geo-key"><span class="geo-dot" style="background: {{ geo.colors[n] }}"></span>{{ n }} <b>{{ "{:,}".format(geo.nodeTotals[n] or 0) }}</b></span> &middot; {% endfor %}{% endif %}<a href="/birds/live">live &rarr;</a></p>
+                {% if geo %}{% for n in geo.nodes %}<span class="geo-key"><span class="geo-dot" style="background: {{ geo.colors[n] }}"></span>{{ n }} <b>{{ "{:,}".format(geo.nodeTotals[n] or 0) }}</b></span> &middot; {% endfor %}{% endif %}<a href="/birds/live">live</a></p>
             <div class="ear-grid">
                 <div class="ear-main">
                     <div class="ear-controls mono">
@@ -183,8 +183,8 @@
                     {% for h in ear.heard[:8] %}
                     <a class="bar-row rich" href="/birds/species/{{ h.name|slug }}">
                         {% if h.img %}<img class="bird-avatar" src="{{ h.img }}" alt="" loading="lazy" onerror="this.classList.add('missing')">
-                        {% else %}<span class="bird-avatar ear-miss" title="heard, not photographed">&#129718;</span>{% endif %}
-                        <span class="bar-label">{{ h.name }} <span class="bar-sub">{{ h.fam if h.shot else '🎧 not photographed' }}</span></span>
+                        {% else %}<span class="bird-avatar ear-miss" title="heard, not photographed"></span>{% endif %}
+                        <span class="bar-label">{{ h.name }} <span class="bar-sub">{{ h.fam if h.shot else 'not photographed' }}</span></span>
                         <span class="ear-last mono"></span>
                         <span class="bar-track"><span class="bar-fill{{ ' ear' if not h.shot }}" style="width: {{ (h.n / emax * 100)|round(1) }}%"></span></span>
                         <span class="bar-val mono">{{ h.n }}&times;</span>
@@ -233,7 +233,7 @@
                 <a class="rhythm-row" href="/birds/species/{{ r.name|slug }}" data-slug="{{ r.name|slug }}" title="{{ r.name }} &mdash; most vocal around {{ r.peaklab }}">
                     <span class="rhythm-head">
                         {% if r.img %}<img class="bird-avatar sm" src="{{ r.img }}" alt="" loading="lazy" onerror="this.classList.add('missing')">
-                        {% else %}<span class="bird-avatar sm ear-miss" title="heard, not photographed">&#129718;</span>{% endif %}
+                        {% else %}<span class="bird-avatar sm ear-miss" title="heard, not photographed"></span>{% endif %}
                         <span class="rhythm-name">{{ r.name }}</span>
                     </span>
                     <span class="rhythm-plot"><svg class="rhythm-spark" viewBox="0 0 100 26" preserveAspectRatio="none" aria-hidden="true" style="--ridge: {{ r.hue }}"><path d="{{ r.path }}"/></svg></span>
@@ -248,7 +248,7 @@
         <div class="stat-block stat-span-2" id="places-block">
             <div class="sp-sec-h" style="margin-bottom:.4rem">
                 <h2>Where I find them</h2>
-                <a href="/birds/map" class="river-span mono">full map &rarr;</a>
+                <a href="/birds/map" class="river-span mono">full map</a>
             </div>
             <p class="stat-sub mono">
                 <a href="/birds?area=local"><span class="dot dot-local"></span>{{ "{:,}".format(stats.local) }} in North Andover</a>
@@ -280,7 +280,7 @@
         <div class="stat-block stat-span-2 river-block" id="s-river">
             <div class="sp-sec-h" style="margin-bottom:.4rem">
                 <h2>The river</h2>
-                <button type="button" id="river-span" class="river-span mono">full history &rarr;</button>
+                <button type="button" id="river-span" class="river-span mono">full history</button>
             </div>
             <div class="river-stage">
                 <div id="river-chart" class="d3-chart" tabindex="0" role="application"
@@ -324,7 +324,7 @@
             var noun = p.count === 1 ? "photo" : "photos";
             m.bindPopup('<strong>' + (away ? "⚠️ " : "") + esc(p.name) + '</strong><br>' +
                 p.count + ' ' + noun + ' · ' + p.species + ' species<br>' +
-                '<a href="/birds?loc=' + encodeURIComponent(p.name) + '">see the shots &rarr;</a>');
+                '<a href="/birds?loc=' + encodeURIComponent(p.name) + '">see the shots</a>');
             m.bindTooltip(esc(p.name.split(",")[0]) + " (" + p.count + ")", { direction: "top", offset: [0, -d / 2 - 2] });
             byName[p.name] = m;
             ll.push([p.lat, p.lng]);
@@ -598,7 +598,7 @@
                 tNo.textContent = "No. " + d.n;
                 tName.textContent = d.s;
                 tMeta.textContent = fmtDate(d.d) + " · " + d.fam;
-                tCta.textContent = (d.total === 1 ? "1 photo" : d.total + " photos") + " →";
+                tCta.textContent = (d.total === 1 ? "1 photo" : d.total + " photos");
                 tiles.forEach(function (t) {
                     var on = +t.dataset.i === sel;
                     t.classList.toggle("on", on);
@@ -835,7 +835,7 @@
                 var lines = [row.r.name,
                              MONTHS[mi] + ": " + v + (v === 1 ? " photo" : " photos"),
                              row.r.total + " all time · " + row.r.fam];
-                if (v) lines.push("photos →");
+                if (v) lines.push("photos");
                 tipShow(ev, lines, row.r.imgs[mi]);
                 readout.textContent = row.r.name + " · " + MONTHS[mi] + ": " + v +
                     (v === 1 ? " photo" : " photos") + " (" + row.r.total + " all time)";
@@ -1013,7 +1013,7 @@
                                  (day.sp.length > 3 ? " +" + (day.sp.length - 3) + " more" : "");
                         tipShow(ev, [d3.timeFormat("%a, %b %-d, %Y")(d),
                                      day.n + (day.n === 1 ? " photo" : " photos"),
-                                     sp, "photos →"], day.img);
+                                     sp, "photos"], day.img);
                     })
                     .on("pointerleave", function () {
                         tipHide();
@@ -1347,7 +1347,7 @@
                 readout.style.setProperty("--riv-accent", color(li));
                 readout.innerHTML = '<b>' + s.name + '</b> &middot; ' + s.total + ' photos &middot; '
                     + s.fam + ' &middot; busiest ' + fmtMonth(s.busiest) + ' (' + s.busiest_n + ') '
-                    + '<span class="riv-go">see them &rarr;</span>';
+                    + '<span class="riv-go">see them</span>';
             }
 
             // Let a /birds/stats?bird=X deep-link bloom that bird's current — the
@@ -1534,7 +1534,7 @@
             if (RIVER.months.length <= RIVER_YEARN) { btn.hidden = true; return; }
             btn.addEventListener("click", function () {
                 RIVER_WIN = RIVER_WIN === "year" ? "all" : "year";
-                btn.innerHTML = RIVER_WIN === "year" ? "full history &rarr;" : "&larr; past year";
+                btn.innerHTML = RIVER_WIN === "year" ? "full history" : "past year";
                 renderRiver();
                 if (window.__statsRefocus) window.__statsRefocus();
             });
@@ -1672,9 +1672,9 @@
                 var rank = isF && v.indexOf(h) >= CAP && !expanded ? ' ghost' : '';
                 return '<a class="bar-row rich' + (isF ? ' stat-focus' : '') + rank + '" data-slug="' + slugify(h.name) + '" href="/birds/species/' + slugify(h.name) + '">' +
                     (h.img ? '<img class="bird-avatar" src="' + h.img + '" alt="" loading="lazy" onerror="this.classList.add(\'missing\')">'
-                           : '<span class="bird-avatar ear-miss" title="heard, not photographed">🪶</span>') +
+                           : '<span class="bird-avatar ear-miss" title="heard, not photographed"></span>') +
                     '<span class="bar-label">' + esc(h.name) +
-                        ' <span class="bar-sub">' + (h.shot ? esc(h.fam) : '🎧 not photographed') + '</span></span>' +
+                        ' <span class="bar-sub">' + (h.shot ? esc(h.fam) : 'not photographed') + '</span></span>' +
                     '<span class="ear-last mono">' + rel(h.last) + '</span>' +
                     barHTML(h, max) +
                     '<span class="bar-val mono">' + h.n + '×</span></a>';

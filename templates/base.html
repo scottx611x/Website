@@ -2,6 +2,7 @@
 {% from '_icons.html' import icon %}
 <html lang="en">
 <head>
+    {% if app_version and app_version != 'dev' %}<meta name="version" content="{{ app_version }}">{% endif %}
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{{ title }}{% if title != "Scott Ouellette" %} &middot; Scott Ouellette{% endif %}</title>
@@ -180,8 +181,7 @@
     <footer class="site-footer">
         <div class="footer-inner">
             <div class="footer-brand">
-                <span class="mono">scott-ouellette.com</span>
-                <p>Engineer &amp; bird photographer in North Andover, MA.</p>
+                <p>Scott Ouellette. Engineer and bird photographer in North Andover, Massachusetts.</p>
             </div>
             <div class="social">
                 <a href="https://www.instagram.com/birdsofnorthandover/" rel="me">Instagram</a>
@@ -189,11 +189,7 @@
                 <a href="https://www.linkedin.com/pub/scott-ouellette/69/2b/209/">LinkedIn</a>
             </div>
         </div>
-        <small class="mono">&copy; <span id="year">2026</span><span id="footer-fact"></span>
-            {% if app_version and app_version != 'dev' %}
-            &middot; <a class="footer-ver" href="https://github.com/scottx611x/Website/commit/{{ app_version }}"
-                        rel="noopener" title="deployed commit">{{ app_version }}</a>
-            {% endif %}</small>
+        <small>&copy; <span id="year">2026</span><span id="footer-fact"></span></small>
         <script>
             (function () {
                 var facts = {{ facts|tojson }};

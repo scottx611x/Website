@@ -2,7 +2,6 @@
 
 {% block content %}
 <section class="page">
-    <p class="kicker">field notes</p>
     <h1>Writing</h1>
     {% if posts %}
     <ul class="post-list">
@@ -17,7 +16,7 @@
         {% endfor %}
     </ul>
     {% else %}
-    <p class="empty">No posts yet. First one's coming soon.</p>
+    <p class="empty">No posts yet.</p>
     {% endif %}
 </section>
 {% endblock %}

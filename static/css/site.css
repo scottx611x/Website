@@ -205,8 +205,7 @@ body.home .site-nav:not(.scrolled) .nav-burger span { background: rgba(244, 241,
     color: rgba(244, 241, 233,0.62); margin: 0 0 2rem;
     text-shadow: 0 1px 12px rgba(0,0,0,0.8);
 }
-.hero-tagline { color: var(--paper); transition: opacity 0.35s ease; }
-.hero-tagline.fading { opacity: 0; }
+.hero-tagline { color: var(--paper); }
 .hero-links { display: flex; gap: 0.9rem; flex-wrap: wrap; }
 
 /* Bone on ink. A filled accent button here was the single loudest thing on

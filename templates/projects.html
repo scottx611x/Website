@@ -2,8 +2,8 @@
 
 {% macro links(p) %}
 <span class="proj-links">
-    {% if p.site %}<a class="proj-link is-site" href="{{ p.site }}" target="_blank" rel="noopener">Live&nbsp;site&nbsp;&#8599;</a>{% endif %}
-    {% if p.repo %}<a class="proj-link is-repo" href="{{ p.repo }}" target="_blank" rel="noopener">GitHub&nbsp;&#8599;</a>{% endif %}
+    {% if p.site %}<a class="proj-link is-site" href="{{ p.site }}" target="_blank" rel="noopener">Site</a>{% endif %}
+    {% if p.repo %}<a class="proj-link is-repo" href="{{ p.repo }}" target="_blank" rel="noopener">Code</a>{% endif %}
     {% if not p.site and not p.repo %}<span class="soon">soon</span>{% endif %}
     {% if p.year %}<span class="proj-year mono">{{ p.year }}</span>{% endif %}
 </span>
@@ -11,12 +11,10 @@
 
 {% block content %}
 <section class="page wide">
-    <p class="kicker">~/scottx611x</p>
-    <h1>Projects</h1>
+        <h1>Projects</h1>
     <p class="empty" style="color:var(--ink);max-width:40rem;">
-        Things I'm building. The full list lives on GitHub. Everything here is hand-picked.
+        A few things I've built. Everything else is on <a href="https://github.com/{{ github_user }}" style="text-decoration:underline">GitHub</a>.
     </p>
-    <p><a class="btn btn-inline" style="background:var(--accent);color:#fff;border-color:var(--accent);" href="https://github.com/{{ github_user }}">View all on GitHub &rarr;</a></p>
 
     {% if curate %}
     <p class="curate-note mono"><strong>Curate mode.</strong> Edit any field (auto-saves), reorder with &uarr;&darr;, &#9733; feature, hide, or &times; delete.</p>
@@ -125,7 +123,7 @@
         <a href="https://github.com/{{ github_user }}" style="color:var(--accent);">github.com/{{ github_user }}</a>.
     </p>
     {% endif %}
-    <p id="projectEmpty" class="empty mono" hidden>// no projects match that. try another term.</p>
+    <p id="projectEmpty" class="empty" hidden>No projects match.</p>
     <script>
         (function () {
             var box = document.getElementById("projectSearch");

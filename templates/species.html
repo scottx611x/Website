@@ -154,7 +154,7 @@
     <section class="sp-sec">
         <div class="sp-sec-h">
             <p class="sp-kick">In the gallery</p>
-            <a class="sp-more" href="/birds?bird={{ sp.name|urlencode }}">all {{ sp.count }} &rarr;</a>
+            <a class="sp-more" href="/birds?bird={{ sp.name|urlencode }}">all {{ sp.count }}</a>
         </div>
         <div class="masonry" data-mobile-cap="5" data-species-slug="{{ sp.name|slug }}">
             {% for shot in sp.frames[:12] %}
@@ -194,7 +194,7 @@
     <section class="sp-sec" id="heard">
         <div class="sp-sec-h">
             <p class="sp-kick">Heard by the yard</p>
-            <a class="sp-more" href="/birds/live?bird={{ sp.name|urlencode }}">the live feed &rarr;</a>
+            <a class="sp-more" href="/birds/live?bird={{ sp.name|urlencode }}">the live feed</a>
         </div>
         <div class="sp-sound">
             {# The player opens on the clearest clip when there is a distinct one with a
@@ -239,7 +239,7 @@
                 </div>
                 <div class="sp-dayax mono"><span>12a</span><span>6a</span><span>12p</span><span>6p</span><span>11p</span></div>
                 {% endif %}
-                <a href="/birds/live?bird={{ sp.name|urlencode }}">open the live viewer &rarr;</a>
+                <a href="/birds/live?bird={{ sp.name|urlencode }}">open the live viewer</a>
             </div>
         </div>
         {% if sp.all_calls %}
@@ -262,7 +262,7 @@
     <section class="sp-sec">
         <div class="sp-sec-h">
             <p class="sp-kick">Through the year</p>
-            <a class="sp-more" href="/birds/stats?bird={{ sp.name|urlencode }}">by the numbers &rarr;</a>
+            <a class="sp-more" href="/birds/stats?bird={{ sp.name|urlencode }}">by the numbers</a>
         </div>
         <div class="sp-year">
             {% for n in sp.pheno.months %}
@@ -281,7 +281,7 @@
     <section class="sp-sec">
         <div class="sp-sec-h">
             <p class="sp-kick">Where I find them</p>
-            <a class="sp-more" href="/birds/map?bird={{ sp.name|urlencode }}">on the map &rarr;</a>
+            <a class="sp-more" href="/birds/map?bird={{ sp.name|urlencode }}">on the map</a>
         </div>
         <div class="sp-places">
             {% for p in sp.places %}

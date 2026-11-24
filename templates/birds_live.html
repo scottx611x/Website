@@ -523,7 +523,7 @@
     <header class="gallery-header{% if stage %} lv-sthead{% endif %}"{% if not stage %} data-collapse="1"{% endif %}>
         <h1{% if stage %} class="vh"{% endif %}>Live from the yard</h1>
         {% set subnav_active = 'live' %}{% include '_birds_nav.html' %}
-        <p class="lv-status mono"><span class="lv-dot"></span> <span id="lv-upd">{% if has_data %}listening &middot; North Andover, MA{% else %}mic online &middot; warming up{% endif %}</span>{% if stage %}<button type="button" class="lv-back" id="lv-back" hidden></button>{% endif %}{% if soundflag %}<button type="button" class="lv-sound" id="lv-sound" aria-pressed="false" title="Play each new bird's call as it arrives">&#9834; sound off</button>{% endif %}</p>
+        <p class="lv-status mono"><span class="lv-dot"></span> <span id="lv-upd">{% if has_data %}listening &middot; North Andover, MA{% else %}mic online &middot; warming up{% endif %}</span>{% if stage %}<button type="button" class="lv-back" id="lv-back" hidden></button>{% endif %}{% if soundflag %}<button type="button" class="lv-sound" id="lv-sound" aria-pressed="false" title="Play each new bird's call as it arrives">Sound off</button>{% endif %}</p>
         {% if curate %}<div class="lv-supbar" id="lv-supbar" hidden></div>
         <div class="lv-toast" id="lv-toast" hidden></div>{% endif %}
     </header>
@@ -611,7 +611,7 @@
       {{ herocard }}
       <div class="lv-sttop">{{ lvheader }}</div>
       <div class="lv-reelwrap">{{ wallhtml }}</div>
-      <a class="lv-stdown mono" href="#lv-log">the log &darr;</a>
+      <a class="lv-stdown mono" href="#lv-log">Recordings</a>
     </section>
       <div id="lv-log"></div>
     {% endif %}
@@ -667,7 +667,7 @@
             </div>
             {% endfor %}
           </div>
-          <a class="lv-logmore mono" href="/birds/live/log">{{ icon('calendar') }} Browse past recordings by day &rarr;</a>
+          <a class="lv-logmore mono" href="/birds/live/log">{{ icon('calendar') }} Browse past recordings by day</a>
         </div>
       </div>
     </section>
@@ -704,7 +704,7 @@
       </div>
     </section>
 
-    <p class="lv-more"><a class="lv-logmore mono" href="/birds/stats#ear-block">Every day since the mic went up is on Stats &rarr;</a></p>
+    <p class="lv-more"><a class="lv-logmore mono" href="/birds/stats#ear-block">Every day since the mic went up is on Stats</a></p>
 
     {% endif %}
 </section>
@@ -1880,9 +1880,9 @@
     }
     feed.innerHTML = body || ((focusSlug || focusFam)
       ? '<p class="lv-nofeed">nothing else recent from ' + esc(focusName || focusFam) + ' — the hero above is the latest.' +
-        (focusName ? ' <a href="/birds/species/' + focusSlug + '">every recording &rarr;</a>' : '') +
-        ' <a href="/birds/live/log">browse by day &rarr;</a></p>'
-      : '<p class="lv-nofeed">' + (hourSel >= 0 ? 'nothing this hour' : 'nothing yet today &middot; <a href="/birds/live/log">past days &rarr;</a>') + '</p>');
+        (focusName ? ' <a href="/birds/species/' + focusSlug + '">every recording</a>' : '') +
+        ' <a href="/birds/live/log">browse by day</a></p>'
+      : '<p class="lv-nofeed">' + (hourSel >= 0 ? 'nothing this hour' : 'nothing yet today &middot; <a href="/birds/live/log">past days</a>') + '</p>');
     updateConfNote(loRecs.length);
     // Re-point the live needle at the rebuilt strip for whatever's playing.
     if (current && !current.isHero) {
@@ -2196,7 +2196,7 @@
     b.addEventListener("click", function () {
       soundOn = !soundOn;
       b.setAttribute("aria-pressed", soundOn ? "true" : "false");
-      b.innerHTML = "&#9834; sound " + (soundOn ? "on" : "off");
+      b.textContent = "Sound " + (soundOn ? "on" : "off");
       if (!soundOn && current && current.isHero && !audio.paused) audio.pause();
     });
   })();
