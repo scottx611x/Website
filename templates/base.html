@@ -217,11 +217,8 @@
             <video id="lightbox-video" class="lightbox-video" controls playsinline preload="metadata" hidden></video>
             <figcaption id="lightbox-cap"></figcaption>
             {% if curate %}
-            {# A BIRD frame is curated by the shared panel (static/js/curate.js),
-               the same controls the field overlay mounts — so the gallery and
-               the field can no longer offer different halves of curate
-               depending on which order you picked. It also brings the star
-               here, which only the field view ever had.
+            {# A bird frame is curated by the shared panel (static/js/curate.js),
+               the same controls the field overlay mounts.
 
                The hand-rolled block below stays for /photography, which is a
                different store (/photography/edit, with a title and no posted
@@ -1012,10 +1009,8 @@
             } catch (_) { /* leave the broken image */ }
         }, true);
 
-        /* Video covers play themselves once they scroll into view: muted,
-           looping, inline. They used to play only on hover AND only on
-           pointer devices, which meant a phone never saw one move — the
-           gallery just showed a still with a play badge on it.
+        /* Video covers play once they scroll into view: muted, looping,
+           inline, on every device.
 
            The element only exists while the card is on screen, so the number
            playing is bounded by the viewport rather than by the collection,

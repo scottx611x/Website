@@ -138,7 +138,7 @@
     post({ title: v }).then(function () { was = v; document.title = v || document.title; if (window.siteToast) siteToast("Renamed"); },
                             function () { t.textContent = was; if (window.siteToast) siteToast("Couldn't rename", false); });
   });
-  // ---- edit: reorder (drag), cover (★), remove (×) ----
+  // Edit: reorder (drag), cover (★), remove (×)
   var grid = document.querySelector(".sh-grid"), edit = document.getElementById("sh-edit");
   var B = function (id) { return document.getElementById(id); };
   var snapshot = null, sortable = null;

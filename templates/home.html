@@ -26,9 +26,7 @@
 {% set bg = url_for('static', filename='img/' + background_image) %}
 
 {% block page_background %}
-    {# The landscape, not a wall of thumbnails: it is the quiet ground the
-       name sits on. The hero's neon pop is gone regardless — that lived in
-       the type, not the picture. #}
+    {# A landscape photo behind the name. #}
     <div id="bg-effect" aria-hidden="true">
         <img class="back" src="{{ bg }}" alt="" fetchpriority="high">
         <div class="bg-scrim"></div>
@@ -36,7 +34,7 @@
 {% endblock %}
 
 {% block content %}
-    <!-- ============ HERO ============ -->
+    <!-- Hero -->
     <section class="hero">
         <h1 class="hero-title">Scott Ouellette</h1>
         <p class="hero-sub">
@@ -151,7 +149,7 @@
     </div>
     {% endif %}
 
-    <!-- ============ BIRDS ============ -->
+    <!-- Birds -->
     <section class="strip editorial">
         <div class="strip-head">
             <div>
@@ -216,7 +214,7 @@
     </section>
     {% endif %}
 
-    <!-- ============ PROJECTS ============ -->
+    <!-- Projects -->
     <section class="strip techy">
         <div class="strip-head">
             <div>
@@ -238,7 +236,7 @@
         <a class="more" href="https://github.com/scottx611x">GitHub</a>
     </section>
 
-    <!-- ============ WRITING ============ -->
+    <!-- Writing -->
     {% if posts %}
     <section class="strip writing">
         <div class="strip-head">

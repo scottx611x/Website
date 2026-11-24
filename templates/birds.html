@@ -29,18 +29,13 @@
         {% if species_groups %}
         <div class="bird-filter">
             <p class="bird-stat">
-                {# The "N species here" link (area=local) is gone by request.
-                   The whole site is already the home town, so filtering to it
-                   was an option for nothing. The away link stays: it is the
-                   one that says something, flagging the travel birds. #}
+                {# Only the away link: the whole site is already the home
+                   town, so a local filter would change nothing. #}
                 {% if away_count %}<a href="/birds?area=elsewhere" class="bird-stat-link bird-stat-away{% if active_area == 'elsewhere' %} is-active{% endif %}" onclick="return birdsGo(event,{area:'elsewhere'})">{{ away_count }} outside North Andover&nbsp;{{ icon('alert') }}</a>{% endif %}
             </p>
-            {# A <datalist> cannot rank, group, or be styled: it matched on
-               raw substring, offered all 154 entries in one flat list, and
-               looked like nothing else on the site. This is a real combobox —
-               families and species ranked together, keyboard-driven, and
-               showing the families as a browsable menu when empty, which is
-               the job the old "Browse by family…" select used to do. #}
+            {# A combobox rather than a <datalist>, which cannot rank, group or
+               be styled. Families and species rank together; when empty it
+               lists the families to browse. #}
             <div class="filter-controls">
                 <div class="filter-search bird-combo" id="birdCombo">
                     <input type="search" id="speciesSearch" autocomplete="off"
@@ -279,16 +274,9 @@
         </script>
         {% endif %}
         {% if curate %}
-        {# Curate used to announce itself with a note, three wide chips and a
-           two-item instruction list. On a phone that was most of the screen —
-           and because the field's canvas is `position: fixed` to the viewport
-           with no page scroll behind it, a header that grew just covered the
-           photos, with no way to scroll them back. That is the whole reason
-           curate felt unusable on a phone.
-
-           What is left is one row of real filters: the counts are the
-           information, the controls label themselves, and it scrolls
-           sideways rather than wrapping into extra rows. #}
+        {# One row of curate filters that scrolls sideways rather than
+           wrapping. The field is fixed to the viewport, so a taller header
+           would cover photos that can't be scrolled back into view. #}
         <div class="curate-filters" role="group" aria-label="Review filters">
             {# the summary line already says "N photos" for one bird #}
             {% if active_birds|length != 1 %}<span class="curate-count mono">{{ shots|length }} frames</span>{% endif %}
@@ -329,10 +317,7 @@
                 data-image-indices='{{ (shot.image_indices or [])|tojson }}'
                 {% if curate %}data-caption-species='{{ (shot.caption_species or [])|tojson }}'{% endif %}
                 data-date='{{ shot.date or "" }}'
-                {# Starring used to be reachable only from the field overlay, so
-                   the ordered gallery never needed to know. The shared curate
-                   panel offers it everywhere now, and it has to open showing
-                   the star's real state. #}
+                {# The shared curate panel needs the star's real state. #}
                 data-star='{{ 1 if shot.star else 0 }}'
                 data-sighted='{{ shot._sort or "" }}'
                 data-posted='{{ ((shot._posted if shot._posted is defined else none) or shot.timestamp or "")[:10] }}'
@@ -366,11 +351,8 @@
         </figure>
         {% endfor %}
     </div>
-    {# The same detail view the field uses, minus the canvas. Opening a photo
-       from the ordered grid and from the shuffled field used to run two
-       different implementations with two different sets of curate controls;
-       now there is one, and the order you picked only decides how the photos
-       are laid out — which was always the idea. #}
+    {# The same detail view the field uses, minus the canvas. The chosen
+       order only decides how the photos are laid out. #}
     {% set tiles = field_tiles %}{% set seq = field_seq %}{% set stride = field_stride %}
     {% set detail_only = True %}
     {% include '_field.html' %}

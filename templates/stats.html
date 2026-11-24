@@ -431,9 +431,8 @@
         }
         function tipHide() { tip.style.display = "none"; }
 
-        // ---- The life list: a shot, a ribbon, and a wall of every lifer ----
-        // One chart used to do all three jobs and could not. Dates are wildly
-        // uneven (71% of the lifers land in 8% of the span, 38 pairs share a
+        // The life list: a shot, a ribbon, and a wall of every lifer
+        // Dates are very uneven (71% of the lifers land in 8% of the span, 38 pairs share a
         // day), so a time axis cannot give every bird a reachable position.
         // The WALL orders by rank, where every species gets equal room; the
         // RIBBON keeps the date shape that makes the story worth telling.
@@ -449,7 +448,7 @@
             if (!data.length) return;
             var sel = data.length - 1;
 
-            // ---------- the shot ----------
+            // The shot
             // Framed in its own panel instead of stretched behind the chart, so
             // the bird is the bird: full opacity, no wash, and the ticket beside
             // it rather than across its face.
@@ -492,7 +491,7 @@
             var tMeta = document.getElementById("ll-meta"), tCta = document.getElementById("ll-cta");
             var fmtDate = d3.timeFormat("%b %-d, %Y");
 
-            // ---------- the wall ----------
+            // The wall
             // Every lifer, newest first, grouped by the year it was added. The
             // year headings carry the same crescendo the ribbon draws (1, 1, 3,
             // 4, 5, 17, 28, 67) while staying fully clickable.
@@ -535,7 +534,7 @@
                 tiles = Array.prototype.slice.call(wall.querySelectorAll(".ll-tile"));
             })();
 
-            // ---------- the years ----------
+            // The years
             // One chip per year, newest first, with how many species it added;
             // a tap jumps the wall to that year. (Bars were here, and on a
             // phone they took a whole screen to say what the wall's year
@@ -575,7 +574,7 @@
                 });
             }
 
-            // ---------- selection ----------
+            // Selection
             function show(i, scrollTo) {
                 sel = Math.max(0, Math.min(i, data.length - 1));
                 var d = data[sel];
@@ -651,7 +650,7 @@
                 return false;
             };
 
-            // ---------- curation ----------
+            // Curation
             // Unchanged in substance: pick the photo, zoom it, drag to reframe,
             // reset. It now drags on the shot itself rather than on the chart,
             // and needs no "pin" first, since the wall already says which bird.
@@ -738,7 +737,7 @@
             show(data.length - 1, false);
         }
 
-        // ---- The year, in birds: the full phenology matrix ----
+        // The year, in birds: the full phenology matrix
         function renderPheno() {
             var host = document.getElementById("pheno-matrix");
             var readout = document.getElementById("pheno-readout");
@@ -924,7 +923,7 @@
             order();
         }
 
-        // ---- Shooting days: the clickable birding contribution graph ----
+        // Shooting days: the clickable birding contribution graph
         function renderCal() {
             var el = document.getElementById("cal-chart");
             var days = Object.keys(S.per_day);
@@ -1041,7 +1040,7 @@
             el.scrollLeft = el.scrollWidth;
         }
 
-        // ---- Most photographed: species <-> families, same row design ----
+        // Most photographed: species <-> families, same row design
         function renderBoard() {
             var host = document.getElementById("board-rows");
             var seg = document.querySelector(".board-seg");
@@ -1075,7 +1074,7 @@
             });
         }
 
-        // ---- The river: a bird-face rides each current; touch one to meet it ----
+        // The river: a bird-face rides each current; touch one to meet it
         function renderRiver() {
             var el = document.getElementById("river-chart");
             if (!el || !RIVER.series || !RIVER.series.length) return;
@@ -1147,7 +1146,7 @@
             var defs = svg.append("defs");
             function fmtMonth(ym) { return MONTHS[+ym.slice(5) - 1] + " " + ym.slice(0, 4); }
 
-            // ---- Season + month scaffolding, so the time axis is legible ----
+            // Season + month scaffolding, so the time axis is legible
             // Meteorological seasons; a faint tint fills each run and a label sits
             // over it, month initials march along the bottom, years beneath.
             var SEASONS = ["Winter", "Spring", "Summer", "Fall"];
@@ -1432,7 +1431,7 @@
                 rest();   // snap back to the focused bird if one is locked, else clear
             });
 
-            // ---- Pinch to zoom (touch): drive the viewBox, so hit-testing and the
+            // Pinch to zoom (touch): drive the viewBox, so hit-testing and the
             // focus bloom stay correct with no transform bookkeeping. Two fingers
             // moving together also pan; pinch back down to reset. ----
             function toVB(cx, cy) {
@@ -1580,7 +1579,7 @@
     // Count the headline numbers up from zero on first view.
     (function () {
         // Each number's box is held at its final width while it counts, so
-        // the centred sentence never re-flows (it used to jump a line on phones).
+        // the centred sentence never re-flows.
         if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
         var els = [].slice.call(document.querySelectorAll(".stat-tally b"));
         var ready = document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve();
@@ -1629,7 +1628,7 @@
         var sortBy = "count", filt = "all", expanded = false, CAP = 8, focusName = null;
         var NODE_COLORS = window.EAR_NODE_COLORS || {};
         // Each bar's length is the bird's count; inside it, which mic heard it
-        // (what the separate "Around the yard" list used to say on its own).
+        // .
         function barHTML(h, max) {
             var w = Math.max(2, Math.round(h.n / max * 100));
             var parts = (h.parts || []).filter(function (p) { return p.pct > 0; });

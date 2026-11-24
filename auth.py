@@ -119,7 +119,7 @@ def cmd_exchange(args):
 
         param = os.environ.get("INSTAGRAM_TOKEN_SSM_PARAM", birds.SSM_TOKEN_PARAM)
         if birds._ssm_put(param, token):
-            print("\n💾 Saved to SSM Parameter Store:", param)
+            print("\nSaved to SSM Parameter Store:", param)
         else:
             sys.exit("\nFailed to write to SSM (check AWS creds / permissions).")
     else:

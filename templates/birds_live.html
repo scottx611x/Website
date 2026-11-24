@@ -13,8 +13,7 @@
 <style>
   /* Light like every other bird page; ink on paper, green accents, neon fills. */
   .livewire .mono{font-variant-numeric:tabular-nums}
-  /* The day in one sentence, with search beside it: what four stat cards
-     and a search band used to take 200px to say. */
+  /* The day in one sentence, with search beside it. */
   .lv-bar{display:flex; justify-content:center; align-items:center; flex-wrap:wrap; gap:.7rem 1.4rem; margin:1.2rem 0 1.9rem}
   .lv-find{display:flex; justify-content:center; margin:0}
   /* Same combobox as the gallery search: one look for "find a bird" sitewide. */
@@ -364,7 +363,7 @@
     .lv-ph,.lv-enter .lv-ph,.lv-enter .lv-nm .w,.lv-enter .lv-when,.lv-enter .lv-meta,.lv-enter .lv-fact,.lv-enter .lv-stamp,
     #lv-hero > .lv-enter,.lv-chain.arrive,.lv-chip.arrive,button.lv-tk.land,.lv-stage #lv-hero > .lv-enter,.lv-reel .lv-chip.arrive}
 
-  /* ====== ?stage=1 — the first screen is a dark stage the latest bird owns.
+  /* ?stage=1 — the first screen is a dark stage the latest bird owns.
      The hero card, its player and the wall are the same elements as on the
      paper page (same JS), laid out full-bleed: the photo is the backdrop,
      the name is poster-sized, the call is a glowing band and the wall is a
@@ -726,7 +725,7 @@
       '" title="Hide this recording (not the species)" aria-label="Hide this recording">' + ICON_HIDE + '</button>' : '';
   }
 
-  /* ---- listening nodes: a per-mic identity that stays invisible until there's
+  /* listening nodes: a per-mic identity that stays invisible until there's
      genuinely more than one mic. With a single node, MULTI is false and every
      dot/chip/filter below no-ops, so the page looks exactly as it always has. ---- */
   var NODES = (LIVE.nodes || []).filter(function (n) { return n && n.name; });
@@ -745,7 +744,7 @@
     el.hidden = false;
   }
 
-  /* ---- times: everything renders in the viewer's clock ---- */
+  /* Times: everything renders in the viewer's clock */
   function clock(iso) {
     return new Date(iso).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
   }
@@ -855,7 +854,7 @@
     return n < sun.rise ? " · sunrise " + clock(w.sunrise) : (n < sun.set ? " · sunset " + clock(w.sunset) : "");
   }
 
-  /* ---- the sound itself: one audio pipe, but every call keeps its own view.
+  /* the sound itself: one audio pipe, but every call keeps its own view.
      The hero player belongs to the just-heard call; each feed row expands its
      OWN spectrogram strip inline, so playing a second call never masks the
      first one's picture. ---- */
@@ -940,7 +939,7 @@
   }
   function fmtT(s) { s = Math.floor(s || 0); return Math.floor(s / 60) + ":" + ("0" + (s % 60)).slice(-2); }
 
-  /* ---- 60fps playhead engine ----
+  /* 60fps playhead engine
      One rAF loop drives a single --p (progress 0..1) on every on-screen view of
      the playing clip — the hero strip, its open feed row, and the full-screen
      viewer at once. The needle, the "played" wash and the "unplayed" veil all key
@@ -1052,7 +1051,7 @@
       }
     }, { passive: true });
   }
-  /* ---- tap to enlarge: a full-screen, PLAYABLE look at the call — a wide
+  /* tap to enlarge: a full-screen, PLAYABLE look at the call — a wide
      horizontal strip on every device (time reads left→right, always), seek by X.
      The phone back gesture closes it like any lightbox should. ---- */
   var zoom = null, zoomRec = null, zoomPushed = false;
@@ -1230,7 +1229,7 @@
     playClip(r, { needle: wrap ? wrap.querySelector(".lv-needle") : null });
   });
 
-  /* ---- renderers (poll updates re-use these) ---- */
+  /* Renderers (poll updates re-use these) */
   /* Today's numbers come from the recordings the page is SHOWING, so they
      never disagree with the wall or the soundtrack, and they tick up as each
      queued bird lands. */
@@ -1349,7 +1348,7 @@
       : "Heard today · " + (miss ? miss + " never photographed" : "all photographed");
     applyFocus();
   }
-  /* ---- Today's soundtrack + Most vocal: both draw from the day's visible
+  /* Today's soundtrack + Most vocal: both draw from the day's visible
      recordings under the same focus/node scoping as the feed, re-rendered from
      renderFeed so every state change (poll, slider, hide, focus) flows through. */
   function todayScoped() {
@@ -1508,8 +1507,7 @@
         return;
       }
     }
-    // Most vocal first: this IS the leaderboard now (it used to be a second
-    // section ranking the same species by the same count). Each row ends in
+    // Most vocal first; this doubles as the leaderboard. Each row ends in
     // its clearest clip.
     var by = {}, order = [];
     recs.forEach(function (r) {
@@ -1745,15 +1743,14 @@
       next.classList.remove("lv-over");
     }, 950);
   }
-  /* ---- the feed: contiguous same-species calls fold into one chain row
+  /* the feed: contiguous same-species calls fold into one chain row
      showing the run's best confidence; ×N expands the individual calls.
      The whole backlog scrolls; the hour strip narrows it to one hour. ---- */
   var expandedChains = {}, hourSel = -1, confMin = 75, showLow = false;
   try { var _cs = +localStorage.getItem("lv-confmin"); if (_cs >= 70 && _cs <= 95) confMin = _cs; } catch (e) {}
-  // ONE row per species, not per contiguous run: a chatty cardinal + titmouse
-  // used to leapfrog each other down the feed and bury everything else. Each
-  // species now collapses to a single row (newest call up top, ×N expands the
-  // rest), and rows sort by each species' most-recent recording.
+  // One row per species, not per contiguous run, so two chatty birds can't
+  // bury everything else. Newest call on top, ×N expands the rest; rows sort
+  // by each species' most recent recording.
   function chainsOf(list) {
     var by = {}, out = [];
     list.forEach(function (r) {
@@ -1809,11 +1806,10 @@
     if (hourSel >= 0) {
       shown = shown.filter(function (r) { return new Date(r.t).getHours() === hourSel; });
     }
-    // Confidence gate at the RECORDING level, not per-species: hide EVERY call
-    // below the slider (default 75%). A confirmed species (dynamic-threshold lets
-    // its quiet 50-70% calls through) no longer leaks those — a species shows only
-    // if it has a call clearing the bar, and only its clearing calls appear. The
-    // hidden calls are counted and revealable below.
+    // Confidence gate per recording, not per species: hide every call below
+    // the slider (default 75%), including a confirmed species' quiet 50-70%
+    // calls. A species shows only if one of its calls clears the bar. Hidden
+    // calls are counted and can be revealed below.
     var thr = confMin / 100;
     var hiRecs = shown.filter(function (r) { return (r.conf || 0) >= thr; });
     var loRecs = shown.filter(function (r) { return (r.conf || 0) < thr; });
@@ -2013,7 +2009,7 @@
     }
   });
 
-  /* ---- live: poll and update in place ---- */
+  /* Live: poll and update in place */
   function byTime(a, b) { return a.t < b.t ? -1 : a.t > b.t ? 1 : 0; }
   function findByKey(k) {
     var all = (LIVE.recent || []).concat(LIVE.dayrecs || []);
@@ -2136,7 +2132,7 @@
     }).catch(function () {});
   }
 
-  // ---- Deep-link focus: /birds/live?bird=X or ?family=F (from a species
+  // Deep-link focus: /birds/live?bird=X or ?family=F (from a species
   // profile / the family eyebrow) puts the page in a persistent focus mode —
   // that bird (or every bird in the family) lit up in the wall and the feed,
   // everything else dimmed. Re-applied after every poll so the feed re-render
@@ -2166,7 +2162,7 @@
     // (The feed itself is FILTERED to the focus in renderFeed — no dimming there.)
   }
 
-  /* ---- the reel (?stage=1): pick a bird and the stage becomes that bird,
+  /* the reel (?stage=1): pick a bird and the stage becomes that bird,
      with its clearest clip of today. Nothing plays until play is pressed.
      New arrivals do not take the stage from a picked bird; they land in the
      reel and the "back to live" chip counts them. Escape or the chip returns
@@ -2285,7 +2281,7 @@
   // No auto-scroll in focus mode: the hero at the top IS the focused bird;
   // yanking the page down to the wall on load read as broken.
 
-  // ---- curate: hide ONE recording (not the whole species) ----
+  // Curate: hide ONE recording (not the whole species)
   function hideClip(clip) {
     if (!clip) return;
     fetch("/curate/sound", { method: "POST", headers: { "Content-Type": "application/json" },
@@ -2314,7 +2310,7 @@
     toastTimer = setTimeout(function () { t.hidden = true; }, 5000);
   }
 
-  // ---- curate: suppress a false-positive species (dog read as a grouse) ----
+  // Curate: suppress a false-positive species (dog read as a grouse)
   function suppressSpecies(name, on) {
     fetch("/curate/sound", { method: "POST", headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ species: name, on: on }) })

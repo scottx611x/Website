@@ -662,8 +662,8 @@ def birds_gallery():
             n = int(hashlib.sha1(birds.data_version().encode()).hexdigest()[:8], 16)
         else:
             n = random.randrange(1_000_000_000)
-        # Carry every other query param through the seed redirect — it used to
-        # drop them, so ?view=grid bounced straight back to the field.
+        # Carry every other query param through the seed redirect, or
+        # ?view=grid would bounce straight back to the field.
         keep = {k: v for k, v in request.args.items() if k != "seed"}
         keep["seed"] = str(n)
         return redirect("/birds?" + urlencode(keep))
@@ -759,9 +759,7 @@ def birds_gallery():
     else:
         shots = birds.all_photos_shuffled(all_shots)  # plain random order
     # Chronological ordering applies to any frame view (default or filtered),
-    # overriding the random/lead-in order. Curate now renders the same exploded
-    # frames as the public gallery, so the sort applies there too (it used to be
-    # skipped for the old whole-post curate view).
+    # overriding the random/lead-in order, in curate as well as public.
     if sort:
         shots = birds.sort_frames(shots, sort)
     if star_only:

@@ -296,9 +296,8 @@
     {% endif %}
 </section>
 
-{# The gallery's detail view, minus the canvas. This page used to open its
-   photos in the older masonry lightbox, so the same bird looked and behaved
-   differently here than in the gallery. #}
+{# The gallery's detail view, minus the canvas, so a bird behaves the same
+   here as in the gallery. #}
 {% if sp.frames %}{% set tiles = [] %}{% set seq = [] %}{% set stride = 1 %}{% set detail_only = True %}{% include '_field.html' %}{% endif %}
 
 {% if sp.heard and sp.recent_call and sp.recent_call.audio %}
@@ -581,7 +580,7 @@
     seekFrom(wrap, e.clientX);
   });
 
-  // ---- enlarge: full-screen spectrogram, same audio, seek + play ----
+  // Enlarge: full-screen spectrogram, same audio, seek + play
   function openZoom() {
     if (zoom || !spec) return;
     if (rowBox) applyClip(curClip);  // enlarge focuses the hero — snap back to its clip

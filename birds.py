@@ -140,9 +140,7 @@ def memo_clear():
     _GEN["at"] = 0.0
 
 
-# The gallery used to be rebuilt every 60 s whether or not anything changed,
-# and a quiet site is nearly always past the minute: most detail opens paid
-# 1.5 s of S3 reads and parsing before the first byte. It changes only on a
+# Rebuilding the gallery costs ~1.5 s of S3 reads and parsing. It changes only on a
 # sync (the manifest) or a curate save (which bumps the curation stamp), so
 # memos built from it are keyed on those two ETags, checked with two HEADs at
 # most every _GEN_CHECK seconds, and otherwise live for _GALLERY_TTL. A save on
@@ -1958,13 +1956,11 @@ def apply_overrides(shots, overrides=None, apply_exclusions=True):
             if override.get("images") or override.get("image_locations"):
                 per_loc = override.get("image_locations") or {}
                 shot["image_locations"] = [(per_loc.get(str(i)) or None) for i in range(n)]
-                # The post's own location is deliberately NOT rewritten here.
-                # It used to be set to the first per-image override, which made
-                # a single-frame edit bleed across the whole post: a frame with
-                # no location of its own falls back to shot["location"] (see
-                # _pseudo_frame), so relabelling frame 3 relabelled frames
-                # 1, 2, 4, 5 … with it. Editing one frame must touch one frame,
-                # which is the same rule image_species already follows above.
+                # The post's own location is deliberately NOT rewritten here:
+                # frames without their own location fall back to
+                # shot["location"] (see _pseudo_frame), so changing it would
+                # relabel every frame. Editing one frame touches one frame,
+                # the same rule image_species follows above.
             if override.get("species"):
                 shot["species"] = override["species"]
                 if not override.get("images"):

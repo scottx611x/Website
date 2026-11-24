@@ -46,16 +46,11 @@ body.birdsfield .page{padding-top:.5rem!important}
   height:calc(100svh - 118px);min-height:340px;margin:0 calc(50% - 50vw)}
 .bf-canvas.drag{cursor:grabbing}
 
-/* The field IS the page, so it takes the whole viewport and the chrome floats
-   on top of it. The alternative — reserving a strip for the nav and the filter
-   bar and squeezing the field into the remainder — was costing 180px at the
-   top, and the leftover `calc(100svh - 118px)` height (tuned for a taller
-   header that no longer exists) ran the canvas 62px PAST the fold on top of
-   that. Fixed to the viewport there is no arithmetic left to get wrong. */
+/* The field takes the whole viewport and the nav and filter bar float over
+   it. Fixing it to the viewport avoids computing a height from the header's. */
 body.field-view .bf-canvas{position:fixed;inset:0;height:auto;min-height:0;margin:0;z-index:1;
-  /* Fixed means it no longer covers its siblings by sitting in the flow above
-     them, so it needs its own ground — otherwise the rest of the page shows
-     through the gaps between tiles as stray text and dark bands. */
+  /* Fixed and out of the flow, so it needs its own background or the page
+     behind shows through the gaps between tiles. */
   background:var(--paper)}
 body.field-view .page.wide{padding-top:0;padding-bottom:0}
 @media (max-width:720px){
@@ -145,7 +140,7 @@ body.field-view .gallery-header.is-stuck{
   padding:.2rem .7rem;border-radius:4px;background:rgba(244, 241, 233,.88);transition:opacity .6s .4s}
 .bf-canvas.bf-touched .bf-hint{opacity:0}   /* it has served its purpose */
 
-/* ---------- detail modal: image-led, in the site's own type ---------- */
+/* Detail modal: image-led, in the site's own type */
 /* z-40, not z-6: on phones .bf-viewer is sticky at z-20 and painted straight
    over the close button, so the tap landed on the photo and the modal could
    not be dismissed at all. Nothing else inside the overlay sits above 20
@@ -416,15 +411,13 @@ body.field-view .gallery-header.is-stuck{
 .bf-calls .nd.side{background:rgba(149,2,89,.12);color:#8a0a55}
 .bf-side a{color:var(--accent)}
 
-/* ---- The curate sheet -------------------------------------------------
+/* The curate sheet
    Wide screens: a panel pinned to the bottom of the detail column, so it is
    always under the photograph rather than under the map. Phones: a sheet that
    slides up OVER the photograph (see the max-width:620px block), because the
    frame you are editing has to stay on screen while you edit it.
    The controls inside are built by static/js/curate.js. */
-/* Dark, like the viewer it sits in. In --paper it was a cream slab across the
-   bottom of the screen that fought the photograph for attention — and on a
-   phone at night it was simply a lamp. */
+/* Dark, like the viewer it sits in, so it doesn't compete with the photo. */
 .bf-sheet{position:absolute;right:0;bottom:0;width:22rem;max-width:100%;
   z-index:30;background:rgba(18,24,19,.97);
   border-top:1px solid rgba(255,255,255,.12);
@@ -701,13 +694,8 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
           <button type="button" id="bf-ofs" class="bf-ico" title="Full screen" aria-label="Full screen"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M16 3h3a2 2 0 0 1 2 2v3"/><path d="M8 21H5a2 2 0 0 1-2-2v-3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/></svg></button>
           <button type="button" id="bf-olink" class="bf-ico" title="Copy a link to this frame" aria-label="Copy a link to this frame"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.5 1.5"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7L12 19"/></svg></button>
           {% if curate %}
-          {# Opens the curate sheet, which on a phone rises over the photo and
-             on a wide screen scrolls the panel into view. There used to be two
-             naked shortcut buttons here — out-of-area and hide — duplicating
-             the panel's, because the panel itself sat three sections down past
-             By-the-numbers, the year chart and the map and could not be reached
-             on a phone. The sheet fixes the reachability, so the duplicates
-             (and the chance of the two copies drifting) are gone. #}
+          {# Opens the curate sheet: on a phone it rises over the photo, on a
+             wide screen the panel scrolls into view. #}
           <button type="button" id="bf-ocurate" class="bf-ico bf-ico-cur" title="Curate this frame" aria-label="Curate this frame" aria-expanded="false" aria-controls="bf-curate"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></button>
           {% endif %}
           {# Narrow the filmstrip to this bird's starred frames. The lines in
@@ -717,12 +705,8 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
       </div>
         </div>
 
-      {# Everything below is about the SPECIES, not the frame on the stage. It
-         was briefly behind an "About this bird" disclosure, to stop 1,335px of
-         statistics burying the photograph on a phone — but the curate sheet
-         already keeps the controls reachable, which was the actual problem,
-         and the viewer is sticky here so the photo stays put while you read.
-         Hiding the record was solving something that no longer needed it. #}
+      {# Everything below is about the species, not the frame on the stage.
+         The viewer is sticky, so the photo stays put while you read. #}
       <div class="bf-extra" id="bf-extra">
       <div>
         <h3>By the numbers</h3>
@@ -1134,10 +1118,9 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
       if (ev === "load" && e.target.tagName === "IMG") SEEN[e.target.getAttribute("src")] = 1;
     }, true);
   });
-  /* Thumbs come straight from S3 over HTTP/1.1: six downloads at a time per
-     host. A tile culled mid-download used to keep its slot, so a fling queued
-     dozens of photos nobody would see in front of the ones you stopped on.
-     Dropping the src aborts the request and frees the slot. */
+  /* Thumbs come from S3 over HTTP/1.1, six downloads at a time per host.
+     Dropping the src of a culled tile aborts its request and frees the slot
+     for the tiles you actually stopped on. */
   function drop(el) {
     el.remove();
     if (el.classList.contains("ld")) return;
@@ -1624,21 +1607,10 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
   canvas.addEventListener("pointerleave", function () { echoXY = null; setEcho(null); }, { passive: true });
   canvas.addEventListener("pointerdown", function () { setEcho(null); }, { passive: true });
 
-  /* Tap vs drag.
-   *
-   * This used to accumulate PATH LENGTH (`moved += |dx| + |dy|`) and call it a
-   * tap under 6px. A mouse does not jitter, so that held up on a desktop. A
-   * finger does, and a phone samples pointermove at display rate, so a
-   * visually motionless tap racks up tens of pixels of path and was classified
-   * as a drag — `openSpecies` never fired and the field looked like it simply
-   * would not let you pick a photo.
-   *
-   * Displacement from the touch origin is the thing that actually distinguishes
-   * the two gestures, and it is immune to jitter: wander out and back and you
-   * are still on the same tile. Slop is per input type (a fingertip covers
-   * ~10mm, a mouse pixel is a pixel) and a tap also has to be brief, so
-   * press-drift-release stays a drag. Path length still drives nothing — the
-   * momentum glide reads vx/vy, which this leaves alone.
+  /* Tap vs drag: measured as displacement from the touch origin, not path
+   * length. A finger jitters, so path length turns a still tap into a drag.
+   * The slop allowance depends on the input type, and a tap must also be
+   * brief. The momentum glide reads vx/vy and is unaffected.
    */
   var TAP_SLOP = { mouse: 6, pen: 8, touch: 14 };
   var TAP_MS = 700;
@@ -1669,9 +1641,8 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
     var dx = e.clientX - lx, dy = e.clientY - ly;
     lx = e.clientX; ly = e.clientY;
     px += dx; py += dy; setDir(dx, dy); apply();
-    // The fling speed is the average over the last ~80ms, not the final
-    // event's delta: that one is often a near-stop as the finger lifts, so
-    // the glide used to die on release.
+    // Fling speed is the average over the last ~80ms. The final event is
+    // often a near-stop as the finger lifts, so it would kill the glide.
     var t = performance.now();
     trail.push([t, e.clientX, e.clientY]);
     while (trail.length > 2 && t - trail[0][0] > 80) trail.shift();
@@ -1729,7 +1700,7 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
   }, { passive: false });
   plane.addEventListener("click", function (e) { if (e.target.closest(".bf-tile")) e.preventDefault(); });
 
-  /* ---------- the species detail ----------
+  /* the species detail
      Image-led: the frame fills the stage, every frame of that bird is
      reachable by arrows, keyboard or the strip, and the rail carries the
      numbers, the year, the map and the voice. */
@@ -1865,8 +1836,7 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
   function paintStarOnly() {
     if (!oStarOnly) return;
     // Nothing to narrow to: disable rather than leave a button that looks
-    // live and does nothing. More species sit here now that thin single-image
-    // posts no longer carry an automatic cover star.
+    // live and does nothing.
     var any = false;
     for (var i = 0; i < allFrames.length; i++) if (allFrames[i].star) { any = true; break; }
     oStarOnly.disabled = !any;
@@ -2000,8 +1970,7 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
     }
     var img = $("bf-oimg"), vid = $("bf-ovid"), stage = img.parentNode;
 
-    // A video frame gets the real clip, not its poster — the stage was an
-    // <img>, so video frames were a still image you could not play.
+    // A video frame gets the playable clip, not its poster image.
     if (f.vsrc) {
       img.hidden = true; vid.hidden = false;
       img.classList.remove("loading", "stale");
@@ -2137,9 +2106,8 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
     }
     return null;
   }
-  /* The family was a dead label. Clicking it scopes the whole gallery to that
-     family and opens the family's own detail view — which is what you want
-     after reading "Blackbirds & Orioles" and wondering what else is in it. */
+  /* Clicking the family scopes the gallery to it and opens the family's
+     detail view. */
   var MON = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
   function prettyDay(s) {
     var m = /^(\d{4})-(\d{2})-(\d{2})/.exec(s || "");
@@ -2187,11 +2155,7 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
   $("bf-octxprev").addEventListener("click", function (e) { e.stopPropagation(); stepCtx(-1); });
   $("bf-octxnext").addEventListener("click", function (e) { e.stopPropagation(); stepCtx(1); });
 
-  /* Opening a bird was a modal appearing over the field: the photo you
-     clicked stayed where it was and a different, larger copy of it faded in
-     somewhere else. A View Transition morphs the one you clicked into the
-     one on the stage, so the gesture reads as moving INTO the picture rather
-     than summoning a dialog.
+  /* A View Transition morphs the clicked tile into the photo on the stage.
 
      The name has to live on exactly one element per snapshot, so the tile
      carries it for the outgoing frame and the stage carries it for the
@@ -2264,9 +2228,8 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
     $("bf-ocount").textContent = "";
     $("bf-ofacts").innerHTML = ""; $("bf-ostrip").innerHTML = "";
     $("bf-oplaces").innerHTML = "";
-    // deliberately NOT clearing #bf-omap: Leaflet owns that element, and
-    // emptying it left _map pointing at DOM that no longer existed — which
-    // is why the map loaded the first time and then intermittently did not
+    // Don't clear #bf-omap: Leaflet owns that element, and emptying it leaves
+    // _map pointing at detached DOM, so the map fails to load next time
     $("bf-omlab").innerHTML = "";
     $("bf-omonths").innerHTML = [30, 45, 60, 50, 35, 25, 20, 30, 45, 55, 40, 30].map(function (h) {
       return '<span><i class="bf-sk" style="height:' + h + '%"></i></span>';
@@ -2282,9 +2245,8 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
     $("bf-ostrip").innerHTML = new Array(9).join("x").split("x").map(function () {
       return '<span class="bf-sk" style="width:58px;height:58px;flex:none"></span>';
     }).join("");
-    // Browsing a family and clicking a bird used to drop you into that one
-    // species, losing the view you were in. Open the family instead; the
-    // individual birds are one click away inside it.
+    // While browsing a family, open the family rather than one species so
+    // the view you were in is kept.
     famMode = !!(CTX.family_slug && !(CTX.birds && CTX.birds.length));
     if (famMode) {
       $("bf-otitle").textContent = CTX.family;
@@ -2322,7 +2284,7 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
       });
   }
 
-  /* ---------- a photography subject ----------
+  /* a photography subject
      Same overlay as a bird, filled from the page's own data. The record
      panel says what applies to a photo subject (photos, category, first and
      latest) and leaves out what does not (lifer rank, the yard's recordings). */
@@ -2456,14 +2418,13 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
     return document.querySelector('[data-subject="' + String(key).replace(/"/g, "") + '"]');
   }
 
-  /* ---------- sequence mode: the ordered grid's detail ----------
+  /* sequence mode: the ordered grid's detail
      The field opens a SPECIES and walks its frames. The ordered grid has to
      walk the gallery in the order on screen — that is the whole point of
      having picked an order — so here the frames come from the masonry cards
      instead of from a species profile, and the record beside them follows
      whichever bird is on the stage.
-     Same overlay, same filmstrip, same curate panel. The gallery used to run
-     a second detail view for this, with a different set of curate controls. */
+     Same overlay, same filmstrip, same curate panel as the field. */
   var seqMode = false, seqSpecies = null, seqClosedAt = 0;
 
   function cardFrames() {
@@ -3326,7 +3287,7 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
     else if (e.key === "ArrowRight") showFrame(fi + 1);
   });
 
-  /* ---------- touch loupe ----------
+  /* touch loupe
      Press and hold the photo: after a beat a round magnifier rises above the
      finger and follows it. It opens at 3x on the 1440 px web copy already on
      the stage (a phone shows that at ~400 px, so there is detail to reveal at
@@ -3566,16 +3527,11 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
     loupe.end = end;
   })();
 
-  /* Swipe, because this is a photo viewer on a phone and the arrows are a
-     mouse idea. The overlay had NO touch handling at all — every pointer
-     listener in this file is bound to the canvas — so the only way to page
-     frames was to hit a 2rem chevron, while the gallery's lightbox has had
-     swipe for months. Same gesture, both surfaces.
+  /* Swipe to page frames on touch screens, as in the gallery lightbox.
 
      Horizontal pages the filmstrip. A downward drag only leaves immersive
-     mode; it no longer closes the detail view, because a hard pull down is
-     also how you scroll back up the panel, and losing the bird to that was
-     the complaint. × / Back / Esc still close it. Anything that scrolls on its own
+     mode and does not close the view, since a pull down is also how you
+     scroll back up the panel. × / Back / Esc close it. Anything that scrolls on its own
      is excluded by hand: the filmstrip and the map pan horizontally, the
      curate sheet scrolls vertically and holds the text fields, and a video
      owns its own scrubbing. Stealing from those is worse than not having the
