@@ -38,13 +38,31 @@
     <section class="hero">
         <h1 class="hero-title">Scott Ouellette</h1>
         <p class="hero-sub">
-            Software infrastructure engineer who{% if taglines %} <span class="hero-tagline">{{ taglines|random }}</span>{% else %} photographs birds{% endif %}
+            Software infrastructure engineer who <span id="hero-tagline" class="hero-tagline"></span>
         </p>
         <div class="hero-links">
             <a class="btn" href="/birds">Birds</a>
             <a class="btn btn-ghost" href="/photography">Photography</a>
             <a class="btn btn-ghost" href="/projects">Projects</a>
         </div>
+        <script>
+            (function () {
+                var lines = {{ taglines|tojson }};
+                var el = document.getElementById("hero-tagline");
+                if (!el || !lines.length) return;
+                var i = Math.floor(Math.random() * lines.length);
+                el.textContent = lines[i];
+                if (lines.length < 2) return;
+                setInterval(function () {
+                    el.classList.add("fading");
+                    setTimeout(function () {
+                        i = (i + 1) % lines.length;
+                        el.textContent = lines[i];
+                        el.classList.remove("fading");
+                    }, 350);
+                }, 3800);
+            })();
+        </script>
     </section>
 
     {% if curate %}

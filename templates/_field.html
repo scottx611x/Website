@@ -128,7 +128,7 @@ body.field-view .gallery-header.is-stuck{
   background:linear-gradient(transparent,rgba(13, 18, 14,.78));
   opacity:0;transition:opacity .18s}
 .bf-tile:hover figcaption,.bf-tile:focus-visible figcaption{opacity:1}
-.bf-badge{position:absolute;top:.35rem;right:.35rem;font-size:.58rem;color:#fff;background:rgba(13, 18, 14,.55);
+.bf-badge{font-family:var(--mono); position:absolute;top:.35rem;right:.35rem;font-size:.58rem;color:#fff;background:rgba(13, 18, 14,.55);
   padding:.1rem .3rem;border-radius:2px}
 .bf-tilt{position:absolute;right:.6rem;bottom:.6rem;z-index:6;font:inherit;
   font-size:.7rem;padding:.3rem .8rem;border-radius:4px;cursor:pointer;
@@ -403,7 +403,7 @@ body.field-view .gallery-header.is-stuck{
   padding:.3rem .4rem;border-radius:4px;cursor:pointer;color:var(--ink-2,#3d453e)}
 .bf-calls li:hover{background:rgba(47, 125, 79,.09)}
 .bf-calls li.on{background:rgba(47, 125, 79,.14);color:var(--ink)}
-.bf-calls .pc{font-size:.7rem;color:var(--accent);
+.bf-calls .pc{font-family:var(--mono); font-size:.7rem;color:var(--accent);
   min-width:2.6rem}
 .bf-calls .wh{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .bf-calls .nd{font-size:.62rem;padding:.06rem .4rem;border-radius:4px;
@@ -510,7 +510,7 @@ body.field-view .gallery-header.is-stuck{
 /* The side panel is --paper; these were coloured for the dark overlay and
    came out paper-on-paper, so the species counter was invisible and the two
    arrows looked like strays. */
-.bf-ctxnav{display:flex;align-items:center;gap:.5rem;margin:0;
+.bf-ctxnav{font-family:var(--mono); display:flex;align-items:center;gap:.5rem;margin:0;
   font-size:.72rem;color:var(--muted)}
 .bf-ctxnav[hidden]{display:none}
 .bf-ctxnav span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -521,7 +521,7 @@ body.field-view .gallery-header.is-stuck{
    out paper-on-paper, so the chips read as empty outlines. */
 .bf-fams{display:flex;flex-wrap:wrap;gap:.4rem;margin:.2rem 0 0}
 .bf-fams[hidden]{display:none}
-.bf-fams button{font:inherit;font-size:.72rem;cursor:pointer;
+.bf-fams button{font-family:var(--mono); font:inherit;font-size:.72rem;cursor:pointer;
   display:inline-flex;align-items:baseline;gap:.35rem;padding:.3rem .6rem;border-radius:4px;
   background:rgba(13,18,14,.04);border:1px solid rgba(13,18,14,.18);color:var(--ink)}
 .bf-fams button.on{border-color:var(--accent);color:var(--accent);background:rgba(47,125,79,.08)}
@@ -552,7 +552,7 @@ body.field-view .gallery-header.is-stuck{
   font-size:1.02rem;letter-spacing:-.01em;line-height:1.15}
 .bf-canvas.overview .bf-tile figcaption span{display:none}
 .bf-canvas.overview .bf-tile .bf-badge{display:none}
-.bf-tally{position:absolute;top:.4rem;left:.4rem;font-size:.68rem;line-height:1;color:#fff;background:rgba(13, 18, 14,.6);
+.bf-tally{font-family:var(--mono); position:absolute;top:.4rem;left:.4rem;font-size:.68rem;line-height:1;color:#fff;background:rgba(13, 18, 14,.6);
   padding:.18rem .4rem;border-radius:3px}
 /* Nothing is repeated in here — one tile per bird — so the lift can be bolder. */
 .bf-canvas.overview:not(.drag) .bf-tile:hover{--lift:1.6}
@@ -591,7 +591,7 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
 .bf-echo b{display:block;font-family:var(--display);font-weight:400;
   font-size:clamp(2.2rem,7.5vw,6.5rem);line-height:.92;letter-spacing:-.025em;
   text-wrap:balance}
-.bf-echo i{display:block;font-style:normal;font-size:.75rem;
+.bf-echo i{font-family:var(--mono); display:block;font-style:normal;font-size:.75rem;
   margin-top:.5rem;opacity:.75}
 @media (hover: none){.bf-echo{display:none}}
 @media (prefers-reduced-motion: reduce){.bf-echo{transition:none}}
