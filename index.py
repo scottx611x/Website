@@ -1,7 +1,6 @@
 import collections
 import datetime
 from urllib.parse import urlencode
-from zoneinfo import ZoneInfo
 import math
 import hashlib
 import hmac
@@ -1355,24 +1354,20 @@ def birds_original(name):
     return resp
 
 
-_EASTERN = ZoneInfo("America/New_York")
-
-
 @app.route("/birds/kindle.png", methods=["GET"])
 def birds_kindle():
     """One starred bird as a Kindle Paperwhite sleep screen.
 
-    ?slot=0..kindle.POOL-1 picks a bird from today's pool (US Eastern days),
-    so the device can hold several and rotate. X-Bird-Frame names the frame."""
+    ?slot=0..kindle.POOL-1 is the slot-th newest star, so the device can hold
+    the latest few and rotate. X-Bird-Frame names the frame."""
     try:
         slot = int(request.args.get("slot") or 0)
     except ValueError:
         abort(400)
     if not 0 <= slot < kindle.POOL:
         abort(400)
-    day = datetime.datetime.now(_EASTERN).date().toordinal()
     frame = kindle.pick_frame(birds.load_gallery(shuffle=False),
-                              birds.load_starred(), day, slot)
+                              birds.load_starred(), slot)
     if not frame:
         abort(404)
     try:

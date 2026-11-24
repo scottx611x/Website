@@ -1487,26 +1487,28 @@ class KindleScreenTestCase(GenericTestBase):
                 "images": ["https://x/%s-%d.jpg" % (pid, i) for i in range(n)],
                 "image_indices": list(range(n)), "image_videos": videos or []}
 
-    def test_pool_cycles_every_star_before_repeating(self):
+    def test_pool_is_the_latest_stars_newest_first(self):
         import kindle
-        shots = [self._shot("p%d" % n, "2026-01-%02dT00:00:00+0000" % (n + 1), n=3)
-                 for n in range(9)]
-        starred = {"p%d-%d" % (n, i) for n in range(9) for i in range(3)}  # 27 stars
-        seen = [kindle.pick_frame(shots, starred, day, slot)["id"]
-                for day in range(3) for slot in range(kindle.POOL)][:27]
-        self.assertEqual(sorted(seen), sorted(starred))
-        # Stable for a given day and slot; a new day starts a new pool.
-        self.assertEqual(kindle.pick_frame(shots, starred, 5, 2)["id"],
-                         kindle.pick_frame(shots, starred, 5, 2)["id"])
-        self.assertNotEqual(kindle.pick_frame(shots, starred, 5, 0)["id"],
-                            kindle.pick_frame(shots, starred, 6, 0)["id"])
+        shots = [self._shot("p%02d" % n, "2026-01-%02dT00:00:00+0000" % (n + 1), n=2)
+                 for n in range(12)]
+        starred = {"p%02d-0" % n for n in range(12)} | {"p11-1"}
+        ids = [kindle.pick_frame(shots, starred, slot)["id"] for slot in range(kindle.POOL)]
+        # Newest post first, its frames in carousel order; the oldest stars drop off.
+        self.assertEqual(ids, ["p11-0", "p11-1", "p10-0", "p09-0", "p08-0",
+                               "p07-0", "p06-0", "p05-0", "p04-0", "p03-0"])
+
+    def test_pool_wraps_when_there_are_few_stars(self):
+        import kindle
+        shots = [self._shot("a", "2026-01-01T00:00:00+0000"), self._shot("b", "2026-02-01T00:00:00+0000")]
+        ids = [kindle.pick_frame(shots, {"a-0", "b-0"}, slot)["id"] for slot in range(4)]
+        self.assertEqual(ids, ["b-0", "a-0", "b-0", "a-0"])
 
     def test_skips_video_frames_and_returns_none_without_stars(self):
         import kindle
         shots = [self._shot("v", "2026-06-01T00:00:00+0000", videos=["https://x/v.mp4", None])]
-        self.assertEqual(kindle.pick_frame(shots, {"v-0", "v-1"}, 1)["id"], "v-1")
-        self.assertIsNone(kindle.pick_frame(shots, {"v-0"}, 1))
-        self.assertIsNone(kindle.pick_frame(shots, set(), 1))
+        self.assertEqual(kindle.pick_frame(shots, {"v-0", "v-1"})["id"], "v-1")
+        self.assertIsNone(kindle.pick_frame(shots, {"v-0"}))
+        self.assertIsNone(kindle.pick_frame(shots, set()))
 
     def test_render_fills_the_paperwhite_screen_in_16_grays(self):
         import io

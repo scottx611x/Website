@@ -4,7 +4,7 @@ Bird screen: starred birds from scott-ouellette.com as KOReader's sleep screen.
 The site renders /birds/kindle.png?slot=N for this panel (1072x1448, 16
 grays). This downloads a pool of POOL of them into its own folder and points
 KOReader's "random image" sleep screen at that folder, so every sleep shows a
-different bird without needing Wi-Fi. The site moves the pool on each day.
+different bird without needing Wi-Fi. The pool is the latest POOL starred birds.
 
 The pool refreshes when Wi-Fi connects (or on wake while online), at most
 every few hours, and from Tools > Bird screen > Refresh now. A failed

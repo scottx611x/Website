@@ -1,12 +1,11 @@
 """The Kindle sleep screen: starred birds, drawn for e-ink.
 
-When it has Wi-Fi, the jailbroken Paperwhite downloads a pool of POOL images
-(/birds/kindle.png?slot=0..POOL-1) and KOReader shows a random one each time
-it sleeps. All the image work happens here, so the device only saves files.
-The screen is 1072x1448 at 300ppi, shows 16 grays, and is read in portrait.
+When it has Wi-Fi, the jailbroken Paperwhite downloads the latest POOL starred
+birds (/birds/kindle.png?slot=0..POOL-1, newest first) and shows a random one
+each time it sleeps. All the image work happens here, so the device only saves
+files. The screen is 1072x1448 at 300ppi, shows 16 grays, and is portrait.
 """
 import io
-import random
 
 from PIL import Image, ImageDraw, ImageFont, ImageOps
 
@@ -18,15 +17,13 @@ GRAYS = 16  # the Paperwhite 3 panel shows 16 levels
 
 
 POOL = 10  # birds the device holds at once; it shows a random one per sleep
-_SEED = "birdsofnorthandover"
 
 
 def starred_frames(shots, starred):
-    """Every starred still as (key, shot, index), in a fixed shuffled order.
+    """Every starred still as (key, shot, index), newest post first.
 
-    The order depends only on the set of keys, so it is stable from one
-    request to the next. Videos are skipped because a still from a clip rarely
-    makes a good wallpaper."""
+    Frames of one post keep their carousel order. Videos are skipped because a
+    still from a clip rarely makes a good wallpaper."""
     out = []
     for shot in shots:
         images = shot.get("images") or []
@@ -36,22 +33,19 @@ def starred_frames(shots, starred):
                 continue
             key = birds.frame_star_key(shot, i)
             if key in starred:
-                out.append((key, shot, i))
-    out.sort(key=lambda t: t[0])
-    random.Random(_SEED).shuffle(out)
-    return out
+                out.append((shot.get("timestamp") or "", -i, key, shot, i))
+    out.sort(key=lambda t: t[:3], reverse=True)
+    return [(key, shot, i) for _, _, key, shot, i in out]
 
 
-def pick_frame(shots, starred, day, slot=0):
-    """The bird for ``slot`` (0..POOL-1) of the pool for ``day`` (an ordinal).
-
-    Each day's pool is the next POOL birds in the shuffled order, so every
-    starred photo comes round before any repeats. Returns a _pseudo_frame
-    dict, or None when nothing is starred."""
+def pick_frame(shots, starred, slot=0):
+    """The ``slot``-th newest starred bird (0..POOL-1), so the device's pool is
+    always the latest POOL stars. With fewer stars than that, slots wrap.
+    Returns a _pseudo_frame dict, or None when nothing is starred."""
     frames = starred_frames(shots, starred)
     if not frames:
         return None
-    _, shot, i = frames[(day * POOL + slot) % len(frames)]
+    _, shot, i = frames[slot % len(frames)]
     frame, _ = birds._pseudo_frame(shot, i)
     return frame
 
