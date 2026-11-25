@@ -16,7 +16,7 @@ MARGIN = 56
 GRAYS = 16  # the Paperwhite 3 panel shows 16 levels
 
 
-POOL = 60  # birds the device holds at once; it shows a random one per sleep
+POOL = 100  # birds the device holds at once; it shows a random one per sleep
 
 
 def starred_frames(shots, starred):
