@@ -1357,9 +1357,12 @@ def birds_original(name):
 @app.route("/birds/kindle.json", methods=["GET"])
 def birds_kindle_pool():
     """The Kindle's pool: star keys of the latest kindle.POOL birds, newest
-    first. The device fetches the ones it lacks and drops the rest."""
-    keys = kindle.latest_keys(birds.load_gallery(shuffle=False), birds.load_starred())
-    resp = app.response_class(json.dumps({"frames": keys}), mimetype="application/json")
+    first, plus each one's species. The device fetches the ones it lacks and
+    drops the rest; Bird mode uses the species to keep look-alikes apart."""
+    shots, starred = birds.load_gallery(shuffle=False), birds.load_starred()
+    body = {"frames": kindle.latest_keys(shots, starred),
+            "species": kindle.latest_species(shots, starred)}
+    resp = app.response_class(json.dumps(body), mimetype="application/json")
     resp.headers["Cache-Control"] = "public, max-age=300"
     return resp
 

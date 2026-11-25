@@ -58,8 +58,10 @@ if ! fetch "$SITE/kindle.json" "$EXT/pool.json"; then
     log "could not get the bird list (Wi-Fi: ${wifi:-unknown}; $FETCH_ERR); nothing changed"
     exit 0
 fi
-# {"frames": ["123-0", "456-1", ...]} -> one key per line, newest first.
-tr -c '0-9-' '\n' < "$EXT/pool.json" | grep -E '^[0-9]+-[0-9]+$' > "$KEYS.new"
+# {"frames": ["123-0", "456-1", ...], "species": {...}} -> the frames list,
+# one key per line, newest first.
+tr -d '\n' < "$EXT/pool.json" | sed -n 's/.*"frames": *\[\([^]]*\)\].*/\1/p' |
+    tr -c '0-9-' '\n' | grep -E '^[0-9]+-[0-9]+$' | awk '!seen[$0]++' > "$KEYS.new"
 n=$(wc -l < "$KEYS.new" | tr -d ' ')
 if [ "$n" -eq 0 ]; then
     log "empty bird list; nothing changed"

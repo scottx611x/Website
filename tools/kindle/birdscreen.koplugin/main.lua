@@ -44,6 +44,80 @@ local EXIT_STRIP = 0.08 -- Bird mode closes on a long press in this top share of
 
 local Screen = Device.screen
 
+-- Bird mode deals birds like cards: every bird once before any repeats, with
+-- the same species kept apart (the pool can hold many Red-tailed Hawks). The
+-- deck lasts the whole KOReader session, so reopening Bird mode carries on.
+local SPREAD = 6 -- keep a species out of this many birds after it, if possible
+local Deck = { order = {}, pos = 1, recent = {}, size = 0 }
+
+-- {key: species} from the pool list (the plugin's own copy, or the KUAL sync's).
+local function loadSpecies()
+    for _i, path in ipairs{ DIR .. "/.pool.json", "/mnt/us/extensions/birdscreen/pool.json" } do
+        local fh = io.open(path, "r")
+        if fh then
+            local ok, data = pcall(require("json").decode, fh:read("*a"))
+            fh:close()
+            if ok and type(data) == "table" and type(data.species) == "table" then return data.species end
+        end
+    end
+    return {}
+end
+
+function Deck:deal(files)
+    local species = loadSpecies()
+    local function kind(path)
+        local key = path:match("([^/]+)%.png$")
+        local s = species[key]
+        return (s and s ~= "") and s or key -- unknown species: its own kind
+    end
+    local pile, left, kinds = {}, {}, 0
+    for i, f in ipairs(files) do
+        pile[i] = f
+        local k = kind(f)
+        if not left[k] then kinds = kinds + 1 end
+        left[k] = (left[k] or 0) + 1
+    end
+    for i = #pile, 2, -1 do -- shuffle
+        local j = math.random(i)
+        pile[i], pile[j] = pile[j], pile[i]
+    end
+    local spread = math.min(SPREAD, kinds - 1)
+    local order = {}
+    while #pile > 0 do
+        -- Of the birds whose species was not just shown, take the commonest
+        -- species first so it does not bunch up at the end (ties: shuffled).
+        local best
+        for i, f in ipairs(pile) do
+            local k, clash = kind(f), false
+            for _j, r in ipairs(self.recent) do
+                if r == k then clash = true; break end
+            end
+            if not clash and (not best or left[k] > left[kind(pile[best])]) then best = i end
+        end
+        local f = table.remove(pile, best or 1)
+        local k = kind(f)
+        left[k] = left[k] - 1
+        table.insert(order, f)
+        table.insert(self.recent, k)
+        while #self.recent > spread do table.remove(self.recent, 1) end
+    end
+    self.order, self.pos, self.size = order, 1, #files
+end
+
+-- The next bird's path, dealing a fresh deck when this one runs out or the
+-- pool changed (a sync added or dropped birds).
+function Deck:next(files)
+    for _i = 1, 2 do
+        if self.pos > #self.order or self.size ~= #files then self:deal(files) end
+        while self.pos <= #self.order do
+            local f = self.order[self.pos]
+            self.pos = self.pos + 1
+            if lfs.attributes(f, "mode") == "file" then return f end
+        end
+    end
+    return files[1]
+end
+
 -- Full-screen bird viewer for a toddler. Modal, and it claims every gesture,
 -- so taps never reach the reader or menus underneath.
 local BirdMode = InputContainer:extend{
@@ -76,11 +150,7 @@ function BirdMode:init()
 end
 
 function BirdMode:showBird()
-    local pick = self.files[math.random(#self.files)]
-    if #self.files > 1 then
-        while pick == self.shown do pick = self.files[math.random(#self.files)] end
-    end
-    self.shown = pick
+    local pick = Deck:next(self.files)
     if self[1] then self[1]:free() end
     self[1] = ImageWidget:new{
         file = pick,
@@ -158,7 +228,10 @@ function BirdScreen:onBirdMode()
         })
         return true
     end
-    math.randomseed(os.time())
+    if not Deck.seeded then
+        math.randomseed(os.time())
+        Deck.seeded = true
+    end
     UIManager:show(BirdMode:new{ files = files })
     return true
 end

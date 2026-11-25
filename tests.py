@@ -1518,8 +1518,17 @@ class KindleScreenTestCase(GenericTestBase):
         with mock.patch.object(birds, "load_starred", return_value=set()):
             r = self.test_client.get("/birds/kindle.json")
             self.assertEqual(r.status_code, 200)
-            self.assertEqual(r.get_json(), {"frames": []})
+            self.assertEqual(r.get_json(), {"frames": [], "species": {}})
             self.assertEqual(self.test_client.get("/birds/kindle.png?frame=nope-0").status_code, 404)
+
+    def test_pool_json_names_each_birds_species(self):
+        shots = [self._shot("a", "2026-01-01T00:00:00+0000"), self._shot("b", "2026-02-01T00:00:00+0000")]
+        with mock.patch.object(birds, "load_gallery", return_value=shots), \
+                mock.patch.object(birds, "load_starred", return_value={"a-0", "b-1"}):
+            body = self.test_client.get("/birds/kindle.json").get_json()
+        self.assertEqual(body["frames"], ["b-1", "a-0"])
+        self.assertEqual(set(body["species"]), {"a-0", "b-1"})
+        self.assertTrue(all(isinstance(s, str) for s in body["species"].values()))
 
     def test_pool_wraps_when_there_are_few_stars(self):
         import kindle

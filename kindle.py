@@ -43,6 +43,16 @@ def latest_keys(shots, starred):
     return [key for key, _, _ in starred_frames(shots, starred)[:POOL]]
 
 
+def latest_species(shots, starred):
+    """{star key: species} for the pool, so the device can keep the same
+    species apart when it deals birds out."""
+    out = {}
+    for key, shot, i in starred_frames(shots, starred)[:POOL]:
+        frame, _ = birds._pseudo_frame(shot, i)
+        out[key] = (frame or {}).get("species") or ""
+    return out
+
+
 def frame_for_key(shots, starred, key):
     """The _pseudo_frame for one starred key, or None if it is not starred
     (or is a video)."""
