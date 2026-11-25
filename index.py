@@ -1718,7 +1718,7 @@ def _attach_notes(view, weather):
             idx, stage, shot_of=lambda sp: sp in shot,
             raining_after=(time_now() - 3600) if rain else None)
         # The window spans yesterday too: a reel pick must not show the
-        # line a bird said yesterday (yesterday's "first call", say).
+        # line a bird said yesterday (yesterday's "first bird of the day", say).
         first, by_clip, today = {}, {}, max(days)
         for x in sorted(stage, key=lambda x: x.ts):
             n = notes[id(x)]

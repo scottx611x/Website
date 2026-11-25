@@ -164,7 +164,7 @@ class LabelIndex(object):
                     start.append(k)
             self.dayx[sp] = (days, start, best)
         # The day's stage opener: first stage-worthy recording after
-        # sunrise - 90 min, so a lone owl at 3am is not "the first call".
+        # sunrise - 90 min, so a lone owl at 3am is not "first bird of the day".
         self.opener = {}
         for x in recs:
             if x.conf >= STAGE_CONF and x.day not in self.opener:
@@ -274,11 +274,12 @@ def stamp_for(x, f, idx):
         return ("visit", ordinal(f["visit_days"]) + " visit")
     if x.dark_by > 3600 and f["first_dark_today"] and f["n_prior"] >= 20 \
             and f["parts"]["night"] < 0.05 * f["n_prior"]:
-        return ("night", "night voice")
+        # Said about the bird, not the clock: the status line already says night.
+        return ("night", ("early" if x.local.hour < 12 else "late") + " for " + a_an(common_word(x.sp)))
     if idx.opener.get(x.day) is x:
-        return ("voice", "first call")
+        return ("opener", "first bird of the day")
     if f["best_day"] >= 10 and f["k_today"] == f["best_day"] + 1:
-        return ("biggest", "its biggest day")
+        return ("biggest", "busiest day yet")
     return None
 
 
@@ -335,7 +336,7 @@ def line_candidates(x, f, idx, shot=False, raining=False):
 
 # A line may not repeat what the stamp already said.
 _CLASH = {"new": {"arrival", "unshot"}, "gap": {"regular", "arrival"}, "visit": {"arrival"},
-          "night": {"offhabit", "habit"}, "voice": set(),
+          "night": {"offhabit", "habit"}, "opener": set(),
           "biggest": set()}
 
 

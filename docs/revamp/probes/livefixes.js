@@ -27,8 +27,8 @@ const S = process.env.PROBE_SERVER || 'http://127.0.0.1:5055';
   stamps.forEach(s => console.log('  ' + s));
   // Labels: stamps are occasions from a fixed list; none of the retired
   // filler may appear anywhere on the stage (LIVE_LABELS_PLAN.md).
-  const OK = /^(new to the yard|first since [a-z]{3} \d{1,2}|second visit|third visit|night voice|first voice|its biggest day)$/i;
-  const BANNED = /checking in|unmistakable|most heard today|clear as a bell|days straight|call today|first of the day|up before the sun|after dark|dawn chorus|night caller/i;
+  const OK = /^(new to the yard|first since [a-z]{3} \d{1,2}|second visit|third visit|(early|late) for an? [a-z-]+|first bird of the day|busiest day yet)$/i;
+  const BANNED = /checking in|unmistakable|most heard today|clear as a bell|days straight|call today|up before the sun|after dark|dawn chorus|night caller/i;
   const lab = await p.evaluate(() => ({ stamps: [...document.querySelectorAll('#lv-stage .lv-stamp')].map(e => e.textContent.trim()),
     text: (document.getElementById('lv-stage') || document.body).innerText }));
   const badStamp = lab.stamps.filter(t => !OK.test(t)), banned = (lab.text.match(BANNED) || [])[0];

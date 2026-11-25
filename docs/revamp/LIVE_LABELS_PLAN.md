@@ -116,7 +116,7 @@ nothing true, no line.
   a new fact, add the fact server-side first.
 - **Banned outright:** checking in, unmistakable, most heard today, clear as
   a bell, N days straight, Nth call today (as a stamp), first call today,
-  first of the day, up before the sun, after dark, dawn chorus.
+  up before the sun, after dark, dawn chorus.
 
 ## How to build it
 
