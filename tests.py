@@ -1513,6 +1513,11 @@ class KindleScreenTestCase(GenericTestBase):
         self.assertNotIn("p000-0", keys)
         self.assertEqual(kindle.frame_for_key(shots, starred, "p000-0")["id"], "p000-0")
         self.assertIsNone(kindle.frame_for_key(shots, starred, "nope-0"))
+        # Just unstarred (the device's list is a few minutes stale): still renders.
+        self.assertEqual(kindle.frame_for_key(shots, set(), "p001-0")["id"], "p001-0")
+        # Videos never do.
+        clip = dict(self._shot("v", "2026-01-01T00:00:00+0000", n=1), image_videos=["https://x/v.mp4"])
+        self.assertIsNone(kindle.frame_for_key([clip], {"v-0"}, "v-0"))
 
     def test_pool_json_and_unknown_frame(self):
         with mock.patch.object(birds, "load_starred", return_value=set()):

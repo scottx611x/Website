@@ -54,11 +54,20 @@ def latest_species(shots, starred):
 
 
 def frame_for_key(shots, starred, key):
-    """The _pseudo_frame for one starred key, or None if it is not starred
-    (or is a video)."""
-    for k, shot, i in starred_frames(shots, starred):
-        if k == key:
-            return birds._pseudo_frame(shot, i)[0]
+    """The _pseudo_frame for one gallery still by its star key, or None if
+    there is no such still (or it is a video).
+
+    It need not be starred: the device's list can be a few minutes older than
+    the stars (kindle.json is cached), so a bird unstarred in that window
+    still renders instead of failing; the next sync drops it."""
+    for shot in shots:
+        images = shot.get("images") or []
+        videos = shot.get("image_videos") or []
+        for i in range(len(images)):
+            if birds.frame_star_key(shot, i) == key:
+                if i < len(videos) and videos[i]:
+                    return None
+                return birds._pseudo_frame(shot, i)[0]
     return None
 
 
