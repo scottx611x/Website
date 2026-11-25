@@ -159,6 +159,9 @@
     </script>
     {% endif %}
 
+    {# The ticker belongs to the birds: it sticks while you're in Birds and
+       scrolls away with that section, before Photography and Projects. #}
+    <div class="ticker-scope">
     {% if species %}
     <div class="ticker">
         <div class="ticker-track" style="animation-duration: {{ [species|length * 4, 40]|max }}s">
@@ -207,6 +210,7 @@
             <a class="more" href="/birds/stats">Stats</a>
         </div>
     </section>
+    </div>
 
     {% if wildlife %}
     <section class="strip editorial reveal">

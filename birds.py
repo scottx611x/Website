@@ -3505,7 +3505,7 @@ def _split_loc_date(text):
 _LOC_HINT = re.compile(
     r"\b(st|ave|rd|road|street|blvd|dr|drive|ln|lane|ct|way|bridge|beach|park|"
     r"square|wharf|harborwalk|harbor|dock|docks|refuge|sanctuary|wildlife|"
-    r"hill|pond|lake|forest|woodlot|reservoir|reservation|"
+    r"hill|hil|weir|pond|lake|forest|woodlot|reservoir|reservation|"
     r"memorial|school|sargent|cochichewick|shawsheen|ma|me|nh|fl|maine|florida|"
     r"boston|andover|ipswich|concord|lincoln|westborough|lewiston|litchfield|"
     r"york|cambridge|gloucester|dorchester|seaport|congress)\b\.?",

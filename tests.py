@@ -247,7 +247,7 @@ class BirdsTestCase(unittest.TestCase):
                          [("Painted Bunting", birds._OTHER_FAMILY)])
 
     def test_caption_notes_not_treated_as_birds(self):
-        for junk in ["Heron Rookery", "Captured by sara", "and parent", "Parents",
+        for junk in ["Heron Rookery", "Weir Hil", "Weir Hill", "Captured by sara", "and parent", "Parents",
                      "Blue Jay eating a Goldfish", "Not a North Andover bird"]:
             self.assertFalse(birds._looks_like_bird(junk), junk)
             self.assertEqual(birds._canon_species_list(junk), [], junk)
