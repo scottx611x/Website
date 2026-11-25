@@ -60,8 +60,10 @@ if ! fetch "$SITE/kindle.json" "$EXT/pool.json"; then
 fi
 # {"frames": ["123-0", "456-1", ...], "species": {...}} -> the frames list,
 # one key per line, newest first.
+# Keys are "<post id>-<frame>", and a post id can hold letters too
+# ("manual-e01d52b99b42-0"), so take each quoted item whole.
 tr -d '\n' < "$EXT/pool.json" | sed -n 's/.*"frames": *\[\([^]]*\)\].*/\1/p' |
-    tr -c '0-9-' '\n' | grep -E '^[0-9]+-[0-9]+$' | awk '!seen[$0]++' > "$KEYS.new"
+    tr ',' '\n' | tr -d ' "' | grep -E '^[A-Za-z0-9_.-]+-[0-9]+$' | awk '!seen[$0]++' > "$KEYS.new"
 n=$(wc -l < "$KEYS.new" | tr -d ' ')
 if [ "$n" -eq 0 ]; then
     log "empty bird list; nothing changed"
