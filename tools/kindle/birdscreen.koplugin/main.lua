@@ -24,6 +24,7 @@ long press along the top edge closes it.
 local DataStorage = require("datastorage")
 local Device = require("device")
 local Dispatcher = require("dispatcher")
+local Event = require("ui/event")
 local Geom = require("ui/geometry")
 local GestureRange = require("ui/gesturerange")
 local ImageWidget = require("ui/widget/imagewidget")
@@ -41,6 +42,9 @@ local DIR = DataStorage:getDataDir() .. "/birdscreen"
 local SYNC_SH = "/mnt/us/extensions/birdscreen/bin/sync.sh" -- also updates Amazon's sleep screen
 local MIN_INTERVAL = 3 * 3600 -- seconds between automatic syncs
 local EXIT_STRIP = 0.08 -- Bird mode closes on a long press in this top share of the screen
+-- KUAL > Bird screen > Bird mode leaves this file and starts KOReader; we then
+-- open Bird mode at once and quit KOReader when it closes, back to Amazon's home.
+local LAUNCH_FLAG = "/mnt/us/extensions/birdscreen/birdmode.launch"
 
 local Screen = Device.screen
 
@@ -196,6 +200,7 @@ BirdMode.onMultiSwipe = swallow
 function BirdMode:onCloseWidget()
     if self[1] then self[1]:free() end
     UIManager:setDirty(nil, "full")
+    if self.on_close then UIManager:nextTick(self.on_close) end
 end
 
 local BirdScreen = WidgetContainer:extend{
@@ -215,9 +220,17 @@ function BirdScreen:init()
         category = "none", event = "BirdMode", title = _("Bird mode"), general = true,
     })
     self.ui.menu:registerToMainMenu(self)
+    if lfs.attributes(LAUNCH_FLAG, "mode") == "file" then
+        os.remove(LAUNCH_FLAG)
+        UIManager:scheduleIn(0.5, function()
+            self:onBirdMode(function() UIManager:broadcastEvent(Event:new("Exit")) end)
+        end)
+    end
 end
 
-function BirdScreen:onBirdMode()
+-- on_close: run when Bird mode is closed (the KUAL launch quits KOReader).
+function BirdScreen:onBirdMode(on_close)
+    if type(on_close) ~= "function" then on_close = nil end -- from a gesture/event
     local files = {}
     for name in lfs.dir(DIR) do
         if name:match("%.png$") then table.insert(files, DIR .. "/" .. name) end
@@ -232,7 +245,7 @@ function BirdScreen:onBirdMode()
         math.randomseed(os.time())
         Deck.seeded = true
     end
-    UIManager:show(BirdMode:new{ files = files })
+    UIManager:show(BirdMode:new{ files = files, on_close = on_close })
     return true
 end
 

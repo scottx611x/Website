@@ -4,6 +4,7 @@
             "name": "Bird screen",
             "priority": 0,
             "items": [
+                {"name": "Bird mode", "priority": 0, "action": "/bin/sh", "params": "/mnt/us/extensions/birdscreen/bin/birdmode.sh", "status": false},
                 {"name": "Hourly sync: OFF (tap to turn on)", "priority": 1, "action": "/bin/sh", "params": "/mnt/us/extensions/birdscreen/bin/toggle.sh sync", "exitmenu": false, "refresh": true},
                 {"name": "Change bird while asleep: OFF (tap to turn on)", "priority": 2, "action": "/bin/sh", "params": "/mnt/us/extensions/birdscreen/bin/toggle.sh cycle", "exitmenu": false, "refresh": true},
                 {"name": "Sync now", "priority": 3, "action": "/bin/sh", "params": "/mnt/us/extensions/birdscreen/bin/sync.sh manual", "exitmenu": false}

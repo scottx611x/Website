@@ -44,6 +44,7 @@ write_menu() {
             "name": "Bird screen",
             "priority": 0,
             "items": [
+                {"name": "Bird mode", "priority": 0, "action": "/bin/sh", "params": "$EXT/bin/birdmode.sh", "status": false},
                 {"name": "$sync_label", "priority": 1, "action": "/bin/sh", "params": "$EXT/bin/toggle.sh sync", "exitmenu": false, "refresh": true},
                 {"name": "$cycle_label", "priority": 2, "action": "/bin/sh", "params": "$EXT/bin/toggle.sh cycle", "exitmenu": false, "refresh": true},
                 {"name": "Sync now", "priority": 3, "action": "/bin/sh", "params": "$EXT/bin/sync.sh manual", "exitmenu": false}
