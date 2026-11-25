@@ -35,6 +35,13 @@ random_bird() {
 
 case "$1" in
 run)
+    # Plugging into a computer unmounts /mnt/us, and the Kindle kills every
+    # process with a file open there, which included this script. Run from a
+    # copy in /tmp so the loop survives a USB session.
+    RUNCOPY=/tmp/birdscreen-cycle.sh
+    if [ "$0" != "$RUNCOPY" ]; then
+        cp -f "$0" "$RUNCOPY" && cd / && exec /bin/sh "$RUNCOPY" run
+    fi
     echo $$ > "$PID"
     rm -f "$FIFO"
     mkfifo "$FIFO" || exit 1

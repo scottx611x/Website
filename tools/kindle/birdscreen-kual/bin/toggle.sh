@@ -14,7 +14,7 @@ EXT=$US/extensions/birdscreen
 CRON=${BIRDSCREEN_CRON:-/etc/crontab/root}
 SYNC_LINE="17 * * * * /bin/sh $EXT/bin/sync.sh # birdscreen-sync"
 # The cycler is a background process; cron restarts it after a reboot.
-CYCLE_LINE="*/5 * * * * /bin/sh $EXT/bin/cycle.sh ensure # birdscreen-cycle"
+CYCLE_LINE="* * * * * /bin/sh $EXT/bin/cycle.sh ensure # birdscreen-cycle"
 
 say() {
     if [ -x "$US/koreader/fbink" ]; then
