@@ -1,11 +1,10 @@
 .PHONY: ci test run hooks pull-curations push-curations wildlife deploy
 
-## deploy: stamp version.txt with HEAD (busts the 1-year asset cache) + zappa update.
+## deploy: package from a clean production venv, stamp version.txt, ship it.
 ## Always deploy with this, never bare `zappa update` — zappa zeroes file mtimes in
 ## the package, so version.txt is the ONLY thing that rotates the css/js cache key.
-## deploy: package from a clean production venv and ship it
 #
-# NOT from .venv. Zappa packages whatever virtualenv it is run from, and the
+# Build NOT from .venv. Zappa packages whatever virtualenv it is run from, and the
 # dev venv produced a zip with werkzeug MISSING — the Lambda then died at
 # import with "No module named 'werkzeug'" and the site 502'd. (Rolling back
 # was worse: the previous Lambda version was old enough to contain Python 2.7

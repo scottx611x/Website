@@ -21,6 +21,6 @@ Everything below the closing `---` is the post body, written in Markdown
 
 1. Add a new `.md` file here.
 2. Commit it.
-3. `zappa update production`.
+3. `make deploy`.
 
 That's it — no database, no admin login.

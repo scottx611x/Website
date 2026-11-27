@@ -932,32 +932,6 @@ def start_ordered(shots, tokens):
     return front + rest
 
 
-def filter_shots(shots, bird=None, family=None, area=None, ooa_only=()):
-    """Whole posts that contain at least one frame matching ALL active filters.
-    Used by curate mode, which edits whole-post cards (not exploded frames)."""
-    bird_set = {b.strip().lower() for b in (bird or "").split(",") if b.strip()}
-    fam = (family or "").strip()
-    want_elsewhere = area in ("elsewhere", "away")
-    has_area = area in ("local", "elsewhere", "away")
-    ooa_lower = {n.lower() for n in ooa_only}
-    out = []
-    for shot in shots:
-        for i in range(len(shot.get("images") or [])):
-            _, canons = _pseudo_frame(shot, i)
-            names = [c[0].lower() for c in canons]
-            if not names:
-                continue
-            if bird_set and bird_set.isdisjoint(names):
-                continue
-            if fam and not any(c[1] == fam for c in canons):
-                continue
-            if has_area and (all(nm in ooa_lower for nm in names) != want_elsewhere):
-                continue
-            out.append(shot)
-            break
-    return out
-
-
 def resolve_species(query, groups):
     """Snap a typed species query to a real species name (exact -> substring ->
     fuzzy), so the filter box tolerates partial entries and small typos."""
@@ -3462,24 +3436,6 @@ def _clean_location(text):
     return text[:80] or None
 
 
-def _blocks(caption):
-    """Caption split into blocks of consecutive non-empty, non-hashtag lines."""
-    blocks, current = [], []
-    for line in (caption or "").splitlines():
-        stripped = line.strip()
-        if not stripped or stripped.startswith("#"):
-            if current:
-                blocks.append(current)
-                current = []
-            if stripped.startswith("#"):
-                break
-            continue
-        current.append(stripped)
-    if current:
-        blocks.append(current)
-    return blocks
-
-
 def _split_loc_date(text):
     """Pull a trailing/embedded date out of an inline location string.
 
@@ -3584,11 +3540,6 @@ def _species_pairs(caption):
             # else: a note line -> ignore
     flush(None, None)
     return [(sp, loc, dt) for sp, loc, dt in triples if sp]
-
-
-def _species_lines(caption):
-    """Just the species names for a post (used by the ticker)."""
-    return [sp for sp, _, _ in _species_pairs(caption)]
 
 
 def _guess_species(caption):

@@ -1,6 +1,7 @@
 # Open asks — live site
 
-Status: A1, A3, A7 shipped to master in 497c032 (NOT yet deployed).
+Status (2026-11-27): every A item has shipped and is live. Still open: the
+Lightroom re-export (B2, B3) and the unposted `birbs` archive (C3).
 
 Persisted at Scott's request (2026-10-10): *"record and persist all asks in this
 chat and do not miss anything."* Tick items only when verified on the LIVE site.
@@ -48,16 +49,16 @@ actual behaviour live, not just a 200.
       the `area=local` link ("123 species here"). Keep the `area=elsewhere`
       ("outside North Andover ⚠") link; that one flags travel birds and earns
       its place. *(Confirmed 2026-10-10.)*
-- [ ] **A4. Photography gets the same gallery.** Same sorting + viewing
+- [x] **A4. Photography gets the same gallery.** SHIPPED (cad047a). Same sorting + viewing
       controls as /birds. **Bigger than it looks:** templates/photography.html
       is a standalone 249-line grid with tag chips and its own lightbox — it
       does not use _field.html at all. Needs the field + view menu ported, and
       the field's data shape adapted (photos carry title/species/date/tags,
       not species/family/post id).
-- [ ] **A5. Facelift /birds/stats.** Long-standing: Scott has rejected several
+- [x] **A5. Facelift /birds/stats.** SHIPPED 2026-11-13 (docs/revamp/STATS_PLAN.md). Long-standing: Scott has rejected several
       attempts (act cards, dashboard). See docs/revamp/OVERNIGHT.md "Rejected
       outright" before starting.
-- [ ] **A6. Facelift /birds/live.** Same history — "The Chorus" was rejected.
+- [x] **A6. Facelift /birds/live.** SHIPPED 2026-11-13/14 (docs/revamp/LIVE_PLAN.md, LIVE_STAGE_PLAN.md). Same history — "The Chorus" was rejected.
 - [x] **A8. The home mosaic's SHAPE must survive the click into the gallery.**
       Done 2026-10-11. A `?start=` arrival now lands in the GRID (the field's
       canvas is fixed to the viewport and cannot carry an opening block) with

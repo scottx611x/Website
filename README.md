@@ -8,9 +8,10 @@ Lambda with [Zappa](https://github.com/zappa/Zappa).
 
 | Path | What |
 |------|------|
-| `/` | Home, rendered over a live rotating animated background (collision / tilt-shift / voronoi) |
+| `/` | Home: bird mosaic, ticker, photography and projects |
 | `/blog`, `/blog/<slug>` | Markdown blog — posts live in `posts/` (see `posts/README.md`) |
-| `/birds` | Top bird shots from [@birdsofnorthandover](https://www.instagram.com/birdsofnorthandover/), ranked by likes |
+| `/birds` | The bird gallery, from [@birdsofnorthandover](https://www.instagram.com/birdsofnorthandover/) |
+| `/birds/live`, `/birds/live/log`, `/birds/stats`, `/birds/map` | The yard's sound station (`docs/sound-station.md`), stats and map |
 | `/photography` | Other curated galleries (see `static/img/photography/README.md`) |
 | `/projects` | Highlighted builds + link to GitHub (see `static/PROJECTS.md`) |
 | `/archive`, `/archive/<effect>` | The original site, untouched |
@@ -31,7 +32,7 @@ Also served at **`birds.scott-ouellette.com`** via host-based routing.
 python -m venv .venv && source .venv/bin/activate
 pip install -r requirements-dev.txt
 python -m pytest tests.py          # tests
-python -m flask --app index run    # http://127.0.0.1:5000
+make run                           # http://127.0.0.1:5055
 ```
 
 ## CI (local, containerized via Earthly)
@@ -56,15 +57,13 @@ Instagram credentials are needed to run.
 - **Blog post:** add a Markdown file to `posts/` and commit (`posts/README.md`).
 - **Background photo:** drop it in `static/img/backgrounds/` and list it in that
   folder's `manifest.json`.
-- **Photography:** add to `static/img/photography/` + its `manifest.json`.
+- **Photography:** drop files in `wildlife_incoming/<tag>/`, then `make wildlife` (see `static/img/photography/README.md`).
 - **Project highlight:** edit `static/projects.json`.
 
 ## Deploy
 
 ```bash
-zappa update production
-# one-time, for the birds subdomain:
-zappa certify production   # + a Route 53 record for birds.scott-ouellette.com
+make deploy    # never a bare `zappa update`; see the Makefile and RELEASE.md
 ```
 
 The bird gallery refreshes daily via the scheduled `birds.instagram_sync` event

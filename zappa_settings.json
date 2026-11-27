@@ -25,6 +25,13 @@
             ".venv",
             ".venv/*"
         ],
+        "exclude_glob": [
+            "docs",
+            "tools",
+            "sideyard_zero",
+            ".claude",
+            ".githooks"
+        ],
         "timeout_seconds": 300,
         "memory_size": 2048,
         "aws_region": "us-east-1",

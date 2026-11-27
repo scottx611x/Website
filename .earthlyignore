@@ -5,3 +5,9 @@ __pycache__
 .pytest_cache
 .coverage
 .ig_token
+.deploy-venv
+.claude
+wildlife_incoming
+birds_incoming
+manual_imports
+*.zip
