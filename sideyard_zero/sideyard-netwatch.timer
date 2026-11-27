@@ -1,0 +1,10 @@
+[Unit]
+Description=Side Yard Zero network check every minute
+
+[Timer]
+OnBootSec=3min
+OnUnitActiveSec=60
+AccuracySec=10
+
+[Install]
+WantedBy=timers.target

@@ -1,0 +1,7 @@
+[Unit]
+Description=Side Yard Zero: recover the network if it drops
+
+[Service]
+Type=oneshot
+Nice=10
+ExecStart=/usr/local/bin/sideyard-netwatch.sh
