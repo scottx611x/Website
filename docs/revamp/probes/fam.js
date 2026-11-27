@@ -1,5 +1,9 @@
 const {chromium} = require(process.env.SP + '/node_modules/playwright-core');
-const EXE = process.env.HOME + '/Library/Caches/ms-playwright/chromium_headless_shell-1223/chrome-headless-shell-mac-arm64/chrome-headless-shell';
+const SRV = process.env.PROBE_SERVER || 'http://127.0.0.1:5055';
+const fs = require('fs');
+const dir = process.env.HOME + '/Library/Caches/ms-playwright';
+const shell = fs.readdirSync(dir).filter(d => d.startsWith('chromium_headless_shell-')).sort().pop();
+const EXE = `${dir}/${shell}/chrome-headless-shell-mac-arm64/chrome-headless-shell`;
 const openOne = async (p, h) => {
   for (let y = 300; y < h - 80; y += 60) {
     await p.mouse.click(700, y); await p.waitForTimeout(1600);
@@ -10,13 +14,13 @@ const openOne = async (p, h) => {
 (async () => {
   const b = await chromium.launch({ executablePath: EXE });
   const c = await b.newContext({ viewport: { width: 1440, height: 860 }, deviceScaleFactor: 2 });
-  await c.addCookies([{ name: 'curate', value: '0', url: 'http://127.0.0.1:5055' }]);
+  await c.addCookies([{ name: 'curate', value: '0', url: SRV }]);
   for (const [label, q] of [['family', '?family=Pigeons+%26+Doves'],
                             ['one species', '?bird=Barred+Owl'],
                             ['unfiltered', '']]) {
     const p = await c.newPage();
     const errs = []; p.on('pageerror', e => errs.push(String(e).slice(0, 90)));
-    await p.goto('http://127.0.0.1:5055/birds' + q, { waitUntil: 'networkidle' });
+    await p.goto(SRV + '/birds' + q, { waitUntil: 'networkidle' });
     await p.waitForTimeout(1800);
     if (!await openOne(p, 860)) { console.log('  ' + label + ': could not open'); await p.close(); continue; }
     await p.waitForTimeout(2500);

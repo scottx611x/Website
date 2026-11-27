@@ -1,15 +1,19 @@
 const {chromium} = require(process.env.SP + '/node_modules/playwright-core');
-const EXE = process.env.HOME + '/Library/Caches/ms-playwright/chromium_headless_shell-1223/chrome-headless-shell-mac-arm64/chrome-headless-shell';
+const SRV = process.env.PROBE_SERVER || 'http://127.0.0.1:5055';
+const fs = require('fs');
+const dir = process.env.HOME + '/Library/Caches/ms-playwright';
+const shell = fs.readdirSync(dir).filter(d => d.startsWith('chromium_headless_shell-')).sort().pop();
+const EXE = `${dir}/${shell}/chrome-headless-shell-mac-arm64/chrome-headless-shell`;
 /* Walks every text node on a page and reports anything under 3:1 against its
    own painted backdrop. Catches an accent that works on one ground and
    vanishes on the other — the exact failure mode of a two-ground palette. */
 (async () => {
   const b = await chromium.launch({ executablePath: EXE });
   const c = await b.newContext({ viewport: { width: 1440, height: 900 } });
-  await c.addCookies([{ name: 'curate', value: '0', url: 'http://127.0.0.1:5055' }]);
+  await c.addCookies([{ name: 'curate', value: '0', url: SRV }]);
   for (const url of ['/', '/birds?view=grid', '/birds/stats', '/birds/live', '/photography', '/projects']) {
     const p = await c.newPage();
-    await p.goto('http://127.0.0.1:5055' + url, { waitUntil: 'networkidle' });
+    await p.goto(SRV + url, { waitUntil: 'networkidle' });
     await p.waitForTimeout(2200);
     const bad = await p.evaluate(() => {
       const L = c => { const m = (c||'').match(/[\d.]+/g); if (!m) return null;

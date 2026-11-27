@@ -49,8 +49,9 @@ async function one(b, w, h, mobile, bird, shotName, noon) {
   // Daytime pass: the night state dims the photo, which would flatter the
   // contrast. Noon on the station's own day (so nothing reads as stale).
   if (noon) await p.clock.setFixedTime(noon);
-  await p.goto(BASE + '/birds/live?stage=1', { waitUntil: 'networkidle' });
-  await p.waitForTimeout(2200);   // photo settle + word animation
+  // not networkidle: the page polls, so under load it may never go quiet
+  await p.goto(BASE + '/birds/live?stage=1', { waitUntil: 'load' });
+  await p.waitForTimeout(3000);   // photo settle + word animation
   const m = await p.evaluate(() => {
     const st = document.getElementById('lv-stage').getBoundingClientRect();
     const nm = document.querySelector('#lv-hero .lv-nm');

@@ -45,4 +45,6 @@ if ! curl -fsS -o /dev/null --max-time 5 "$SERVER/birds" 2>/dev/null; then
 fi
 
 name="$1"; shift
-SP="$RUNTIME" node "$HERE/$name.js" "$@"
+# Screenshots go to $OUT. Unset, a probe writing to ${OUT}/x.png made a
+# folder called "undefined" in the repo.
+SP="$RUNTIME" PROBE_SERVER="$SERVER" OUT="${OUT:-/tmp}" node "$HERE/$name.js" "$@"

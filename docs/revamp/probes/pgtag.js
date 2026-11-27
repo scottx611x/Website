@@ -1,7 +1,11 @@
 const {chromium} = require(process.env.SP + '/node_modules/playwright-core');
-const EXE = process.env.HOME + '/Library/Caches/ms-playwright/chromium_headless_shell-1223/chrome-headless-shell-mac-arm64/chrome-headless-shell';
+const SRV = process.env.PROBE_SERVER || 'http://127.0.0.1:5055';
+const fs = require('fs');
+const dir = process.env.HOME + '/Library/Caches/ms-playwright';
+const shell = fs.readdirSync(dir).filter(d => d.startsWith('chromium_headless_shell-')).sort().pop();
+const EXE = `${dir}/${shell}/chrome-headless-shell-mac-arm64/chrome-headless-shell`;
 // /photography?tag=sadie: the detail view walks every Sadie photo; the panel follows the subject.
-const S = process.env.PROBE_SERVER || 'http://127.0.0.1:5055';
+const S = process.env.PROBE_SERVER || SRV;
 (async () => {
   const b = await chromium.launch({ executablePath: EXE });
   const ctx = await b.newContext({ viewport: { width: 412, height: 915 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true });
@@ -9,7 +13,7 @@ const S = process.env.PROBE_SERVER || 'http://127.0.0.1:5055';
   const st = () => p.evaluate(() => ({ title: document.getElementById('bf-otitle').textContent, count: document.getElementById('bf-ocount').textContent.split('  ·  ')[0],
     strip: document.querySelectorAll('#bf-ostrip img').length, hash: location.hash, photos: (document.querySelector('#bf-ofacts dd') || {}).textContent }));
   for (const tag of [process.env.TAG || 'sadie', '']) {
-    await p.goto(S + '/photography' + (tag ? '?tag=' + tag : ''), { waitUntil: 'load' }); await p.waitForTimeout(1500);
+    await p.goto(S + '/photography?sort=newest' + (tag ? '&tag=' + tag : ''), { waitUntil: 'load' }); await p.waitForTimeout(1500);
     await p.locator('#pg-grid .shot').nth(2).click(); await p.waitForTimeout(1200);
     const a = await st(); const seen = new Set([a.title]);
     for (let i = 0; i < 12; i++) { await p.keyboard.press('ArrowRight'); await p.waitForTimeout(250); seen.add((await st()).title); }

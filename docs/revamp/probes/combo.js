@@ -1,5 +1,9 @@
 const {chromium} = require(process.env.SP + '/node_modules/playwright-core');
-const EXE = process.env.HOME + '/Library/Caches/ms-playwright/chromium_headless_shell-1223/chrome-headless-shell-mac-arm64/chrome-headless-shell';
+const SRV = process.env.PROBE_SERVER || 'http://127.0.0.1:5055';
+const fs = require('fs');
+const dir = process.env.HOME + '/Library/Caches/ms-playwright';
+const shell = fs.readdirSync(dir).filter(d => d.startsWith('chromium_headless_shell-')).sort().pop();
+const EXE = `${dir}/${shell}/chrome-headless-shell-mac-arm64/chrome-headless-shell`;
 const rows = p => p.evaluate(() => [...document.querySelectorAll('.bc-opt')].map(o => ({
   name: o.querySelector('.bc-name').textContent,
   fam: o.querySelector('.bc-name').classList.contains('is-fam'),
@@ -7,10 +11,10 @@ const rows = p => p.evaluate(() => [...document.querySelectorAll('.bc-opt')].map
 (async () => {
   const b = await chromium.launch({ executablePath: EXE });
   const c = await b.newContext({ viewport: { width: 1440, height: 860 }, deviceScaleFactor: 2 });
-  await c.addCookies([{ name: 'curate', value: '0', url: 'http://127.0.0.1:5055' }]);
+  await c.addCookies([{ name: 'curate', value: '0', url: SRV }]);
   const p = await c.newPage();
   const errs = []; p.on('pageerror', e => errs.push(String(e).slice(0, 100)));
-  await p.goto('http://127.0.0.1:5055/birds', { waitUntil: 'networkidle' });
+  await p.goto(SRV + '/birds', { waitUntil: 'networkidle' });
   await p.waitForTimeout(1500);
 
   await p.click('#speciesSearch'); await p.waitForTimeout(400);
@@ -31,7 +35,7 @@ const rows = p => p.evaluate(() => [...document.querySelectorAll('.bc-opt')].map
   console.log('  keyboard: highlighted "%s" -> %s', (onRow || '').trim(), new URL(p.url()).search);
 
   // mouse pick of a family
-  await p.goto('http://127.0.0.1:5055/birds', { waitUntil: 'networkidle' });
+  await p.goto(SRV + '/birds', { waitUntil: 'networkidle' });
   await p.waitForTimeout(1200);
   await p.click('#speciesSearch'); await p.fill('#speciesSearch', 'woodp'); await p.waitForTimeout(400);
   await p.screenshot({ path: process.env.SP + '/combo.png', clip: { x: 900, y: 60, width: 540, height: 460 } });

@@ -1,8 +1,12 @@
 const {chromium} = require(process.env.SP + '/node_modules/playwright-core');
-const EXE = process.env.HOME + '/Library/Caches/ms-playwright/chromium_headless_shell-1223/chrome-headless-shell-mac-arm64/chrome-headless-shell';
+const SRV = process.env.PROBE_SERVER || 'http://127.0.0.1:5055';
+const fs = require('fs');
+const dir = process.env.HOME + '/Library/Caches/ms-playwright';
+const shell = fs.readdirSync(dir).filter(d => d.startsWith('chromium_headless_shell-')).sort().pop();
+const EXE = `${dir}/${shell}/chrome-headless-shell-mac-arm64/chrome-headless-shell`;
 // Live stage: is the hero photo cropped around the bird? Prints the aim and
 // whether the focus point lands inside the stage, for each reel bird tapped.
-const S = process.env.PROBE_SERVER || 'http://127.0.0.1:5055';
+const S = process.env.PROBE_SERVER || SRV;
 (async () => {
   const b = await chromium.launch({ executablePath: EXE });
   const W = +(process.env.W || 412), H = +(process.env.H || 915);

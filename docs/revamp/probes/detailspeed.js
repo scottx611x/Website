@@ -1,10 +1,14 @@
 const {chromium} = require(process.env.SP + '/node_modules/playwright-core');
-const EXE = process.env.HOME + '/Library/Caches/ms-playwright/chromium_headless_shell-1223/chrome-headless-shell-mac-arm64/chrome-headless-shell';
+const SRV = process.env.PROBE_SERVER || 'http://127.0.0.1:5055';
+const fs = require('fs');
+const dir = process.env.HOME + '/Library/Caches/ms-playwright';
+const shell = fs.readdirSync(dir).filter(d => d.startsWith('chromium_headless_shell-')).sort().pop();
+const EXE = `${dir}/${shell}/chrome-headless-shell-mac-arm64/chrome-headless-shell`;
 // Bird detail overlay speed, phone profile (DETAIL_SPEED_PLAN.md).
 // firstPaint: anything on the stage; stageShown: the full web copy (or a
 // playable video). Strip numbers count only the filmstrip's own thumbnails,
 // not the field's tiles loading behind the overlay.
-const S = process.env.PROBE_SERVER || 'http://127.0.0.1:5055';
+const S = process.env.PROBE_SERVER || SRV;
 (async () => {
   const b = await chromium.launch({ executablePath: EXE });
   for (const slug of ['barred-owl', 'red-tailed-hawk', 'blue-jay']) {

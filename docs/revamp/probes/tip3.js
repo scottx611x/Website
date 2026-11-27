@@ -1,13 +1,17 @@
 const {chromium} = require(process.env.SP + '/node_modules/playwright-core');
-const EXE = process.env.HOME + '/Library/Caches/ms-playwright/chromium_headless_shell-1223/chrome-headless-shell-mac-arm64/chrome-headless-shell';
+const SRV = process.env.PROBE_SERVER || 'http://127.0.0.1:5055';
+const fs = require('fs');
+const dir = process.env.HOME + '/Library/Caches/ms-playwright';
+const shell = fs.readdirSync(dir).filter(d => d.startsWith('chromium_headless_shell-')).sort().pop();
+const EXE = `${dir}/${shell}/chrome-headless-shell-mac-arm64/chrome-headless-shell`;
 (async () => {
   const b = await chromium.launch({ executablePath: EXE });
   for (const [w, zoom] of [[1440, '-3'], [1440, '0'], [1440, '3'], [390, '0'], [390, '-3']]) {
     const c = await b.newContext({ viewport: { width: w, height: 900 }, deviceScaleFactor: 2, isMobile: w < 700, hasTouch: w < 700 });
-    await c.addCookies([{ name: 'curate', value: '0', url: 'http://127.0.0.1:5055' }]);
+    await c.addCookies([{ name: 'curate', value: '0', url: SRV }]);
     const p = await c.newPage();
     await p.addInitScript(z => { try { localStorage.setItem('birdsThumbZoom', z); } catch (e) {} }, zoom);
-    await p.goto('http://127.0.0.1:5055/birds?area=elsewhere', { waitUntil: 'networkidle' });
+    await p.goto(SRV + '/birds?area=elsewhere&sort=recent', { waitUntil: 'load' });
     await p.waitForTimeout(1800);
     // force it visible the way focus does, and measure the real painted box
     await p.addStyleTag({ content: '.away-badge::after{opacity:1!important;transform:none!important}' });

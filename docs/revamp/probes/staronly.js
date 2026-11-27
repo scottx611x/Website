@@ -8,7 +8,10 @@
  *   4. a bird with NO starred frame shows whole rather than an empty modal
  */
 const {chromium} = require(process.env.SP + '/node_modules/playwright-core');
-const EXE = process.env.HOME + '/Library/Caches/ms-playwright/chromium_headless_shell-1223/chrome-headless-shell-mac-arm64/chrome-headless-shell';
+const fs = require('fs');
+const dir = process.env.HOME + '/Library/Caches/ms-playwright';
+const shell = fs.readdirSync(dir).filter(d => d.startsWith('chromium_headless_shell-')).sort().pop();
+const EXE = `${dir}/${shell}/chrome-headless-shell-mac-arm64/chrome-headless-shell`;
 const BASE = process.env.PROBE_SERVER || 'http://127.0.0.1:5055';
 
 const SLUG = process.env.SLUG || 'barred-owl';

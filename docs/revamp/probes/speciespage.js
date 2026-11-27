@@ -1,7 +1,11 @@
 const {chromium} = require(process.env.SP + '/node_modules/playwright-core');
-const EXE = process.env.HOME + '/Library/Caches/ms-playwright/chromium_headless_shell-1223/chrome-headless-shell-mac-arm64/chrome-headless-shell';
+const SRV = process.env.PROBE_SERVER || 'http://127.0.0.1:5055';
+const fs = require('fs');
+const dir = process.env.HOME + '/Library/Caches/ms-playwright';
+const shell = fs.readdirSync(dir).filter(d => d.startsWith('chromium_headless_shell-')).sort().pop();
+const EXE = `${dir}/${shell}/chrome-headless-shell-mac-arm64/chrome-headless-shell`;
 // Species page weight and load time, phone profile (DETAIL_SPEED_PLAN.md phase 4).
-const S = process.env.PROBE_SERVER || 'http://127.0.0.1:5055';
+const S = process.env.PROBE_SERVER || SRV;
 (async () => {
   const b = await chromium.launch({ executablePath: EXE });
   for (const slug of (process.env.SLUGS || 'barred-owl,red-tailed-hawk').split(',')) {

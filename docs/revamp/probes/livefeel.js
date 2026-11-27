@@ -5,11 +5,12 @@
 // changes at least 2s apart, in the order heard; with reduced motion the same
 // birds arrive with no animation running.
 const {chromium} = require(process.env.SP + '/node_modules/playwright-core');
+const SRV = process.env.PROBE_SERVER || 'http://127.0.0.1:5055';
 const fs = require('fs');
 const dir = process.env.HOME + '/Library/Caches/ms-playwright';
 const shell = fs.readdirSync(dir).filter(d => d.startsWith('chromium_headless_shell-')).sort().pop();
 const EXE = `${dir}/${shell}/chrome-headless-shell-mac-arm64/chrome-headless-shell`;
-const BASE = 'http://127.0.0.1:5055';
+const BASE = SRV;
 const OUT = process.argv[2] || '/tmp';
 
 async function layout(b, w, h, mobile) {

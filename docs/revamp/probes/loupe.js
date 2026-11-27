@@ -2,6 +2,7 @@
 // held drag must not page frames; a quick swipe still must.
 //   docs/revamp/probes/run.sh loupe [slug]
 const {chromium} = require(process.env.SP + '/node_modules/playwright-core');
+const SRV = process.env.PROBE_SERVER || 'http://127.0.0.1:5055';
 const fs = require('fs');
 const dir = process.env.HOME + '/Library/Caches/ms-playwright';
 const shell = fs.readdirSync(dir).filter(d => d.startsWith('chromium_headless_shell-')).sort().pop();
@@ -16,11 +17,23 @@ const OUT = process.env.OUT || '/tmp';
   const p = await c.newPage();
   const errs = [];
   p.on('pageerror', e => errs.push(e.message));
-  await p.goto('http://127.0.0.1:5055/birds#bird/' + slug, { waitUntil: 'networkidle' });
+  await p.goto(SRV + '/birds#bird/' + slug, { waitUntil: 'load' });
+  // The loupe is for stills: step past any video frames the bird opens on.
+  await p.waitForSelector('#bf-over.open');
+  for (let i = 0; i < 15 && await p.evaluate(() => document.getElementById('bf-oimg').hidden); i++) {
+    await p.keyboard.press('ArrowRight'); await p.waitForTimeout(500);
+  }
   await p.waitForFunction(() => {
     const i = document.getElementById('bf-oimg');
     return i && i.complete && i.naturalWidth > 500;
-  }, null, { timeout: 20000 });
+  }, null, { timeout: 45000 }).catch(async e => {
+    console.log('stage never sharpened:', JSON.stringify(await p.evaluate(() => {
+      const i = document.getElementById('bf-oimg');
+      return { hidden: i.hidden, src: (i.currentSrc || '').slice(-50), nw: i.naturalWidth, complete: i.complete,
+               count: document.getElementById('bf-ocount').textContent };
+    })));
+    throw e;
+  });
   await p.waitForTimeout(400);
   const cdp = await c.newCDPSession(p);
   const box = await p.evaluate(() => {
