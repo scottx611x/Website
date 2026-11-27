@@ -15,10 +15,12 @@ find "$SPOOL" -maxdepth 1 -name 'seg_*.aac' -mmin +0.6 -exec mv -t "$SPOOL/ready
 # ship oldest first, resumable; longer timeout tolerates a slow blip
 # birdpi.local needs mDNS, which sometimes fails to resolve; birdpi's eth0 is
 # pinned to 10.0.0.207, so fall back to the address rather than skip a ship.
+# A miss on the name goes to its own log: /tmp/sideyard-ship.log growing is
+# what Grafana's "Zero struggling" alert watches, and it should mean both failed.
 ship() {
   rsync -a --partial --partial-dir=.rsync-partial \
     --remove-source-files --timeout=90 \
     -e "ssh -i /home/scott/.ssh/sideyard_ship -o ConnectTimeout=10 -o BatchMode=yes -o ServerAliveInterval=5 -o ServerAliveCountMax=4 -o StrictHostKeyChecking=accept-new" \
-    "$SPOOL/ready/" "scott@$1:/home/scott/sideyard/incoming/" 2>>/tmp/sideyard-ship.log
+    "$SPOOL/ready/" "scott@$1:/home/scott/sideyard/incoming/" 2>>"$2"
 }
-ship birdpi.local || ship 10.0.0.207
+ship birdpi.local /tmp/sideyard-ship-mdns.log || ship 10.0.0.207 /tmp/sideyard-ship.log
