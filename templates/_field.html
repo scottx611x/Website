@@ -1122,12 +1122,31 @@ html.bf-zooming.bf-zoom-in::view-transition-new(root){animation-name:bfZoomInNew
   }
 
   // load/error don't bubble, so listen in the capture phase: one listener for
-  // every tile, recycled or not. An error stops the shimmer too.
+  // every tile, recycled or not. A failed thumb is retried before the shimmer
+  // stops: on a phone a request drops now and then (every thumb is on S3 and
+  // fine), and marking the first failure done left a blank tile for good.
+  var RETRY_MS = [800, 2500, 6000];
   ["load", "error"].forEach(function (ev) {
     plane.addEventListener(ev, function (e) {
       var tl = e.target.closest && e.target.closest(".bf-tile");
+      var im = e.target;
+      if (ev === "error" && im.tagName === "IMG" && tl) {
+        var n = +(im.dataset.retry || 0);
+        if (!im.dataset.orig) im.dataset.orig = im.getAttribute("src") || "";
+        var base = im.dataset.orig;
+        if (base && n < RETRY_MS.length) {
+          im.dataset.retry = n + 1;
+          setTimeout(function () {
+            // culled meanwhile: drop() already let go of it
+            if (!im.isConnected || !im.getAttribute("src")) return;
+            // a fresh query string, so nothing replays the failed response
+            im.src = base + (base.indexOf("?") < 0 ? "?" : "&") + "r=" + (n + 1);
+          }, RETRY_MS[n]);
+          return;
+        }
+      }
       if (tl) tl.classList.add("ld");
-      if (ev === "load" && e.target.tagName === "IMG") SEEN[e.target.getAttribute("src")] = 1;
+      if (ev === "load" && e.target.tagName === "IMG") SEEN[e.target.dataset.orig || e.target.getAttribute("src")] = 1;
     }, true);
   });
   /* Thumbs come from S3 over HTTP/1.1, six downloads at a time per host.
