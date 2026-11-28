@@ -1506,8 +1506,11 @@ class WildlifeTitleTestCase(unittest.TestCase):
         with tempfile.TemporaryDirectory() as d:
             os.mkdir(os.path.join(d, "Mammal"))
             Image.new("RGB", (40, 30), "red").save(os.path.join(d, "Mammal", "red-fox.jpg"))
+            # Sorts first in the same folder: its tag must not leak onto the fox.
+            Image.new("RGB", (40, 30), "blue").save(os.path.join(d, "Mammal", "coyote.jpg"))
             with open(os.path.join(d, "_meta.json"), "w") as fh:
-                _json.dump({"red-fox.jpg": {"species": "Red Fox (Vulpes vulpes)", "tags": ["Wildlife"]}}, fh)
+                _json.dump({"red-fox.jpg": {"species": "Red Fox (Vulpes vulpes)", "tags": ["Wildlife"]},
+                            "coyote.jpg": {"tags": ["coyote"]}}, fh)
             repo = os.path.join(d, "manifest.json")
             fake = FakeS3()
             with mock.patch.dict(os.environ, {"BIRDS_USE_S3": "1"}), \
@@ -1519,11 +1522,13 @@ class WildlifeTitleTestCase(unittest.TestCase):
                 new = wildlife.publish(d)
                 again = wildlife.publish(d)
             live = _json.loads(store[key])
-            self.assertEqual(len(new), 1)
+            self.assertEqual(len(new), 2)
             self.assertEqual(again, [])                      # idempotent
-            self.assertEqual([e["title"] for e in live], ["Red Fox", "Edited"])
-            self.assertEqual(live[0]["species"], "Red Fox (Vulpes vulpes)")
-            self.assertEqual(live[0]["tags"], ["mammal", "wildlife"])
+            by = {e["title"]: e for e in live}
+            self.assertEqual(sorted(by), ["Coyote", "Edited", "Red Fox"])
+            self.assertEqual(by["Red Fox"]["species"], "Red Fox (Vulpes vulpes)")
+            self.assertEqual(by["Red Fox"]["tags"], ["mammal", "wildlife"])
+            self.assertEqual(by["Coyote"]["tags"], ["mammal", "coyote"])
             with open(repo) as fh:
                 self.assertEqual(_json.load(fh), live)      # repo mirror refreshed
 

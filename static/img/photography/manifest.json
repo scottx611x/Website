@@ -1,5 +1,95 @@
 [
   {
+    "id": "de8d5f97398a",
+    "image": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/images/de8d5f97398a.jpg",
+    "thumb": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/thumbs/de8d5f97398a.jpg",
+    "title": "White Tailed Deer",
+    "species": "White-tailed Deer (Odocoileus virginianus)",
+    "location": "",
+    "date": "2026-11-15",
+    "tags": [
+      "mammal",
+      "deer"
+    ],
+    "w": 2048,
+    "h": 1365
+  },
+  {
+    "id": "94765bcaaeb7",
+    "image": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/images/94765bcaaeb7.jpg",
+    "thumb": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/thumbs/94765bcaaeb7.jpg",
+    "title": "White Tailed Deer",
+    "species": "White-tailed Deer (Odocoileus virginianus)",
+    "location": "",
+    "date": "2026-11-15",
+    "tags": [
+      "mammal",
+      "deer"
+    ],
+    "w": 2048,
+    "h": 1365
+  },
+  {
+    "id": "b523576976a8",
+    "image": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/images/b523576976a8.jpg",
+    "thumb": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/thumbs/b523576976a8.jpg",
+    "title": "White Tailed Deer",
+    "species": "White-tailed Deer (Odocoileus virginianus)",
+    "location": "",
+    "date": "2026-11-15",
+    "tags": [
+      "mammal",
+      "deer"
+    ],
+    "w": 2048,
+    "h": 1365
+  },
+  {
+    "id": "30609a742da0",
+    "image": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/images/30609a742da0.jpg",
+    "thumb": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/thumbs/30609a742da0.jpg",
+    "title": "Coyote",
+    "species": "Coyote (Canis latrans)",
+    "location": "",
+    "date": "2026-11-11",
+    "tags": [
+      "mammal",
+      "coyote"
+    ],
+    "w": 2048,
+    "h": 1365
+  },
+  {
+    "id": "909d8f8a78e3",
+    "image": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/images/909d8f8a78e3.jpg",
+    "thumb": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/thumbs/909d8f8a78e3.jpg",
+    "title": "Coyote",
+    "species": "Coyote (Canis latrans)",
+    "location": "",
+    "date": "2026-11-11",
+    "tags": [
+      "mammal",
+      "coyote"
+    ],
+    "w": 2048,
+    "h": 1365
+  },
+  {
+    "id": "89f442bc01fb",
+    "image": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/images/89f442bc01fb.jpg",
+    "thumb": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/thumbs/89f442bc01fb.jpg",
+    "title": "Autumn Meadowhawk",
+    "species": "Autumn Meadowhawk (Sympetrum vicinum)",
+    "location": "",
+    "date": "2026-11-08",
+    "tags": [
+      "insect",
+      "dragonfly"
+    ],
+    "w": 2048,
+    "h": 1365
+  },
+  {
     "id": "925c0fd661b3",
     "image": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/images/925c0fd661b3.jpg",
     "thumb": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/thumbs/925c0fd661b3.jpg",
@@ -24,6 +114,21 @@
     "date": "2026-10-24",
     "tags": [
       "flora"
+    ],
+    "w": 2048,
+    "h": 1365
+  },
+  {
+    "id": "14ff56cd575d",
+    "image": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/images/14ff56cd575d.jpg",
+    "thumb": "https://birds-scott-ouellette.s3.amazonaws.com/wildlife/thumbs/14ff56cd575d.jpg",
+    "title": "White Tailed Deer",
+    "species": "White-tailed Deer (Odocoileus virginianus)",
+    "location": "",
+    "date": "2026-10-21",
+    "tags": [
+      "mammal",
+      "deer"
     ],
     "w": 2048,
     "h": 1365
@@ -186,7 +291,8 @@
       "dragonfly"
     ],
     "w": 2048,
-    "h": 1365
+    "h": 1365,
+    "hidden": true
   },
   {
     "id": "8dd556d19002",
@@ -216,7 +322,8 @@
       "dragonfly"
     ],
     "w": 2048,
-    "h": 1365
+    "h": 1365,
+    "hidden": true
   },
   {
     "id": "42bbe7f694df",
@@ -231,7 +338,8 @@
       "dragonfly"
     ],
     "w": 2048,
-    "h": 1365
+    "h": 1365,
+    "hidden": true
   },
   {
     "id": "a0423f8d0b91",
@@ -261,7 +369,8 @@
       "dragonfly"
     ],
     "w": 2048,
-    "h": 1365
+    "h": 1365,
+    "hidden": true
   },
   {
     "id": "65dab45bddd0",
@@ -291,7 +400,8 @@
       "dragonfly"
     ],
     "w": 2048,
-    "h": 1365
+    "h": 1365,
+    "hidden": true
   },
   {
     "id": "69ed8455e5f9",
@@ -306,7 +416,8 @@
       "dragonfly"
     ],
     "w": 2048,
-    "h": 1365
+    "h": 1365,
+    "hidden": true
   },
   {
     "id": "d4517723ee55",

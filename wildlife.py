@@ -112,7 +112,7 @@ def process(src_dir, manifest=None, write_manifest=True):
         top = os.path.abspath(root) == os.path.abspath(src_dir)
         # A subfolder name seeds a starting tag (e.g. Mammals/ -> "mammals");
         # loose files at the top start untagged. Refine tags in the curate editor.
-        tags = [] if top else [os.path.basename(root).lower()]
+        folder_tags = [] if top else [os.path.basename(root).lower()]
         for name in sorted(files):
             if os.path.splitext(name)[1].lower() not in EXTS:
                 continue
@@ -155,7 +155,9 @@ def process(src_dir, manifest=None, write_manifest=True):
                 "species": "",   # optional — set in the curate editor
                 "location": "",  # optional — set in the curate editor
                 "date": date,
-                "tags": tags,
+                # A fresh list per photo: one shared list let a _meta tag on
+                # one file (coyote) leak onto every later file in the folder.
+                "tags": list(folder_tags),
                 "w": dims[0], "h": dims[1],
             }
             m = meta.get(name) or {}
@@ -170,7 +172,7 @@ def process(src_dir, manifest=None, write_manifest=True):
             new.append(entry)
             by_id[img_id] = entry
             added += 1
-            print("  + %s%s" % (entry["title"], (" [%s]" % ",".join(tags)) if tags else ""))
+            print("  + %s%s" % (entry["title"], (" [%s]" % ",".join(entry["tags"])) if entry["tags"] else ""))
 
     manifest.sort(key=lambda e: e.get("date", ""), reverse=True)  # newest first
     if not write_manifest:
