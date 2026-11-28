@@ -191,6 +191,17 @@ class BlogTestCase(unittest.TestCase):
 
 
 class BirdsTestCase(unittest.TestCase):
+    def test_species_covers_single_only_skips_shared_frames(self):
+        shots = [{"weight": 1, "species": "Blue Jay",
+                  "images": ["a.jpg", "b.jpg"],
+                  "image_species": ["Blue Jay", "Blue Jay & Tufted Titmouse"]}]
+        every = birds.species_covers(shots)
+        self.assertEqual(every["Blue Jay"], ["a.jpg", "b.jpg"])
+        self.assertEqual(every["Tufted Titmouse"], ["b.jpg"])
+        single = birds.species_covers(shots, single_only=True)
+        self.assertEqual(single["Blue Jay"], ["a.jpg"])
+        self.assertNotIn("Tufted Titmouse", single)
+
     def test_load_gallery_returns_list_without_network(self):
         self.assertIsInstance(birds.load_gallery(), list)
 

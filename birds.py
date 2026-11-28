@@ -2627,10 +2627,14 @@ def _load_species_clips_uncached():
         return {}
 
 
-def species_covers(shots):
+def species_covers(shots, single_only=False):
     """Every grid thumbnail per canonical species (best-weight first, de-duped) —
     the pool the /birds/live viewer draws from when it hears a species you've also
-    photographed, so it can vary the photo instead of always showing one."""
+    photographed, so it can vary the photo instead of always showing one.
+
+    ``single_only`` skips frames labelled with more than one species: on Live
+    the photo stands for the bird you just heard, and a shared frame may not
+    even show it clearly."""
     pool = {}
     for s in shots:
         isp = s.get("image_species") or []
@@ -2639,7 +2643,10 @@ def species_covers(shots):
         for i in range(len(imgs)):
             raw = isp[i] if i < len(isp) and isp[i] else s.get("species")
             url = thumb_url(imgs[i])
-            for name, _ in _canon_species_list(raw):
+            names = _canon_species_list(raw)
+            if single_only and len(names) > 1:
+                continue
+            for name, _ in names:
                 pool.setdefault(name, []).append((w, url))
     out = {}
     for name, items in pool.items():

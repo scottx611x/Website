@@ -1452,7 +1452,8 @@ def _live_view():
     shots = birds.load_gallery(shuffle=False)
     groups = birds.species_groups(shots)
     photographed = {n for _, sp in groups for n, _ in sp}
-    covers = birds.species_covers(shots)
+    # One bird per photo: a shared frame never stands in for the bird heard.
+    covers = birds.species_covers(shots, single_only=True)
     # Seed the photo pick by species + day: every instance of a species on the
     # screen (hero, feed rows, wall) shows the SAME shot, it's stable across the
     # 60s polls, and it rotates to a different shot day to day.
