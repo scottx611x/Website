@@ -1,4 +1,4 @@
-.PHONY: ci test run hooks pull-curations push-curations wildlife deploy
+.PHONY: ci test run hooks pull-curations push-curations wildlife wildlife-publish deploy
 
 ## deploy: package from a clean production venv, stamp version.txt, ship it.
 ## Always deploy with this, never bare `zappa update` — zappa zeroes file mtimes in
@@ -55,6 +55,12 @@ push-curations:
 ## wildlife: publish non-bird photos from wildlife_incoming/<Category>/ to S3 + /photography
 wildlife:
 	@BIRDS_S3_BUCKET=birds-scott-ouellette python wildlife.py $(DIR)
+
+## wildlife-publish: upload DIR's photos AND add them to the live /photography store
+## (merges into S3 birds/photos.json; no deploy needed). Optional DIR/_meta.json:
+## {"<file>": {"title", "species", "location", "tags"}}.
+wildlife-publish:
+	@BIRDS_USE_S3=1 BIRDS_S3_BUCKET=birds-scott-ouellette $(or $(wildcard .venv/bin/python),python3) wildlife.py --publish $(DIR)
 
 ## hooks: install the git pre-push hook that runs `earthly +test`
 hooks:

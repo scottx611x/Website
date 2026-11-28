@@ -80,7 +80,21 @@ def _load_manifest():
         return []
 
 
-def process(src_dir):
+def _load_meta(src_dir):
+    """Optional ``_meta.json`` beside the photos: {"<file name>": {"title",
+    "species", "location", "tags"}}. Lets an automated publisher hand over what
+    it already knows instead of leaving it all for the curate editor."""
+    try:
+        with open(os.path.join(src_dir, "_meta.json")) as fh:
+            meta = json.load(fh)
+        return meta if isinstance(meta, dict) else {}
+    except (OSError, ValueError):
+        return {}
+
+
+def process(src_dir, manifest=None, write_manifest=True):
+    """Upload every new photo under ``src_dir`` and add a manifest entry for it.
+    Returns (manifest, entries added)."""
     import boto3
     from PIL import Image
 
@@ -88,8 +102,10 @@ def process(src_dir):
         sys.exit("No such folder: %s\nMake %s/<Category>/ and drop photos in it."
                  % (src_dir, src_dir))
     s3 = boto3.client("s3")
-    manifest = _load_manifest()
+    manifest = _load_manifest() if manifest is None else manifest
     by_id = {e["id"]: e for e in manifest}
+    meta = _load_meta(src_dir)
+    new = []
     added = skipped = 0
 
     for root, _dirs, files in os.walk(src_dir):
@@ -142,12 +158,24 @@ def process(src_dir):
                 "tags": tags,
                 "w": dims[0], "h": dims[1],
             }
+            m = meta.get(name) or {}
+            for k in ("title", "species", "location"):
+                if isinstance(m.get(k), str) and m[k].strip():
+                    entry[k] = m[k].strip()
+            for t in m.get("tags") or []:
+                t = str(t).strip().lower()
+                if t and t not in entry["tags"]:
+                    entry["tags"].append(t)
             manifest.append(entry)
+            new.append(entry)
             by_id[img_id] = entry
             added += 1
             print("  + %s%s" % (entry["title"], (" [%s]" % ",".join(tags)) if tags else ""))
 
     manifest.sort(key=lambda e: e.get("date", ""), reverse=True)  # newest first
+    if not write_manifest:
+        print("\n%d added, %d already published." % (added, skipped))
+        return manifest, new
     with open(MANIFEST, "w") as fh:
         json.dump(manifest, fh, indent=2)
     print("\n%d added, %d already published. Manifest: %s"
@@ -159,7 +187,67 @@ def process(src_dir):
         print("gallery reads the S3 curation store (birds/photos.json), which")
         print("wins over the deployed repo copy; the new entries must be")
         print("appended there or they will not appear on the live site.")
+        print("`make wildlife-publish` does both.")
+    return manifest, new
+
+
+def _read_live_store():
+    """The live gallery's store (S3 birds/photos.json), read fresh. Exits rather
+    than guess: writing back a store we could not read would drop photos."""
+    import birds
+
+    key = birds._CURATION_S3[birds.PHOTOS_FILE]
+    try:
+        body = birds._s3().get_object(Bucket=birds.S3_BUCKET, Key=key)["Body"].read()
+        data = json.loads(body)
+    except Exception as exc:  # noqa: BLE001
+        sys.exit("Could not read s3://%s/%s (%s); nothing published."
+                 % (birds.S3_BUCKET, key, exc))
+    if not isinstance(data, list):
+        sys.exit("s3://%s/%s is not a list; nothing published." % (birds.S3_BUCKET, key))
+    return data
+
+
+def publish(src_dir):
+    """Upload + add to the LIVE gallery in one step.
+
+    Merges into the S3 store rather than pushing the repo copy over it, so
+    edits made in curate mode since the last pull survive (`make
+    push-curations` would overwrite every curation file). The store is re-read
+    just before the write so a curate edit made during the uploads is kept
+    too. No deploy is needed: the site reads the store, and the write bumps
+    the curation stamp. The repo copy is refreshed to match, for committing.
+    """
+    import birds
+
+    if not os.environ.get("BIRDS_USE_S3"):
+        sys.exit("BIRDS_USE_S3=1 is required (use `make wildlife-publish`).")
+    _, new = process(src_dir, manifest=_read_live_store(), write_manifest=False)
+    if not new:
+        print("Nothing new to publish.")
+        return []
+    live = _read_live_store()
+    have = {e.get("id") for e in live}
+    merged = live + [e for e in new if e["id"] not in have]
+    merged.sort(key=lambda e: e.get("date", ""), reverse=True)
+    birds._save_curation(birds.PHOTOS_FILE, merged)
+    # _save_curation falls back to a local write if S3 refuses; check it landed.
+    check = {e.get("id") for e in _read_live_store()}
+    missing = [e["id"] for e in new if e["id"] not in check]
+    if missing:
+        sys.exit("S3 store write did not take; %d photos missing: %s"
+                 % (len(missing), ", ".join(missing)))
+    birds._atomic_write_json(birds.PHOTOS_FILE, merged)
+    print("Live: %d new photos in s3://%s/%s (repo copy refreshed: %s)."
+          % (len(new), birds.S3_BUCKET, birds._CURATION_S3[birds.PHOTOS_FILE],
+             os.path.relpath(MANIFEST, HERE)))
+    return new
 
 
 if __name__ == "__main__":
-    process(sys.argv[1] if len(sys.argv) > 1 else DEFAULT_DIR)
+    args = [a for a in sys.argv[1:] if a != "--publish"]
+    src = args[0] if args else DEFAULT_DIR
+    if "--publish" in sys.argv[1:]:
+        publish(src)
+    else:
+        process(src)

@@ -16,7 +16,12 @@ Each photo carries: `title`, optional `species`, optional `location`, `date`
 2. `make wildlife` — re-encodes each photo **EXIF-stripped** (no leaked GPS),
    resizes, uploads full + thumbnail to `s3://…/wildlife/`, and appends a stub
    entry here (title + date + seed tag). Idempotent; never clobbers your edits.
-3. `make push-curations` seeds the manifest to S3, then deploy.
+3. Or do both steps at once: `make wildlife-publish DIR=<folder>` uploads and
+   merges the new entries into the live store (S3 `birds/photos.json`). It's live
+   within a minute, with no deploy. An optional `<folder>/_meta.json`
+   (`{"<file>": {"title", "species", "location", "tags"}}`) fills in what's
+   already known. Don't use `make push-curations` for this: it overwrites
+   every live curation file with the repo copy.
 
 ## Editing metadata (species / location / tags)
 

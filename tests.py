@@ -1484,6 +1484,49 @@ class ShareTestCase(GenericTestBase):
 
 
 class WildlifeTitleTestCase(unittest.TestCase):
+    def test_wildlife_publish_merges_into_live_store(self):
+        import io, json as _json, os, tempfile
+        from PIL import Image
+        import wildlife
+        key = birds._CURATION_S3[birds.PHOTOS_FILE]
+        store = {key: _json.dumps([{"id": "old", "title": "Old", "date": "2026-01-01", "tags": []}]).encode()}
+        reads = {"n": 0}
+
+        class FakeS3:
+            def get_object(self, Bucket, Key):
+                reads["n"] += 1
+                if reads["n"] == 2:   # a curate edit lands while photos upload
+                    live = _json.loads(store[Key]); live[0]["title"] = "Edited"
+                    store[Key] = _json.dumps(live).encode()
+                return {"Body": io.BytesIO(store[Key]), "ETag": "e"}
+            def put_object(self, Bucket, Key, Body, **kw):
+                store[Key] = Body if isinstance(Body, bytes) else Body.encode()
+                return {"ETag": "e2"}
+
+        with tempfile.TemporaryDirectory() as d:
+            os.mkdir(os.path.join(d, "Mammal"))
+            Image.new("RGB", (40, 30), "red").save(os.path.join(d, "Mammal", "red-fox.jpg"))
+            with open(os.path.join(d, "_meta.json"), "w") as fh:
+                _json.dump({"red-fox.jpg": {"species": "Red Fox (Vulpes vulpes)", "tags": ["Wildlife"]}}, fh)
+            repo = os.path.join(d, "manifest.json")
+            fake = FakeS3()
+            with mock.patch.dict(os.environ, {"BIRDS_USE_S3": "1"}), \
+                 mock.patch.object(birds, "_s3", return_value=fake), \
+                 mock.patch("boto3.client", return_value=fake), \
+                 mock.patch.object(birds, "PHOTOS_FILE", repo), \
+                 mock.patch.dict(birds._CURATION_S3, {repo: key}), \
+                 mock.patch.object(birds, "_bump_curation_stamp"):
+                new = wildlife.publish(d)
+                again = wildlife.publish(d)
+            live = _json.loads(store[key])
+            self.assertEqual(len(new), 1)
+            self.assertEqual(again, [])                      # idempotent
+            self.assertEqual([e["title"] for e in live], ["Red Fox", "Edited"])
+            self.assertEqual(live[0]["species"], "Red Fox (Vulpes vulpes)")
+            self.assertEqual(live[0]["tags"], ["mammal", "wildlife"])
+            with open(repo) as fh:
+                self.assertEqual(_json.load(fh), live)      # repo mirror refreshed
+
     def test_duplicate_number_suffix_is_not_part_of_the_title(self):
         import wildlife
         self.assertEqual(wildlife._title_from_filename("eastern-cottontail-8.jpg"), "Eastern Cottontail")
